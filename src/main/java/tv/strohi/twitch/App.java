@@ -1,6 +1,8 @@
 package tv.strohi.twitch;
 
 import tv.strohi.twitch.chatbot.TwitchChatBot;
+import tv.strohi.twitch.utils.LevenshteinDistanceCalculator;
+import tv.strohi.twitch.utils.MessageEscaper;
 
 public class App {
 

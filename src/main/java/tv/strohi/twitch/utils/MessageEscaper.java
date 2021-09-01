@@ -1,4 +1,4 @@
-package tv.strohi.twitch;
+package tv.strohi.twitch.utils;
 
 import org.apache.commons.text.StringEscapeUtils;
 import tv.strohi.twitch.model.NormalizeResult;
@@ -49,7 +49,7 @@ public class MessageEscaper {
         String[] asciiChars = getCharactersOfCharset();
         List<String[]> yetUnknownReplacements = new ArrayList<>();
 
-        InputStream in = MessageEscaper.class.getResourceAsStream("/confusables-short.txt");
+        InputStream in = MessageEscaper.class.getResourceAsStream("/confusables/confusables-short.txt");
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
         List<String> lines = new ArrayList<>();
