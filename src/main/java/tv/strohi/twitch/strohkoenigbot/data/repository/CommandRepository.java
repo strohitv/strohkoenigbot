@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface CommandRepository extends CrudRepository<Command, Long> {
-    List<Command> findAll(Sort sort);
+	List<Command> findAll(Sort sort);
 }

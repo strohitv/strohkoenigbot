@@ -11,17 +11,17 @@ import java.util.List;
 
 @Component
 public class CustomCommandManageAction extends ChatAction {
-    private CommandRepository repository;
+	private CommandRepository repository;
 
-    @Autowired
-    public void setRepository(CommandRepository repository) {
-        this.repository = repository;
-    }
+	@Autowired
+	public void setRepository(CommandRepository repository) {
+		this.repository = repository;
+	}
 
-    @Override
-    public void run() {
-        List<Command> commands = repository.findAll(Sort.unsorted());
+	@Override
+	public void run() {
+		List<Command> commands = repository.findAll(Sort.unsorted());
 
-        System.out.println(commands);
-    }
+		System.out.println(commands);
+	}
 }

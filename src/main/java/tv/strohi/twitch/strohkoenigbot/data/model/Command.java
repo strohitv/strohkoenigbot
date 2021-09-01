@@ -6,56 +6,56 @@ import javax.persistence.*;
 @Table(name = "command")
 @Cacheable(false)
 public class Command {
-    @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+	@Id
+	@Column(name = "id")
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private long id;
 
-    @Column(name = "command")
-    private String command;
+	@Column(name = "command")
+	private String command;
 
-    @Column(name = "role")
-    private String role;
+	@Column(name = "role")
+	private String role;
 
-    public Command() {
-    }
+	public Command() {
+	}
 
-    public Command(long id, String command, String role) {
-        this.id = id;
-        this.command = command;
-        this.role = role;
-    }
+	public Command(long id, String command, String role) {
+		this.id = id;
+		this.command = command;
+		this.role = role;
+	}
 
-    public long getId() {
-        return id;
-    }
+	public long getId() {
+		return id;
+	}
 
-    public void setId(long id) {
-        this.id = id;
-    }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public String getCommand() {
-        return command;
-    }
+	public String getCommand() {
+		return command;
+	}
 
-    public void setCommand(String command) {
-        this.command = command;
-    }
+	public void setCommand(String command) {
+		this.command = command;
+	}
 
-    public String getRole() {
-        return role;
-    }
+	public String getRole() {
+		return role;
+	}
 
-    public void setRole(String role) {
-        this.role = role;
-    }
+	public void setRole(String role) {
+		this.role = role;
+	}
 
-    @Override
-    public String toString() {
-        return "Command{" +
-                "id=" + id +
-                ", command='" + command + '\'' +
-                ", role='" + role + '\'' +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "Command{" +
+				"id=" + id +
+				", command='" + command + '\'' +
+				", role='" + role + '\'' +
+				'}';
+	}
 }
