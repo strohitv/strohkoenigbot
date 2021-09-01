@@ -8,17 +8,28 @@ import com.github.twitch4j.common.events.user.PrivateMessageEvent;
 import com.github.twitch4j.helix.domain.ChannelInformation;
 import com.github.twitch4j.helix.domain.GameList;
 import com.github.twitch4j.pubsub.events.FollowingEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.model.TwitchAuthData;
 
 import java.util.Collections;
+import java.util.List;
 
+@Component
 public class TwitchChatBot {
     private final TwitchAuthData authData = new TwitchAuthData();
     private TwitchClient botClient;
     private TwitchClient mainAccountClient;
+    private List<IChatAction> botActions;
 
     public TwitchClient getBotClient() {
         return botClient;
+    }
+
+    @Autowired
+    public void setBotActions(List<IChatAction> botActions) {
+        this.botActions = botActions;
     }
 
     public TwitchClient getMainAccountClient() {
@@ -26,6 +37,8 @@ public class TwitchChatBot {
     }
 
     public void initialize() {
+        System.out.println(botActions);
+
         OAuth2Credential botCredential = new OAuth2Credential("twitch", authData.getBotAuthToken());
         OAuth2Credential mainAccountCredential = new OAuth2Credential("twitch", authData.getMainAccountAuthToken());
 
