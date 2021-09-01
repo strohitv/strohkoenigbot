@@ -1,7 +1,6 @@
 package tv.strohi.twitch;
 
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,25 +11,40 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
+public class App {
     private final HashMap<String, String> replacementTable = new HashMap<>();
 
-    public static void main( String[] args )
-    {
+    public static void main(String[] args) {
         new App().run();
     }
 
     private void run() {
         buildCharacterReplacementTable();
+
+        String encoded = "Ｊ໐ᏳԌЕℜ";
+
+        StringBuilder builder = new StringBuilder();
+        for (char c : encoded.toCharArray()) {
+            String chString = Character.toString(c);
+            if (replacementTable.containsKey(chString)) {
+                builder.append(replacementTable.get(chString));
+            }
+        }
+
+
+        System.out.println(builder.toString());
         System.out.println("");
     }
 
-    private void buildCharacterReplacementTable(){
+    private String convertUnicodeToSurrogatePair(String str) {
+        int value = Integer.parseInt(str, 16);
+        int h = (value - 0x10000) / 0x400 + 0xD800;
+        int l = (value - 0x10000) % 0x400 + 0xDC00;
+
+        return String.format("\\u%s\\u%s", Integer.toString(h, 16), Integer.toString(l, 16));
+    }
+
+    private void buildCharacterReplacementTable() {
         String[] asciiChars = getCharactersOfCharset();
         List<String[]> yetUnknownReplacements = new ArrayList<>();
 
@@ -39,8 +53,8 @@ public class App
 
         List<String> lines = new ArrayList<>();
         try {
-            while(reader.ready()) {
-                lines.add(reader.readLine());
+            while (reader.ready()) {
+                lines.add(reader.readLine().replaceAll("\uFEFF", ""));
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -51,12 +65,12 @@ public class App
             String initialCharacter = getDecodedUtf8String(reps[0]);
             String replacementResult = getDecodedUtf8String(reps[1]).replace("(", "").replace(")", "");
 
-            if (replacementResult.chars().mapToObj(c -> new String(new char[] {(char)c}))
+            if (replacementResult.chars().mapToObj(c -> new String(new char[]{(char) c}))
                     .allMatch(str -> Arrays.asList(asciiChars).contains(str))) {
                 System.out.println("Add: " + initialCharacter + " -> " + replacementResult);
                 replacementTable.put(initialCharacter, replacementResult);
             } else {
-                yetUnknownReplacements.add(new String[] {initialCharacter, replacementResult});
+                yetUnknownReplacements.add(new String[]{initialCharacter, replacementResult});
             }
         }
 
@@ -75,46 +89,30 @@ public class App
                     happened++;
                 }
             }
-        } while(happened > 0);
+        } while (happened > 0);
 
         for (String[] unknown : yetUnknownReplacements) {
-            System.out.println("Add: " + unknown[0] + " -> " + unknown[1]);
+            System.out.println("Add remove: " + unknown[0] + " -> ");
             replacementTable.put(unknown[0], "");
         }
     }
 
     private String getDecodedUtf8String(String encoded) {
-        List<Byte> bytes = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
 
         String[] parts = encoded.split(" ");
         for (String part : parts) {
-            try {
-                String fixedpart = part.replaceAll("\uFEFF", "").trim();
-                if (fixedpart.length() % 2 != 0) {
-                    fixedpart = "0" + fixedpart;
-                }
-
-                byte[] decoded = Hex.decodeHex(fixedpart);
-                for (byte b : decoded) {
-                    bytes.add(b);
-                }
-            } catch (DecoderException e) {
-                e.printStackTrace();
+            String unicodeEscapeSequence;
+            if (part.trim().length() > 4) {
+                unicodeEscapeSequence = convertUnicodeToSurrogatePair(part.trim());
+            } else {
+                unicodeEscapeSequence = "\\u" + part.trim();
             }
+
+            builder.append(StringEscapeUtils.unescapeJava(unicodeEscapeSequence));
         }
 
-        while (bytes.size() > 0 && bytes.get(0) == 0) {
-            bytes.remove(0);
-        }
-
-        byte[] result = new byte[bytes.size()];
-        for (int i = 0; i < bytes.size(); i++) {
-            if (bytes.get(i) != 0) {
-                result[i] = bytes.get(i);
-            }
-        }
-
-        return new String(result, StandardCharsets.UTF_8);
+        return builder.toString();
     }
 
     private String[] getCharactersOfCharset() {
