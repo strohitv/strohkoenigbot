@@ -1,5 +1,7 @@
 package tv.strohi.twitch;
 
+import tv.strohi.twitch.chatbot.TwitchChatBot;
+
 public class App {
 
     public static void main(String[] args) {
@@ -7,6 +9,8 @@ public class App {
     }
 
     private void run() {
+        new TwitchChatBot().initialize();
+
         String badText = "Das hier ist äöüßÄÖÜẞ ein Ｊ໐ᏳԌЕℜ";
 
         System.out.println(badText);
