@@ -1,4 +1,4 @@
-package tv.strohi.twitch.chatbot;
+package tv.strohi.twitch.strohkoenigbot.chatbot;
 
 import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.philippheuer.events4j.api.domain.IDisposable;
@@ -8,7 +8,7 @@ import com.github.twitch4j.common.events.user.PrivateMessageEvent;
 import com.github.twitch4j.helix.domain.ChannelInformation;
 import com.github.twitch4j.helix.domain.GameList;
 import com.github.twitch4j.pubsub.events.FollowingEvent;
-import tv.strohi.twitch.model.TwitchAuthData;
+import tv.strohi.twitch.strohkoenigbot.model.TwitchAuthData;
 
 import java.util.Collections;
 

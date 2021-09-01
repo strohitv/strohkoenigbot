@@ -1,8 +1,8 @@
-package tv.strohi.twitch;
+package tv.strohi.twitch.strohkoenigbot;
 
-import tv.strohi.twitch.chatbot.TwitchChatBot;
-import tv.strohi.twitch.utils.LevenshteinDistanceCalculator;
-import tv.strohi.twitch.utils.MessageEscaper;
+import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
+import tv.strohi.twitch.strohkoenigbot.utils.LevenshteinDistanceCalculator;
+import tv.strohi.twitch.strohkoenigbot.utils.MessageEscaper;
 
 public class App {
 

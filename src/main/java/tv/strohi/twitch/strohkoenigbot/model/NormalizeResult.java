@@ -1,4 +1,4 @@
-package tv.strohi.twitch.model;
+package tv.strohi.twitch.strohkoenigbot.model;
 
 public class NormalizeResult {
     private final String original;

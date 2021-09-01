@@ -1,4 +1,4 @@
-package tv.strohi.twitch;
+package tv.strohi.twitch.strohkoenigbot;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

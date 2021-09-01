@@ -1,4 +1,4 @@
-package tv.strohi.twitch;
+package tv.strohi.twitch.strohkoenigbot;
 
 import static org.junit.Assert.assertTrue;
 

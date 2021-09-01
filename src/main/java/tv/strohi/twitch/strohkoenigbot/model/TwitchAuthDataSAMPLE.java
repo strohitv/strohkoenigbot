@@ -1,4 +1,4 @@
-package tv.strohi.twitch.model;
+package tv.strohi.twitch.strohkoenigbot.model;
 
 /**
  * This is a sample class to manage Twitch Auth data with.

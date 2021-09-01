@@ -1,4 +1,4 @@
-package tv.strohi.twitch.utils;
+package tv.strohi.twitch.strohkoenigbot.utils;
 
 import java.util.Arrays;
 

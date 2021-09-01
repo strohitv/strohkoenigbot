@@ -1,7 +1,7 @@
-package tv.strohi.twitch.utils;
+package tv.strohi.twitch.strohkoenigbot.utils;
 
 import org.apache.commons.text.StringEscapeUtils;
-import tv.strohi.twitch.model.NormalizeResult;
+import tv.strohi.twitch.strohkoenigbot.model.NormalizeResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
