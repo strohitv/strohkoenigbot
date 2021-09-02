@@ -1,100 +1,100 @@
 {
-	"databaseChangeLog": [
-		{
-			"changeSet": {
-				"id": "1",
-				"author": "strohkoenig",
-				"changes": [
-					{
-						"createTable": {
-							"tableName": "command",
-							"columns": [
-								{
-									"column": {
-										"name": "id",
-										"type": "int",
-										"autoIncrement": true,
-										"constraints": {
-											"primaryKey": true,
-											"nullable": false
-										}
-									}
-								},
-								{
-									"column": {
-										"name": "command",
-										"type": "varchar(100)",
-										"constraints": {
-											"nullable": false
-										}
-									}
-								},
-								{
-									"column": {
-										"name": "role",
-										"type": "varchar(100)",
-										"constraints": {
-											"nullable": false
-										}
-									}
-								}
-							]
-						}
-					},
-					{
-						"createTable": {
-							"tableName": "commandresponse",
-							"columns": [
-								{
-									"column": {
-										"name": "id",
-										"type": "int",
-										"autoIncrement": true,
-										"constraints": {
-											"primaryKey": true,
-											"nullable": false
-										}
-									}
-								},
-								{
-									"column": {
-										"name": "commandid",
-										"type": "int",
-										"constraints": {
-											"foreignKeyName": "fk_command_id",
-											"nullable": false
-										}
-									}
-								},
-								{
-									"column": {
-										"name": "response",
-										"type": "varchar(500)",
-										"constraints": {
-											"nullable": false
-										}
-									}
-								},
-								{
-									"column": {
-										"name": "delay",
-										"type": "int",
-										"constraints": {
-											"nullable": false
-										}
-									}
-								},
-								{
-									"column": {
-										"name": "name",
-										"type": "varchar(50)"
-									}
-								}
-							]
-						}
-					}
-				]
-			}
-		}
-	]
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "1",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "command",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "int",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "command",
+                    "type": "varchar(100)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "role",
+                    "type": "varchar(100)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createTable": {
+              "tableName": "commandresponse",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "int",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "commandid",
+                    "type": "int",
+                    "constraints": {
+                      "foreignKeyName": "fk_command_id",
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "response",
+                    "type": "varchar(500)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "delay",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
 }
