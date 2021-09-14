@@ -7,6 +7,7 @@ import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.common.events.user.PrivateMessageEvent;
 import com.github.twitch4j.helix.domain.ChannelInformation;
 import com.github.twitch4j.helix.domain.GameList;
+import com.github.twitch4j.helix.domain.User;
 import com.github.twitch4j.pubsub.events.FollowingEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -56,6 +57,9 @@ public class TwitchChatBot {
 				mainAccountClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
 			}
 
+			User something = mainAccountClient.getHelix().getUsers(authData.getMainAccountAuthToken(), null, null).execute().getUsers().get(0);
+			authData.setMainAccountChannelId(something.getId());
+
 			GameList games = mainAccountClient.getHelix().getGames(authData.getMainAccountAuthToken(), null, Collections.singletonList("Mario Kart 8")).execute();
 
 			ChannelInformation info = new ChannelInformation()
@@ -66,7 +70,7 @@ public class TwitchChatBot {
 						.withGameId(games.getGames().get(0).getId());
 			}
 
-			mainAccountClient.getHelix().updateChannelInformation(authData.getMainAccountAuthToken(), authData.getMainAccountChannelId(), info).execute();
+			// mainAccountClient.getHelix().updateChannelInformation(authData.getMainAccountAuthToken(), authData.getMainAccountChannelId(), info).execute();
 		}
 
 		if (botClient == null) {
@@ -105,7 +109,7 @@ public class TwitchChatBot {
 						.withGameId(games.getGames().get(0).getId());
 			}
 
-			botClient.getHelix().updateChannelInformation(authData.getMainAccountAuthToken(), authData.getMainAccountChannelId(), info).execute();
+			// botClient.getHelix().updateChannelInformation(authData.getMainAccountAuthToken(), authData.getMainAccountChannelId(), info).execute();
 		}
 	}
 
