@@ -2,16 +2,15 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.LoginResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Date;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
@@ -29,12 +28,7 @@ public class Authenticator {
 		String address = accountsHost + "/connect/1.0.0/api/session_token";
 		String body = String.format("client_id=%s&session_token_code=%s&session_token_code_verifier=%s", clientId, sessionTokenCode, sessionTokenCodeVerifier);
 
-		URI uri = null;
-		try {
-			uri = new URI(address);
-		} catch (URISyntaxException e) {
-			// this will never happen
-		}
+		URI uri = URI.create(address);
 
 		HttpRequest request = HttpRequest.newBuilder()
 				.POST(HttpRequest.BodyPublishers.ofString(body))
@@ -52,13 +46,12 @@ public class Authenticator {
 
 	public String getCookie(String sessionToken) {
 		String address = accountsHost + "/connect/1.0.0/api/token";
+		URI uri = URI.create(address);
 
 		String body = "";
-		URI uri = null;
 		try {
 			body = mapper.writeValueAsString(new GetTokenBody(sessionToken));
-			uri = new URI(address);
-		} catch (JsonProcessingException | URISyntaxException e) {
+		} catch (JsonProcessingException e) {
 			// will never happen
 			e.printStackTrace();
 		}
@@ -80,12 +73,7 @@ public class Authenticator {
 	public UserInfo getUserInfo(String accessToken) {
 		String address = "https://api.accounts.nintendo.com/2.0.0/users/me";
 
-		URI uri = null;
-		try {
-			uri = new URI(address);
-		} catch (URISyntaxException e) {
-			// will never happen
-		}
+		URI uri = URI.create(address);
 
 		HttpRequest request = HttpRequest.newBuilder()
 				.GET()
@@ -93,61 +81,48 @@ public class Authenticator {
 				.setHeader("User-Agent", "OnlineLounge/" + nsoapp_version + " NASDKAPI Android")
 				.setHeader("Accept-Language", "en-US")
 				.setHeader("Accept", "application/json")
-				.setHeader("Authorization",  String.format("Bearer %s", accessToken))
+				.setHeader("Authorization", String.format("Bearer %s", accessToken))
 				.setHeader("Accept-Encoding", "gzip")
 				.build();
 
 		return sendRequestAndParseGzippedJson(request, UserInfo.class);
 	}
 
-	public void getFToken(String accessToken) {
+	public LoginResult getFToken(String accessToken, int now) {
 		String guid = UUID.randomUUID().toString();
-		String now = new Date().toString();
 
-		String address = "https://api.accounts.nintendo.com/2.0.0/users/me";
+		String address = "https://flapg.com/ika2/api/login?public";
 
-		URI uri = null;
-		try {
-			uri = new URI(address);
-		} catch (URISyntaxException e) {
-			// will never happen
-		}
-
-		String hash = getS2SApiHash(accessToken, now);
+		URI uri = URI.create(address);
+		String hash = getS2SApiHash(accessToken, String.format("%d", now));
 
 		HttpRequest request = HttpRequest.newBuilder()
 				.GET()
 				.uri(uri)
 				.setHeader("x-token", accessToken)
-				.setHeader("x-time", now)
+				.setHeader("x-time", String.format("%d", now))
 				.setHeader("x-guid", guid)
-				.setHeader("x-hash",  hash)
+				.setHeader("x-hash", hash)
 				.setHeader("x-ver", "3")
 				.setHeader("x-iid", "nso")
 				.build();
 
-//		return sendRequestAndParseJson(request, UserInfo.class);
+		return sendRequestAndParseJson(request, LoginResult.class);
 	}
 
 	private String getS2SApiHash(String accessToken, String timestamp) {
 		String address = "https://elifessler.com/s2s/api/gen2";
 
-		URI uri = null;
-		try {
-			uri = new URI(address);
-		} catch (URISyntaxException e) {
-			// will never happen
-		}
+		URI uri = URI.create(address);
 
 		HttpRequest request = HttpRequest.newBuilder()
-				.POST(HttpRequest.BodyPublishers.ofString(String.format("{\"naIdToken\":\"%s\",\"timestamp\":\"%s\"", accessToken, timestamp)))
+				.POST(HttpRequest.BodyPublishers.ofString(String.format("naIdToken=%s&timestamp=%s", accessToken, timestamp)))
 				.uri(uri)
 				.setHeader("User-Agent", "splatnet2statink/1.5.12")
-				.setHeader("Accept", "application/json; charset=utf-8")
-				.setHeader("Content-Type", "application/json; charset=utf-8")
 				.build();
 
-		return sendRequestAndParseJson(request, String.class);
+		NaIdTokenResponse response = sendRequestAndParseJson(request, NaIdTokenResponse.class);
+		return response != null ? response.getHash() : "";
 	}
 
 	private <T> T sendRequestAndParseJson(HttpRequest request, Class<T> valueType) {
@@ -276,6 +251,44 @@ public class Authenticator {
 
 		public void setScope(String[] scope) {
 			this.scope = scope;
+		}
+	}
+
+	private static class NaIdTokenRequest {
+		private String naIdToken;
+		private String timestamp;
+
+		public NaIdTokenRequest(String naIdToken, String timestamp) {
+			this.naIdToken = naIdToken;
+			this.timestamp = timestamp;
+		}
+
+		public String getNaIdToken() {
+			return naIdToken;
+		}
+
+		public void setNaIdToken(String naIdToken) {
+			this.naIdToken = naIdToken;
+		}
+
+		public String getTimestamp() {
+			return timestamp;
+		}
+
+		public void setTimestamp(String timestamp) {
+			this.timestamp = timestamp;
+		}
+	}
+
+	private static class NaIdTokenResponse {
+		private String hash;
+
+		public String getHash() {
+			return hash;
+		}
+
+		public void setHash(String hash) {
+			this.hash = hash;
 		}
 	}
 }

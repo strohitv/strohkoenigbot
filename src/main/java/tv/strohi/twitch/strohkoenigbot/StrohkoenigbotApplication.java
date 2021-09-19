@@ -6,9 +6,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.AuthLinkCreator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.Authenticator;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.LoginResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
 
 import java.net.URI;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,10 +38,12 @@ public class StrohkoenigbotApplication {
 		String sessionTokenCode = map.get("session_token_code");
 		String sessionTokenCodeVerifier = map.get("state");
 
+		int now = (int) (new Date().getTime() / 1000);
 		Authenticator authenticator = new Authenticator();
 		String sessionToken = authenticator.getSessionToken("71b963c1b7b6d119", sessionTokenCode, params.getCodeVerifier());
 		String accessToken = authenticator.getCookie(sessionToken);
 		UserInfo userInfo = authenticator.getUserInfo(accessToken);
+		LoginResult result = authenticator.getFToken(accessToken, now);
 
 
 		SpringApplication.run(StrohkoenigbotApplication.class, args);
@@ -47,7 +51,7 @@ public class StrohkoenigbotApplication {
 
 	public static Map<String, String> getQueryMap(String query) {
 		String[] params = query.split("&");
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new HashMap<>();
 
 		for (String param : params) {
 			String name = param.split("=")[0];
