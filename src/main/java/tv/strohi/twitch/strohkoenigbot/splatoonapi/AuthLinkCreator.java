@@ -29,7 +29,7 @@ public class AuthLinkCreator {
 		}
 	}
 
-	private AuthParams generateAuthenticationParams() {
+	public AuthParams generateAuthenticationParams() {
 		String state = generateRandom(36);
 		String codeVerifier = generateRandom(32).replace("=", "");
 		String codeChallenge = calculateChallenge(codeVerifier).replace("=", "");
@@ -37,8 +37,7 @@ public class AuthLinkCreator {
 		return new AuthParams(state, codeVerifier, codeChallenge);
 	}
 
-	public URI buildAuthUrl() {
-		AuthParams params = generateAuthenticationParams();
+	public URI buildAuthUrl(AuthParams params) {
 		try {
 			return new URI(String.format("https://accounts.nintendo.com/connect/1.0.0/authorize?%s", params.getAuthStringParams()));
 		} catch (Exception e) {
@@ -47,7 +46,7 @@ public class AuthLinkCreator {
 		}
 	}
 
-	private static class AuthParams {
+	public static class AuthParams {
 		final String redirectUri = "npf71b963c1b7b6d119%3A%2F%2Fauth&client_id=71b963c1b7b6d119";
 		final String scope = "openid+user+user.birthday+user.mii+user.screenName";
 		final String responseType = "session_token_code";
@@ -57,6 +56,18 @@ public class AuthLinkCreator {
 		String state;
 		String codeVerifier;
 		String codeChallenge;
+
+		public String getState() {
+			return state;
+		}
+
+		public String getCodeVerifier() {
+			return codeVerifier;
+		}
+
+		public String getCodeChallenge() {
+			return codeChallenge;
+		}
 
 		public AuthParams(String state, String codeVerifier, String codeChallenge) {
 			this.state = state;

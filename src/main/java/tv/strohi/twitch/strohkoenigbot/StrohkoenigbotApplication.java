@@ -24,7 +24,9 @@ public class StrohkoenigbotApplication {
 	}
 
 	public static void main(String[] args) {
-		String authUrl = new AuthLinkCreator().buildAuthUrl().toString();
+		AuthLinkCreator linkCreator = new AuthLinkCreator();
+		AuthLinkCreator.AuthParams params = linkCreator.generateAuthenticationParams();
+		String authUrl = new AuthLinkCreator().buildAuthUrl(params).toString();
 		System.out.println(authUrl);
 
 		String redirectLink = "";
@@ -35,7 +37,7 @@ public class StrohkoenigbotApplication {
 		String sessionTokenCodeVerifier = map.get("state");
 
 		Authenticator authenticator = new Authenticator();
-		String sessionToken = authenticator.getSessionToken("71b963c1b7b6d119", sessionTokenCode, sessionTokenCodeVerifier);
+		String sessionToken = authenticator.getSessionToken("71b963c1b7b6d119", sessionTokenCode, params.getCodeVerifier());
 		String accessToken = authenticator.getCookie(sessionToken);
 		UserInfo userInfo = authenticator.getUserInfo(accessToken);
 
