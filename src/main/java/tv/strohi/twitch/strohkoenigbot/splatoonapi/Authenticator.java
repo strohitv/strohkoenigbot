@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,6 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Date;
 import java.util.UUID;
+import java.util.zip.GZIPInputStream;
 
 public class Authenticator {
 	private final String nsoapp_version = "1.12.0";
@@ -92,10 +94,10 @@ public class Authenticator {
 				.setHeader("Accept-Language", "en-US")
 				.setHeader("Accept", "application/json")
 				.setHeader("Authorization",  String.format("Bearer %s", accessToken))
-				.setHeader("Accept-Encoding", "gzip,deflate,br")
+				.setHeader("Accept-Encoding", "gzip")
 				.build();
 
-		return sendRequestAndParseJson(request, UserInfo.class);
+		return sendRequestAndParseGzippedJson(request, UserInfo.class);
 	}
 
 	public void getFToken(String accessToken) {
@@ -156,6 +158,28 @@ public class Authenticator {
 
 			if (response.statusCode() < 300) {
 				return mapper.readValue(response.body(), valueType);
+			}
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	private <T> T sendRequestAndParseGzippedJson(HttpRequest request, Class<T> valueType) {
+		try {
+			HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+			System.out.println(response);
+			System.out.println(new String(response.body()));
+
+			if (response.statusCode() < 300) {
+				String body = new String(response.body());
+
+				if (response.headers().map().containsKey("Content-Encoding") && !response.headers().map().get("Content-Encoding").isEmpty() && "gzip".equals(response.headers().map().get("Content-Encoding").get(0))) {
+					body = new String(new GZIPInputStream(new ByteArrayInputStream(response.body())).readAllBytes());
+				}
+
+				return mapper.readValue(body, valueType);
 			}
 		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
