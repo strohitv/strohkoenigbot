@@ -1,7 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.model;
 
 
-public class LoginResult {
+public class FParamLoginResult {
 	private FParamResult result;
 
 	public FParamResult getResult() {

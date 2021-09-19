@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.AuthLinkCreator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.Authenticator;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.LoginResult;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.FParamLoginResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
 
 import java.net.URI;
@@ -43,8 +43,9 @@ public class StrohkoenigbotApplication {
 		String sessionToken = authenticator.getSessionToken("71b963c1b7b6d119", sessionTokenCode, params.getCodeVerifier());
 		String accessToken = authenticator.getCookie(sessionToken);
 		UserInfo userInfo = authenticator.getUserInfo(accessToken);
-		LoginResult result = authenticator.getFToken(accessToken, now);
+		FParamLoginResult fToken = authenticator.getFToken(accessToken, now);
 
+		String nsoAccessToken = authenticator.doSplatoonAppLogin(userInfo, fToken);
 
 		SpringApplication.run(StrohkoenigbotApplication.class, args);
 	}

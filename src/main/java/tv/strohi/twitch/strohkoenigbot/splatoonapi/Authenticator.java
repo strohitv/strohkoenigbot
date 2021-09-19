@@ -2,7 +2,8 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.LoginResult;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.FParamLoginResult;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.NsoAppLoginData;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
 
 import java.io.ByteArrayInputStream;
@@ -88,7 +89,7 @@ public class Authenticator {
 		return sendRequestAndParseGzippedJson(request, UserInfo.class);
 	}
 
-	public LoginResult getFToken(String accessToken, int now) {
+	public FParamLoginResult getFToken(String accessToken, int now) {
 		String guid = UUID.randomUUID().toString();
 
 		String address = "https://flapg.com/ika2/api/login?public";
@@ -107,7 +108,44 @@ public class Authenticator {
 				.setHeader("x-iid", "nso")
 				.build();
 
-		return sendRequestAndParseJson(request, LoginResult.class);
+		return sendRequestAndParseJson(request, FParamLoginResult.class);
+	}
+
+	public String doSplatoonAppLogin(UserInfo userInfo, FParamLoginResult FParamLoginResult) {
+		String address = "https://api-lp1.znc.srv.nintendo.net/v1/Account/Login";
+
+		URI uri = URI.create(address);
+
+		String body = "";
+		try {
+			body = mapper.writeValueAsString(new AccountLoginBody(new LoginParameter(
+					FParamLoginResult.getResult().getF(),
+					FParamLoginResult.getResult().getP1(),
+					FParamLoginResult.getResult().getP2(),
+					FParamLoginResult.getResult().getP3(),
+					userInfo.getCountry(),
+					userInfo.getBirthday(),
+					userInfo.getLanguage()
+			)));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+
+		HttpRequest request = HttpRequest.newBuilder()
+				.POST(HttpRequest.BodyPublishers.ofString(body))
+				.uri(uri)
+				.setHeader("Accept-Language", "en-US")
+				.setHeader("User-Agent", "com.nintendo.znca/" + nsoapp_version + " (Android/7.1.2)")
+				.setHeader("Accept", "application/json")
+				.setHeader("X-ProductVersion", nsoapp_version)
+				.setHeader("Content-Type", "application/json; charset=utf-8")
+				.setHeader("Authorization", "Bearer")
+				.setHeader("X-Platform", "Android")
+				.setHeader("Accept-Encoding", "gzip")
+				.build();
+
+		NsoAppLoginData result = sendRequestAndParseGzippedJson(request, NsoAppLoginData.class);
+		return result != null ? result.getResult().getWebApiServerCredential().getAccessToken() : "";
 	}
 
 	private String getS2SApiHash(String accessToken, String timestamp) {
@@ -289,6 +327,104 @@ public class Authenticator {
 
 		public void setHash(String hash) {
 			this.hash = hash;
+		}
+	}
+
+	private static class AccountLoginBody {
+		private LoginParameter parameter;
+
+		public AccountLoginBody() {
+		}
+
+		public AccountLoginBody(LoginParameter parameter) {
+			this.parameter = parameter;
+		}
+
+		public LoginParameter getParameter() {
+			return parameter;
+		}
+
+		public void setParameter(LoginParameter parameter) {
+			this.parameter = parameter;
+		}
+	}
+
+	private static class LoginParameter {
+		String f;
+		String naIdToken;
+		String timestamp;
+		String requestId;
+		String naCountry;
+		String naBirthday;
+		String language;
+
+		public LoginParameter() {
+		}
+
+		public LoginParameter(String f, String naIdToken, String timestamp, String requestId, String naCountry, String naBirthday, String language) {
+			this.f = f;
+			this.naIdToken = naIdToken;
+			this.timestamp = timestamp;
+			this.requestId = requestId;
+			this.naCountry = naCountry;
+			this.naBirthday = naBirthday;
+			this.language = language;
+		}
+
+		public String getF() {
+			return f;
+		}
+
+		public void setF(String f) {
+			this.f = f;
+		}
+
+		public String getNaIdToken() {
+			return naIdToken;
+		}
+
+		public void setNaIdToken(String naIdToken) {
+			this.naIdToken = naIdToken;
+		}
+
+		public String getTimestamp() {
+			return timestamp;
+		}
+
+		public void setTimestamp(String timestamp) {
+			this.timestamp = timestamp;
+		}
+
+		public String getRequestId() {
+			return requestId;
+		}
+
+		public void setRequestId(String requestId) {
+			this.requestId = requestId;
+		}
+
+		public String getNaCountry() {
+			return naCountry;
+		}
+
+		public void setNaCountry(String naCountry) {
+			this.naCountry = naCountry;
+		}
+
+		public String getNaBirthday() {
+			return naBirthday;
+		}
+
+		public void setNaBirthday(String naBirthday) {
+			this.naBirthday = naBirthday;
+		}
+
+		public String getLanguage() {
+			return language;
+		}
+
+		public void setLanguage(String language) {
+			this.language = language;
 		}
 	}
 }
