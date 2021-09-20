@@ -12,7 +12,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
 public class Authenticator {
@@ -89,9 +88,7 @@ public class Authenticator {
 		return sendRequestAndParseGzippedJson(request, UserInfo.class);
 	}
 
-	public FParamLoginResult getFToken(String accessToken, int now) {
-		String guid = UUID.randomUUID().toString();
-
+	public FParamLoginResult getFToken(String accessToken, String guid, int now, String iid) {
 		String address = "https://flapg.com/ika2/api/login?public";
 
 		URI uri = URI.create(address);
@@ -105,7 +102,7 @@ public class Authenticator {
 				.setHeader("x-guid", guid)
 				.setHeader("x-hash", hash)
 				.setHeader("x-ver", "3")
-				.setHeader("x-iid", "nso")
+				.setHeader("x-iid", iid)
 				.build();
 
 		return sendRequestAndParseJson(request, FParamLoginResult.class);
@@ -140,6 +137,40 @@ public class Authenticator {
 				.setHeader("X-ProductVersion", nsoapp_version)
 				.setHeader("Content-Type", "application/json; charset=utf-8")
 				.setHeader("Authorization", "Bearer")
+				.setHeader("X-Platform", "Android")
+				.setHeader("Accept-Encoding", "gzip")
+				.build();
+
+		NsoAppLoginData result = sendRequestAndParseGzippedJson(request, NsoAppLoginData.class);
+		return result != null ? result.getResult().getWebApiServerCredential().getAccessToken() : "";
+	}
+
+	public String getSplatoonAccessToken(String accessToken, FParamLoginResult FParamLoginResult) {
+		String address = "https://api-lp1.znc.srv.nintendo.net/v2/Game/GetWebServiceToken";
+
+		URI uri = URI.create(address);
+
+		String body = "";
+		try {
+			body = mapper.writeValueAsString(new SplatoonTokenRequestBody(new SplatoonTokenRequestBody.LoginParameter(
+					5741031244955648L,
+					FParamLoginResult.getResult().getF(),
+					FParamLoginResult.getResult().getP1(),
+					FParamLoginResult.getResult().getP2(),
+					FParamLoginResult.getResult().getP3()
+			)));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+
+		HttpRequest request = HttpRequest.newBuilder()
+				.POST(HttpRequest.BodyPublishers.ofString(body))
+				.uri(uri)
+				.setHeader("User-Agent", "com.nintendo.znca/" + nsoapp_version + " (Android/7.1.2)")
+				.setHeader("Accept", "application/json")
+				.setHeader("X-ProductVersion", nsoapp_version)
+				.setHeader("Content-Type", "application/json; charset=utf-8")
+				.setHeader("Authorization", String.format("Bearer %s", accessToken))
 				.setHeader("X-Platform", "Android")
 				.setHeader("Accept-Encoding", "gzip")
 				.build();
@@ -425,6 +456,84 @@ public class Authenticator {
 
 		public void setLanguage(String language) {
 			this.language = language;
+		}
+	}
+
+	private static class SplatoonTokenRequestBody {
+		private LoginParameter parameter;
+
+		public SplatoonTokenRequestBody() {
+		}
+
+		public SplatoonTokenRequestBody(LoginParameter parameter) {
+			this.parameter = parameter;
+		}
+
+		public LoginParameter getParameter() {
+			return parameter;
+		}
+
+		public void setParameter(LoginParameter parameter) {
+			this.parameter = parameter;
+		}
+
+		private static class LoginParameter {
+			long id;
+			String f;
+			String registrationToken;
+			String timestamp;
+			String requestId;
+
+			public LoginParameter() {
+			}
+
+			public LoginParameter(long id, String f, String registrationToken, String timestamp, String requestId) {
+				this.id = id;
+				this.f = f;
+				this.registrationToken = registrationToken;
+				this.timestamp = timestamp;
+				this.requestId = requestId;
+			}
+
+			public long getId() {
+				return id;
+			}
+
+			public void setId(long id) {
+				this.id = id;
+			}
+
+			public String getF() {
+				return f;
+			}
+
+			public void setF(String f) {
+				this.f = f;
+			}
+
+			public String getRegistrationToken() {
+				return registrationToken;
+			}
+
+			public void setRegistrationToken(String registrationToken) {
+				this.registrationToken = registrationToken;
+			}
+
+			public String getTimestamp() {
+				return timestamp;
+			}
+
+			public void setTimestamp(String timestamp) {
+				this.timestamp = timestamp;
+			}
+
+			public String getRequestId() {
+				return requestId;
+			}
+
+			public void setRequestId(String requestId) {
+				this.requestId = requestId;
+			}
 		}
 	}
 }

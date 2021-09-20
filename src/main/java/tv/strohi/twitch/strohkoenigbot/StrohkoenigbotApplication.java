@@ -13,6 +13,7 @@ import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @SpringBootApplication
 public class StrohkoenigbotApplication {
@@ -39,13 +40,18 @@ public class StrohkoenigbotApplication {
 		String sessionTokenCodeVerifier = map.get("state");
 
 		int now = (int) (new Date().getTime() / 1000);
+		String guid = UUID.randomUUID().toString();
+
 		Authenticator authenticator = new Authenticator();
 		String sessionToken = authenticator.getSessionToken("71b963c1b7b6d119", sessionTokenCode, params.getCodeVerifier());
 		String accessToken = authenticator.getCookie(sessionToken);
 		UserInfo userInfo = authenticator.getUserInfo(accessToken);
-		FParamLoginResult fToken = authenticator.getFToken(accessToken, now);
+		FParamLoginResult fToken = authenticator.getFToken(accessToken, guid, now, "nso");
 
 		String nsoAccessToken = authenticator.doSplatoonAppLogin(userInfo, fToken);
+
+		FParamLoginResult fToken2 = authenticator.getFToken(nsoAccessToken, guid, now, "app");
+		String something = authenticator.getSplatoonAccessToken(nsoAccessToken, fToken2);
 
 		SpringApplication.run(StrohkoenigbotApplication.class, args);
 	}
