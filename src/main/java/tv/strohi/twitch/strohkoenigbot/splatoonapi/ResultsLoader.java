@@ -1,7 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMatchResultsCollection;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -22,7 +22,7 @@ public class ResultsLoader {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	public UserInfo getUserInfo(String cookie) {
+	public SplatoonMatchResultsCollection getUserInfo(String cookie) {
 		TimeZone tz = TimeZone.getDefault();
 		int offset = tz.getOffset(new Date().getTime()) / 1000 / 60;
 
@@ -44,7 +44,7 @@ public class ResultsLoader {
 				.setHeader("Cookie", String.format("iksm_session=%s", cookie))
 				.build();
 
-		return sendRequestAndParseGzippedJson(request, UserInfo.class);
+		return sendRequestAndParseGzippedJson(request, SplatoonMatchResultsCollection.class);
 	}
 
 	private <T> T sendRequestAndParseGzippedJson(HttpRequest request, Class<T> valueType) {

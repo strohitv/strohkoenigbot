@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.AuthLinkCreator;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.Authenticator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.ResultsLoader;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.AuthLinkCreator;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.Authenticator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.AuthenticationData;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMatchResultsCollection;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -40,7 +40,7 @@ public class StrohkoenigbotApplication {
 		Authenticator authenticator = new Authenticator();
 		AuthenticationData authData = authenticator.getAccess("71b963c1b7b6d119", sessionTokenCode, params.getCodeVerifier());
 
-		UserInfo requests = new ResultsLoader().getUserInfo(authData.getCookie());
+		SplatoonMatchResultsCollection matchResults = new ResultsLoader().getUserInfo(authData.getCookie());
 
 		SpringApplication.run(StrohkoenigbotApplication.class, args);
 	}

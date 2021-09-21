@@ -1,6 +1,5 @@
-package tv.strohi.twitch.strohkoenigbot.splatoonapi;
+package tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication;
 
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.*;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.AuthenticationData;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.FParamLoginResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
