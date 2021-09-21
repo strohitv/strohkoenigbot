@@ -6,3 +6,4 @@ target
 
 derby.log
 /data
+debug.log
