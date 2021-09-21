@@ -17,6 +17,7 @@ public class NsoAppLoginData {
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class NsoLoginResult {
 		private NsoAccessToken webApiServerCredential;
+		private String accessToken;
 
 		public NsoAccessToken getWebApiServerCredential() {
 			return webApiServerCredential;
@@ -24,6 +25,14 @@ public class NsoAppLoginData {
 
 		public void setWebApiServerCredential(NsoAccessToken webApiServerCredential) {
 			this.webApiServerCredential = webApiServerCredential;
+		}
+
+		public String getAccessToken() {
+			return accessToken;
+		}
+
+		public void setAccessToken(String accessToken) {
+			this.accessToken = accessToken;
 		}
 
 		@JsonIgnoreProperties(ignoreUnknown = true)

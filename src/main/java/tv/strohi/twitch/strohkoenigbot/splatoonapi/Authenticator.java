@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 public class Authenticator {
@@ -44,7 +45,7 @@ public class Authenticator {
 		return response != null ? response.session_token : null;
 	}
 
-	public String getCookie(String sessionToken) {
+	public String getAccountAccessToken(String sessionToken) {
 		String address = accountsHost + "/connect/1.0.0/api/token";
 		URI uri = URI.create(address);
 
@@ -108,7 +109,7 @@ public class Authenticator {
 		return sendRequestAndParseJson(request, FParamLoginResult.class);
 	}
 
-	public String doSplatoonAppLogin(UserInfo userInfo, FParamLoginResult FParamLoginResult) {
+	public String doSplatoonAppLogin(UserInfo userInfo, FParamLoginResult fParamLoginResult) {
 		String address = "https://api-lp1.znc.srv.nintendo.net/v1/Account/Login";
 
 		URI uri = URI.create(address);
@@ -116,10 +117,10 @@ public class Authenticator {
 		String body = "";
 		try {
 			body = mapper.writeValueAsString(new AccountLoginBody(new LoginParameter(
-					FParamLoginResult.getResult().getF(),
-					FParamLoginResult.getResult().getP1(),
-					FParamLoginResult.getResult().getP2(),
-					FParamLoginResult.getResult().getP3(),
+					fParamLoginResult.getResult().getF(),
+					fParamLoginResult.getResult().getP1(),
+					fParamLoginResult.getResult().getP2(),
+					fParamLoginResult.getResult().getP3(),
 					userInfo.getCountry(),
 					userInfo.getBirthday(),
 					userInfo.getLanguage()
@@ -176,7 +177,46 @@ public class Authenticator {
 				.build();
 
 		NsoAppLoginData result = sendRequestAndParseGzippedJson(request, NsoAppLoginData.class);
-		return result != null ? result.getResult().getWebApiServerCredential().getAccessToken() : "";
+		return result != null ? result.getResult().getAccessToken() : "";
+	}
+
+	public String getSplatoonCookie(String splatoonAccessToken) {
+		String address = "https://app.splatoon2.nintendo.net/?lang=en-US";
+
+		URI uri = URI.create(address);
+
+		HttpRequest request = HttpRequest.newBuilder()
+				.GET()
+				.uri(uri)
+				.setHeader("X-IsAppAnalyticsOptedIn", "false")
+				.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+				.setHeader("Accept-Encoding", "gzip,deflate")
+				.setHeader("X-GameWebToken", splatoonAccessToken)
+				.setHeader("Accept-Language", "en-US")
+				.setHeader("X-IsAnalyticsOptedIn", "false")
+				.setHeader("DNT", "0")
+				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 7.1.2; Pixel Build/NJH47D; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/59.0.3071.125 Mobile Safari/537.36")
+				.setHeader("X-Requested-With", "com.nintendo.znca")
+				.build();
+
+		return sendRequestAndGetCookie(request, "iksm_session");
+	}
+
+	private String sendRequestAndGetCookie(HttpRequest request, String cookieName) {
+		try {
+			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			System.out.println(response);
+
+			if (response.statusCode() < 300) {
+				List<String> foundHeaders = response.headers().allValues("Set-Cookie");
+				foundHeaders.forEach(System.out::println);
+				return foundHeaders.stream().findFirst().orElse("");
+			}
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	private String getS2SApiHash(String accessToken, String timestamp) {

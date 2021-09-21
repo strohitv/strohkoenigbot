@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.AuthLinkCreator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.Authenticator;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.ResultsLoader;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.FParamLoginResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
 
@@ -44,14 +45,18 @@ public class StrohkoenigbotApplication {
 
 		Authenticator authenticator = new Authenticator();
 		String sessionToken = authenticator.getSessionToken("71b963c1b7b6d119", sessionTokenCode, params.getCodeVerifier());
-		String accessToken = authenticator.getCookie(sessionToken);
+		String accessToken = authenticator.getAccountAccessToken(sessionToken);
 		UserInfo userInfo = authenticator.getUserInfo(accessToken);
 		FParamLoginResult fToken = authenticator.getFToken(accessToken, guid, now, "nso");
 
 		String nsoAccessToken = authenticator.doSplatoonAppLogin(userInfo, fToken);
 
 		FParamLoginResult fToken2 = authenticator.getFToken(nsoAccessToken, guid, now, "app");
-		String something = authenticator.getSplatoonAccessToken(nsoAccessToken, fToken2);
+		String anotherAccessToken = authenticator.getSplatoonAccessToken(nsoAccessToken, fToken2);
+
+		String cookie = authenticator.getSplatoonCookie(anotherAccessToken);
+
+		UserInfo requests = new ResultsLoader().getUserInfo(cookie);
 
 		SpringApplication.run(StrohkoenigbotApplication.class, args);
 	}
