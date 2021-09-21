@@ -19,6 +19,10 @@ public class Authenticator {
 	private final SplatoonTokenRetriever splatoonTokenRetriever = new SplatoonTokenRetriever();
 	private final SplatoonCookieRetriever splatoonCookieRetriever = new SplatoonCookieRetriever();
 
+	public String getSessionToken(String clientId, String sessionTokenCode, String sessionTokenCodeVerifier)  {
+		return sessionTokenRetriever.getSessionToken(clientId, sessionTokenCode, sessionTokenCodeVerifier);
+	}
+
 	public AuthenticationData getAccess(String clientId, String sessionTokenCode, String sessionTokenCodeVerifier) {
 		String sessionToken = sessionTokenRetriever.getSessionToken(clientId, sessionTokenCode, sessionTokenCodeVerifier);
 		return refreshAccess(sessionToken);

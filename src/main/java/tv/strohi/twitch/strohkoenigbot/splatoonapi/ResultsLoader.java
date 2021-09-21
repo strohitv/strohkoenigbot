@@ -1,6 +1,9 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMatchResultsCollection;
 
 import java.io.ByteArrayInputStream;
@@ -13,16 +16,21 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.zip.GZIPInputStream;
 
+@Component
 public class ResultsLoader {
 	private final String appUniqueId = "32449507786579989235";
 
-	private final HttpClient client = HttpClient.newBuilder()
-			.version(HttpClient.Version.HTTP_2)
-			.build();
+	private HttpClient client;
+
+	@Autowired
+	public void setClient(HttpClient client) {
+		this.client = client;
+	}
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	public SplatoonMatchResultsCollection getUserInfo(String cookie) {
+	@Scheduled(fixedRate = 15000)
+	public void loadGameResultsScheduled() {
 		TimeZone tz = TimeZone.getDefault();
 		int offset = tz.getOffset(new Date().getTime()) / 1000 / 60;
 
@@ -41,7 +49,31 @@ public class ResultsLoader {
 				.setHeader("Referer", "https://app.splatoon2.nintendo.net/home")
 				.setHeader("Accept-Encoding", "gzip, deflate")
 				.setHeader("Accept-Language", "en-US")
-				.setHeader("Cookie", String.format("iksm_session=%s", cookie))
+				.build();
+
+		SplatoonMatchResultsCollection collection = sendRequestAndParseGzippedJson(request, SplatoonMatchResultsCollection.class);
+		System.out.println(collection);
+	}
+
+	public SplatoonMatchResultsCollection getGameResults(String cookie) {
+		TimeZone tz = TimeZone.getDefault();
+		int offset = tz.getOffset(new Date().getTime()) / 1000 / 60;
+
+		String address = "https://app.splatoon2.nintendo.net/api/results";
+
+		URI uri = URI.create(address);
+
+		HttpRequest request = HttpRequest.newBuilder()
+				.GET()
+				.uri(uri)
+				.setHeader("x-unique-id", appUniqueId)
+				.setHeader("x-requested-with", "XMLHttpRequest")
+				.setHeader("x-timezone-offset", String.format("%d", offset))
+				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 7.1.2; Pixel Build/NJH47D; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/59.0.3071.125 Mobile Safari/537.36")
+				.setHeader("Accept", "*/*")
+				.setHeader("Referer", "https://app.splatoon2.nintendo.net/home")
+				.setHeader("Accept-Encoding", "gzip, deflate")
+				.setHeader("Accept-Language", "en-US")
 				.build();
 
 		return sendRequestAndParseGzippedJson(request, SplatoonMatchResultsCollection.class);
