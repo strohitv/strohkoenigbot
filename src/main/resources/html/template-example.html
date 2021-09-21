@@ -25,7 +25,7 @@
 
 		.bright-circle {
 			background-color: #BBB;
-			border-radius: 50%;
+			border-radius: 20px;
 		}
 
 		.rounded-corners {
@@ -33,20 +33,22 @@
 			border-radius: 40px;
 			width: max-content;
 			float: right;
+			padding-bottom: 10px;
 		}
 
 		.rounded-corners-weapon {
 			background-color: black;
 			border-radius: 20%;
-			margin-left: auto;
-			margin-right: auto;
+			margin-top: auto;
+			margin-bottom: auto;
+			margin-left: 20px;
 			align-self: center;
-			width: 41px;
-			height: 41px;
+			width: 60px;
+			height: 60px;
 		}
 
 		.rounded-corners-weapon-image {
-			width: 35px;
+			width: 54px;
 			margin: 3px;
 		}
 
@@ -80,7 +82,7 @@
 		}
 
 		.main-weapon {
-			max-height: 120px;
+			max-height: 160px;
 		}
 
 		.hidden {
@@ -89,6 +91,7 @@
 		}
 	</style>
 </head>
+
 <body>
 <div class="rounded-corners">
 	<div style="display: table; height: 100%;">
@@ -105,35 +108,30 @@
 
 			<!-- weapon-->
 			<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
-				<div style="display: table;">
-					<div style="display: table-row;">
-						<div style="display: table-cell;">
-							<img class="main-weapon"
-								 src="https://app.splatoon2.nintendo.net/images/weapon/b58fcf2a82a3ad75f7a068a86b7316e2a70a497c.png"/>
-						</div>
+				<div style="display: flex;">
+					<div style="display: flex; align-content: center;">
+						<img class="bright-circle main-weapon" style="margin: 0 auto;"
+							 src="https://app.splatoon2.nintendo.net/images/weapon/b58fcf2a82a3ad75f7a068a86b7316e2a70a497c.png"/>
 					</div>
-					<div style="display: table-row;">
-						<div style="display: table-cell;">
-							<div style="display: flex; flex-flow: row; align-content: center;">
-								<div class="rounded-corners-weapon">
-									<img class="rounded-corners-weapon-image"
-										 src="https://app.splatoon2.nintendo.net/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png"/>
-								</div>
-								<div class="rounded-corners-weapon">
-									<img class="rounded-corners-weapon-image"
-										 src="https://app.splatoon2.nintendo.net/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png"/>
-								</div>
-							</div>
+					<div style="display: flex; flex-flow: column; align-content: center;">
+						<div class="rounded-corners-weapon">
+							<img class="rounded-corners-weapon-image"
+								 src="https://app.splatoon2.nintendo.net/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png"/>
+						</div>
+						<div class="rounded-corners-weapon">
+							<img class="rounded-corners-weapon-image"
+								 src="https://app.splatoon2.nintendo.net/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png"/>
 						</div>
 					</div>
 				</div>
 			</div>
 
 			<!-- gear section-->
-			<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
+			<div style="display: table-cell; height: 100%; vertical-align: middle;">
 				<div style="display: flex; flex-direction: column;">
 					<p style="font-size: xx-large">
-						last match gear (refreshes <span style="text-decoration: underline; font-weight: bolder">AFTER</span> each match)
+						last match gear (refreshes <span
+							style="text-decoration: underline; font-weight: bolder">AFTER</span> each match)
 					</p>
 					<div style="display: flex; flex-direction: row;">
 						<div class="side-padding" style="width: 33%;">

@@ -25,7 +25,7 @@
 
 		.bright-circle {
 			background-color: #BBB;
-			border-radius: 50%;
+			border-radius: 20px;
 		}
 
 		.rounded-corners {
@@ -33,20 +33,22 @@
 			border-radius: 40px;
 			width: max-content;
 			float: right;
+			padding-bottom: 10px;
 		}
 
 		.rounded-corners-weapon {
 			background-color: black;
 			border-radius: 20%;
-			margin-left: auto;
-			margin-right: auto;
+			margin-top: auto;
+			margin-bottom: auto;
+			margin-left: 20px;
 			align-self: center;
-			width: 41px;
-			height: 41px;
+			width: 60px;
+			height: 60px;
 		}
 
 		.rounded-corners-weapon-image {
-			width: 35px;
+			width: 54px;
 			margin: 3px;
 		}
 
@@ -80,7 +82,7 @@
 		}
 
 		.main-weapon {
-			max-height: 120px;
+			max-height: 160px;
 		}
 
 		.hidden {
@@ -89,6 +91,7 @@
 		}
 	</style>
 </head>
+
 <body>
 <div class="rounded-corners">
 	<div style="display: table; height: 100%;">
@@ -105,35 +108,30 @@
 
 			<!-- weapon-->
 			<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
-				<div style="display: table;">
-					<div style="display: table-row;">
-						<div style="display: table-cell;">
-							<img class="main-weapon"
+				<div style="display: flex;">
+					<div style="display: flex; align-content: center;">
+						<img class="bright-circle main-weapon" style="margin: 0 auto;"
 								 src="{main-weapon}"/>
-						</div>
 					</div>
-					<div style="display: table-row;">
-						<div style="display: table-cell;">
-							<div style="display: flex; flex-flow: row; align-content: center;">
-								<div class="rounded-corners-weapon">
-									<img class="rounded-corners-weapon-image"
+					<div style="display: flex; flex-flow: column; align-content: center;">
+						<div class="rounded-corners-weapon">
+							<img class="rounded-corners-weapon-image"
 										 src="{sub-weapon}"/>
-								</div>
-								<div class="rounded-corners-weapon">
-									<img class="rounded-corners-weapon-image"
+						</div>
+						<div class="rounded-corners-weapon">
+							<img class="rounded-corners-weapon-image"
 										 src="{special-weapon}"/>
-								</div>
-							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 
 			<!-- gear section-->
-			<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
+			<div style="display: table-cell; height: 100%; vertical-align: middle;">
 				<div style="display: flex; flex-direction: column;">
 					<p style="font-size: xx-large">
-						last match gear (refreshes <span style="text-decoration: underline; font-weight: bolder">AFTER</span> each match)
+						last match gear (refreshes <span
+							style="text-decoration: underline; font-weight: bolder">AFTER</span> each match)
 					</p>
 					<div style="display: flex; flex-direction: row;">
 						<div class="side-padding" style="width: 33%;">
