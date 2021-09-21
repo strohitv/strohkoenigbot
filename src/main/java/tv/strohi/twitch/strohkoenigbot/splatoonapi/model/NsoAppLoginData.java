@@ -1,60 +1,32 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class NsoAppLoginData {
 	private NsoLoginResult result;
 
-	public NsoLoginResult getResult() {
-		return result;
-	}
-
-	public void setResult(NsoLoginResult result) {
-		this.result = result;
-	}
-
 	@JsonIgnoreProperties(ignoreUnknown = true)
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
 	public static class NsoLoginResult {
 		private NsoAccessToken webApiServerCredential;
 		private String accessToken;
 
-		public NsoAccessToken getWebApiServerCredential() {
-			return webApiServerCredential;
-		}
-
-		public void setWebApiServerCredential(NsoAccessToken webApiServerCredential) {
-			this.webApiServerCredential = webApiServerCredential;
-		}
-
-		public String getAccessToken() {
-			return accessToken;
-		}
-
-		public void setAccessToken(String accessToken) {
-			this.accessToken = accessToken;
-		}
-
 		@JsonIgnoreProperties(ignoreUnknown = true)
+		@Data
+		@NoArgsConstructor
+		@AllArgsConstructor
 		public static class NsoAccessToken {
 			private int expiresIn;
 			private String accessToken;
-
-			public int getExpiresIn() {
-				return expiresIn;
-			}
-
-			public void setExpiresIn(int expiresIn) {
-				this.expiresIn = expiresIn;
-			}
-
-			public String getAccessToken() {
-				return accessToken;
-			}
-
-			public void setAccessToken(String accessToken) {
-				this.accessToken = accessToken;
-			}
 		}
 	}
 }

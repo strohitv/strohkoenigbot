@@ -7,14 +7,12 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.AuthLinkCreator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.Authenticator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.ResultsLoader;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.FParamLoginResult;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.AuthenticationData;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
 
 import java.net.URI;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @SpringBootApplication
 public class StrohkoenigbotApplication {
@@ -38,25 +36,11 @@ public class StrohkoenigbotApplication {
 
 		Map<String, String> map = getQueryMap(link.getFragment());
 		String sessionTokenCode = map.get("session_token_code");
-		String sessionTokenCodeVerifier = map.get("state");
-
-		int now = (int) (new Date().getTime() / 1000);
-		String guid = UUID.randomUUID().toString();
 
 		Authenticator authenticator = new Authenticator();
-		String sessionToken = authenticator.getSessionToken("71b963c1b7b6d119", sessionTokenCode, params.getCodeVerifier());
-		String accessToken = authenticator.getAccountAccessToken(sessionToken);
-		UserInfo userInfo = authenticator.getUserInfo(accessToken);
-		FParamLoginResult fToken = authenticator.getFToken(accessToken, guid, now, "nso");
+		AuthenticationData authData = authenticator.getAccess("71b963c1b7b6d119", sessionTokenCode, params.getCodeVerifier());
 
-		String nsoAccessToken = authenticator.doSplatoonAppLogin(userInfo, fToken);
-
-		FParamLoginResult fToken2 = authenticator.getFToken(nsoAccessToken, guid, now, "app");
-		String anotherAccessToken = authenticator.getSplatoonAccessToken(nsoAccessToken, fToken2);
-
-		String cookie = authenticator.getSplatoonCookie(anotherAccessToken);
-
-		UserInfo requests = new ResultsLoader().getUserInfo(cookie);
+		UserInfo requests = new ResultsLoader().getUserInfo(authData.getCookie());
 
 		SpringApplication.run(StrohkoenigbotApplication.class, args);
 	}
