@@ -2,7 +2,6 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMatchResultsCollection;
 
@@ -29,33 +28,7 @@ public class ResultsLoader {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	@Scheduled(fixedRate = 15000)
-	public void loadGameResultsScheduled() {
-		TimeZone tz = TimeZone.getDefault();
-		int offset = tz.getOffset(new Date().getTime()) / 1000 / 60;
-
-		String address = "https://app.splatoon2.nintendo.net/api/results";
-
-		URI uri = URI.create(address);
-
-		HttpRequest request = HttpRequest.newBuilder()
-				.GET()
-				.uri(uri)
-				.setHeader("x-unique-id", appUniqueId)
-				.setHeader("x-requested-with", "XMLHttpRequest")
-				.setHeader("x-timezone-offset", String.format("%d", offset))
-				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 7.1.2; Pixel Build/NJH47D; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/59.0.3071.125 Mobile Safari/537.36")
-				.setHeader("Accept", "*/*")
-				.setHeader("Referer", "https://app.splatoon2.nintendo.net/home")
-				.setHeader("Accept-Encoding", "gzip, deflate")
-				.setHeader("Accept-Language", "en-US")
-				.build();
-
-		SplatoonMatchResultsCollection collection = sendRequestAndParseGzippedJson(request, SplatoonMatchResultsCollection.class);
-		System.out.println(collection);
-	}
-
-	public SplatoonMatchResultsCollection getGameResults(String cookie) {
+	public SplatoonMatchResultsCollection getGameResults() {
 		TimeZone tz = TimeZone.getDefault();
 		int offset = tz.getOffset(new Date().getTime()) / 1000 / 60;
 

@@ -4,17 +4,15 @@ import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.philippheuer.events4j.api.domain.IDisposable;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
-import com.github.twitch4j.common.events.user.PrivateMessageEvent;
-import com.github.twitch4j.helix.domain.ChannelInformation;
-import com.github.twitch4j.helix.domain.GameList;
+import com.github.twitch4j.events.ChannelGoLiveEvent;
+import com.github.twitch4j.events.ChannelGoOfflineEvent;
 import com.github.twitch4j.helix.domain.User;
-import com.github.twitch4j.pubsub.events.FollowingEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.model.TwitchAuthData;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.ResultsExporter;
 
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -33,9 +31,19 @@ public class TwitchChatBot {
 		this.botActions = botActions;
 	}
 
+	private ResultsExporter resultsExporter;
+
+	@Autowired
+	public void setResultsExporter(ResultsExporter resultsExporter) {
+		this.resultsExporter = resultsExporter;
+	}
+
 	public TwitchClient getMainAccountClient() {
 		return mainAccountClient;
 	}
+
+	IDisposable goLiveListener;
+	IDisposable goOfflineListener;
 
 	public void initialize() {
 		System.out.println(botActions);
@@ -60,15 +68,15 @@ public class TwitchChatBot {
 			User something = mainAccountClient.getHelix().getUsers(authData.getMainAccountAuthToken(), null, null).execute().getUsers().get(0);
 			authData.setMainAccountChannelId(something.getId());
 
-			GameList games = mainAccountClient.getHelix().getGames(authData.getMainAccountAuthToken(), null, Collections.singletonList("Mario Kart 8")).execute();
-
-			ChannelInformation info = new ChannelInformation()
-					.withTitle("Funktioniert mein Bot? Mainaccount");
-
-			if (games.getGames().size() > 0) {
-				info = info.withGameName(games.getGames().get(0).getName())
-						.withGameId(games.getGames().get(0).getId());
-			}
+//			GameList games = mainAccountClient.getHelix().getGames(authData.getMainAccountAuthToken(), null, Collections.singletonList("Mario Kart 8")).execute();
+//
+//			ChannelInformation info = new ChannelInformation()
+//					.withTitle("Funktioniert mein Bot? Mainaccount");
+//
+//			if (games.getGames().size() > 0) {
+//				info = info.withGameName(games.getGames().get(0).getName())
+//						.withGameId(games.getGames().get(0).getId());
+//			}
 
 			// mainAccountClient.getHelix().updateChannelInformation(authData.getMainAccountAuthToken(), authData.getMainAccountChannelId(), info).execute();
 		}
@@ -82,16 +90,24 @@ public class TwitchChatBot {
 					.withEnablePubSub(true)
 					.build();
 
-			botClient.getClientHelper().enableFollowEventListener(authData.getMainAccountUsername());
+			goLiveListener = botClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
+				resultsExporter.start(event.getFiredAtInstant());
+			});
 
-			botClient.getPubSub().listenForFollowingEvents(botCredential, authData.getMainAccountChannelId());
-			botClient.getEventManager().onEvent(PrivateMessageEvent.class, (System.out::println));
+			goOfflineListener = botClient.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
+				resultsExporter.stop();
+			});
 
-			botClient.getEventManager().onEvent(FollowingEvent.class, (ev -> {
-				botClient.getChat().sendPrivateMessage(ev.getData().getUsername(), "Thanks for following! Sadly, Twitch is being flooded by scam bots right now. Please write something either in chat or in this private message to confirm you're not a bot. If you don't write anything, my bot will block you after two minutes. Sorry for the inconvenience, strohkoenig.");
-			}));
-
-			botClient.getChat().sendPrivateMessage(authData.getMainAccountUsername(), "Thanks for following! Sadly, Twitch is being flooded by scam bots right now. Please write something either in chat or in this private message to confirm you're not a bot. If you don't write anything, my bot will block you after two minutes. Sorry for the inconvenience, strohkoenig.");
+//			botClient.getClientHelper().enableFollowEventListener(authData.getMainAccountUsername());
+//
+//			botClient.getPubSub().listenForFollowingEvents(botCredential, authData.getMainAccountChannelId());
+//			botClient.getEventManager().onEvent(PrivateMessageEvent.class, (System.out::println));
+//
+//			botClient.getEventManager().onEvent(FollowingEvent.class, (ev -> {
+//				botClient.getChat().sendPrivateMessage(ev.getData().getUsername(), "Thanks for following! Sadly, Twitch is being flooded by scam bots right now. Please write something either in chat or in this private message to confirm you're not a bot. If you don't write anything, my bot will block you after two minutes. Sorry for the inconvenience, strohkoenig.");
+//			}));
+//
+//			botClient.getChat().sendPrivateMessage(authData.getMainAccountUsername(), "Thanks for following! Sadly, Twitch is being flooded by scam bots right now. Please write something either in chat or in this private message to confirm you're not a bot. If you don't write anything, my bot will block you after two minutes. Sorry for the inconvenience, strohkoenig.");
 
 			botClient.getChat().joinChannel(authData.getMainAccountUsername());
 
@@ -99,21 +115,37 @@ public class TwitchChatBot {
 				botClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
 			}
 
-			GameList games = botClient.getHelix().getGames(authData.getMainAccountAuthToken(), null, Collections.singletonList("Super Hexagon")).execute();
-
-			ChannelInformation info = new ChannelInformation()
-					.withTitle("Funktioniert mein Bot? Botaccount");
-
-			if (games.getGames().size() > 0) {
-				info = info.withGameName(games.getGames().get(0).getName())
-						.withGameId(games.getGames().get(0).getId());
-			}
+//			GameList games = botClient.getHelix().getGames(authData.getMainAccountAuthToken(), null, Collections.singletonList("Super Hexagon")).execute();
+//
+//			ChannelInformation info = new ChannelInformation()
+//					.withTitle("Funktioniert mein Bot? Botaccount");
+//
+//			if (games.getGames().size() > 0) {
+//				info = info.withGameName(games.getGames().get(0).getName())
+//						.withGameId(games.getGames().get(0).getId());
+//			}
 
 			// botClient.getHelix().updateChannelInformation(authData.getMainAccountAuthToken(), authData.getMainAccountChannelId(), info).execute();
 		}
 	}
 
 	public void stop() {
+		if (goLiveListener != null) {
+			if (!goLiveListener.isDisposed()) {
+				goLiveListener.dispose();
+			}
+
+			goLiveListener = null;
+		}
+
+		if (goOfflineListener != null) {
+			if (!goOfflineListener.isDisposed()) {
+				goOfflineListener.dispose();
+			}
+
+			goOfflineListener = null;
+		}
+
 		if (botClient != null) {
 			if (botClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
 				botClient.getChat().sendMessage(authData.getMainAccountUsername(), "Bye!");
