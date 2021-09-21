@@ -126,7 +126,6 @@ public class Statistics {
 				FileWriter myWriter = new FileWriter(path);
 				myWriter.write(fileToWrite);
 				myWriter.close();
-				System.out.println("Successfully wrote to the file.");
 			} catch (Exception e) {
 				e.printStackTrace();
 				return;

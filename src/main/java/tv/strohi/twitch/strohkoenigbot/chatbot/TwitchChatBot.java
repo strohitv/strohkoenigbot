@@ -46,8 +46,6 @@ public class TwitchChatBot {
 	IDisposable goOfflineListener;
 
 	public void initialize() {
-		System.out.println(botActions);
-
 		OAuth2Credential botCredential = new OAuth2Credential("twitch", authData.getBotAuthToken());
 		OAuth2Credential mainAccountCredential = new OAuth2Credential("twitch", authData.getMainAccountAuthToken());
 

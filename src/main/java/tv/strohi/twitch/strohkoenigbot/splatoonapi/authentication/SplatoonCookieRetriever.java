@@ -32,7 +32,6 @@ public class SplatoonCookieRetriever extends AuthenticatorBase {
 	private String sendRequestAndGetIksmSessionCookie(HttpRequest request) {
 		try {
 			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-			System.out.println(response);
 
 			if (response.statusCode() < 300) {
 				List<String> foundHeaders = response.headers().allValues("Set-Cookie");

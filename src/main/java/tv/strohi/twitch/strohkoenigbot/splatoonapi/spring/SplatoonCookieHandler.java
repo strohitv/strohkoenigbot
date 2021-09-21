@@ -93,8 +93,6 @@ public class SplatoonCookieHandler extends CookieHandler {
 				}
 			}
 		}
-
-		System.out.println(responseHeaders);
 	}
 
 	public Map<String, String> getQueryMap(String query) {

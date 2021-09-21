@@ -55,8 +55,6 @@ public class ResultsLoader {
 	private <T> T sendRequestAndParseGzippedJson(HttpRequest request, Class<T> valueType) {
 		try {
 			HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-			System.out.println(response);
-			System.out.println(new String(response.body()));
 
 			if (response.statusCode() < 300) {
 				String body = new String(response.body());
