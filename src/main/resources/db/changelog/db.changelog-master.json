@@ -7,6 +7,48 @@
         "changes": [
           {
             "createTable": {
+              "tableName": "splatoonLogin",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "int",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "nickname",
+                    "type": "varchar(50)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "cookie",
+                    "type": "varchar(100)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "expiresAt",
+                    "type": "timestamp"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "sessionToken",
+                    "type": "varchar(100)"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createTable": {
               "tableName": "command",
               "columns": [
                 {
