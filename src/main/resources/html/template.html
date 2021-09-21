@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta http-equiv="refresh" content="5" >
+	<meta http-equiv="refresh" content="5">
 	<title>Splatoon 2 statistics</title>
 
 	<style>
@@ -11,7 +11,7 @@
 			font-size: x-large;
 			color: white;
 			text-align: center;
-			background-color: rgba(0,0,0,0);
+			background-color: rgba(0, 0, 0, 0);
 		}
 
 		p {
@@ -24,9 +24,10 @@
 		}
 
 		.rounded-corners {
-			background-color: #444;
+			background-color: rgba(68, 68, 68, 0.5);
 			border-radius: 40px;
 			width: max-content;
+			float: right;
 		}
 
 		.rounded-corners-weapon {
@@ -75,6 +76,11 @@
 
 		.main-weapon {
 			max-height: 120px;
+		}
+
+		.hidden {
+			display: none;
+			visibility: hidden;
 		}
 	</style>
 </head>
@@ -134,9 +140,9 @@
 									 src="{head-main}"/>
 								<img class="circle sub-ability"
 									 src="{head-sub-1}"/>
-								<img class="circle sub-ability"
+								<img class="circle sub-ability {head-sub2-hidden}"
 									 src="{head-sub-2}"/>
-								<img class="circle sub-ability"
+								<img class="circle sub-ability {head-sub3-hidden}"
 									 src="{head-sub-3}"/>
 							</div>
 						</div>
@@ -149,9 +155,9 @@
 									 src="{clothing-main}"/>
 								<img class="circle sub-ability"
 									 src="{clothing-sub-1}"/>
-								<img class="circle sub-ability"
+								<img class="circle sub-ability {clothing-sub2-hidden}"
 									 src="{clothing-sub-2}"/>
-								<img class="circle sub-ability"
+								<img class="circle sub-ability {clothing-sub3-hidden}"
 									 src="{clothing-sub-3}"/>
 							</div>
 						</div>
@@ -164,9 +170,9 @@
 									 src="{shoes-main}"/>
 								<img class="circle sub-ability"
 									 src="{shoes-sub-1}"/>
-								<img class="circle sub-ability"
+								<img class="circle sub-ability {shoes-sub2-hidden}"
 									 src="{shoes-sub-2}"/>
-								<img class="circle sub-ability"
+								<img class="circle sub-ability {shoes-sub3-hidden}"
 									 src="{shoes-sub-3}"/>
 							</div>
 						</div>
