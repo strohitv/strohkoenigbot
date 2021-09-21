@@ -5,8 +5,11 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.AuthenticationData;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.FParamLoginResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.UserInfo;
 
+import java.net.HttpCookie;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 public class Authenticator {
@@ -36,8 +39,17 @@ public class Authenticator {
 		String splatoonAccessToken = splatoonTokenRetriever.getSplatoonAccessToken(gameWebToken, fTokenApp);
 		String splatoonCookie = splatoonCookieRetriever.getSplatoonCookie(splatoonAccessToken);
 
-		// TODO splatoon cookie: extract exact cookie value and expiration date!!
+		List<HttpCookie> cookies = HttpCookie.parse(splatoonCookie);
+		HttpCookie iksmSessionCookie = cookies.stream().findFirst().orElse(null);
 
-		return new AuthenticationData(splatoonCookie, Date.from(Instant.now()), sessionToken);
+		if (iksmSessionCookie != null) {
+			String value = iksmSessionCookie.getValue();
+			long cookieLifeDuration = iksmSessionCookie.getMaxAge() >= 0 ? iksmSessionCookie.getMaxAge() : 31536000L;
+
+			Instant expiresAt = Instant.now().plus(cookieLifeDuration, ChronoUnit.SECONDS);
+			return new AuthenticationData(userInfo.getNickname(), value, expiresAt, sessionToken);
+		} else {
+			throw new RuntimeException("Splatoon 2 cookie could not be loaded");
+		}
 	}
 }
