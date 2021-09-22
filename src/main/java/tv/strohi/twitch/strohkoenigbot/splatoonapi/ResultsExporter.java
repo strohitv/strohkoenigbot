@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMatchResultsCollection;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonPlayerPeaks;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.Statistics;
 
 import java.time.Instant;
@@ -40,8 +41,23 @@ public class ResultsExporter {
 		this.splatoonResultsLoader = splatoonResultsLoader;
 	}
 
+	private PlayerLeaderboardPeaksLoader peaksLoader;
+
+	@Autowired
+	public void setPeaksLoader(PlayerLeaderboardPeaksLoader peaksLoader) {
+		this.peaksLoader = peaksLoader;
+	}
+
+	private boolean peaksLoaded = false;
+	private SplatoonPlayerPeaks peaks;
+
 	@Scheduled(fixedRate = 15000)
 	public void loadGameResultsScheduled() {
+		if (!peaksLoaded) {
+			peaks = peaksLoader.getPlayerPeaks();
+			peaksLoaded = true;
+		}
+
 		if (running && !alreadyRunning) {
 			alreadyRunning = true;
 
