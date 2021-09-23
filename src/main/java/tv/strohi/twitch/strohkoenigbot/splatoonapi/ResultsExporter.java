@@ -7,6 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMatchResultsCol
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonPlayerPeaks;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.Statistics;
 
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,12 @@ import java.util.stream.Collectors;
 
 @Component
 public class ResultsExporter {
-	private final Statistics statistics = new Statistics("C:\\Users\\marco\\Documents\\code\\java\\quagsirebot\\src\\main\\resources\\html\\template-example.html");
+	private final Statistics statistics;
+
+	public ResultsExporter() {
+		String path = Paths.get(".").toAbsolutePath().normalize().toString();
+		statistics = new Statistics(String.format("%s\\src\\main\\resources\\html\\template-example.html", path));
+	}
 
 	private boolean running = false;
 	private boolean alreadyRunning = false;
