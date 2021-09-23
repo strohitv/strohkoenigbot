@@ -42,13 +42,18 @@
 			margin-bottom: auto;
 			margin-left: 20px;
 			align-self: center;
-			width: 70px;
-			height: 70px;
+			width: 80px;
+			height: 80px;
 		}
 
 		.rounded-corners-weapon-image {
-			width: 64px;
+			width: 74px;
 			margin: 3px;
+		}
+
+		.rounded-corners-gear {
+			background-color: #BBB;
+			border-radius: 20px;
 		}
 
 		.side-padding {
@@ -58,13 +63,13 @@
 
 		.main-ability {
 			align-self: center;
-			width: 70px;
+			width: 100px;
 			margin: 5px;
 		}
 
 		.sub-ability {
 			align-self: center;
-			width: 50px;
+			width: 70px;
 			margin: 5px;
 		}
 
@@ -72,12 +77,14 @@
 			color: #8f8;
 			-webkit-text-stroke: 1px black;
 			font-size: 50px;
+			font-weight: bolder;
 		}
 
 		.defeats {
 			color: #f88;
 			-webkit-text-stroke: 1px black;
 			font-size: 50px;
+			font-weight: bolder;
 		}
 
 		.main-weapon {
@@ -126,18 +133,15 @@
 			</div>
 
 			<!-- gear section-->
-			<div style="display: table-cell; height: 100%; vertical-align: middle;">
+			<div style="display: table-cell; height: 100%; vertical-align: top;">
 				<div style="display: flex; flex-direction: column;">
-					<p style="font-size: xx-large">
+					<p style="font-size: 40px;">
 						last match gear (refreshes <span
 							style="text-decoration: underline; font-weight: bolder">AFTER</span> each match)
 					</p>
 					<div style="display: flex; flex-direction: row;">
 						<div class="side-padding" style="width: 33%;">
-							<p>
-								head
-							</p>
-							<div style="display: flex; flex-direction: row;">
+							<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
 								<img class="bright-circle main-ability"
 									 src="{head}"/>
 								<img class="circle main-ability"
@@ -151,10 +155,7 @@
 							</div>
 						</div>
 						<div class="side-padding" style="width: 33%;">
-							<p>
-								clothing
-							</p>
-							<div style="display: flex; flex-direction: row;">
+							<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
 								<img class="bright-circle main-ability"
 									 src="{clothing}"/>
 								<img class="circle main-ability"
@@ -168,10 +169,7 @@
 							</div>
 						</div>
 						<div class="side-padding" style="width: 33%;">
-							<p>
-								shoes
-							</p>
-							<div style="display: flex; flex-direction: row;">
+							<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
 								<img class="bright-circle main-ability"
 									 src="{shoes}"/>
 								<img class="circle main-ability"
