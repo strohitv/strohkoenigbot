@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
-	<meta http-equiv="refresh" content="5">
+
+	<!-- TODO ONLY FOR TESTING PURPOSES - RESET TO 5 SECONDS AFTER USE -->
+	<meta http-equiv="refresh" content="600">
+
 	<title>Splatoon 2 statistics</title>
 
 	<style>
@@ -12,6 +16,11 @@
 			color: white;
 			text-align: center;
 			background-color: rgba(0, 0, 0, 0);
+		}
+
+		h1 {
+			/*	TODO ONLY FOR TESTING PURPOSES - RESET AFTER USE */
+			color: black;
 		}
 
 		p {
@@ -33,6 +42,11 @@
 			border-radius: 40px;
 			width: max-content;
 			float: right;
+
+			/*	TODO ONLY FOR TESTING PURPOSES - RESET AFTER USE */
+			margin-top: 82vh;
+			margin-right: 1vw;
+
 		}
 
 		.rounded-corners-weapon {
@@ -99,87 +113,76 @@
 </head>
 
 <body>
-<div class="rounded-corners">
-	<div style="display: table; height: 100%;">
-		<div style="display: table-row; height: 100%;">
-			<!-- wins, defeats -->
-			<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
-				<p class="wins">
-					{wins} victories
-				</p>
-				<p class="defeats">
-					{defeats} defeats
-				</p>
-			</div>
 
-			<!-- weapon-->
-			<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
-				<div style="display: flex;">
-					<div style="display: flex; align-content: center;">
-						<img class="bright-circle main-weapon" style="margin: 0 auto;"
-								 src="{main-weapon}"/>
-					</div>
-					<div style="display: flex; flex-flow: column; align-content: center;">
-						<div class="rounded-corners-weapon">
-							<img class="rounded-corners-weapon-image"
-										 src="{sub-weapon}"/>
+	<!-- TODO ONLY FOR TESTING PURPOSES - REMOVE AFTER USE -->
+	<h1>
+		{main-weapon-points}
+	</h1>
+
+	<div class="rounded-corners">
+		<div style="display: table; height: 100%;">
+			<div style="display: table-row; height: 100%;">
+				<!-- wins, defeats -->
+				<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
+					<p class="wins">
+						{wins} victories
+					</p>
+					<p class="defeats">
+						{defeats} defeats
+					</p>
+				</div>
+
+				<!-- weapon-->
+				<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
+					<div style="display: flex;">
+						<div style="display: flex; align-content: center;">
+							<img class="bright-circle main-weapon" style="margin: 0 auto;" src="{main-weapon}" />
 						</div>
-						<div class="rounded-corners-weapon">
-							<img class="rounded-corners-weapon-image"
-										 src="{special-weapon}"/>
+						<div style="display: flex; flex-flow: column; align-content: center;">
+							<div class="rounded-corners-weapon">
+								<img class="rounded-corners-weapon-image" src="{sub-weapon}" />
+							</div>
+							<div class="rounded-corners-weapon">
+								<img class="rounded-corners-weapon-image" src="{special-weapon}" />
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
 
-			<!-- gear section-->
-			<div style="display: table-cell; height: 100%; vertical-align: top;">
-				<div style="display: flex; flex-direction: column;">
-					<p style="font-size: 40px;">
-						last match gear (refreshes <span
-							style="text-decoration: underline; font-weight: bolder">AFTER</span> each match)
-					</p>
-					<div style="display: flex; flex-direction: row;">
-						<div class="side-padding" style="width: 33%;">
-							<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
-								<img class="bright-circle main-ability"
-									 src="{head}"/>
-								<img class="circle main-ability"
-									 src="{head-main}"/>
-								<img class="circle sub-ability"
-									 src="{head-sub-1}"/>
-								<img class="circle sub-ability {head-sub2-hidden}"
-									 src="{head-sub-2}"/>
-								<img class="circle sub-ability {head-sub3-hidden}"
-									 src="{head-sub-3}"/>
+				<!-- gear section-->
+				<div style="display: table-cell; height: 100%; vertical-align: top;">
+					<div style="display: flex; flex-direction: column;">
+						<p style="font-size: 40px;">
+							last match gear (refreshes <span
+								style="text-decoration: underline; font-weight: bolder">AFTER</span> each match)
+						</p>
+						<div style="display: flex; flex-direction: row;">
+							<div class="side-padding" style="width: 33%;">
+								<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
+									<img class="bright-circle main-ability" src="{head}" />
+									<img class="circle main-ability" src="{head-main}" />
+									<img class="circle sub-ability" src="{head-sub-1}" />
+									<img class="circle sub-ability {head-sub2-hidden}" src="{head-sub-2}" />
+									<img class="circle sub-ability {head-sub3-hidden}" src="{head-sub-3}" />
+								</div>
 							</div>
-						</div>
-						<div class="side-padding" style="width: 33%;">
-							<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
-								<img class="bright-circle main-ability"
-									 src="{clothing}"/>
-								<img class="circle main-ability"
-									 src="{clothing-main}"/>
-								<img class="circle sub-ability"
-									 src="{clothing-sub-1}"/>
-								<img class="circle sub-ability {clothing-sub2-hidden}"
-									 src="{clothing-sub-2}"/>
-								<img class="circle sub-ability {clothing-sub3-hidden}"
-									 src="{clothing-sub-3}"/>
+							<div class="side-padding" style="width: 33%;">
+								<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
+									<img class="bright-circle main-ability" src="{clothing}" />
+									<img class="circle main-ability" src="{clothing-main}" />
+									<img class="circle sub-ability" src="{clothing-sub-1}" />
+									<img class="circle sub-ability {clothing-sub2-hidden}" src="{clothing-sub-2}" />
+									<img class="circle sub-ability {clothing-sub3-hidden}" src="{clothing-sub-3}" />
+								</div>
 							</div>
-						</div>
-						<div class="side-padding" style="width: 33%;">
-							<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
-								<img class="bright-circle main-ability"
-									 src="{shoes}"/>
-								<img class="circle main-ability"
-									 src="{shoes-main}"/>
-								<img class="circle sub-ability"
-									 src="{shoes-sub-1}"/>
-								<img class="circle sub-ability {shoes-sub2-hidden}"
-									 src="{shoes-sub-2}"/>
-								<img class="circle sub-ability {shoes-sub3-hidden}"
-									 src="{shoes-sub-3}"/>
+							<div class="side-padding" style="width: 33%;">
+								<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
+									<img class="bright-circle main-ability" src="{shoes}" />
+									<img class="circle main-ability" src="{shoes-main}" />
+									<img class="circle sub-ability" src="{shoes-sub-1}" />
+									<img class="circle sub-ability {shoes-sub2-hidden}" src="{shoes-sub-2}" />
+									<img class="circle sub-ability {shoes-sub3-hidden}" src="{shoes-sub-3}" />
+								</div>
 							</div>
 						</div>
 					</div>
@@ -187,6 +190,12 @@
 			</div>
 		</div>
 	</div>
-</div>
+
+	<!-- TODO ONLY FOR TESTING PURPOSES - REMOVE AFTER USE -->
+	<iframe src="https://player.twitch.tv/?channel=noxtan13&parent=localhost" height="100%" width="100%"
+		allowfullscreen="true" style="position: absolute; z-index: -100; top: 0; left: 0; width: 99%; height: 99%">
+	</iframe>
+
 </body>
+
 </html>
