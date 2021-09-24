@@ -31,6 +31,7 @@ public class Statistics {
 			SplatoonMatchResultsCollection.SplatoonMatchResult lastMatch = includedMatches.get(includedMatches.size() - 1);
 			SplatoonMatchResultsCollection.SplatoonMatchResult.SplatoonPlayerResult.SplatoonPlayer player = lastMatch.getPlayer_result().getPlayer();
 
+			String mainWeaponPoints = String.format("%d", lastMatch.getWeapon_paint_point());
 			String mainWeaponUrl = String.format("%s%s", imageHost, player.getWeapon().getImage());
 			String subWeaponUrl = String.format("%s%s", imageHost, player.getWeapon().getSub().getImage_a());
 			String specialWeaponUrl = String.format("%s%s", imageHost, player.getWeapon().getSpecial().getImage_a());
@@ -38,20 +39,20 @@ public class Statistics {
 			String headGear = String.format("%s%s", imageHost, player.getHead().getImage());
 			String headGearMain = String.format("%s%s", imageHost, player.getHead_skills().getMain().getImage());
 			String headGearSub1 = String.format("%s%s", imageHost, player.getHead_skills().getSubs()[0].getImage());
-			String headGearSub2 = player.getHead_skills().getSubs().length > 1 ? String.format("%s%s", imageHost, player.getHead_skills().getSubs()[1].getImage()) : null;
-			String headGearSub3 = player.getHead_skills().getSubs().length > 2 ? String.format("%s%s", imageHost, player.getHead_skills().getSubs()[2].getImage()) : null;
+			String headGearSub2 = player.getHead_skills().getSubs().length > 1 && player.getHead_skills().getSubs()[1] != null ? String.format("%s%s", imageHost, player.getHead_skills().getSubs()[1].getImage()) : null;
+			String headGearSub3 = player.getHead_skills().getSubs().length > 2 && player.getHead_skills().getSubs()[2] != null ? String.format("%s%s", imageHost, player.getHead_skills().getSubs()[2].getImage()) : null;
 
 			String clothesGear = String.format("%s%s", imageHost, player.getClothes().getImage());
 			String clothesGearMain = String.format("%s%s", imageHost, player.getClothes_skills().getMain().getImage());
 			String clothesGearSub1 = String.format("%s%s", imageHost, player.getClothes_skills().getSubs()[0].getImage());
-			String clothesGearSub2 = player.getClothes_skills().getSubs().length > 1 ? String.format("%s%s", imageHost, player.getClothes_skills().getSubs()[1].getImage()) : null;
-			String clothesGearSub3 = player.getClothes_skills().getSubs().length > 2 ? String.format("%s%s", imageHost, player.getClothes_skills().getSubs()[2].getImage()) : null;
+			String clothesGearSub2 = player.getClothes_skills().getSubs().length > 1 && player.getClothes_skills().getSubs()[1] != null ? String.format("%s%s", imageHost, player.getClothes_skills().getSubs()[1].getImage()) : null;
+			String clothesGearSub3 = player.getClothes_skills().getSubs().length > 2 && player.getClothes_skills().getSubs()[2] != null ? String.format("%s%s", imageHost, player.getClothes_skills().getSubs()[2].getImage()) : null;
 
 			String shoesGear = String.format("%s%s", imageHost, player.getShoes().getImage());
 			String shoesGearMain = String.format("%s%s", imageHost, player.getShoes_skills().getMain().getImage());
 			String shoesGearSub1 = String.format("%s%s", imageHost, player.getShoes_skills().getSubs()[0].getImage());
-			String shoesGearSub2 = player.getShoes_skills().getSubs().length > 1 ? String.format("%s%s", imageHost, player.getShoes_skills().getSubs()[1].getImage()) : null;
-			String shoesGearSub3 = player.getShoes_skills().getSubs().length > 2 ? String.format("%s%s", imageHost, player.getShoes_skills().getSubs()[2].getImage()) : null;
+			String shoesGearSub2 = player.getShoes_skills().getSubs().length > 1 && player.getShoes_skills().getSubs()[1] != null ? String.format("%s%s", imageHost, player.getShoes_skills().getSubs()[1].getImage()) : null;
+			String shoesGearSub3 = player.getShoes_skills().getSubs().length > 2 && player.getShoes_skills().getSubs()[2] != null ? String.format("%s%s", imageHost, player.getShoes_skills().getSubs()[2].getImage()) : null;
 
 			InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/template.html");
 
@@ -62,6 +63,7 @@ public class Statistics {
 				fileToWrite = fileToWrite
 						.replace("{wins}", String.format("%d", victoryCount))
 						.replace("{defeats}", String.format("%d", defeatCount))
+						.replace("{main-weapon-points}", mainWeaponPoints)
 						.replace("{main-weapon}", mainWeaponUrl)
 						.replace("{sub-weapon}", subWeaponUrl)
 						.replace("{special-weapon}", specialWeaponUrl)
