@@ -50,7 +50,7 @@ public class SplatoonMatchResultsCollection {
 
 		private SplatoonUdemae udemae;
 		private String rank;
-		private SplatoonPlayerResult[] crown_players;
+		private String[] crown_players;
 
 		// league
 		private double my_estimate_league_point;
