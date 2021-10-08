@@ -50,7 +50,14 @@ public class SplatoonMatchResultsCollection {
 
 		private SplatoonUdemae udemae;
 		private String rank;
-		private String crown_players;
+		private SplatoonPlayerResult[] crown_players;
+
+		// league
+		private double my_estimate_league_point;
+		private double other_estimate_league_point;
+		private double max_league_point;
+		private double league_point;
+		private String tag_id;
 
 		public Instant getStartTimeAsInstant() {
 			return Instant.ofEpochSecond(start_time);
