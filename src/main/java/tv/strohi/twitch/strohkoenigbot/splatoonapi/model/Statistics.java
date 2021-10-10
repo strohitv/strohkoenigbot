@@ -12,7 +12,7 @@ public class Statistics {
 
 	private boolean dirty;
 
-	private String path;
+	private final String path;
 
 	public Statistics(String path) {
 		this.path = path;
@@ -21,6 +21,23 @@ public class Statistics {
 
 	public void reset() {
 		includedMatches.clear();
+	}
+
+	public void stop() {
+		includedMatches.clear();
+
+		InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/template-after-stream.html");
+
+		try {
+			assert is != null;
+			String fileToWrite = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+			FileWriter myWriter = new FileWriter(path);
+			myWriter.write(fileToWrite);
+			myWriter.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void exportHtml() {

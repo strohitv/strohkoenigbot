@@ -34,6 +34,7 @@ public class ResultsExporter {
 
 	public void stop() {
 		this.running = false;
+		statistics.stop();
 	}
 
 	public void setLastAnalysedMatchStart(Instant lastAnalysedMatchStart) {
