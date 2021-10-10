@@ -115,6 +115,12 @@
 			font-weight: bolder;
 		}
 
+		.ink-stats {
+			-webkit-text-stroke: 1px black;
+			font-size: 50px;
+			font-weight: bolder;
+		}
+
 		.main-weapon {
 			max-height: 180px;
 		}
@@ -163,6 +169,16 @@
 						</div>
 					</div>
 				</div>
+			</div>
+
+			<!-- inked turf -->
+			<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
+				<p class="ink-stats">
+					{main-weapon-points}p
+				</p>
+				<p class="ink-stats">
+					(+ {main-weapon-points-gain}p)
+				</p>
 			</div>
 
 			<!-- gear section-->

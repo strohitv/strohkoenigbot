@@ -3,11 +3,15 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.model;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Statistics {
 	private final List<SplatoonMatchResultsCollection.SplatoonMatchResult> includedMatches = new ArrayList<>();
+	private final Map<String, Integer> weaponPaints = new HashMap<>();
 	private final String imageHost = "https://app.splatoon2.nintendo.net";
 
 	private boolean dirty;
@@ -21,10 +25,12 @@ public class Statistics {
 
 	public void reset() {
 		includedMatches.clear();
+		weaponPaints.clear();
 	}
 
 	public void stop() {
 		includedMatches.clear();
+		weaponPaints.clear();
 
 		InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/template-after-stream.html");
 
@@ -48,7 +54,11 @@ public class Statistics {
 			SplatoonMatchResultsCollection.SplatoonMatchResult lastMatch = includedMatches.get(includedMatches.size() - 1);
 			SplatoonMatchResultsCollection.SplatoonMatchResult.SplatoonPlayerResult.SplatoonPlayer player = lastMatch.getPlayer_result().getPlayer();
 
-			String mainWeaponPoints = String.format("%d", lastMatch.getWeapon_paint_point());
+			String mainWeaponPoints = String.format("%,d", lastMatch.getWeapon_paint_point())
+					.replace(DecimalFormatSymbols.getInstance().getGroupingSeparator(), ' ');
+			String mainWeaponPointsGain = String.format("%,d", weaponPaints.getOrDefault(lastMatch.getPlayer_result().getPlayer().getWeapon().getId(), 0))
+					.replace(DecimalFormatSymbols.getInstance().getGroupingSeparator(), ' ');
+
 			String mainWeaponUrl = String.format("%s%s", imageHost, player.getWeapon().getImage());
 			String subWeaponUrl = String.format("%s%s", imageHost, player.getWeapon().getSub().getImage_a());
 			String specialWeaponUrl = String.format("%s%s", imageHost, player.getWeapon().getSpecial().getImage_a());
@@ -81,6 +91,7 @@ public class Statistics {
 						.replace("{wins}", String.format("%d", victoryCount))
 						.replace("{defeats}", String.format("%d", defeatCount))
 						.replace("{main-weapon-points}", mainWeaponPoints)
+						.replace("{main-weapon-points-gain}", mainWeaponPointsGain)
 						.replace("{main-weapon}", mainWeaponUrl)
 						.replace("{sub-weapon}", subWeaponUrl)
 						.replace("{special-weapon}", specialWeaponUrl)
@@ -158,6 +169,15 @@ public class Statistics {
 		if (matches.size() > 0) {
 			dirty = true;
 			includedMatches.addAll(matches);
+
+			for (SplatoonMatchResultsCollection.SplatoonMatchResult result : matches) {
+				String weaponId = result.getPlayer_result().getPlayer().getWeapon().getId();
+
+				int newPaint = weaponPaints.getOrDefault(weaponId, 0);
+				newPaint += result.getPlayer_result().getGame_paint_point();
+
+				weaponPaints.put(weaponId, newPaint);
+			}
 		}
 	}
 }
