@@ -59,12 +59,12 @@ public class TwitchChatBot {
 
 			mainAccountClient.getChat().joinChannel(authData.getMainAccountUsername());
 
-			if (mainAccountClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
-				mainAccountClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
-			}
+//			if (mainAccountClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
+//				mainAccountClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
+//			}
 
-			User something = mainAccountClient.getHelix().getUsers(authData.getMainAccountAuthToken(), null, null).execute().getUsers().get(0);
-			authData.setMainAccountChannelId(something.getId());
+//			User something = mainAccountClient.getHelix().getUsers(authData.getMainAccountAuthToken(), null, null).execute().getUsers().get(0);
+//			authData.setMainAccountChannelId(something.getId());
 
 //			GameList games = mainAccountClient.getHelix().getGames(authData.getMainAccountAuthToken(), null, Collections.singletonList("Mario Kart 8")).execute();
 //
@@ -88,6 +88,13 @@ public class TwitchChatBot {
 					.withEnablePubSub(true)
 					.build();
 
+			User strohkoenigUser = botClient.getClientHelper().enableStreamEventListener("strohkoenig");
+			botClient.getClientHelper().enableFollowEventListener("strohkoenig");
+
+			if (strohkoenigUser != null) {
+				authData.setMainAccountChannelId(strohkoenigUser.getId());
+			}
+
 			goLiveListener = botClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
 				resultsExporter.start(event.getFiredAtInstant());
 			});
@@ -109,9 +116,9 @@ public class TwitchChatBot {
 
 			botClient.getChat().joinChannel(authData.getMainAccountUsername());
 
-			if (botClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
-				botClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
-			}
+//			if (botClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
+//				botClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
+//			}
 
 //			GameList games = botClient.getHelix().getGames(authData.getMainAccountAuthToken(), null, Collections.singletonList("Super Hexagon")).execute();
 //
