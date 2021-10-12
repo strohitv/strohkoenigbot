@@ -59,9 +59,9 @@ public class TwitchChatBot {
 
 			mainAccountClient.getChat().joinChannel(authData.getMainAccountUsername());
 
-//			if (mainAccountClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
-//				mainAccountClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
-//			}
+			if (mainAccountClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
+				mainAccountClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
+			}
 
 //			User something = mainAccountClient.getHelix().getUsers(authData.getMainAccountAuthToken(), null, null).execute().getUsers().get(0);
 //			authData.setMainAccountChannelId(something.getId());
