@@ -13,6 +13,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.model.TwitchAuthData;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.ResultsExporter;
 
+import javax.annotation.PreDestroy;
 import java.util.List;
 
 @Component
@@ -116,9 +117,9 @@ public class TwitchChatBot {
 
 			botClient.getChat().joinChannel(authData.getMainAccountUsername());
 
-//			if (botClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
-//				botClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
-//			}
+			if (botClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
+				botClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
+			}
 
 //			GameList games = botClient.getHelix().getGames(authData.getMainAccountAuthToken(), null, Collections.singletonList("Super Hexagon")).execute();
 //
@@ -134,6 +135,7 @@ public class TwitchChatBot {
 		}
 	}
 
+	@PreDestroy
 	public void stop() {
 		if (goLiveListener != null) {
 			if (!goLiveListener.isDisposed()) {
@@ -159,6 +161,7 @@ public class TwitchChatBot {
 
 			botClient.getEventManager().getActiveSubscriptions().forEach(IDisposable::dispose);
 			botClient.getEventManager().close();
+			botClient.close();
 		}
 
 		if (mainAccountClient != null) {
@@ -166,6 +169,8 @@ public class TwitchChatBot {
 				mainAccountClient.getChat().sendMessage(authData.getMainAccountUsername(), "Bye!");
 				mainAccountClient.getChat().leaveChannel(authData.getMainAccountUsername());
 			}
+
+			mainAccountClient.close();
 		}
 	}
 }

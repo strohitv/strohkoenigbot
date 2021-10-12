@@ -58,7 +58,7 @@ public class ResultsExporter {
 	private boolean peaksLoaded = false;
 	private SplatoonPlayerPeaks peaks;
 
-	@Scheduled(fixedRate = 15000)
+	@Scheduled(fixedRate = 15000, initialDelay = 5000)
 	public void loadGameResultsScheduled() {
 //		if (!peaksLoaded) {
 //			peaks = peaksLoader.getPlayerPeaks();
