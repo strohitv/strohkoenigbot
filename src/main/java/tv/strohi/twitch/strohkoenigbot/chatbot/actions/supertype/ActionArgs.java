@@ -4,12 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ActionArgs {
-	private final Map<String, Object> arguments = new HashMap<>();
+	private final Map<ArgumentKey, Object> arguments = new HashMap<>();
 
 	private TriggerReason reason;
 	private String user;
+	private String userId;
 
-	public Map<String, Object> getArguments() {
+	public Map<ArgumentKey, Object> getArguments() {
 		return arguments;
 	}
 
@@ -27,5 +28,13 @@ public class ActionArgs {
 
 	public void setUser(String user) {
 		this.user = user;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 }
