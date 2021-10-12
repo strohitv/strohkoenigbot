@@ -2,7 +2,7 @@
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
-cd $SCRIPTPATH || (echo "cd to SCRIPTPATH failed. SCRIPTPATH: $SCRIPTPATH" && exit)
+cd $SCRIPTPATH || (echo "cd to SCRIPTPATH failed. SCRIPTPATH: '$SCRIPTPATH'" && exit)
 
 # git operations
 git fetch
