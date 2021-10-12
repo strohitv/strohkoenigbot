@@ -8,5 +8,5 @@ import java.util.EnumSet;
 public interface IChatAction {
 	EnumSet<TriggerReason> getCauses();
 
-	void run();
+	void run(ActionArgs args);
 }

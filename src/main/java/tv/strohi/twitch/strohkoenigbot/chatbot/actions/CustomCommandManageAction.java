@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.data.model.Command;
@@ -26,7 +27,7 @@ public class CustomCommandManageAction implements IChatAction {
 	}
 
 	@Override
-	public void run() {
+	public void run(ActionArgs args) {
 		List<Command> commands = repository.findAll(Sort.unsorted());
 
 		System.out.println(commands);
