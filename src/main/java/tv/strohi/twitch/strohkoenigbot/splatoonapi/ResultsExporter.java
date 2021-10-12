@@ -60,10 +60,10 @@ public class ResultsExporter {
 
 	@Scheduled(fixedRate = 15000)
 	public void loadGameResultsScheduled() {
-		if (!peaksLoaded) {
-			peaks = peaksLoader.getPlayerPeaks();
-			peaksLoaded = true;
-		}
+//		if (!peaksLoaded) {
+//			peaks = peaksLoader.getPlayerPeaks();
+//			peaksLoaded = true;
+//		}
 
 		if (running && !alreadyRunning) {
 			alreadyRunning = true;
