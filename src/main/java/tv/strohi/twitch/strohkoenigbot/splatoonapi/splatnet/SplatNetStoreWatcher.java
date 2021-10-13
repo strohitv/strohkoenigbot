@@ -21,7 +21,7 @@ public class SplatNetStoreWatcher {
 	// todo: rate limiting for pns (extra class)
 	// todo: https://dev.twitch.tv/docs/irc/guide
 
-	@Scheduled(cron = "* * * * * *")
+	@Scheduled(cron = "1 * * * * *")
 	public void refreshSplatNetShop() {
 		SplatoonMerchandises test = shopLoader.querySplatoonApi("/api/onlineshop/merchandises", SplatoonMerchandises.class);
 		System.out.println(test);
