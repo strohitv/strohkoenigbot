@@ -314,6 +314,18 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				.findFirst()
 				.orElse(AbilityType.Any);
 
+		if (main == favored) {
+			// ERROR -> Main and favored ability of a shirt do never equal.
+			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+					String.format("ERROR! Your search for %s with %s and %s is invalid because gear cannot have the same main and favored ability!",
+							getGearString(type),
+							getAbilityString(main, false),
+							getAbilityString(favored, true)),
+					(String) args.getArguments().get(ArgumentKey.MessageNonce),
+					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+			return;
+		}
+
 		if (type != GearType.Any && main != AbilityType.Any && exclusiveAbilities.get(main) != type) {
 			// ERROR -> This ability cannot be a main ability on that gear type
 			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
