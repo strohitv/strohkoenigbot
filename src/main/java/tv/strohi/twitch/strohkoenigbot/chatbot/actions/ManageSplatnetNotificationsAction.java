@@ -258,9 +258,6 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 	@Override
 	public void execute(ActionArgs args) {
-		// todo: check for user role because of rate limiting https://dev.twitch.tv/docs/irc/guide
-		// todo: maybe sending messages out via discord? probably not, because people could troll and spam other discord account using that.
-		// todo: maybe only allow it to subs? Don't think I'll ever reach the rate limit if I only use it for subs.
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
 		boolean remove = false;
 		if (message == null) {
