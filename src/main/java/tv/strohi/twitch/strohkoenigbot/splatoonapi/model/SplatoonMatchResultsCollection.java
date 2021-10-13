@@ -133,52 +133,9 @@ public class SplatoonMatchResultsCollection {
 				@Data
 				@NoArgsConstructor
 				@AllArgsConstructor
-				public static class SplatoonGear {
-					private int rarity;
-					private String id;
-					private String kind;
-					private String image;
-					private String name;
-					private String thumbnail;
-
-					private SplatoonGearBrand brand;
-
-					@Data
-					@NoArgsConstructor
-					@AllArgsConstructor
-					public static class SplatoonGearBrand {
-						private String id;
-						private String name;
-						private String image;
-
-						private SplatoonFrequentSkill frequent_skill;
-
-						@Data
-						@NoArgsConstructor
-						@AllArgsConstructor
-						public static class SplatoonFrequentSkill {
-							private String id;
-							private String name;
-							private String image;
-						}
-					}
-				}
-
-				@Data
-				@NoArgsConstructor
-				@AllArgsConstructor
 				public static class SplatoonGearSkills {
 					private SplatoonGearSkill main;
 					private SplatoonGearSkill[] subs;
-
-					@Data
-					@NoArgsConstructor
-					@AllArgsConstructor
-					public static class SplatoonGearSkill {
-						private String name;
-						private String image;
-						private String id;
-					}
 				}
 			}
 		}
