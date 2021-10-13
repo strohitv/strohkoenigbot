@@ -218,6 +218,12 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			put("ti", AbilityType.ThermalInk);
 		}
 	};
+	private final Map<String, AbilityType> abilityNamesPlusAnyAbility = new HashMap<>() {
+		{
+			putAll(abilityNames);
+			put("any", AbilityType.Any);
+		}
+	};
 
 	private final Map<AbilityType, GearType> exclusiveAbilities = new HashMap<>() {
 		{
@@ -281,7 +287,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				list.remove(i + 1);
 			}
 
-			if (!abilityNames.containsKey(list.get(i)) && !gearNames.containsKey(list.get(i))) {
+			if (!abilityNamesPlusAnyAbility.containsKey(list.get(i)) && !gearNames.containsKey(list.get(i))) {
 				list.remove(i);
 				i--;
 			}
@@ -293,8 +299,8 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		}
 
 		ArrayList<AbilityType> abilities = list.stream()
-				.filter(abilityNames::containsKey)
-				.map(abilityNames::get)
+				.filter(abilityNamesPlusAnyAbility::containsKey)
+				.map(abilityNamesPlusAnyAbility::get)
 				.collect(Collectors.toCollection(ArrayList::new));
 
 		AbilityType main = abilities.stream()
@@ -311,17 +317,6 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				.findFirst()
 				.orElse(AbilityType.Any);
 
-//		String mainString = list.stream().filter(abilityNames::containsKey).findFirst().orElse("any");
-//		AbilityType main = abilityNames.get(mainString);
-//		list.remove(mainString);
-//
-//		AbilityType favored = list.stream()
-//				.filter(abilityNames::containsKey)
-//				.map(abilityNames::get)
-//				.filter(subAbilities::contains)
-//				.findFirst()
-//				.orElse(AbilityType.Any);
-
 		if (type != GearType.Any && main != AbilityType.Any && exclusiveAbilities.get(main) != type) {
 			// ERROR -> This ability cannot be a main ability on that gear type
 			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
@@ -333,7 +328,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			return;
 		}
 
-		if (type == GearType.Any && main == AbilityType.Any && favored == AbilityType.Any) {
+		if (!remove && type == GearType.Any && main == AbilityType.Any && favored == AbilityType.Any) {
 			// ERROR -> Too vague
 			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
 					"ERROR! Your search is too vague! Please specify at least gear, main OR sub ability.",
@@ -344,13 +339,23 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 		// todo do create or remove operation in database
 		// todo make sure to use twitch account id so it won't fail when they change their username
-		messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-				String.format("Alright! I'm going to notify you via private message when I find %s with %s and %s in SplatNet shop. Important: I only notify mods, vips and subs of @strohkoenig.",
-						getGearString(type),
-						getAbilityString(main, false),
-						getAbilityString(favored, true)),
-				(String) args.getArguments().get(ArgumentKey.MessageNonce),
-				(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+		if (!remove) {
+			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+					String.format("Alright! I'm going to notify you via private message when I find %s with %s and %s in SplatNet shop. Important: I only notify mods, vips and subs of @strohkoenig.",
+							getGearString(type),
+							getAbilityString(main, false),
+							getAbilityString(favored, true)),
+					(String) args.getArguments().get(ArgumentKey.MessageNonce),
+					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+		} else {
+			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+					String.format("Alright! I'm not going to notify you anymore when I find %s with %s and %s in SplatNet shop.",
+							getGearString(type),
+							getAbilityString(main, false),
+							getAbilityString(favored, true)),
+					(String) args.getArguments().get(ArgumentKey.MessageNonce),
+					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+		}
 	}
 
 	private String getGearString(GearType type) {
