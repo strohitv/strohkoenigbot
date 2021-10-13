@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.splatoonapi;
+package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;

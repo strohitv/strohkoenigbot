@@ -17,7 +17,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.model.TwitchAuthData;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.ResultsExporter;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
