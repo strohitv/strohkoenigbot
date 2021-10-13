@@ -1,6 +1,5 @@
 package tv.strohi.twitch.strohkoenigbot;
 
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
 import tv.strohi.twitch.strohkoenigbot.utils.LevenshteinDistanceCalculator;
 import tv.strohi.twitch.strohkoenigbot.utils.MessageEscaper;
 
@@ -11,8 +10,6 @@ public class App {
 	}
 
 	private void run() {
-		new TwitchChatBot().initialize();
-
 		String badText = "Das hier ist äöüßÄÖÜẞ ein Ｊ໐ᏳԌЕℜ";
 
 		System.out.println(badText);

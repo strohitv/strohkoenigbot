@@ -1,18 +1,22 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
-public class ManageSplatnetNotificationsAction implements IChatAction {
+public class ManageSplatnetNotificationsAction extends ChatAction {
 	private final Map<String, GearType> gearNames = new HashMap<>() {
 		{
 			put("head", GearType.Head);
@@ -43,6 +47,7 @@ public class ManageSplatnetNotificationsAction implements IChatAction {
 
 			put("bomb defense up dx", AbilityType.BombDefenseUpDx);
 			put("bomb defense up", AbilityType.BombDefenseUpDx);
+			put("bomb defense dx", AbilityType.BombDefenseUpDx);
 			put("bomb defense", AbilityType.BombDefenseUpDx);
 			put("bombdefense", AbilityType.BombDefenseUpDx);
 			put("bomb", AbilityType.BombDefenseUpDx);
@@ -67,8 +72,8 @@ public class ManageSplatnetNotificationsAction implements IChatAction {
 			put("resistance", AbilityType.InkResistanceUp);
 			put("ink res", AbilityType.InkResistanceUp);
 			put("ink", AbilityType.InkResistanceUp);
-			put("iru", AbilityType.InkRecoveryUp);
-			put("ir", AbilityType.InkRecoveryUp);
+			put("iru", AbilityType.InkResistanceUp);
+			put("ir", AbilityType.InkResistanceUp);
 
 			put("ink saver (main)", AbilityType.InkSaverMain);
 			put("ink saver main", AbilityType.InkSaverMain);
@@ -78,13 +83,13 @@ public class ManageSplatnetNotificationsAction implements IChatAction {
 			put("mainsaver", AbilityType.InkSaverMain);
 			put("ism", AbilityType.InkSaverMain);
 
-			put("ink saver (sub)", AbilityType.InkSaverMain);
-			put("ink saver sub", AbilityType.InkSaverMain);
-			put("inksaver (sub)", AbilityType.InkSaverMain);
-			put("inksaver sub", AbilityType.InkSaverMain);
-			put("sub saver", AbilityType.InkSaverMain);
-			put("subsaver", AbilityType.InkSaverMain);
-			put("iss", AbilityType.InkSaverMain);
+			put("ink saver (sub)", AbilityType.InkSaverSub);
+			put("ink saver sub", AbilityType.InkSaverSub);
+			put("inksaver (sub)", AbilityType.InkSaverSub);
+			put("inksaver sub", AbilityType.InkSaverSub);
+			put("sub saver", AbilityType.InkSaverSub);
+			put("subsaver", AbilityType.InkSaverSub);
+			put("iss", AbilityType.InkSaverSub);
 
 			put("last ditch effort", AbilityType.LastDitchEffort);
 			put("last ditch", AbilityType.LastDitchEffort);
@@ -120,10 +125,10 @@ public class ManageSplatnetNotificationsAction implements IChatAction {
 			put("os", AbilityType.ObjectShredder);
 
 			put("opening gambit", AbilityType.OpeningGambit);
-			put("openinggambit", AbilityType.ObjectShredder);
-			put("opening", AbilityType.ObjectShredder);
-			put("gambit", AbilityType.ObjectShredder);
-			put("og", AbilityType.ObjectShredder);
+			put("openinggambit", AbilityType.OpeningGambit);
+			put("opening", AbilityType.OpeningGambit);
+			put("gambit", AbilityType.OpeningGambit);
+			put("og", AbilityType.OpeningGambit);
 
 			put("quick respawn", AbilityType.QuickRespawn);
 			put("quickrespawn", AbilityType.QuickRespawn);
@@ -214,25 +219,6 @@ public class ManageSplatnetNotificationsAction implements IChatAction {
 		}
 	};
 
-	private final ArrayList<AbilityType> subAbilities = new ArrayList<>() {
-		{
-			add(AbilityType.BombDefenseUpDx);
-			add(AbilityType.InkRecoveryUp);
-			add(AbilityType.InkResistanceUp);
-			add(AbilityType.InkSaverMain);
-			add(AbilityType.InkSaverSub);
-			add(AbilityType.MainPowerUp);
-			add(AbilityType.QuickRespawn);
-			add(AbilityType.QuickSuperJump);
-			add(AbilityType.RunSpeedUp);
-			add(AbilityType.SpecialChargeUp);
-			add(AbilityType.SpecialSaver);
-			add(AbilityType.SpecialPowerUp);
-			add(AbilityType.SubPowerUp);
-			add(AbilityType.SwimSpeedUp);
-		}
-	};
-
 	private final Map<AbilityType, GearType> exclusiveAbilities = new HashMap<>() {
 		{
 			put(AbilityType.Comeback, GearType.Head);
@@ -252,13 +238,20 @@ public class ManageSplatnetNotificationsAction implements IChatAction {
 		}
 	};
 
+	private TwitchMessageSender messageSender;
+
+	@Autowired
+	public void setMessageSender(TwitchMessageSender messageSender) {
+		this.messageSender = messageSender;
+	}
+
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
 		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.PrivateMessage);
 	}
 
 	@Override
-	public void run(ActionArgs args) {
+	public void execute(ActionArgs args) {
 		// todo: check for user role because of rate limiting https://dev.twitch.tv/docs/irc/guide
 		// todo: maybe sending messages out via discord? probably not, because people could troll and spam other discord account using that.
 		// todo: maybe only allow it to subs? Don't think I'll ever reach the rate limit if I only use it for subs.
@@ -295,25 +288,106 @@ public class ManageSplatnetNotificationsAction implements IChatAction {
 		}
 
 		GearType type = list.stream().filter(gearNames::containsKey).map(gearNames::get).findFirst().orElse(GearType.Any);
+		if (type == GearType.Any) {
+			list.remove("any");
+		}
 
-		String mainString = list.stream().filter(abilityNames::containsKey).findFirst().orElse("any");
-		AbilityType main = abilityNames.get(mainString);
-		list.remove(mainString);
-
-		AbilityType favored = list.stream()
+		ArrayList<AbilityType> abilities = list.stream()
 				.filter(abilityNames::containsKey)
 				.map(abilityNames::get)
-				.filter(subAbilities::contains)
+				.collect(Collectors.toCollection(ArrayList::new));
+
+		AbilityType main = abilities.stream()
+				.filter(exclusiveAbilities::containsKey)
+				.findFirst()
+				.orElse(abilities.stream()
+						.findFirst()
+						.orElse(AbilityType.Any));
+
+		abilities.remove(main);
+
+		AbilityType favored = abilities.stream()
+				.filter(a -> !exclusiveAbilities.containsKey(a))
 				.findFirst()
 				.orElse(AbilityType.Any);
 
-		if (type != GearType.Any && exclusiveAbilities.get(main) != type) {
+//		String mainString = list.stream().filter(abilityNames::containsKey).findFirst().orElse("any");
+//		AbilityType main = abilityNames.get(mainString);
+//		list.remove(mainString);
+//
+//		AbilityType favored = list.stream()
+//				.filter(abilityNames::containsKey)
+//				.map(abilityNames::get)
+//				.filter(subAbilities::contains)
+//				.findFirst()
+//				.orElse(AbilityType.Any);
+
+		if (type != GearType.Any && main != AbilityType.Any && exclusiveAbilities.get(main) != type) {
 			// ERROR -> This ability cannot be a main ability on that gear type
+			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+					String.format("ERROR! Your search for %s with %s is invalid because such gear does not exist!",
+							getGearString(type),
+							getAbilityString(main, false)),
+					(String) args.getArguments().get(ArgumentKey.MessageNonce),
+					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+			return;
+		}
+
+		if (type == GearType.Any && main == AbilityType.Any && favored == AbilityType.Any) {
+			// ERROR -> Too vague
+			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+					"ERROR! Your search is too vague! Please specify at least gear, main OR sub ability.",
+					(String) args.getArguments().get(ArgumentKey.MessageNonce),
+					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			return;
 		}
 
 		// todo do create or remove operation in database
 		// todo make sure to use twitch account id so it won't fail when they change their username
-		System.out.printf("%s %s %s%n", type, main, favored);
+		messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+				String.format("Alright! I'm going to notify you via private message when I find %s with %s and %s in SplatNet shop. Important: I only notify mods, vips and subs of @strohkoenig.",
+						getGearString(type),
+						getAbilityString(main, false),
+						getAbilityString(favored, true)),
+				(String) args.getArguments().get(ArgumentKey.MessageNonce),
+				(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+	}
+
+	private String getGearString(GearType type) {
+		String result;
+
+		switch (type) {
+			case Head:
+				result = "headgear";
+				break;
+			case Shirt:
+				result = "shirts";
+				break;
+			case Shoes:
+				result = "shoes";
+				break;
+			case Any:
+			default:
+				result = "any gear";
+				break;
+		}
+
+		return result;
+	}
+
+	private String getAbilityString(AbilityType type, boolean favoredAbility) {
+		String result;
+
+		if (type == AbilityType.Any) {
+			result = String.format("any %s ability", favoredAbility ? "favored" : "main");
+		} else {
+			Pattern pattern = Pattern.compile("[A-Z]");
+			Matcher matcher = pattern.matcher(type.toString());
+			result = matcher.replaceAll(matchResult -> String.format(" %s", matchResult.group())).trim();
+
+			result = String.format("%s as %s ability", result, favoredAbility ? "favored" : "main");
+		}
+
+		return result;
 	}
 }

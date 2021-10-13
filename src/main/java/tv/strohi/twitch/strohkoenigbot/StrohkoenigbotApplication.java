@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
 
 @SpringBootApplication
 @EnableScheduling
@@ -15,11 +14,6 @@ public class StrohkoenigbotApplication {
 	// 1 day - 10 seconds
 	private static final long APPLICATION_LIFETIME = 86400000L - 10000;
 	private static ConfigurableApplicationContext app = null;
-
-	@Autowired
-	public void setChatBot(TwitchChatBot chatBot) {
-		chatBot.initialize();
-	}
 
 	private HikariDataSource dataSource;
 

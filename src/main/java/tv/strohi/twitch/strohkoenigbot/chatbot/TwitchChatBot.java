@@ -4,12 +4,18 @@ import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.philippheuer.events4j.api.domain.IDisposable;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
+import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.github.twitch4j.events.ChannelGoOfflineEvent;
 import com.github.twitch4j.helix.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.model.TwitchAuthData;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.ResultsExporter;
 
@@ -23,9 +29,7 @@ public class TwitchChatBot {
 	private TwitchClient mainAccountClient;
 	private List<IChatAction> botActions;
 
-	public TwitchClient getBotClient() {
-		return botClient;
-	}
+	private TwitchMessageSender messageSender;
 
 	@Autowired
 	public void setBotActions(List<IChatAction> botActions) {
@@ -39,18 +43,31 @@ public class TwitchChatBot {
 		this.resultsExporter = resultsExporter;
 	}
 
-	public TwitchClient getMainAccountClient() {
-		return mainAccountClient;
-	}
-
 	IDisposable goLiveListener;
 	IDisposable goOfflineListener;
 
-	public void initialize() {
-		OAuth2Credential botCredential = new OAuth2Credential("twitch", authData.getBotAuthToken());
-		OAuth2Credential mainAccountCredential = new OAuth2Credential("twitch", authData.getMainAccountAuthToken());
+	@Bean("botClient")
+	public TwitchClient getBotClient() {
+		if (botClient == null) {
+			initializeBotClient();
+		}
 
+		return botClient;
+	}
+
+	@Bean("mainAccountClient")
+	public TwitchClient getMainAccountClient() {
 		if (mainAccountClient == null) {
+			initializeMainAccountClient();
+		}
+
+		return mainAccountClient;
+	}
+
+	public void initializeMainAccountClient() {
+		if (mainAccountClient == null) {
+			OAuth2Credential mainAccountCredential = new OAuth2Credential("twitch", authData.getMainAccountAuthToken());
+
 			mainAccountClient = TwitchClientBuilder.builder()
 					.withDefaultAuthToken(mainAccountCredential)
 					.withEnableChat(true)
@@ -63,24 +80,13 @@ public class TwitchChatBot {
 			if (mainAccountClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
 				mainAccountClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
 			}
-
-//			User something = mainAccountClient.getHelix().getUsers(authData.getMainAccountAuthToken(), null, null).execute().getUsers().get(0);
-//			authData.setMainAccountChannelId(something.getId());
-
-//			GameList games = mainAccountClient.getHelix().getGames(authData.getMainAccountAuthToken(), null, Collections.singletonList("Mario Kart 8")).execute();
-//
-//			ChannelInformation info = new ChannelInformation()
-//					.withTitle("Funktioniert mein Bot? Mainaccount");
-//
-//			if (games.getGames().size() > 0) {
-//				info = info.withGameName(games.getGames().get(0).getName())
-//						.withGameId(games.getGames().get(0).getId());
-//			}
-
-			// mainAccountClient.getHelix().updateChannelInformation(authData.getMainAccountAuthToken(), authData.getMainAccountChannelId(), info).execute();
 		}
+	}
 
+	private void initializeBotClient() {
 		if (botClient == null) {
+			OAuth2Credential botCredential = new OAuth2Credential("twitch", authData.getBotAuthToken());
+
 			botClient = TwitchClientBuilder.builder()
 					.withDefaultAuthToken(botCredential)
 					.withEnableChat(true)
@@ -104,34 +110,29 @@ public class TwitchChatBot {
 				resultsExporter.stop();
 			});
 
-//			botClient.getClientHelper().enableFollowEventListener(authData.getMainAccountUsername());
-//
-//			botClient.getPubSub().listenForFollowingEvents(botCredential, authData.getMainAccountChannelId());
-//			botClient.getEventManager().onEvent(PrivateMessageEvent.class, (System.out::println));
-//
-//			botClient.getEventManager().onEvent(FollowingEvent.class, (ev -> {
-//				botClient.getChat().sendPrivateMessage(ev.getData().getUsername(), "Thanks for following! Sadly, Twitch is being flooded by scam bots right now. Please write something either in chat or in this private message to confirm you're not a bot. If you don't write anything, my bot will block you after two minutes. Sorry for the inconvenience, strohkoenig.");
-//			}));
-//
-//			botClient.getChat().sendPrivateMessage(authData.getMainAccountUsername(), "Thanks for following! Sadly, Twitch is being flooded by scam bots right now. Please write something either in chat or in this private message to confirm you're not a bot. If you don't write anything, my bot will block you after two minutes. Sorry for the inconvenience, strohkoenig.");
-
 			botClient.getChat().joinChannel(authData.getMainAccountUsername());
 
 			if (botClient.getChat().isChannelJoined(authData.getMainAccountUsername())) {
 				botClient.getChat().sendMessage(authData.getMainAccountUsername(), "Hi! strohk2Pog");
 			}
 
-//			GameList games = botClient.getHelix().getGames(authData.getMainAccountAuthToken(), null, Collections.singletonList("Super Hexagon")).execute();
-//
-//			ChannelInformation info = new ChannelInformation()
-//					.withTitle("Funktioniert mein Bot? Botaccount");
-//
-//			if (games.getGames().size() > 0) {
-//				info = info.withGameName(games.getGames().get(0).getName())
-//						.withGameId(games.getGames().get(0).getId());
-//			}
+			botClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
+				ActionArgs args = new ActionArgs();
 
-			// botClient.getHelix().updateChannelInformation(authData.getMainAccountAuthToken(), authData.getMainAccountChannelId(), info).execute();
+				args.setReason(TriggerReason.ChatMessage);
+				args.setUser(event.getUser().getName());
+				args.setUserId(event.getUser().getId());
+
+				args.getArguments().put(ArgumentKey.Event, event);
+
+				args.getArguments().put(ArgumentKey.ChannelId, event.getMessageEvent().getChannelId());
+				args.getArguments().put(ArgumentKey.ChannelName, event.getMessageEvent().getChannelName().orElse(null));
+				args.getArguments().put(ArgumentKey.Message, event.getMessage());
+				args.getArguments().put(ArgumentKey.MessageNonce, event.getNonce());
+				args.getArguments().put(ArgumentKey.ReplyMessageId, event.getMessageEvent().getMessageId().orElse(event.getEventId()));
+
+				botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
+			});
 		}
 	}
 
@@ -162,6 +163,8 @@ public class TwitchChatBot {
 			botClient.getEventManager().getActiveSubscriptions().forEach(IDisposable::dispose);
 			botClient.getEventManager().close();
 			botClient.close();
+
+			botClient = null;
 		}
 
 		if (mainAccountClient != null) {
@@ -171,6 +174,8 @@ public class TwitchChatBot {
 			}
 
 			mainAccountClient.close();
+
+			mainAccountClient = null;
 		}
 	}
 }
