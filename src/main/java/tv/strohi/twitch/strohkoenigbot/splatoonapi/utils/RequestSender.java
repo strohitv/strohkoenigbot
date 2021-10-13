@@ -1,9 +1,8 @@
-package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
+package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMatchResultsCollection;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -16,7 +15,8 @@ import java.util.TimeZone;
 import java.util.zip.GZIPInputStream;
 
 @Component
-public class ResultsLoader {
+public class RequestSender {
+	private final String host = "https://app.splatoon2.nintendo.net";
 	private final String appUniqueId = "32449507786579989235";
 
 	private HttpClient client;
@@ -28,11 +28,11 @@ public class ResultsLoader {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	public SplatoonMatchResultsCollection getGameResults() {
+	public <T> T querySplatoonApi(String path , Class<T> valueType) {
 		TimeZone tz = TimeZone.getDefault();
 		int offset = tz.getOffset(new Date().getTime()) / 1000 / 60;
 
-		String address = "https://app.splatoon2.nintendo.net/api/results";
+		String address = host + path;
 
 		URI uri = URI.create(address);
 
@@ -49,7 +49,7 @@ public class ResultsLoader {
 				.setHeader("Accept-Language", "en-US")
 				.build();
 
-		return sendRequestAndParseGzippedJson(request, SplatoonMatchResultsCollection.class);
+		return sendRequestAndParseGzippedJson(request, valueType);
 	}
 
 	private <T> T sendRequestAndParseGzippedJson(HttpRequest request, Class<T> valueType) {

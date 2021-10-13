@@ -7,6 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.PlayerLeaderboardPeaksLoader;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMatchResultsCollection;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonPlayerPeaks;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.Statistics;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -42,10 +43,10 @@ public class ResultsExporter {
 		this.lastAnalysedMatchStart = lastAnalysedMatchStart;
 	}
 
-	private ResultsLoader splatoonResultsLoader;
+	private RequestSender splatoonResultsLoader;
 
 	@Autowired
-	public void setSplatoonResultsLoader(ResultsLoader splatoonResultsLoader) {
+	public void setSplatoonResultsLoader(RequestSender splatoonResultsLoader) {
 		this.splatoonResultsLoader = splatoonResultsLoader;
 	}
 
@@ -69,7 +70,7 @@ public class ResultsExporter {
 		if (running && !alreadyRunning) {
 			alreadyRunning = true;
 
-			SplatoonMatchResultsCollection collection = splatoonResultsLoader.getGameResults();
+			SplatoonMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApi("/api/results", SplatoonMatchResultsCollection.class);
 
 			if (lastAnalysedMatchStart == null) {
 				lastAnalysedMatchStart = Instant.now();
