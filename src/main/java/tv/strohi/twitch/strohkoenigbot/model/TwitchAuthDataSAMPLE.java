@@ -1,9 +1,12 @@
 package tv.strohi.twitch.strohkoenigbot.model;
 
+import org.springframework.stereotype.Component;
+
 /**
  * This is a sample class to manage Twitch Auth data with.
  * To let the application compile and use it with your own accounts, rename this class to TwitchAuthData. Make sure to fill the four fields first.
  */
+@Component
 public class TwitchAuthDataSAMPLE {
 	private String botAuthToken = "";
 	private String mainAccountAuthToken = "";
