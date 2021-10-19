@@ -9,9 +9,11 @@ import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.SplatoonLogin;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
@@ -20,7 +22,6 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.AuthLinkCreator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.SplatoonCookieHandler;
 
-import javax.annotation.PostConstruct;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -32,18 +33,13 @@ import java.util.*;
 public class JavaArgumentEvaluator {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
+	private boolean stop = false;
+
 	private List<String> arguments = new ArrayList<>();
 
 	@Autowired
 	public void setArguments(@NonNull List<String> args) {
 		arguments = args;
-	}
-
-	private ApplicationContext context;
-
-	@Autowired
-	public void setApplicationContext(ApplicationContext ctx) {
-		this.context = ctx;
 	}
 
 	private SplatoonLoginRepository splatoonLoginRepository;
@@ -74,11 +70,18 @@ public class JavaArgumentEvaluator {
 		this.twitchChatBot = twitchChatBot;
 	}
 
-	@PostConstruct
+	private StrohkoenigbotApplication app;
+
+	@Autowired
+	public void setApp(StrohkoenigbotApplication app) {
+		this.app = app;
+	}
+
+	@EventListener(ApplicationReadyEvent.class)
 	public void evaluateArguments() {
 		arguments.forEach(logger::info);
 
-		boolean stop = arguments.stream().anyMatch(a -> a.trim().toLowerCase().startsWith("stop"));
+		stop = arguments.stream().anyMatch(a -> a.trim().toLowerCase().startsWith("stop"));
 		Map<String, String> extractedParams = new HashMap<>();
 
 		arguments.forEach(argument -> {
@@ -155,8 +158,13 @@ public class JavaArgumentEvaluator {
 					extractedParams.get("splatoon_link"));
 		}
 
-		if (context != null && (stop || extractedParams.containsKey("stop"))) {
-			((ConfigurableApplicationContext) context).close();
+		stop |= extractedParams.containsKey("stop");
+	}
+
+	@Scheduled(fixedRate = Integer.MAX_VALUE, initialDelay = 1000)
+	private void stopIfWanted() {
+		if (app != null && stop) {
+			app.shutdown();
 		}
 	}
 
