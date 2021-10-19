@@ -9,6 +9,8 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -252,6 +254,13 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		this.messageSender = messageSender;
 	}
 
+	private AbilityNotificationRepository abilityNotificationRepository;
+
+	@Autowired
+	public void setAbilityNotificationRepository(AbilityNotificationRepository abilityNotificationRepository) {
+		this.abilityNotificationRepository = abilityNotificationRepository;
+	}
+
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
 		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.PrivateMessage);
@@ -350,6 +359,19 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		// todo do create or remove operation in database
 		// todo make sure to use twitch account id so it won't fail when they change their username
 		if (!remove) {
+			List<AbilityNotification> notifications = abilityNotificationRepository.findByUserId((String) args.getArguments().get(ArgumentKey.ChannelId));
+			if (notifications.size() > 0) {
+				abilityNotificationRepository.deleteAll(notifications);
+			}
+
+			AbilityNotification notification = new AbilityNotification();
+			notification.setUserId((String) args.getArguments().get(ArgumentKey.ChannelId));
+			notification.setGear(type);
+			notification.setMain(main);
+			notification.setFavored(favored);
+
+			abilityNotificationRepository.save(notification);
+
 			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
 					String.format("Alright! I'm going to notify you via private message when I find %s with %s and %s in SplatNet shop. Important: I only notify mods, vips and subs of @strohkoenig.",
 							getGearString(type),
@@ -358,6 +380,11 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 					(String) args.getArguments().get(ArgumentKey.MessageNonce),
 					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 		} else {
+			List<AbilityNotification> notifications = abilityNotificationRepository.findByUserId((String) args.getArguments().get(ArgumentKey.ChannelId));
+			if (notifications.size() > 0) {
+				abilityNotificationRepository.deleteAll(notifications);
+			}
+
 			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
 					String.format("Alright! I'm not going to notify you anymore when I find %s with %s and %s in SplatNet shop.",
 							getGearString(type),

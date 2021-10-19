@@ -161,7 +161,7 @@ public class JavaArgumentEvaluator {
 		stop |= extractedParams.containsKey("stop");
 	}
 
-	@Scheduled(fixedRate = Integer.MAX_VALUE, initialDelay = 1000)
+	@Scheduled(fixedRate = Integer.MAX_VALUE, initialDelay = 5000)
 	private void stopIfWanted() {
 		if (app != null && stop) {
 			app.shutdown();
