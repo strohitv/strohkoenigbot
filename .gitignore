@@ -6,6 +6,7 @@ target
 
 derby.log
 /data
+/data_*/
 /logs
 debug.log
 NSO2
