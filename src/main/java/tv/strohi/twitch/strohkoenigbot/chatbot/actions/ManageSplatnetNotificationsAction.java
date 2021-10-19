@@ -208,6 +208,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			put("swimspeed", AbilityType.SwimSpeedUp);
 			put("swim up", AbilityType.SwimSpeedUp);
 			put("swimup", AbilityType.SwimSpeedUp);
+			put("swim", AbilityType.SwimSpeedUp);
 			put("ssu", AbilityType.SwimSpeedUp);
 
 			put("tenacity", AbilityType.Tenacity);
@@ -314,7 +315,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				.findFirst()
 				.orElse(AbilityType.Any);
 
-		if (main == favored) {
+		if (main == favored && main != AbilityType.Any) {
 			// ERROR -> Main and favored ability of a shirt do never equal.
 			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
 					String.format("ERROR! Your search for %s with %s and %s is invalid because gear cannot have the same main and favored ability!",
@@ -326,7 +327,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			return;
 		}
 
-		if (type != GearType.Any && main != AbilityType.Any && exclusiveAbilities.get(main) != type) {
+		if (type != GearType.Any && main != AbilityType.Any && exclusiveAbilities.containsKey(main) && exclusiveAbilities.get(main) != type) {
 			// ERROR -> This ability cannot be a main ability on that gear type
 			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
 					String.format("ERROR! Your search for %s with %s is invalid because such gear does not exist!",
@@ -340,7 +341,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		if (!remove && type == GearType.Any && main == AbilityType.Any && favored == AbilityType.Any) {
 			// ERROR -> Too vague
 			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-					"ERROR! Your search is too vague! Please specify at least gear, main OR sub ability.",
+					"ERROR! Your search is too vague! Please specify at least gear, main OR favored ability.",
 					(String) args.getArguments().get(ArgumentKey.MessageNonce),
 					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			return;
