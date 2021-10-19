@@ -6,5 +6,7 @@ target
 
 derby.log
 /data
+/logs
 debug.log
 NSO2
+exported.json
