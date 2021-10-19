@@ -49,12 +49,12 @@
           },
           {
             "createTable": {
-              "tableName": "command",
+              "tableName": "twitch_auth",
               "columns": [
                 {
                   "column": {
                     "name": "id",
-                    "type": "int",
+                    "type": "bigint",
                     "autoIncrement": true,
                     "constraints": {
                       "primaryKey": true,
@@ -64,72 +64,26 @@
                 },
                 {
                   "column": {
-                    "name": "command",
-                    "type": "varchar(100)",
-                    "constraints": {
-                      "nullable": false
-                    }
+                    "name": "token",
+                    "type": "varchar(40)"
                   }
                 },
                 {
                   "column": {
-                    "name": "role",
-                    "type": "varchar(100)",
-                    "constraints": {
-                      "nullable": false
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "createTable": {
-              "tableName": "commandresponse",
-              "columns": [
-                {
-                  "column": {
-                    "name": "id",
-                    "type": "int",
-                    "autoIncrement": true,
-                    "constraints": {
-                      "primaryKey": true,
-                      "nullable": false
-                    }
+                    "name": "channel_id",
+                    "type": "varchar(30)"
                   }
                 },
                 {
                   "column": {
-                    "name": "command_id",
-                    "type": "int",
-                    "constraints": {
-                      "foreignKeyName": "fk_command_id",
-                      "nullable": false
-                    }
+                    "name": "username",
+                    "type": "varchar(30)"
                   }
                 },
                 {
                   "column": {
-                    "name": "response",
-                    "type": "varchar(500)",
-                    "constraints": {
-                      "nullable": false
-                    }
-                  }
-                },
-                {
-                  "column": {
-                    "name": "delay",
-                    "type": "int",
-                    "constraints": {
-                      "nullable": false
-                    }
-                  }
-                },
-                {
-                  "column": {
-                    "name": "name",
-                    "type": "varchar(50)"
+                    "name": "is_main",
+                    "type": "boolean"
                   }
                 }
               ]

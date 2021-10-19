@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.SplatoonLogin;
@@ -44,13 +45,9 @@ public class SplatoonCookieHandler extends CookieHandler {
 			AuthLinkCreator.AuthParams params = authLinkCreator.generateAuthenticationParams();
 			String authUrl = authLinkCreator.buildAuthUrl(params).toString();
 
-			String redirectLink = "";
-			URI link = URI.create(redirectLink);
-			String session_token_code = getQueryMap(link.getFragment()).get("session_token_code");
+			String redirectLink = ""; // Paste link here
 
-			login.setSessionToken(authenticator.getSessionToken("71b963c1b7b6d119", session_token_code, params.getCodeVerifier()));
-
-			login = splatoonLoginRepository.save(login);
+			login = generateAndStoreSessionToken(login, params, redirectLink);
 		}
 
 		if (login.getExpiresAt() == null || Instant.now().isAfter(login.getExpiresAt())) {
@@ -68,6 +65,17 @@ public class SplatoonCookieHandler extends CookieHandler {
 		requestHeadersCopy.put("Cookie", Collections.singletonList(String.format("iksm_session=%s", login.getCookie())));
 
 		return Collections.unmodifiableMap(requestHeadersCopy);
+	}
+
+	@NotNull
+	public SplatoonLogin generateAndStoreSessionToken(SplatoonLogin login, AuthLinkCreator.AuthParams params, String redirectLink) {
+		URI link = URI.create(redirectLink);
+		String session_token_code = getQueryMap(link.getFragment()).get("session_token_code");
+
+		login.setSessionToken(authenticator.getSessionToken("71b963c1b7b6d119", session_token_code, params.getCodeVerifier()));
+
+		login = splatoonLoginRepository.save(login);
+		return login;
 	}
 
 	@Override
