@@ -37,7 +37,8 @@ public class StrohkoenigbotApplication {
 		app = SpringApplication.run(StrohkoenigbotApplication.class, args);
 	}
 
-	@Scheduled(fixedRate = APPLICATION_LIFETIME, initialDelay = APPLICATION_LIFETIME)
+//	@Scheduled(fixedRate = APPLICATION_LIFETIME, initialDelay = APPLICATION_LIFETIME)
+	@Scheduled(cron = "0 0 18 * * *")
 	public void shutdown() {
 		logger.info("restarting application");
 
