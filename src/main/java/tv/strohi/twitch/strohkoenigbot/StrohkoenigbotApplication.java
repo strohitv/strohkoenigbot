@@ -38,7 +38,7 @@ public class StrohkoenigbotApplication {
 	}
 
 //	@Scheduled(fixedRate = APPLICATION_LIFETIME, initialDelay = APPLICATION_LIFETIME)
-	@Scheduled(cron = "0 0 18 * * *")
+	@Scheduled(cron = "0 25 18 * * *")
 	public void shutdown() {
 		logger.info("restarting application");
 
