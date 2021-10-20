@@ -15,8 +15,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.SplatoonLogin;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.SplatoonLoginRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.AuthLinkCreator;
@@ -56,6 +58,13 @@ public class JavaArgumentEvaluator {
 		this.twitchAuthRepository = twitchAuthRepository;
 	}
 
+	private ConfigurationRepository configurationRepository;
+
+	@Autowired
+	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
+		this.configurationRepository = configurationRepository;
+	}
+
 	private SplatoonCookieHandler cookieHandler;
 
 	@Autowired
@@ -93,6 +102,7 @@ public class JavaArgumentEvaluator {
 				mapper.registerModule(new JavaTimeModule());
 
 				Map<String, Object> struct = new HashMap<>();
+				struct.put("config", configurationRepository.findAll());
 				struct.put("twitch", twitchAuthRepository.findAll());
 				struct.put("splatoon", splatoonLoginRepository.findAll());
 
@@ -112,6 +122,11 @@ public class JavaArgumentEvaluator {
 
 				try {
 					Config config = mapper.readValue(new File(argument.trim().substring("config_url=".length())), Config.class);
+
+					if (config.getConfig() != null) {
+						configurationRepository.deleteAll();
+						configurationRepository.saveAll(Arrays.asList(config.getConfig()));
+					}
 
 					if (config.getTwitch() != null) {
 						twitchChatBot.stop();
@@ -172,6 +187,7 @@ public class JavaArgumentEvaluator {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	private static class Config {
+		private Configuration[] config;
 		private TwitchAuth[] twitch;
 		private SplatoonLogin[] splatoon;
 	}

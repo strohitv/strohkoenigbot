@@ -15,10 +15,14 @@ public class TwitchMessageSender {
 	}
 
 	public void send(String channel, String message) {
-		botClient.getClient().getChat().sendMessage(channel, message);
+		if (botClient.getClient() != null) {
+			botClient.getClient().getChat().sendMessage(channel, message);
+		}
 	}
 
 	public void reply(String channel, String message, String nonce, String messageId) {
-		botClient.getClient().getChat().sendMessage(channel, message, nonce, messageId);
+		if (botClient.getClient() != null) {
+			botClient.getClient().getChat().sendMessage(channel, message, nonce, messageId);
+		}
 	}
 }

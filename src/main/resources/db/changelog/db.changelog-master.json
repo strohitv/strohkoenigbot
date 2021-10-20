@@ -7,6 +7,36 @@
         "changes": [
           {
             "createTable": {
+              "tableName": "configuration",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "config_name",
+                    "type": "varchar(50)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "config_value",
+                    "type": "varchar(5000)"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createTable": {
               "tableName": "splatoon_login",
               "columns": [
                 {
@@ -107,7 +137,10 @@
                 {
                   "column": {
                     "name": "user_id",
-                    "type": "varchar(40)"
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
                   }
                 },
                 {
@@ -133,7 +166,7 @@
           },
           {
             "createTable": {
-              "tableName": "twitch_message_sent_history",
+              "tableName": "discord_account",
               "columns": [
                 {
                   "column": {
@@ -148,23 +181,39 @@
                 },
                 {
                   "column": {
-                    "name": "user_id",
-                    "type": "varchar(40)"
+                    "name": "twitch_user_id",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false,
+                      "unique": true
+                    }
                   }
                 },
                 {
                   "column": {
-                    "name": "sent_at",
-                    "type": "timestamp"
+                    "name": "discord_id",
+                    "type": "bigint"
                   }
                 },
                 {
                   "column": {
-                    "name": "message",
-                    "type": "varchar(2000)"
+                    "name": "consent",
+                    "type": "boolean"
                   }
                 }
               ]
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "user_id",
+              "baseTableName": "ability_notification",
+              "constraintName": "fk_twitch_user_id",
+              "onDelete": "CASCADE",
+              "onUpdate": "RESTRICT",
+              "referencedColumnNames": "twitch_user_id",
+              "referencedTableName": "discord_account",
+              "validate": true
             }
           }
         ]

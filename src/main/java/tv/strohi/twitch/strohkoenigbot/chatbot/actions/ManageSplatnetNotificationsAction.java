@@ -11,6 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -247,18 +248,20 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		}
 	};
 
+	private final AbilityNotificationRepository abilityNotificationRepository;
+	private final DiscordAccountRepository discordAccountRepository;
+
 	private TwitchMessageSender messageSender;
+
+	@Autowired
+	public ManageSplatnetNotificationsAction(AbilityNotificationRepository abilityNotificationRepository, DiscordAccountRepository discordAccountRepository) {
+		this.abilityNotificationRepository = abilityNotificationRepository;
+		this.discordAccountRepository = discordAccountRepository;
+	}
 
 	@Autowired
 	public void setMessageSender(TwitchMessageSender messageSender) {
 		this.messageSender = messageSender;
-	}
-
-	private AbilityNotificationRepository abilityNotificationRepository;
-
-	@Autowired
-	public void setAbilityNotificationRepository(AbilityNotificationRepository abilityNotificationRepository) {
-		this.abilityNotificationRepository = abilityNotificationRepository;
 	}
 
 	@Override
@@ -277,6 +280,14 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		message = message.toLowerCase().trim();
 
 		if (!message.startsWith("!notify") && !(remove = message.startsWith("!unnotify"))) {
+			return;
+		}
+
+		if (discordAccountRepository.findByTwitchUserId((String) args.getArguments().get(ArgumentKey.ChannelId)).size() == 0) {
+			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+					"ERROR! You need to first connect a discord account which can receive the notification. Please use !connect to connect one first.",
+					(String) args.getArguments().get(ArgumentKey.MessageNonce),
+					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			return;
 		}
 
@@ -347,22 +358,24 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			return;
 		}
 
-		if (!remove && type == GearType.Any && main == AbilityType.Any && favored == AbilityType.Any) {
-			// ERROR -> Too vague
-			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-					"ERROR! Your search is too vague! Please specify at least gear, main OR favored ability.",
-					(String) args.getArguments().get(ArgumentKey.MessageNonce),
-					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
-			return;
-		}
+		// let's look how it works with vague searches
+//		if (!remove && type == GearType.Any && main == AbilityType.Any && favored == AbilityType.Any) {
+//			// ERROR -> Too vague
+//			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+//					"ERROR! Your search is too vague! Please specify at least gear, main OR favored ability.",
+//					(String) args.getArguments().get(ArgumentKey.MessageNonce),
+//					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+//			return;
+//		}
 
 		// todo do create or remove operation in database
 		// todo make sure to use twitch account id so it won't fail when they change their username
 		if (!remove) {
-			List<AbilityNotification> notifications = abilityNotificationRepository.findByUserId((String) args.getArguments().get(ArgumentKey.ChannelId));
-			if (notifications.size() > 0) {
-				abilityNotificationRepository.deleteAll(notifications);
-			}
+			// let's look how it works with no number limit for registered notifications
+//			List<AbilityNotification> notifications = abilityNotificationRepository.findByUserId((String) args.getArguments().get(ArgumentKey.ChannelId));
+//			if (notifications.size() > 0) {
+//				abilityNotificationRepository.deleteAll(notifications);
+//			}
 
 			AbilityNotification notification = new AbilityNotification();
 			notification.setUserId((String) args.getArguments().get(ArgumentKey.ChannelId));

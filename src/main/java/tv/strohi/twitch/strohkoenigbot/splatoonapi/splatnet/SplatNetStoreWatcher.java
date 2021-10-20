@@ -7,16 +7,18 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchWhisperSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMerchandises;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,11 +41,11 @@ public class SplatNetStoreWatcher {
 		this.channelMessageSender = channelMessageSender;
 	}
 
-	private TwitchWhisperSender privateMessageSender;
+	private DiscordBot discordBot;
 
 	@Autowired
-	public void setPrivateMessageSender(TwitchWhisperSender privateMessageSender) {
-		this.privateMessageSender = privateMessageSender;
+	public void setDiscordBot(DiscordBot discordBot) {
+		this.discordBot = discordBot;
 	}
 
 	private AbilityNotificationRepository abilityNotificationRepository;
@@ -53,14 +55,16 @@ public class SplatNetStoreWatcher {
 		this.abilityNotificationRepository = abilityNotificationRepository;
 	}
 
-	// todo: check user role
-	// todo: read gear from splatnet api
-	// todo: read notification subscriptions from database (table still todo)
-	// todo: rate limiting for pns (extra class)
-	// todo: https://dev.twitch.tv/docs/irc/guide
+	private DiscordAccountRepository discordAccountRepository;
+
+	@Autowired
+	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
+		this.discordAccountRepository = discordAccountRepository;
+	}
 
 	// 10 seconds after each full hour
 	@Scheduled(cron = "10 0 * * * *")
+//	@Scheduled(cron = "10 * * * * *")
 	public void refreshSplatNetShop() {
 		SplatoonMerchandises gearOffers = shopLoader.querySplatoonApi("/api/onlineshop/merchandises", SplatoonMerchandises.class);
 		System.out.println(gearOffers);
@@ -76,26 +80,20 @@ public class SplatNetStoreWatcher {
 						gear.getPrice(),
 						gear.getSkill().getName(),
 						gear.getGear().getBrand().getFrequent_skill().getName(),
-						gear.getGear().getRarity());
+						gear.getGear().getRarity() + 1);
 
 				channelMessageSender.send("strohkoenig", message);
 
-				try {
-					List<AbilityNotification> notifications = abilityNotificationRepository.findAll().stream()
-							.filter(an ->
-									(an.getGear() == GearType.Any || an.getGear() == Arrays.stream(GearType.values()).filter(gt -> gt.getName().equals(gear.getGear().getKind())).findFirst().orElse(GearType.Any))
-											|| (an.getMain() == AbilityType.Any || an.getMain() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getSkill().getName())).findFirst().orElse(AbilityType.Any))
-											|| (an.getFavored() == AbilityType.Any || an.getFavored() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getGear().getBrand().getFrequent_skill().getName())).findFirst().orElse(AbilityType.Any)))
-							.collect(Collectors.toList());
+				String discordMessage = String.format("**ONLY %d MINUTES LEFT FOR THIS GEAR IN SPLATNET GEAR SHOP**!\n\nType: **%s**\nBrand: **%s**\nName: **%s**\nPrice: **%d** coins\n\nMain ability: **%s**\nFavored ability: **%s**\nUnlocked sub slots: **%d**",
+						Duration.between(Instant.now(), gear.getEndTime()).abs().toMinutes() + 1,
+						gear.getKind(), gear.getGear().getBrand().getName(),
+						gear.getGear().getName(),
+						gear.getPrice(),
+						gear.getSkill().getName(),
+						gear.getGear().getBrand().getFrequent_skill().getName(),
+						gear.getGear().getRarity() + 1);
 
-					for (AbilityNotification notification : notifications) {
-						if (privateMessageSender.sendMessageToChannelWithId(notification.getUserId(), message)) {
-							abilityNotificationRepository.delete(notification);
-						}
-					}
-				} catch (Exception ex) {
-					logger.error(ex);
-				}
+				sendDiscordNotification(gear, discordMessage);
 			}
 
 			if (gearOffers.getMerchandises().length > 1 && gearOffers.getMerchandises()[gearOffers.getMerchandises().length - 1].getEndTime().isAfter(Instant.now().plus(11, ChronoUnit.HOURS))) {
@@ -108,23 +106,53 @@ public class SplatNetStoreWatcher {
 						gear.getPrice(),
 						gear.getSkill().getName(),
 						gear.getGear().getBrand().getFrequent_skill().getName(),
-						gear.getGear().getRarity(), Duration.between(Instant.now(),
+						gear.getGear().getRarity() + 1, Duration.between(Instant.now(),
 								gear.getEndTime()).abs().toHours() + 1);
 
 				channelMessageSender.send("strohkoenig", message);
 
-				List<AbilityNotification> notifications = abilityNotificationRepository.findAll().stream()
-						.filter(an ->
-								(an.getGear() == GearType.Any || an.getGear() == GearType.valueOf(gear.getGear().getKind()))
-										|| (an.getMain() == AbilityType.Any || an.getMain() == AbilityType.valueOf(gear.getSkill().getName()))
-										|| (an.getFavored() == AbilityType.Any || an.getFavored() == AbilityType.valueOf(gear.getGear().getBrand().getFrequent_skill().getName()))
-						)
-						.collect(Collectors.toList());
+				String discordMessage = String.format("New gear arrived in splatnet gear shop!\n\nType: **%s**\nBrand: **%s**\nName: **%s**\nPrice: **%s** coins\n\nMain ability: **%s**\nFavored ability: **%s**\nUnlocked sub slots: **%s**\n\nAvailable for **%d hours**",
+						gear.getKind(),
+						gear.getGear().getBrand().getName(),
+						gear.getGear().getName(),
+						gear.getPrice(),
+						gear.getSkill().getName(),
+						gear.getGear().getBrand().getFrequent_skill().getName(),
+						gear.getGear().getRarity() + 1, Duration.between(Instant.now(),
+								gear.getEndTime()).abs().toHours() + 1);
 
-				for (AbilityNotification notification : notifications) {
-					privateMessageSender.sendMessageToChannelWithId(notification.getUserId(), message);
-				}
+				sendDiscordNotification(gear, discordMessage);
 			}
 		}
+	}
+
+	private void sendDiscordNotification(SplatoonMerchandises.SplatoonMerchandise gear, String discordMessage) {
+		List<AbilityNotification> notifications = findNotifications(gear);
+		List<String> sentNotifications = new ArrayList<>();
+		for (AbilityNotification notification : notifications) {
+			if (!sentNotifications.contains(notification.getUserId())) {
+				discordAccountRepository.findByTwitchUserId(notification.getUserId())
+						.stream()
+						.findFirst()
+						.ifPresent(discordAccount ->
+								discordBot.sendPrivateMessageWithImage(discordAccount.getDiscordId(),
+										discordMessage,
+										String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getImage()),
+										String.format("https://app.splatoon2.nintendo.net%s", gear.getSkill().getImage()),
+										String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getBrand().getFrequent_skill().getImage()))
+						);
+
+				sentNotifications.add(notification.getUserId());
+			}
+		}
+	}
+
+	private List<AbilityNotification> findNotifications(SplatoonMerchandises.SplatoonMerchandise gear) {
+		return abilityNotificationRepository.findAll().stream()
+				.filter(an ->
+						(an.getGear() == GearType.Any || an.getGear() == Arrays.stream(GearType.values()).filter(gt -> gt.getName().equals(gear.getGear().getKind())).findFirst().orElse(GearType.Any))
+								|| (an.getMain() == AbilityType.Any || an.getMain() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getSkill().getName())).findFirst().orElse(AbilityType.Any))
+								|| (an.getFavored() == AbilityType.Any || an.getFavored() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getGear().getBrand().getFrequent_skill().getName())).findFirst().orElse(AbilityType.Any)))
+				.collect(Collectors.toList());
 	}
 }
