@@ -30,6 +30,11 @@
 		<appender-ref ref="Console" />
 	</root>
 
+	<logger name="com.github.twitch4j" level="warn" additivity="false">
+		<appender-ref ref="RollingFile" />
+		<appender-ref ref="Console" />
+	</logger>
+
 	<!-- LOG "com.baeldung*" at TRACE level -->
 	<logger name="tv.strohi.twitch.strohkoenigbot" level="trace" additivity="false">
 		<appender-ref ref="RollingFile" />

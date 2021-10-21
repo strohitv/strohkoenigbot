@@ -36,6 +36,7 @@ public class StrohkoenigbotApplication {
 	@Autowired
 	public void setDiscordBot(DiscordBot discordBot) {
 		this.discordBot = discordBot;
+		sendHello();
 	}
 
 	public static void main(String[] args) {

@@ -63,15 +63,26 @@ public class SplatNetStoreWatcher {
 	}
 
 	// 10 seconds after each full hour
-	@Scheduled(cron = "10 0 * * * *")
+	@Scheduled(cron = "10 */3 * * * *")
+//	@Scheduled(cron = "10 0 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void refreshSplatNetShop() {
+		logger.info("checking for new splatnet store offers");
 		SplatoonMerchandises gearOffers = shopLoader.querySplatoonApi("/api/onlineshop/merchandises", SplatoonMerchandises.class);
-		System.out.println(gearOffers);
+
+		logger.info("found {} offers", gearOffers != null ? gearOffers.getMerchandises().length : 0);
+		logger.info(gearOffers);
+
+
+		logger.info("filters in database: ");
+		logger.info(abilityNotificationRepository.findAll());
 
 		if (gearOffers != null && gearOffers.getMerchandises() != null) {
 			if (gearOffers.getMerchandises().length >= 1 && gearOffers.getMerchandises()[0].getEndTime().isBefore(Instant.now().plus(1, ChronoUnit.HOURS))) {
 				SplatoonMerchandises.SplatoonMerchandise gear = gearOffers.getMerchandises()[0];
+
+				logger.info("Sending last hour notification for gear:");
+				logger.info(gear);
 
 				String message = String.format("%d MINUTES LEFT FOR THIS GEAR IN SPLATNET GEAR SHOP: %s - brand: %s - \"%s\" - price: %d coins - main ability: %s - favored ability: %s - unlocked sub slots: %d",
 						Duration.between(Instant.now(), gear.getEndTime()).abs().toMinutes() + 1,
@@ -98,6 +109,9 @@ public class SplatNetStoreWatcher {
 
 			if (gearOffers.getMerchandises().length > 1 && gearOffers.getMerchandises()[gearOffers.getMerchandises().length - 1].getEndTime().isAfter(Instant.now().plus(11, ChronoUnit.HOURS))) {
 				SplatoonMerchandises.SplatoonMerchandise gear = gearOffers.getMerchandises()[gearOffers.getMerchandises().length - 1];
+
+				logger.info("Sending new in store notification for gear:");
+				logger.info(gear);
 
 				String message = String.format("NEW GEAR ARRIVED IN SPLATNET GEAR SHOP: %s - brand: %s - \"%s\" - price: %d coins - main ability: %s - favored ability: %s - unlocked sub slots: %d. Available for %d hours.",
 						gear.getKind(),
@@ -127,6 +141,7 @@ public class SplatNetStoreWatcher {
 	}
 
 	private void sendDiscordNotification(SplatoonMerchandises.SplatoonMerchandise gear, String discordMessage) {
+		logger.info("Sending out discord notifications");
 		List<AbilityNotification> notifications = findNotifications(gear);
 		List<String> sentNotifications = new ArrayList<>();
 		for (AbilityNotification notification : notifications) {
@@ -134,17 +149,20 @@ public class SplatNetStoreWatcher {
 				discordAccountRepository.findByTwitchUserId(notification.getUserId())
 						.stream()
 						.findFirst()
-						.ifPresent(discordAccount ->
-								discordBot.sendPrivateMessageWithImage(discordAccount.getDiscordId(),
-										discordMessage,
-										String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getImage()),
-										String.format("https://app.splatoon2.nintendo.net%s", gear.getSkill().getImage()),
-										String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getBrand().getFrequent_skill().getImage()))
+						.ifPresent(discordAccount -> {
+									logger.info("Sending notification to discord account: {}", discordAccount.getDiscordId());
+									discordBot.sendPrivateMessageWithImage(discordAccount.getDiscordId(),
+											discordMessage,
+											String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getImage()),
+											String.format("https://app.splatoon2.nintendo.net%s", gear.getSkill().getImage()),
+											String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getBrand().getFrequent_skill().getImage()));
+								}
 						);
 
 				sentNotifications.add(notification.getUserId());
 			}
 		}
+		logger.info("Finished sending out discord notifications");
 	}
 
 	private List<AbilityNotification> findNotifications(SplatoonMerchandises.SplatoonMerchandise gear) {
