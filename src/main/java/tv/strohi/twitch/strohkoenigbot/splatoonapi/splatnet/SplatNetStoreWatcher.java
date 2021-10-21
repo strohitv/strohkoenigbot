@@ -63,8 +63,8 @@ public class SplatNetStoreWatcher {
 	}
 
 	// 10 seconds after each full hour
-	@Scheduled(cron = "10 */3 * * * *")
-//	@Scheduled(cron = "10 0 * * * *")
+//	@Scheduled(cron = "10 */3 * * * *")
+	@Scheduled(cron = "10 0 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void refreshSplatNetShop() {
 		logger.info("checking for new splatnet store offers");
