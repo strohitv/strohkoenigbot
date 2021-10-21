@@ -59,7 +59,7 @@ public class StrohkoenigbotApplication {
 		}
 	}
 
-	@Scheduled(cron = "0 53 4 * * *")
+//	@Scheduled(cron = "0 53 4 * * *")
 	public void sendHello() {
 		logger.info("sending hello message to strohkoenig");
 		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "Bot is started and ready to go!");
