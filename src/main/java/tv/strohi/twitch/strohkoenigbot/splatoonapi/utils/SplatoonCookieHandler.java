@@ -1,5 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,8 @@ import java.util.Map;
 
 @Component
 public class SplatoonCookieHandler extends CookieHandler {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
 	private final AuthLinkCreator authLinkCreator = new AuthLinkCreator();
 	private final Authenticator authenticator = new Authenticator();
 
@@ -34,14 +38,21 @@ public class SplatoonCookieHandler extends CookieHandler {
 
 	@Override
 	public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
+		logger.info("putting authentication information into request");
+
 		List<SplatoonLogin> logins = splatoonLoginRepository.findAll();
 		SplatoonLogin login = logins.stream().findFirst().orElse(null);
+		logger.info("found {} splatoon logins", logins.size());
+		logger.info("using login:");
+		logger.info(login);
 
 		if (login == null) {
 			login = splatoonLoginRepository.save(new SplatoonLogin());
+			logger.info("creating new login");
 		}
 
 		if (login.getSessionToken() == null || login.getSessionToken().isBlank()) {
+			logger.warn("session token was null or blank: '{}'", login.getSessionToken());
 			AuthLinkCreator.AuthParams params = authLinkCreator.generateAuthenticationParams();
 			String authUrl = authLinkCreator.buildAuthUrl(params).toString();
 
@@ -51,7 +62,10 @@ public class SplatoonCookieHandler extends CookieHandler {
 		}
 
 		if (login.getExpiresAt() == null || Instant.now().isAfter(login.getExpiresAt())) {
+			logger.info("refreshing auth data");
 			AuthenticationData authData = authenticator.refreshAccess(login.getSessionToken());
+			logger.info("new auth data:");
+			logger.info(authData);
 
 			login.setCookie(authData.getCookie());
 			login.setExpiresAt(authData.getCookieExpiresAt());
@@ -61,6 +75,7 @@ public class SplatoonCookieHandler extends CookieHandler {
 			login = splatoonLoginRepository.save(login);
 		}
 
+		logger.info("setting cookie to: 'iksm_session={}'", login.getCookie());
 		Map<String, List<String>> requestHeadersCopy = new HashMap<>(requestHeaders);
 		requestHeadersCopy.put("Cookie", Collections.singletonList(String.format("iksm_session=%s", login.getCookie())));
 

@@ -1,6 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -10,6 +12,8 @@ import java.net.http.HttpResponse;
 import java.util.zip.GZIPInputStream;
 
 public abstract class AuthenticatorBase {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
 	protected final String nsoapp_version = "1.12.0";
 
 	protected final HttpClient client = HttpClient.newBuilder()
@@ -21,7 +25,12 @@ public abstract class AuthenticatorBase {
 
 	protected final <T> T sendRequestAndParseGzippedJson(HttpRequest request, Class<T> valueType) {
 		try {
+			logger.info("sending new request to '{}'", request.uri().toString());
+			logger.info(request);
 			HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+			logger.info("got response with status code {}:", response.statusCode());
+			logger.info(response);
 
 			if (response.statusCode() < 300) {
 				String body = new String(response.body());
@@ -30,10 +39,13 @@ public abstract class AuthenticatorBase {
 					body = new String(new GZIPInputStream(new ByteArrayInputStream(response.body())).readAllBytes());
 				}
 
+				logger.info("response body: '{}'", body);
+
 				return mapper.readValue(body, valueType);
 			}
 		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
+			logger.error("exception while sending request");
+			logger.error(e);
 		}
 
 		return null;
