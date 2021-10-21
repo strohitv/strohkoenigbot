@@ -1,6 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +18,8 @@ import java.util.zip.GZIPInputStream;
 
 @Component
 public class RequestSender {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
 	private final String host = "https://app.splatoon2.nintendo.net";
 	private final String appUniqueId = "32449507786579989235";
 
@@ -54,7 +58,12 @@ public class RequestSender {
 
 	private <T> T sendRequestAndParseGzippedJson(HttpRequest request, Class<T> valueType) {
 		try {
+			logger.info("RequestSender sending new request to '{}'", request.uri().toString());
+			logger.info(request);
 			HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+			logger.info("got response with status code {}:", response.statusCode());
+			logger.info(response);
 
 			if (response.statusCode() < 300) {
 				String body = new String(response.body());
@@ -63,10 +72,13 @@ public class RequestSender {
 					body = new String(new GZIPInputStream(new ByteArrayInputStream(response.body())).readAllBytes());
 				}
 
+				logger.info("response body: '{}'", body);
+
 				return mapper.readValue(body, valueType);
 			}
 		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
+			logger.error("exception while sending request");
+			logger.error(e);
 		}
 
 		return null;
