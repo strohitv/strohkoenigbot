@@ -6,8 +6,10 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.channel.GuildChannel;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.PrivateChannel;
+import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
 import discord4j.core.spec.MessageCreateMono;
@@ -81,6 +83,45 @@ public class DiscordBot {
 						.map(m -> m.getId().asLong())
 						.findFirst()
 						.orElse(null);
+			}
+		}
+
+		return result;
+	}
+
+	public boolean sendServerMessageWithImages(String channelName, String message, String gearUrl, String mainAbilityUrl, String favoredAbilityUrl) {
+		if (getGateway() == null) {
+			return false;
+		}
+
+		boolean result = false;
+
+		List<Guild> guilds = getGateway().getGuilds().collectList().block();
+		if (guilds != null && guilds.size() > 0) {
+			List<GuildChannel> channels = guilds.get(0).getChannels().collectList().block();
+
+			if (channels != null) {
+				TextChannel channel = (TextChannel) channels.stream().filter(c -> c.getName().equals(channelName)).findFirst().orElse(null);
+
+				if (channel != null) {
+					MessageCreateMono createMono = channel.createMessage(message);
+
+					try {
+						InputStream gearOffer = new URL(gearUrl).openStream();
+						InputStream mainAbility = new URL(mainAbilityUrl).openStream();
+						InputStream favoredAbility = new URL(favoredAbilityUrl).openStream();
+						createMono = createMono.withFiles(
+								MessageCreateFields.File.of("gear_offer_img.png", gearOffer),
+								MessageCreateFields.File.of("main_ability_img.png", mainAbility),
+								MessageCreateFields.File.of("favored_ability_img.png", favoredAbility)
+						);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+
+					Message msg = createMono.block();
+					result = msg != null;
+				}
 			}
 		}
 

@@ -141,7 +141,15 @@ public class SplatNetStoreWatcher {
 	}
 
 	private void sendDiscordNotification(SplatoonMerchandises.SplatoonMerchandise gear, String discordMessage) {
-		logger.info("Sending out discord notifications");
+		logger.info("Sending out discord notifications to server channel");
+		discordBot.sendServerMessageWithImages("splatnet-gear",
+				discordMessage,
+				String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getImage()),
+				String.format("https://app.splatoon2.nintendo.net%s", gear.getSkill().getImage()),
+				String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getBrand().getFrequent_skill().getImage()));
+		logger.info("Finished sending out discord notifications to server channel");
+
+		logger.info("Sending out discord notifications to users");
 		List<AbilityNotification> notifications = findNotifications(gear);
 		List<String> sentNotifications = new ArrayList<>();
 		for (AbilityNotification notification : notifications) {
@@ -162,7 +170,7 @@ public class SplatNetStoreWatcher {
 				sentNotifications.add(notification.getUserId());
 			}
 		}
-		logger.info("Finished sending out discord notifications");
+		logger.info("Finished sending out discord notifications to users");
 	}
 
 	private List<AbilityNotification> findNotifications(SplatoonMerchandises.SplatoonMerchandise gear) {
