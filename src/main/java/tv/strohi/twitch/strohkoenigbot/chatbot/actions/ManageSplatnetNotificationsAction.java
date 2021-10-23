@@ -8,8 +8,10 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
+import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 
@@ -254,14 +256,21 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 	private TwitchMessageSender messageSender;
 
 	@Autowired
-	public ManageSplatnetNotificationsAction(AbilityNotificationRepository abilityNotificationRepository, DiscordAccountRepository discordAccountRepository) {
-		this.abilityNotificationRepository = abilityNotificationRepository;
-		this.discordAccountRepository = discordAccountRepository;
+	public void setMessageSender(TwitchMessageSender messageSender) {
+		this.messageSender = messageSender;
+	}
+
+	private DiscordBot discordBot;
+
+	@Autowired
+	public void setDiscordBot(DiscordBot discordBot) {
+		this.discordBot = discordBot;
 	}
 
 	@Autowired
-	public void setMessageSender(TwitchMessageSender messageSender) {
-		this.messageSender = messageSender;
+	public ManageSplatnetNotificationsAction(AbilityNotificationRepository abilityNotificationRepository, DiscordAccountRepository discordAccountRepository) {
+		this.abilityNotificationRepository = abilityNotificationRepository;
+		this.discordAccountRepository = discordAccountRepository;
 	}
 
 	@Override
@@ -278,6 +287,44 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		}
 
 		message = message.toLowerCase().trim();
+
+		if (message.startsWith("!notifications")) {
+			// Send current notifications of the account via discord
+			DiscordAccount account = discordAccountRepository.findByTwitchUserId((String) args.getArguments().get(ArgumentKey.ChannelId))
+					.stream()
+					.findFirst()
+					.orElse(null);
+
+			if (account == null) {
+				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+						"ERROR! You don't have a discord account connected and can't receive any notifications.",
+						(String) args.getArguments().get(ArgumentKey.MessageNonce),
+						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+				return;
+			}
+
+			List<AbilityNotification> notifications = abilityNotificationRepository.findByUserId((String) args.getArguments().get(ArgumentKey.ChannelId));
+			if (notifications.size() > 0) {
+				StringBuilder builder = new StringBuilder("**The following notifications are registered for your channel**:");
+				for (AbilityNotification notification : notifications) {
+				    builder.append(String.format("\n- Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getGear(), notification.getMain(), notification.getFavored()));
+				}
+
+				discordBot.sendPrivateMessage(account.getDiscordId(), builder.toString());
+
+				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+						"I've sent you a list with your active notifications on discord.",
+						(String) args.getArguments().get(ArgumentKey.MessageNonce),
+						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+			} else {
+				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+						"You didn't register any notifications.",
+						(String) args.getArguments().get(ArgumentKey.MessageNonce),
+						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+			}
+
+			return;
+		}
 
 		if (!message.startsWith("!notify") && !(remove = message.startsWith("!unnotify"))) {
 			return;
@@ -386,7 +433,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			abilityNotificationRepository.save(notification);
 
 			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-					String.format("Alright! I'm going to notify you via private message when I find %s with %s and %s in SplatNet shop. Important: I only notify mods, vips and subs of @strohkoenig.",
+					String.format("Alright! I'm going to notify you via private message when I find %s with %s and %s in SplatNet shop.",
 							getGearString(type),
 							getAbilityString(main, false),
 							getAbilityString(favored, true)),
