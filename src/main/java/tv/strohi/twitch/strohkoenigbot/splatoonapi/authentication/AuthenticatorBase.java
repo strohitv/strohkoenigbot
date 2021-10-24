@@ -14,7 +14,7 @@ import java.util.zip.GZIPInputStream;
 public abstract class AuthenticatorBase {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	protected final String nsoapp_version = "1.13.0";
+	protected final String nsoapp_version = "1.13.2";
 
 	protected final HttpClient client = HttpClient.newBuilder()
 			.version(HttpClient.Version.HTTP_2)

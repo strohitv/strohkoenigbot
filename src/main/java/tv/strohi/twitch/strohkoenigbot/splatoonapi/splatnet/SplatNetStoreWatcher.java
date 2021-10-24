@@ -177,8 +177,8 @@ public class SplatNetStoreWatcher {
 		return abilityNotificationRepository.findAll().stream()
 				.filter(an ->
 						(an.getGear() == GearType.Any || an.getGear() == Arrays.stream(GearType.values()).filter(gt -> gt.getName().equals(gear.getGear().getKind())).findFirst().orElse(GearType.Any))
-								|| (an.getMain() == AbilityType.Any || an.getMain() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getSkill().getName())).findFirst().orElse(AbilityType.Any))
-								|| (an.getFavored() == AbilityType.Any || an.getFavored() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getGear().getBrand().getFrequent_skill().getName())).findFirst().orElse(AbilityType.Any)))
+								&& (an.getMain() == AbilityType.Any || an.getMain() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getSkill().getName())).findFirst().orElse(AbilityType.Any))
+								&& (an.getFavored() == AbilityType.Any || an.getFavored() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getGear().getBrand().getFrequent_skill().getName())).findFirst().orElse(AbilityType.Any)))
 				.collect(Collectors.toList());
 	}
 }
