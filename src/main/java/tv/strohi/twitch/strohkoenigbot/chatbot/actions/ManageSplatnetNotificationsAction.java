@@ -90,6 +90,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 			put("ink saver (sub)", AbilityType.InkSaverSub);
 			put("ink saver sub", AbilityType.InkSaverSub);
+			put("inksaversub", AbilityType.InkSaverSub);
 			put("inksaver (sub)", AbilityType.InkSaverSub);
 			put("inksaver sub", AbilityType.InkSaverSub);
 			put("sub saver", AbilityType.InkSaverSub);
@@ -97,6 +98,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			put("iss", AbilityType.InkSaverSub);
 
 			put("last ditch effort", AbilityType.LastDitchEffort);
+			put("lastditcheffort", AbilityType.LastDitchEffort);
 			put("last ditch", AbilityType.LastDitchEffort);
 			put("last effort", AbilityType.LastDitchEffort);
 			put("last", AbilityType.LastDitchEffort);
@@ -307,7 +309,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			if (notifications.size() > 0) {
 				StringBuilder builder = new StringBuilder("**The following notifications are registered for your channel**:");
 				for (AbilityNotification notification : notifications) {
-				    builder.append(String.format("\n- Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getGear(), notification.getMain(), notification.getFavored()));
+				    builder.append(String.format("\n- Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored())));
 				}
 
 				discordBot.sendPrivateMessage(account.getDiscordId(), builder.toString());
@@ -488,6 +490,20 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			result = matcher.replaceAll(matchResult -> String.format(" %s", matchResult.group())).trim();
 
 			result = String.format("%s as %s ability", result, favoredAbility ? "favored" : "main");
+		}
+
+		return result;
+	}
+
+	private String getAbilityString(AbilityType type) {
+		String result;
+
+		if (type == AbilityType.Any) {
+			result = "Any";
+		} else {
+			Pattern pattern = Pattern.compile("[A-Z]");
+			Matcher matcher = pattern.matcher(type.toString());
+			result = matcher.replaceAll(matchResult -> String.format(" %s", matchResult.group())).trim();
 		}
 
 		return result;
