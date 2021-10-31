@@ -10,7 +10,17 @@ import java.util.List;
 import java.util.Map;
 
 public class Statistics {
-	private String currentHtml = "";
+	private String currentHtml = "<!DOCTYPE html>\n" +
+			"<html lang=\"en\">\n" +
+			"\n" +
+			"<head>\n" +
+			"\t<meta charset=\"UTF-8\">\n" +
+			"\t<meta http-equiv=\"refresh\" content=\"5\">\n" +
+			"\t<title>Splatoon 2 statistics</title>\n" +
+			"</head>\n" +
+			"<body>\n" +
+			"</body>\n" +
+			"</html>";
 
 	private final List<SplatoonMatchResultsCollection.SplatoonMatchResult> includedMatches = new ArrayList<>();
 	private final Map<String, Integer> weaponPaints = new HashMap<>();
