@@ -60,6 +60,10 @@ public class ResultsExporter {
 	private boolean peaksLoaded = false;
 	private SplatoonPlayerPeaks peaks;
 
+	public String getHtml() {
+		return statistics.getCurrentHtml();
+	}
+
 	@Scheduled(fixedRate = 15000, initialDelay = 5000)
 	public void loadGameResultsScheduled() {
 //		if (!peaksLoaded) {

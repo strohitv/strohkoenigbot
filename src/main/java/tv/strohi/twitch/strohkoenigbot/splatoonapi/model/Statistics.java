@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Statistics {
+	private String currentHtml = "";
+
 	private final List<SplatoonMatchResultsCollection.SplatoonMatchResult> includedMatches = new ArrayList<>();
 	private final Map<String, Integer> weaponPaints = new HashMap<>();
 	private final String imageHost = "https://app.splatoon2.nintendo.net";
@@ -36,14 +38,18 @@ public class Statistics {
 
 		try {
 			assert is != null;
-			String fileToWrite = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
 			FileWriter myWriter = new FileWriter(path);
-			myWriter.write(fileToWrite);
+			myWriter.write(currentHtml);
 			myWriter.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public String getCurrentHtml() {
+		return currentHtml;
 	}
 
 	public void exportHtml() {
@@ -85,9 +91,9 @@ public class Statistics {
 
 			try {
 				assert is != null;
-				String fileToWrite = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
-				fileToWrite = fileToWrite
+				currentHtml = currentHtml
 						.replace("{wins}", String.format("%d", victoryCount))
 						.replace("{defeats}", String.format("%d", defeatCount))
 						.replace("{main-weapon-points}", mainWeaponPoints)
@@ -106,55 +112,55 @@ public class Statistics {
 						.replace("{shoes-sub-1}", shoesGearSub1);
 
 				if (headGearSub2 != null) {
-					fileToWrite = fileToWrite.replace("{head-sub-2}", headGearSub2)
+					currentHtml = currentHtml.replace("{head-sub-2}", headGearSub2)
 							.replace("{head-sub2-hidden}", "");
 				} else {
-					fileToWrite = fileToWrite.replace("{head-sub-2}", "")
+					currentHtml = currentHtml.replace("{head-sub-2}", "")
 							.replace("{head-sub2-hidden}", "hidden");
 				}
 
 				if (headGearSub3 != null) {
-					fileToWrite = fileToWrite.replace("{head-sub-3}", headGearSub3)
+					currentHtml = currentHtml.replace("{head-sub-3}", headGearSub3)
 							.replace("{head-sub3-hidden}", "");
 				} else {
-					fileToWrite = fileToWrite.replace("{head-sub-3}", "")
+					currentHtml = currentHtml.replace("{head-sub-3}", "")
 							.replace("{head-sub3-hidden}", "hidden");
 				}
 
 				if (clothesGearSub2 != null) {
-					fileToWrite = fileToWrite.replace("{clothing-sub-2}", clothesGearSub2)
+					currentHtml = currentHtml.replace("{clothing-sub-2}", clothesGearSub2)
 							.replace("{clothing-sub2-hidden}", "");
 				} else {
-					fileToWrite = fileToWrite.replace("{clothing-sub-2}", "")
+					currentHtml = currentHtml.replace("{clothing-sub-2}", "")
 							.replace("{clothing-sub2-hidden}", "hidden");
 				}
 
 				if (clothesGearSub3 != null) {
-					fileToWrite = fileToWrite.replace("{clothing-sub-3}", clothesGearSub3)
+					currentHtml = currentHtml.replace("{clothing-sub-3}", clothesGearSub3)
 							.replace("{clothing-sub3-hidden}", "");
 				} else {
-					fileToWrite = fileToWrite.replace("{clothing-sub-3}", "")
+					currentHtml = currentHtml.replace("{clothing-sub-3}", "")
 							.replace("{clothing-sub3-hidden}", "hidden");
 				}
 
 				if (shoesGearSub2 != null) {
-					fileToWrite = fileToWrite.replace("{shoes-sub-2}", shoesGearSub2)
+					currentHtml = currentHtml.replace("{shoes-sub-2}", shoesGearSub2)
 							.replace("{shoes-sub2-hidden}", "");
 				} else {
-					fileToWrite = fileToWrite.replace("{shoes-sub-2}", "")
+					currentHtml = currentHtml.replace("{shoes-sub-2}", "")
 							.replace("{shoes-sub2-hidden}", "hidden");
 				}
 
 				if (shoesGearSub3 != null) {
-					fileToWrite = fileToWrite.replace("{shoes-sub-3}", shoesGearSub3)
+					currentHtml = currentHtml.replace("{shoes-sub-3}", shoesGearSub3)
 							.replace("{shoes-sub3-hidden}", "");
 				} else {
-					fileToWrite = fileToWrite.replace("{shoes-sub-3}", "")
+					currentHtml = currentHtml.replace("{shoes-sub-3}", "")
 							.replace("{shoes-sub3-hidden}", "hidden");
 				}
 
 				FileWriter myWriter = new FileWriter(path);
-				myWriter.write(fileToWrite);
+				myWriter.write(currentHtml);
 				myWriter.close();
 			} catch (Exception e) {
 				e.printStackTrace();
