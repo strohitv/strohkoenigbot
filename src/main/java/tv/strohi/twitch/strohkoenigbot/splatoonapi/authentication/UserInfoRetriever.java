@@ -14,7 +14,7 @@ public class UserInfoRetriever extends AuthenticatorBase {
 		HttpRequest request = HttpRequest.newBuilder()
 				.GET()
 				.uri(uri)
-				.setHeader("User-Agent", "OnlineLounge/" + nsoapp_version + " NASDKAPI Android")
+				.setHeader("User-Agent", "OnlineLounge/" + nsoAppVersion + " NASDKAPI Android")
 				.setHeader("Accept-Language", "en-US")
 				.setHeader("Accept", "application/json")
 				.setHeader("Authorization", String.format("Bearer %s", accountAccessToken))

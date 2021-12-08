@@ -24,7 +24,7 @@ public class AccountAccessTokenRetriever extends AuthenticatorBase {
 		HttpRequest request = HttpRequest.newBuilder()
 				.POST(HttpRequest.BodyPublishers.ofString(body))
 				.uri(uri)
-				.setHeader("User-Agent", "OnlineLounge/" + nsoapp_version + " NASDKAPI Android")
+				.setHeader("User-Agent", "OnlineLounge/" + nsoAppVersion + " NASDKAPI Android")
 				.setHeader("Accept-Language", "en-US")
 				.setHeader("Content-Type", "application/json; charset=utf-8")
 				.setHeader("Accept", "application/json")
