@@ -15,15 +15,14 @@ import java.util.List;
 public class TwitchChatBot {
 	private final ResultsExporter resultsExporter;
 	private final TwitchAuthRepository twitchAuthRepository;
-	private final List<IChatAction> botActions = new ArrayList<>();
+	private static final List<IChatAction> botActions = new ArrayList<>();
 
 	private TwitchBotClient botClient;
 	private TwitchBotClient mainAccountClient;
 
-	@Autowired
-	public void setBotActions(List<IChatAction> botActions) {
-		this.botActions.clear();
-		this.botActions.addAll(botActions);
+	public static void setBotActions(List<IChatAction> botActions) {
+		TwitchChatBot.botActions.clear();
+		TwitchChatBot.botActions.addAll(botActions);
 	}
 
 	@Autowired
