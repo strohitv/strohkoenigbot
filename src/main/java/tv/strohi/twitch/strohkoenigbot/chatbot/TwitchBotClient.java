@@ -5,6 +5,7 @@ import com.github.philippheuer.events4j.api.domain.IDisposable;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
+import com.github.twitch4j.common.events.user.PrivateMessageEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.github.twitch4j.events.ChannelGoOfflineEvent;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
@@ -41,56 +42,81 @@ public class TwitchBotClient {
 
 	public void initializeClient(TwitchAuth auth) {
 		if (client == null) {
-			OAuth2Credential botCredential = new OAuth2Credential("twitch", auth.getToken());
+			try {
+				OAuth2Credential botCredential = new OAuth2Credential("twitch", auth.getToken());
 
-			TwitchClientBuilder builder = TwitchClientBuilder.builder()
-					.withDefaultAuthToken(botCredential)
-					.withEnableChat(true)
-					.withChatAccount(botCredential)
-					.withEnableHelix(true);
+				TwitchClientBuilder builder = TwitchClientBuilder.builder()
+						.withDefaultAuthToken(botCredential)
+						.withEnableChat(true)
+						.withChatAccount(botCredential)
+						.withEnableHelix(true);
 
-			if (!auth.getIsMain()) {
-				builder = builder.withEnablePubSub(true);
-			}
+				if (!auth.getIsMain()) {
+					builder = builder.withEnablePubSub(true);
+				}
 
-			client = builder.build();
+				client = builder.build();
 
-			if (!auth.getIsMain()) {
-//				User strohkoenigUser = client.getClientHelper().enableStreamEventListener(channelName);
-				client.getClientHelper().enableStreamEventListener(channelName);
-				client.getClientHelper().enableFollowEventListener(channelName);
+				if (!auth.getIsMain()) {
+//					User strohkoenigUser = client.getClientHelper().enableStreamEventListener(channelName);
+					client.getClientHelper().enableStreamEventListener(channelName);
+					client.getClientHelper().enableFollowEventListener(channelName);
 
-				goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
-					resultsExporter.start(event.getFiredAtInstant());
-				});
+					goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
+						resultsExporter.start(event.getFiredAtInstant());
+					});
 
-				goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
-					resultsExporter.stop();
-				});
+					goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
+						resultsExporter.stop();
+					});
 
-				client.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
-					ActionArgs args = new ActionArgs();
+					client.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
+						ActionArgs args = new ActionArgs();
 
-					args.setReason(TriggerReason.ChatMessage);
-					args.setUser(event.getUser().getName());
-					args.setUserId(event.getUser().getId());
+						args.setReason(TriggerReason.ChatMessage);
+						args.setUser(event.getUser().getName());
+						args.setUserId(event.getUser().getId());
 
-					args.getArguments().put(ArgumentKey.Event, event);
+						args.getArguments().put(ArgumentKey.Event, event);
 
-					args.getArguments().put(ArgumentKey.ChannelId, event.getMessageEvent().getChannelId());
-					args.getArguments().put(ArgumentKey.ChannelName, event.getMessageEvent().getChannelName().orElse(null));
-					args.getArguments().put(ArgumentKey.Message, event.getMessage());
-					args.getArguments().put(ArgumentKey.MessageNonce, event.getNonce());
-					args.getArguments().put(ArgumentKey.ReplyMessageId, event.getMessageEvent().getMessageId().orElse(event.getEventId()));
+						args.getArguments().put(ArgumentKey.ChannelId, event.getMessageEvent().getChannelId());
+						args.getArguments().put(ArgumentKey.ChannelName, event.getMessageEvent().getChannelName().orElse(null));
+						args.getArguments().put(ArgumentKey.Message, event.getMessage());
+						args.getArguments().put(ArgumentKey.MessageNonce, event.getNonce());
+						args.getArguments().put(ArgumentKey.ReplyMessageId, event.getMessageEvent().getMessageId().orElse(event.getEventId()));
 
-					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
-				});
-			}
+						botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
+					});
 
-			client.getChat().joinChannel(channelName);
+					client.getEventManager().onEvent(PrivateMessageEvent.class, event -> {
+						ActionArgs args = new ActionArgs();
 
-			if (client.getChat().isChannelJoined(channelName)) {
-				client.getChat().sendMessage(channelName, "Hi! strohk2Pog");
+						args.setReason(TriggerReason.PrivateMessage);
+						args.setUser(event.getUser().getName());
+						args.setUserId(event.getUser().getId());
+
+						args.getArguments().put(ArgumentKey.Event, event);
+						args.getArguments().put(ArgumentKey.Message, event.getMessage());
+						;
+
+						botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
+					});
+
+//					UserList users = client.getHelix().getUsers(auth.getToken(), null, Collections.singletonList("strohkoenig")).execute();
+//					client.getChat().sendPrivateMessage(users.getUsers().get(0).getLogin(), "test123");
+				}
+
+				client.getChat().joinChannel(channelName);
+				if (client.getChat().isChannelJoined(channelName)) {
+					client.getChat().sendMessage(channelName, "Hi! strohk2Pog");
+//					client.getChat().sendMessage(channelName, "/w strohkoenig Hi! strohk2Pog");
+//					client.getChat().sendMessage(channelName, "/w strohkoenigbot Hi! strohk2Pog");
+//
+//					client.getChat().sendPrivateMessage("strohkoenig", "Hi 123");
+//					client.getChat().sendPrivateMessage("strohkoenigbot", "Hi 123");
+				}
+			} catch (Exception ignored) {
+
 			}
 		}
 	}
