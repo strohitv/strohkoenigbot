@@ -18,7 +18,7 @@ public class AbilityNotification {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
-	private String userId;
+	private long discordId;
 
 	private AbilityType main;
 

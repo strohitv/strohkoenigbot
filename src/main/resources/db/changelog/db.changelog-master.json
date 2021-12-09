@@ -218,6 +218,78 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "2",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "dropForeignKeyConstraint":  {
+              "baseTableName":  "ability_notification",
+              "constraintName":  "fk_twitch_user_id"
+            }
+          },
+          {
+            "addColumn":{
+              "columns":[
+                {
+                  "column":{
+                    "name":"discord_id",
+                    "position": 2,
+                    "type":"bigint"
+                  }
+                }
+              ],
+              "tableName":"ability_notification"
+            }
+          },
+          {
+            "update":{
+              "columns":[
+                {
+                  "column":{
+                    "name":"discord_id",
+                    "valueComputed":"(SELECT dc.id FROM DBO.discord_account dc WHERE dc.twitch_user_id = user_id)"
+                  }
+                }
+              ],
+              "tableName":"ability_notification"
+            }
+          },
+          {
+            "delete":  {
+              "tableName":  "ability_notification",
+              "where":  "discord_id IS NULL"
+            }
+          },
+          {
+            "dropColumn":  {
+              "columnName":  "user_id",
+              "tableName":  "ability_notification"
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "discord_id",
+              "baseTableName": "ability_notification",
+              "constraintName": "fk_discord_id",
+              "onDelete": "CASCADE",
+              "onUpdate": "RESTRICT",
+              "referencedColumnNames": "id",
+              "referencedTableName": "discord_account",
+              "validate": true
+            }
+          },
+          {
+            "dropNotNullConstraint": {
+              "columnDataType":  "varchar(40)",
+              "columnName":  "twitch_user_id",
+              "tableName":  "discord_account"
+            }
+          }
+        ]
+      }
     }
   ]
 }

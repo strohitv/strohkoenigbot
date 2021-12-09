@@ -25,4 +25,10 @@ public class TwitchMessageSender {
 			botClient.getClient().getChat().sendMessage(channel, message, nonce, messageId);
 		}
 	}
+
+	public void replyPrivate(String channel, String message) {
+		if (botClient.getClient() != null) {
+			botClient.getClient().getChat().sendPrivateMessage(channel, message);
+		}
+	}
 }

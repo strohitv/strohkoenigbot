@@ -13,5 +13,5 @@ public interface AbilityNotificationRepository extends CrudRepository<AbilityNot
 
 	AbilityNotification findById(long id);
 
-	List<AbilityNotification> findByUserId(String user);
+	List<AbilityNotification> findByDiscordIdOrderById(long discordId);
 }

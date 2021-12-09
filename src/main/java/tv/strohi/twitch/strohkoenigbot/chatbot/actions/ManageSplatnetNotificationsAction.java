@@ -8,6 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
@@ -19,6 +20,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static tv.strohi.twitch.strohkoenigbot.utils.ParseUtils.parseLongSafe;
 
 @Component
 public class ManageSplatnetNotificationsAction extends ChatAction {
@@ -277,11 +280,26 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
-		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.PrivateMessage);
+		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.PrivateMessage, TriggerReason.DiscordPrivateMessage);
 	}
 
 	@Override
 	public void execute(ActionArgs args) {
+		boolean isTwitchMessage = args.getReason() == TriggerReason.ChatMessage || args.getReason() == TriggerReason.PrivateMessage;
+
+		TwitchDiscordMessageSender sender = new TwitchDiscordMessageSender(
+				messageSender,
+				discordBot,
+				args.getReason(),
+				// was sent from twitch
+				(isTwitchMessage) ? (String) args.getArguments().get(ArgumentKey.ChannelName) : null,
+				(isTwitchMessage) ? (String) args.getArguments().get(ArgumentKey.MessageNonce) : null,
+				(isTwitchMessage) ? (String) args.getArguments().get(ArgumentKey.ReplyMessageId) : null,
+				// was sent from discord
+				(!isTwitchMessage) ? Long.parseLong(args.getUserId()) : null
+		);
+
+
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
 		boolean remove = false;
 		if (message == null) {
@@ -292,37 +310,42 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 		if (message.startsWith("!notifications")) {
 			// Send current notifications of the account via discord
-			DiscordAccount account = discordAccountRepository.findByTwitchUserId((String) args.getArguments().get(ArgumentKey.ChannelId))
+			DiscordAccount account = discordAccountRepository.findByDiscordIdOrTwitchUserIdOrderById
+					(
+							parseLongSafe(args.getUserId()),
+							(isTwitchMessage) ? args.getUserId() : null
+					)
 					.stream()
 					.findFirst()
 					.orElse(null);
 
 			if (account == null) {
-				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-						"ERROR! You don't have a discord account connected and can't receive any notifications.",
-						(String) args.getArguments().get(ArgumentKey.MessageNonce),
-						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+				sender.send("ERROR! You don't have a discord account connected and can't receive any notifications.");
 				return;
 			}
 
-			List<AbilityNotification> notifications = abilityNotificationRepository.findByUserId((String) args.getArguments().get(ArgumentKey.ChannelId));
+			List<AbilityNotification> notifications = abilityNotificationRepository.findByDiscordIdOrderById(account.getId());
 			if (notifications.size() > 0) {
 				StringBuilder builder = new StringBuilder("**The following notifications are registered for your channel**:");
 				for (AbilityNotification notification : notifications) {
-				    builder.append(String.format("\n- Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored())));
+					builder.append(String.format("\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored())));
 				}
 
 				discordBot.sendPrivateMessage(account.getDiscordId(), builder.toString());
 
-				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-						"I've sent you a list with your active notifications on discord.",
-						(String) args.getArguments().get(ArgumentKey.MessageNonce),
-						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+				if (isTwitchMessage) {
+					if (args.getReason() == TriggerReason.ChatMessage) {
+						messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
+								"I've sent you a list with your active notifications on discord.",
+								(String) args.getArguments().get(ArgumentKey.MessageNonce),
+								(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+					} else {
+						messageSender.replyPrivate(args.getUser(),
+								"I've sent you a list with your active notifications on discord.");
+					}
+				}
 			} else {
-				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-						"You didn't register any notifications.",
-						(String) args.getArguments().get(ArgumentKey.MessageNonce),
-						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+				sender.send("You didn't register any notifications.");
 			}
 
 			return;
@@ -332,11 +355,22 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			return;
 		}
 
-		if (discordAccountRepository.findByTwitchUserId((String) args.getArguments().get(ArgumentKey.ChannelId)).size() == 0) {
-			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-					"ERROR! You need to first connect a discord account which can receive the notification. Please use !connect to connect one first.",
-					(String) args.getArguments().get(ArgumentKey.MessageNonce),
-					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+		Long discordId;
+
+		if (isTwitchMessage) {
+			discordId = discordAccountRepository.findByTwitchUserIdOrderById(args.getUserId()).stream()
+					.map(DiscordAccount::getId)
+					.findFirst()
+					.orElse(null);
+		} else {
+			discordId = discordAccountRepository.findByDiscordIdOrderById(Long.parseLong(args.getUserId())).stream()
+					.map(DiscordAccount::getId)
+					.findFirst()
+					.orElse(null);
+		}
+
+		if (discordId == null) {
+			sender.send("ERROR! You need to first connect your discord account which can receive the notification. Please use !connect to connect one first. I don't send notifications to discord accounts which didn't connect first as a spam protection.");
 			return;
 		}
 
@@ -386,34 +420,29 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 		if (main == favored && main != AbilityType.Any) {
 			// ERROR -> Main and favored ability of a shirt do never equal.
-			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-					String.format("ERROR! Your search for %s with %s and %s is invalid because gear cannot have the same main and favored ability!",
-							getGearString(type),
-							getAbilityString(main, false),
-							getAbilityString(favored, true)),
-					(String) args.getArguments().get(ArgumentKey.MessageNonce),
-					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+			sender.send(String.format(
+					"ERROR! Your search for %s with %s and %s is invalid because gear cannot have the same main and favored ability!",
+					getGearString(type),
+					getAbilityString(main, false),
+					getAbilityString(favored, true))
+			);
 			return;
 		}
 
 		if (type != GearType.Any && main != AbilityType.Any && exclusiveAbilities.containsKey(main) && exclusiveAbilities.get(main) != type) {
 			// ERROR -> This ability cannot be a main ability on that gear type
-			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-					String.format("ERROR! Your search for %s with %s is invalid because such gear does not exist!",
-							getGearString(type),
-							getAbilityString(main, false)),
-					(String) args.getArguments().get(ArgumentKey.MessageNonce),
-					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+			sender.send(String.format(
+					"ERROR! Your search for %s with %s is invalid because such gear does not exist!",
+					getGearString(type),
+					getAbilityString(main, false))
+			);
 			return;
 		}
 
 		// let's look how it works with vague searches
 //		if (!remove && type == GearType.Any && main == AbilityType.Any && favored == AbilityType.Any) {
 //			// ERROR -> Too vague
-//			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-//					"ERROR! Your search is too vague! Please specify at least gear, main OR favored ability.",
-//					(String) args.getArguments().get(ArgumentKey.MessageNonce),
-//					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+// 			sender.send("ERROR! Your search is too vague! Please specify at least gear, main OR favored ability.");
 //			return;
 //		}
 
@@ -427,33 +456,56 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 //			}
 
 			AbilityNotification notification = new AbilityNotification();
-			notification.setUserId((String) args.getArguments().get(ArgumentKey.ChannelId));
+			notification.setDiscordId(discordId);
 			notification.setGear(type);
 			notification.setMain(main);
 			notification.setFavored(favored);
 
 			abilityNotificationRepository.save(notification);
 
-			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-					String.format("Alright! I'm going to notify you via private message when I find %s with %s and %s in SplatNet shop.",
-							getGearString(type),
-							getAbilityString(main, false),
-							getAbilityString(favored, true)),
-					(String) args.getArguments().get(ArgumentKey.MessageNonce),
-					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
-		} else {
-			List<AbilityNotification> notifications = abilityNotificationRepository.findByUserId((String) args.getArguments().get(ArgumentKey.ChannelId));
-			if (notifications.size() > 0) {
-				abilityNotificationRepository.deleteAll(notifications);
-			}
+			sender.send(String.format(
+					"Alright! I'm going to notify you via private message when I find %s with %s and %s in SplatNet shop.",
+					getGearString(type),
+					getAbilityString(main, false),
+					getAbilityString(favored, true))
+			);
 
-			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-					String.format("Alright! I'm not going to notify you anymore when I find %s with %s and %s in SplatNet shop.",
-							getGearString(type),
-							getAbilityString(main, false),
-							getAbilityString(favored, true)),
-					(String) args.getArguments().get(ArgumentKey.MessageNonce),
-					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+			discordAccountRepository.findById(discordId).stream()
+					.map(DiscordAccount::getDiscordId)
+					.findFirst()
+					.ifPresent(discordAccountId -> discordBot.sendPrivateMessage(discordAccountId, String.format("**The following notification has been added due to your request**:\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored()))));
+		} else {
+			List<AbilityNotification> notifications = abilityNotificationRepository.findByDiscordIdOrderById(discordId);
+
+			ArrayList<Long> idList = Arrays.stream(message.split(" "))
+					.map(String::trim)
+					.filter(id -> id.matches("[0-9]+"))
+					.map(Long::parseLong)
+					.filter(id -> notifications.stream().anyMatch(notif -> notif.getId() == id))
+					.collect(Collectors.toCollection(ArrayList::new));
+
+			if (notifications.size() > 0) {
+				if (idList.size() == 0) {
+					abilityNotificationRepository.deleteAll(notifications);
+
+					sender.send("Alright! I'm not going to notify you anymore when I find any gear in SplatNet shop.");
+				} else {
+					StringBuilder builder = new StringBuilder("**The following notifications have been removed due to your request**:");
+					for (AbilityNotification notification : notifications.stream().filter(notif -> idList.contains(notif.getId())).collect(Collectors.toList())) {
+						builder.append(String.format("\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored())));
+					}
+
+					abilityNotificationRepository.deleteAllById(idList);
+
+					sender.send("Alright! I'm not going to notify you anymore when I find any gear with the specified ids in SplatNet shop.");
+					discordAccountRepository.findById(discordId).stream()
+							.map(DiscordAccount::getDiscordId)
+							.findFirst()
+							.ifPresent(discordAccountId -> discordBot.sendPrivateMessage(discordAccountId, builder.toString()));
+				}
+			} else {
+				sender.send("You didn't have any notifications to remove.");
+			}
 		}
 	}
 

@@ -16,6 +16,10 @@ import discord4j.core.spec.MessageCreateMono;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ConnectionAccepted;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 
@@ -28,9 +32,16 @@ import java.util.List;
 @Component
 public class DiscordBot {
 	private final ConfigurationRepository configurationRepository;
+	private final List<IChatAction> botActions = new ArrayList<>();
 
 	private DiscordClient client = null;
 	private GatewayDiscordClient gateway = null;
+
+	@Autowired
+	public void setBotActions(List<IChatAction> botActions) {
+		this.botActions.clear();
+		this.botActions.addAll(botActions);
+	}
 
 	@Autowired
 	public DiscordBot(ConfigurationRepository configurationRepository) {
@@ -54,10 +65,29 @@ public class DiscordBot {
 					final Message message = event.getMessage();
 					final MessageChannel channel = message.getChannel().block();
 
-					if (channel instanceof PrivateChannel && message.getContent().trim().toLowerCase().startsWith("yes")) {
-						event.getMessage().getAuthor().ifPresent(author ->
-								subscribers.forEach(s -> s.accept(author.getId().asLong()))
-						);
+					if (channel instanceof PrivateChannel) {
+						if (message.getContent().trim().toLowerCase().startsWith("yes")) {
+							event.getMessage().getAuthor().ifPresent(author ->
+									subscribers.forEach(s -> s.accept(author.getId().asLong()))
+							);
+						} else {
+							// todo let users manage their notifications on discord as well
+							event.getMessage().getAuthor().ifPresent(author -> {
+										if (!"strohkoenigbot#6833".equals(author.getTag())) {
+											ActionArgs args = new ActionArgs();
+
+											args.setReason(TriggerReason.DiscordPrivateMessage);
+											args.setUser(author.getTag());
+											args.setUserId(author.getId().asString());
+
+											args.getArguments().put(ArgumentKey.Event, event);
+											args.getArguments().put(ArgumentKey.Message, message.getContent());
+
+											botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.DiscordPrivateMessage)).forEach(action -> action.run(args));
+										}
+									}
+							);
+						}
 					}
 				});
 			}

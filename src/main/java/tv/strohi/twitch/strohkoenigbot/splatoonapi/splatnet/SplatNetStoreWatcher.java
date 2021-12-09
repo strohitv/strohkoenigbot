@@ -151,12 +151,10 @@ public class SplatNetStoreWatcher {
 
 		logger.info("Sending out discord notifications to users");
 		List<AbilityNotification> notifications = findNotifications(gear);
-		List<String> sentNotifications = new ArrayList<>();
+		List<Long> sentNotifications = new ArrayList<>();
 		for (AbilityNotification notification : notifications) {
-			if (!sentNotifications.contains(notification.getUserId())) {
-				discordAccountRepository.findByTwitchUserId(notification.getUserId())
-						.stream()
-						.findFirst()
+			if (!sentNotifications.contains(notification.getDiscordId())) {
+				discordAccountRepository.findById(notification.getDiscordId())
 						.ifPresent(discordAccount -> {
 									logger.info("Sending notification to discord account: {}", discordAccount.getDiscordId());
 									discordBot.sendPrivateMessageWithImage(discordAccount.getDiscordId(),
@@ -167,7 +165,7 @@ public class SplatNetStoreWatcher {
 								}
 						);
 
-				sentNotifications.add(notification.getUserId());
+				sentNotifications.add(notification.getDiscordId());
 			}
 		}
 		logger.info("Finished sending out discord notifications to users");

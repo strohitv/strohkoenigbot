@@ -6,13 +6,16 @@ import org.springframework.stereotype.Repository;
 import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DiscordAccountRepository extends CrudRepository<DiscordAccount, Long> {
 	@NotNull List<DiscordAccount> findAll();
 
-	DiscordAccount findById(long id);
+	Optional<DiscordAccount> findById(long id);
 
-	List<DiscordAccount> findByTwitchUserId(String twitchUserId);
-	List<DiscordAccount> findByDiscordId(Long discordId);
+	List<DiscordAccount> findByTwitchUserIdOrderById(String twitchUserId);
+	List<DiscordAccount> findByDiscordIdOrderById(Long discordId);
+
+	List<DiscordAccount> findByDiscordIdOrTwitchUserIdOrderById(Long discordId, String twitchUserId);
 }
