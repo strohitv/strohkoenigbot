@@ -167,6 +167,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			put("runspeed", AbilityType.RunSpeedUp);
 			put("run up", AbilityType.RunSpeedUp);
 			put("runup", AbilityType.RunSpeedUp);
+			put("run", AbilityType.RunSpeedUp);
 			put("rsu", AbilityType.RunSpeedUp);
 			put("rs", AbilityType.RunSpeedUp);
 
