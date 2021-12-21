@@ -73,7 +73,6 @@ public class SplatNetStoreWatcher {
 		logger.info("found {} offers", gearOffers != null ? gearOffers.getMerchandises().length : 0);
 		logger.info(gearOffers);
 
-
 		logger.info("filters in database: ");
 		logger.info(abilityNotificationRepository.findAll());
 

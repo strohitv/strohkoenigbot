@@ -23,7 +23,7 @@ public class SplatoonXRankLeaderBoard {
 		private long end_time;
 		private String status;
 
-		private SplatoonMatchResultsCollection.SplatoonMatchResult.SplatoonMatchRule rule;
+		private SplatoonMatchRule rule;
 
 		private SplatoonXRankWeaponRanking weapon_ranking;
 		private SplatoonXRankWeaponRanking[] top_rankings;

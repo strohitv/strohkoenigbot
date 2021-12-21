@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class DiscordBot {
@@ -119,7 +120,7 @@ public class DiscordBot {
 		return result;
 	}
 
-	public boolean sendServerMessageWithImages(String channelName, String message, String gearUrl, String mainAbilityUrl, String favoredAbilityUrl) {
+	public boolean sendServerMessageWithImages(String channelName, String message, String... imageUrls) {
 		if (getGateway() == null) {
 			return false;
 		}
@@ -137,13 +138,22 @@ public class DiscordBot {
 					MessageCreateMono createMono = channel.createMessage(message);
 
 					try {
-						InputStream gearOffer = new URL(gearUrl).openStream();
-						InputStream mainAbility = new URL(mainAbilityUrl).openStream();
-						InputStream favoredAbility = new URL(favoredAbilityUrl).openStream();
+						List<Tuple<String, InputStream>> streams = new ArrayList<>();
+
+
+						for (String imageUrl : imageUrls) {
+							URL url = new URL(imageUrl);
+
+							String[] segments = url.getPath().split("/");
+							String idStr = segments[segments.length - 1];
+
+							streams.add(new Tuple<>(idStr, url.openStream()));
+						}
+
 						createMono = createMono.withFiles(
-								MessageCreateFields.File.of("gear_offer_img.png", gearOffer),
-								MessageCreateFields.File.of("main_ability_img.png", mainAbility),
-								MessageCreateFields.File.of("favored_ability_img.png", favoredAbility)
+								streams.stream()
+										.map(s -> MessageCreateFields.File.of(s.x, s.y))
+										.collect(Collectors.toList())
 						);
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -237,5 +247,15 @@ public class DiscordBot {
 		}
 
 		return result;
+	}
+
+	private static class Tuple<X, Y> {
+		public final X x;
+		public final Y y;
+
+		public Tuple(X x, Y y) {
+			this.x = x;
+			this.y = y;
+		}
 	}
 }

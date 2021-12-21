@@ -143,32 +143,6 @@ public class SplatoonMatchResultsCollection {
 		@Data
 		@NoArgsConstructor
 		@AllArgsConstructor
-		public static class KeyNameTuple {
-			private String name;
-			private String key;
-		}
-
-		@Data
-		@NoArgsConstructor
-		@AllArgsConstructor
-		public static class SplatoonMatchRule {
-			private String name;
-			private String key;
-			private String multiline_name;
-		}
-
-		@Data
-		@NoArgsConstructor
-		@AllArgsConstructor
-		public static class SplatoonStage {
-			private String id;
-			private String name;
-			private String image;
-		}
-
-		@Data
-		@NoArgsConstructor
-		@AllArgsConstructor
 		public static class SplatoonUdemae {
 			private boolean is_number_reached;
 			private String name;
