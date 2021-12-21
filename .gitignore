@@ -10,5 +10,5 @@ derby.log
 /logs
 debug.log
 NSO2
-exported.json
+exported*.json
 exported.zip
