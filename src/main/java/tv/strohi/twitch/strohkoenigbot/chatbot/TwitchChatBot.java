@@ -1,5 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,8 @@ import java.util.List;
 
 @Component
 public class TwitchChatBot {
+	private static final Logger logger = LogManager.getLogger(TwitchChatBot.class.getSimpleName());
+
 	private final ResultsExporter resultsExporter;
 	private final TwitchAuthRepository twitchAuthRepository;
 	private static final List<IChatAction> botActions = new ArrayList<>();
@@ -66,11 +70,15 @@ public class TwitchChatBot {
 
 	@PreDestroy
 	public void stop() {
+		logger.info("stopping twitch chat bot");
+
 		if (botClient != null) {
+			logger.info("stopping bot client");
 			botClient.stop();
 		}
 
 		if (mainAccountClient != null) {
+			logger.info("stopping main account client");
 			mainAccountClient.stop();
 		}
 	}
