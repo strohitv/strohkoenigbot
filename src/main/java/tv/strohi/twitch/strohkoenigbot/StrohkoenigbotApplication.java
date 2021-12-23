@@ -9,9 +9,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 
+import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,20 +44,30 @@ public class StrohkoenigbotApplication {
 		app = SpringApplication.run(StrohkoenigbotApplication.class, args);
 	}
 
-	@Scheduled(cron = "0 43 4 * * *")
-	public void shutdown() {
-		logger.info("restarting application");
+	@PreDestroy
+	public void onExit() {
+		logger.info("stopping application");
 
 		if (dataSource != null && !dataSource.isClosed()) {
 			dataSource.close();
 		}
-
-		if (app != null) {
-			System.exit(SpringApplication.exit(app));
-		} else {
-			System.exit(0);
-		}
 	}
+
+	// let the reboot be done via crontab
+//	@Scheduled(cron = "0 43 4 * * *")
+//	public void shutdown() {
+//		logger.info("restarting application");
+//
+//		if (dataSource != null && !dataSource.isClosed()) {
+//			dataSource.close();
+//		}
+//
+//		if (app != null) {
+//			System.exit(SpringApplication.exit(app));
+//		} else {
+//			System.exit(0);
+//		}
+//	}
 
 //	@Scheduled(cron = "0 53 4 * * *")
 	public void sendHello() {
