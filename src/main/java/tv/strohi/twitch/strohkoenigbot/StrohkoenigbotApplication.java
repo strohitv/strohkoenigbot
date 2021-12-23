@@ -49,25 +49,26 @@ public class StrohkoenigbotApplication {
 		logger.info("stopping application");
 
 		if (dataSource != null && !dataSource.isClosed()) {
+			logger.info("closing datasource");
 			dataSource.close();
 		}
 	}
 
 	// let the reboot be done via crontab
 //	@Scheduled(cron = "0 43 4 * * *")
-//	public void shutdown() {
-//		logger.info("restarting application");
-//
-//		if (dataSource != null && !dataSource.isClosed()) {
-//			dataSource.close();
-//		}
-//
-//		if (app != null) {
-//			System.exit(SpringApplication.exit(app));
-//		} else {
-//			System.exit(0);
-//		}
-//	}
+	public void shutdown() {
+		logger.info("restarting application");
+
+		if (dataSource != null && !dataSource.isClosed()) {
+			dataSource.close();
+		}
+
+		if (app != null) {
+			System.exit(SpringApplication.exit(app));
+		} else {
+			System.exit(0);
+		}
+	}
 
 //	@Scheduled(cron = "0 53 4 * * *")
 	public void sendHello() {
