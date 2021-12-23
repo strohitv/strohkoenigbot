@@ -9,12 +9,12 @@ cd "${SCRIPTPATH}" || (echo "cd to SCRIPTPATH failed. SCRIPTPATH: '${SCRIPTPATH}
 
 while true
 do
-  sleep 1m
-
   # git operations
   git fetch
   git pull
 
   # maven rebuild and restart application
   mvn -U clean package spring-boot:run
+
+  sleep 1m
 done
