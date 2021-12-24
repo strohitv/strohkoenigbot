@@ -5,7 +5,7 @@
 	<meta charset="UTF-8">
 
 	<!-- TODO ONLY FOR TESTING PURPOSES - RESET TO 5 SECONDS AFTER USE -->
-	<meta http-equiv="refresh" content="600">
+<!--	<meta http-equiv="refresh" content="600">-->
 
 	<title>Splatoon 2 statistics</title>
 
@@ -42,87 +42,92 @@
 			background-color: darkblue;
 		}
 
-		.circle {
+		.vertical-space-small {
+			height: 0.75vh;
+		}
+
+		.horizontal-space-big {
+			width: 3vh;
+		}
+
+		.horizontal-space-small {
+			width: 0.75vh;
+		}
+
+		.flex-row {
+			margin-top: 0.3vh;
+
+			display: flex;
+			flex-direction: row;
+
+			align-items: center;
+		}
+
+		.flex-column {
+			display: flex;
+			flex-direction: column;
+
+			align-items: center;
+		}
+
+		.rounded-corners-transparent {
+			background-color: rgba(68, 68, 68, 0.65);
+			border-radius: 1.8vh;
+
+			padding: 0.3vh;
+		}
+
+		.rounded-corners-bright {
+			background-color: #BBB;
+			border-radius: 1.2vh;
+			padding: 0.3vh;
+		}
+
+		.rounded-corners-black {
+			background-color: black;
+			border-radius: 1.2vh;
+
+			padding: 0.3vh;
+		}
+
+		.rounded-corners-border {
+			border-radius: 1.2vh;
+			border: black 0.3vh solid;
+
+			padding: 0.3vh;
+		}
+
+		.image-max {
+			height: 12.6vh;
+			width: 12.6vh;
+		}
+
+		.image-big {
+			height: 7.5vh;
+			width: 7.5vh;
+		}
+
+		.image-medium {
+			height: 5.25vh;
+			width: 5.25vh;
+		}
+
+		.image-small {
+			height: 3.75vh;
+			width: 3.75vh;
+		}
+
+		.black-circle {
 			background-color: black;
 			border-radius: 50%;
 		}
 
-		.bright-circle {
-			background-color: #BBB;
-			border-radius: 20px;
-		}
-
-		.rounded-corners {
-			background-color: rgba(68, 68, 68, 0.65);
-			border-radius: 40px;
-			width: max-content;
-			float: right;
-
-			/*	TODO ONLY FOR TESTING PURPOSES - RESET AFTER USE */
-			margin-top: 82vh;
-			margin-right: 1vw;
-		}
-
-		.rounded-corners-weapon {
-			background-color: black;
-			border-radius: 20%;
-			margin-top: auto;
-			margin-bottom: auto;
-			margin-left: 20px;
-			align-self: center;
-			width: 80px;
-			height: 80px;
-		}
-
-		.rounded-corners-weapon-image {
-			width: 74px;
-			margin: 3px;
-		}
-
-		.rounded-corners-gear {
-			background-color: #BBB;
-			border-radius: 20px;
-		}
-
-		.side-padding {
-			padding-left: 25px;
-			padding-right: 25px;
-		}
-
-		.main-ability {
-			align-self: center;
-			width: 100px;
-			margin: 5px;
-		}
-
-		.sub-ability {
-			align-self: center;
-			width: 70px;
-			margin: 5px;
-		}
-
-		.wins {
+		.green {
 			color: #8f8;
-			-webkit-text-stroke: 1px black;
-			font-size: 50px;
-			font-weight: bolder;
 		}
 
-		.defeats {
+		.red {
 			color: #f88;
-			-webkit-text-stroke: 1px black;
-			font-size: 50px;
-			font-weight: bolder;
-		}
-
-		.ink-stats {
-			-webkit-text-stroke: 1px black;
-			font-size: 50px;
-			font-weight: bolder;
-		}
-
-		.main-weapon {
-			max-height: 180px;
 		}
 
 		.hidden {
@@ -140,100 +145,109 @@
 
 <div class="bottom-panel">
 	<div style="display: table; height: 100%;">
-		<div style="display: table-row; height: 100%;">
+		<div class="flex-row">
+			<div class="horizontal-space-small"></div>
+
 			<!-- wins, defeats -->
-			<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
-				<p class="wins">
-					3 victories
+			<div class="flex-column">
+				<p class="green">
+					25 victories
 				</p>
-				<p class="defeats">
-					1 defeats
+				<p class="red">
+					25 defeats
 				</p>
 			</div>
+
+			<div class="horizontal-space-big"></div>
 
 			<!-- weapon-->
-			<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
-				<div style="display: flex;">
-					<div style="display: flex; align-content: center;">
-						<img class="bright-circle main-weapon" style="margin: 0 auto;"
-							 src="https://app.splatoon2.nintendo.net/images/weapon/b58fcf2a82a3ad75f7a068a86b7316e2a70a497c.png"/>
-					</div>
-					<div style="display: flex; flex-flow: column; align-content: center;">
-						<div class="rounded-corners-weapon">
-							<img class="rounded-corners-weapon-image"
-								 src="https://app.splatoon2.nintendo.net/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png"/>
-						</div>
-						<div class="rounded-corners-weapon">
-							<img class="rounded-corners-weapon-image"
-								 src="https://app.splatoon2.nintendo.net/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png"/>
-						</div>
-					</div>
+			<div class="flex-row">
+				<img class="image-max rounded-corners-bright" src="https://app.splatoon2.nintendo.net/images/weapon/82f77775662c32ca0de28610520144b0044db006.png" />
+				<div class="horizontal-space-small"></div>
+				<div class="flex-column">
+					<img class="image-medium rounded-corners-black" src="https://app.splatoon2.nintendo.net/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png" />
+					<div class="vertical-space-small"></div>
+					<img class="image-medium rounded-corners-black" src="https://app.splatoon2.nintendo.net/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png" />
 				</div>
 			</div>
+
+			<div class="horizontal-space-big"></div>
 
 			<!-- inked turf -->
-			<div class="side-padding" style="display: table-cell; height: 100%; vertical-align: middle;">
-				<p class="ink-stats">
-					{main-weapon-points}p
+			<div class="flex-column">
+				<p>
+					18 380p
 				</p>
-				<p class="ink-stats">
-					(+ {main-weapon-points-gain}p)
+				<p>
+					(+ 3 541)
 				</p>
 			</div>
 
+			<div class="horizontal-space-big"></div>
+
 			<!-- gear section-->
-			<div style="display: table-cell; height: 100%; vertical-align: middle;">
-				<div style="display: flex; flex-direction: column;">
-					<p style="font-size: 40px;">
-						last match gear (refreshes <span
-							style="text-decoration: underline; font-weight: bolder">AFTER</span> each match)
-					</p>
-					<div style="display: flex; flex-direction: row; padding-bottom: 10px;">
-						<div class="side-padding" style="width: 33%;">
-							<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
-								<img class="bright-circle main-ability"
-									 src="https://app.splatoon2.nintendo.net/images/head/3ad46fe53213d941b85fa85f5da3fba4f00e357f.png"/>
-								<img class="circle main-ability"
-									 src="https://app.splatoon2.nintendo.net/images/skill/33087a476135074af856151a89a6fe4d1d3a996e.png"/>
-								<img class="circle sub-ability"
-									 src="https://app.splatoon2.nintendo.net/images/skill/7de1bdfd875ef470b6066c17bed726b5b5113d48.png"/>
-								<img class="circle sub-ability "
-									 src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png"/>
-								<img class="circle sub-ability "
-									 src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png"/>
+			<div class="flex-column">
+				<div>
+					<div class="flex-row">
+						<div class="flex-column rounded-corners-bright">
+							<img class="image-big" src="https://app.splatoon2.nintendo.net/images/head/505a2f74b2915a6dbf97bd70794ffdb5d764d6ff.png" />
+							<div class="flex-row">
+								<img class="image-medium black-circle" src="https://app.splatoon2.nintendo.net/images/skill/bdc5135874439cf3169d9a54b3f1fbdba3731b34.png" />
+
+								<div class="horizontal-space-small"></div>
+
+								<div class="flex-row rounded-corners-border">
+									<img class="image-small black-circle" src="https://app.splatoon2.nintendo.net/images/skill/1378f3963526d7216ec44da35b924b81a8ff6a37.png" />
+									<div class="horizontal-space-small "></div>
+									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/39f3e937b709d378c178ef2bf00d9a7295b8159d.png" />
+									<div class="horizontal-space-small "></div>
+									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />
+								</div>
 							</div>
 						</div>
-						<div class="side-padding" style="width: 33%;">
-							<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
-								<img class="bright-circle main-ability"
-									 src="https://app.splatoon2.nintendo.net/images/clothes/fa5264eef79b25d2ac942ac128096a27e7579d6b.png"/>
-								<img class="circle main-ability"
-									 src="https://app.splatoon2.nintendo.net/images/skill/da8ff08954fd5d890fc8bc4dd4cb761e2a33b703.png"/>
-								<img class="circle sub-ability"
-									 src="https://app.splatoon2.nintendo.net/images/skill/39f3e937b709d378c178ef2bf00d9a7295b8159d.png"/>
-								<img class="circle sub-ability "
-									 src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png"/>
-								<img class="circle sub-ability "
-									 src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png"/>
+
+						<div class="horizontal-space-small"></div>
+
+						<div class="flex-column rounded-corners-bright">
+							<img class="image-big" src="https://app.splatoon2.nintendo.net/images/clothes/cc85410d277785e672f350269b95657d76f9c5a2.png" />
+							<div class="flex-row">
+								<img class="image-medium black-circle" src="https://app.splatoon2.nintendo.net/images/skill/04b1de71fba1f14197b9163503955c52fd74858b.png" />
+
+								<div class="horizontal-space-small"></div>
+
+								<div class="flex-row rounded-corners-border">
+									<img class="image-small black-circle" src="https://app.splatoon2.nintendo.net/images/skill/34e114a50a001778a574f7061039d43e632137b7.png" />
+									<div class="horizontal-space-small "></div>
+									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/04b1de71fba1f14197b9163503955c52fd74858b.png" />
+									<div class="horizontal-space-small "></div>
+									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />
+								</div>
 							</div>
 						</div>
-						<div class="side-padding" style="width: 33%;">
-							<div class="rounded-corners-gear" style="display: flex; flex-direction: row;">
-								<img class="bright-circle main-ability"
-									 src="https://app.splatoon2.nintendo.net/images/shoes/d19985d6cdcd1593d414acfc07464f7de9c06352.png"/>
-								<img class="circle main-ability"
-									 src="https://app.splatoon2.nintendo.net/images/skill/c14f4471b26e0f918c736b5c17e03212290f4541.png"/>
-								<img class="circle sub-ability"
-									 src="https://app.splatoon2.nintendo.net/images/skill/da8ff08954fd5d890fc8bc4dd4cb761e2a33b703.png"/>
-								<img class="circle sub-ability "
-									 src="https://app.splatoon2.nintendo.net/images/skill/33087a476135074af856151a89a6fe4d1d3a996e.png"/>
-								<img class="circle sub-ability "
-									 src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png"/>
+
+						<div class="horizontal-space-small"></div>
+
+						<div class="flex-column rounded-corners-bright">
+							<img class="image-big" src="https://app.splatoon2.nintendo.net/images/shoes/7068179926414639f790977779ac9aa34ca8a970.png" />
+							<div class="flex-row">
+								<img class="image-medium black-circle" src="https://app.splatoon2.nintendo.net/images/skill/47a74cd575b25a9de3e3592084ff3870db0cf4e0.png" />
+
+								<div class="horizontal-space-small"></div>
+
+								<div class="flex-row rounded-corners-border">
+									<img class="image-small black-circle" src="https://app.splatoon2.nintendo.net/images/skill/f20a3e85feeb6b4bb021d28059afd6265cee0b43.png" />
+									<div class="horizontal-space-small "></div>
+									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/39f3e937b709d378c178ef2bf00d9a7295b8159d.png" />
+									<div class="horizontal-space-small "></div>
+									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
+
+			<div class="horizontal-space-small"></div>
 		</div>
 	</div>
 </div>
