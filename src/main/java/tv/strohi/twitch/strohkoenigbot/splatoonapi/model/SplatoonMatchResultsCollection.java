@@ -110,29 +110,6 @@ public class SplatoonMatchResultsCollection {
 				@Data
 				@NoArgsConstructor
 				@AllArgsConstructor
-				public static class SplatoonWeapon {
-					private String id;
-					private String name;
-					private String image;
-					private String thumbnail;
-
-					private SplatoonWeaponDetail sub;
-					private SplatoonWeaponDetail special;
-
-					@Data
-					@NoArgsConstructor
-					@AllArgsConstructor
-					public static class SplatoonWeaponDetail {
-						private String id;
-						private String name;
-						private String image_a;
-						private String image_b;
-					}
-				}
-
-				@Data
-				@NoArgsConstructor
-				@AllArgsConstructor
 				public static class SplatoonGearSkills {
 					private SplatoonGearSkill main;
 					private SplatoonGearSkill[] subs;
