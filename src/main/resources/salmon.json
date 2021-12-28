@@ -1,0 +1,118 @@
+{
+  "schedules": [
+    {
+      "start_time": 1640692800,
+      "end_time": 1640822400
+    },
+    {
+      "end_time": 1640973600,
+      "start_time": 1640844000
+    },
+    {
+      "end_time": 1641146400,
+      "start_time": 1640995200
+    },
+    {
+      "start_time": 1641168000,
+      "end_time": 1641297600
+    },
+    {
+      "end_time": 1641448800,
+      "start_time": 1641319200
+    }
+  ],
+  "details": [
+    {
+      "start_time": 1640692800,
+      "weapons": [
+        {
+          "id": "3030",
+          "weapon": {
+            "name": "Bloblobber",
+            "thumbnail": "/images/weapon/e8d17d8b73fc1eaa3e3672c54e8800163d909ede.png",
+            "image": "/images/weapon/2835f6d61a4296b4ac3876337884a0c453a4fa4f.png",
+            "id": "3030"
+          }
+        },
+        {
+          "id": "200",
+          "weapon": {
+            "name": "Luna Blaster",
+            "id": "200",
+            "image": "/images/weapon/3f840ce3cc5ac0b8cbf7451079b57e807d8b95f1.png",
+            "thumbnail": "/images/weapon/2764365e99414ebb3f8b62548beb4dd5f65b70b2.png"
+          }
+        },
+        {
+          "weapon": {
+            "name": "Splat Brella",
+            "id": "6000",
+            "image": "/images/weapon/f1fa6db2e21f32cd1c2cd093ec24f1a450d4650c.png",
+            "thumbnail": "/images/weapon/9a1adf1c38c1a017bad0be0cac13255ae0f8d25b.png"
+          },
+          "id": "6000"
+        },
+        {
+          "id": "2020",
+          "weapon": {
+            "name": "Splatterscope",
+            "id": "2020",
+            "thumbnail": "/images/weapon/928d52eca6c3f907f7c6f9132236cbf92e658466.png",
+            "image": "/images/weapon/0ec07bb00918f071975b35191e0860152bdcb321.png"
+          }
+        }
+      ],
+      "stage": {
+        "image": "/images/coop_stage/e07d73b7d9f0c64e552b34a2e6c29b8564c63388.png",
+        "name": "Marooner's Bay"
+      },
+      "end_time": 1640822400
+    },
+    {
+      "start_time": 1640844000,
+      "end_time": 1640973600,
+      "stage": {
+        "name": "Spawning Grounds",
+        "image": "/images/coop_stage/65c68c6f0641cc5654434b78a6f10b0ad32ccdee.png"
+      },
+      "weapons": [
+        {
+          "weapon": {
+            "name": ".52 Gal",
+            "thumbnail": "/images/weapon/3e69eaa1b1463689ddbe4fe23661f007dc216b08.png",
+            "image": "/images/weapon/df04ddaf086cea94491df553a6d2550230a4da3c.png",
+            "id": "50"
+          },
+          "id": "50"
+        },
+        {
+          "weapon": {
+            "image": "/images/weapon/b9901d49ef3229d3e62d58fc3e1edc8c48da6873.png",
+            "thumbnail": "/images/weapon/38fd7f743bd9db2e2dfb2b8cd81576028ee7ab89.png",
+            "id": "400",
+            "name": "Squeezer"
+          },
+          "id": "400"
+        },
+        {
+          "id": "3010",
+          "weapon": {
+            "id": "3010",
+            "image": "/images/weapon/ad921a57ab1b7721c50873c082bb34591b61021c.png",
+            "thumbnail": "/images/weapon/c1befd17d09a527b66f9d2c8a70849a4969642e4.png",
+            "name": "Tri-Slosher"
+          }
+        },
+        {
+          "weapon": {
+            "name": "Goo Tuber",
+            "id": "2060",
+            "thumbnail": "/images/weapon/6abb5804369429bf96bb32c14d899c4b9da3e431.png",
+            "image": "/images/weapon/26d523e6eee3d57dc6c5f531dfc1747ffd46b8b8.png"
+          },
+          "id": "2060"
+        }
+      ]
+    }
+  ]
+}
