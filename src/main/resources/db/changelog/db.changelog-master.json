@@ -418,6 +418,232 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "4",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_weapon",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatoon_api_id",
+                    "type": "varchar(10)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image",
+                    "type": "varchar(80)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "sub_splatoon_api_id",
+                    "type": "varchar(10)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "sub_name",
+                    "type": "varchar(20)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "sub_image",
+                    "type": "varchar(80)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "special_splatoon_api_id",
+                    "type": "varchar(10)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "special_name",
+                    "type": "varchar(40)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "special_image",
+                    "type": "varchar(80)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "turf",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "wins",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createTable": {
+              "tableName": "splatoon_monthly_result",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "period_year",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "period_month",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "zones_current",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "zones_peak",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "zones_weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_zones_monthly_weapon_id",
+                      "references": "splatoon_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_current",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_peak",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_rainmaker_monthly_weapon_id",
+                      "references": "splatoon_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_current",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_peak",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_tower_monthly_weapon_id",
+                      "references": "splatoon_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_current",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_peak",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_clams_monthly_weapon_id",
+                      "references": "splatoon_weapon(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }
