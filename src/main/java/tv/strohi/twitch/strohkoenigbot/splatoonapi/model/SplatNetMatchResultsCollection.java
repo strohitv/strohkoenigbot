@@ -110,29 +110,6 @@ public class SplatNetMatchResultsCollection {
 				@Data
 				@NoArgsConstructor
 				@AllArgsConstructor
-				public static class SplatNetWeapon {
-					private String id;
-					private String name;
-					private String image;
-					private String thumbnail;
-
-					private SplatNetWeaponDetail sub;
-					private SplatNetWeaponDetail special;
-
-					@Data
-					@NoArgsConstructor
-					@AllArgsConstructor
-					public static class SplatNetWeaponDetail {
-						private String id;
-						private String name;
-						private String image_a;
-						private String image_b;
-					}
-				}
-
-				@Data
-				@NoArgsConstructor
-				@AllArgsConstructor
 				public static class SplatNetGearSkills {
 					private SplatNetGearSkill main;
 					private SplatNetGearSkill[] subs;

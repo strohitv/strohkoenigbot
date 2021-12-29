@@ -11,7 +11,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
@@ -128,6 +127,11 @@ public class JavaArgumentEvaluator {
 						configurationRepository.saveAll(Arrays.asList(config.getConfig()));
 					}
 
+					if (config.getSplatoon() != null) {
+						splatoonLoginRepository.deleteAll();
+						splatoonLoginRepository.saveAll(Arrays.asList(config.getSplatoon().clone()));
+					}
+
 					if (config.getTwitch() != null) {
 						twitchChatBot.stop();
 
@@ -135,11 +139,6 @@ public class JavaArgumentEvaluator {
 						twitchAuthRepository.saveAll(Arrays.asList(config.getTwitch()));
 
 						twitchChatBot.initializeClients();
-					}
-
-					if (config.getSplatoon() != null) {
-						splatoonLoginRepository.deleteAll();
-						splatoonLoginRepository.saveAll(Arrays.asList(config.getSplatoon().clone()));
 					}
 				} catch (IOException e) {
 					logger.error(e);
@@ -174,10 +173,7 @@ public class JavaArgumentEvaluator {
 		}
 
 		stop |= extractedParams.containsKey("stop");
-	}
 
-	@Scheduled(fixedRate = Integer.MAX_VALUE, initialDelay = 5000)
-	private void stopIfWanted() {
 		if (app != null && stop) {
 			app.shutdown();
 		}

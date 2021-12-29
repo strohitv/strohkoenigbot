@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
+import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 
@@ -64,8 +65,19 @@ public class TwitchChatBot {
 			mainAccountClient = new TwitchBotClient(resultsExporter, botActions, "strohkoenig");
 		}
 
-		twitchAuthRepository.findByIsMain(false).stream().findFirst().ifPresent(auth -> botClient.initializeClient(auth));
-		twitchAuthRepository.findByIsMain(true).stream().findFirst().ifPresent(auth -> mainAccountClient.initializeClient(auth));
+		List<TwitchAuth> auths = twitchAuthRepository.findAll();
+
+		TwitchAuth botAuth = auths.stream().filter(a -> !a.getIsMain()).findFirst().orElse(null);
+		if (botAuth != null) {
+			logger.info("found bot client auth, initializing bot client");
+			botClient.initializeClient(botAuth);
+		}
+
+		TwitchAuth mainAuth = auths.stream().filter(TwitchAuth::getIsMain).findFirst().orElse(null);
+		if (mainAuth != null) {
+			logger.info("found main client auth, initializing main client");
+			mainAccountClient.initializeClient(mainAuth);
+		}
 	}
 
 	@PreDestroy

@@ -168,8 +168,8 @@ public class DiscordBot {
 		return result;
 	}
 
-	public boolean sendPrivateMessageWithImage(long userId, String message, String gearUrl, String mainAbilityUrl, String favoredAbilityUrl) {
-		if (getGateway() == null) {
+	public boolean sendPrivateMessageWithImage(Long userId, String message, String gearUrl, String mainAbilityUrl, String favoredAbilityUrl) {
+		if (userId == null || getGateway() == null) {
 			return false;
 		}
 
@@ -216,8 +216,8 @@ public class DiscordBot {
 		return result;
 	}
 
-	public boolean sendPrivateMessage(long userId, String message) {
-		if (getGateway() == null) {
+	public boolean sendPrivateMessage(Long userId, String message) {
+		if (userId == null || getGateway() == null) {
 			return false;
 		}
 
