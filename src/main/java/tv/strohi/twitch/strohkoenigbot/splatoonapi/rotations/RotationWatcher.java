@@ -144,7 +144,7 @@ public class RotationWatcher {
 
 			if (storeRotationIntoDatabase) {
 				SplatoonRotation newRotation = new SplatoonRotation();
-				newRotation.setSplatoonApiId(rotation.getStart_time());
+				newRotation.setSplatoonApiId(rotation.getId());
 
 				newRotation.setStartTime(rotation.getStart_time());
 				newRotation.setEndTime(rotation.getEnd_time());
