@@ -19,8 +19,8 @@ public class SplatNetStages {
 	@AllArgsConstructor
 	public static class SplatNetRotation {
 		private long id;
-		private int start_time;
-		private int end_time;
+		private long start_time;
+		private long end_time;
 
 		private SplatNetMatchRule rule;
 		private SplatNetStage stage_a;

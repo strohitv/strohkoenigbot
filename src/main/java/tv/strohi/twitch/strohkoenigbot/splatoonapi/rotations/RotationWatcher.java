@@ -7,6 +7,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonRotation;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonStage;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonRotationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonStageRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStage;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
@@ -21,6 +28,20 @@ public class RotationWatcher {
 	private SplatNetStages stages = null;
 
 	private RequestSender stagesLoader;
+
+	private SplatoonStageRepository stageRepository;
+
+	@Autowired
+	public void setStageRepository(SplatoonStageRepository stageRepository) {
+		this.stageRepository = stageRepository;
+	}
+
+	private SplatoonRotationRepository rotationRepository;
+
+	@Autowired
+	public void setRotationRepository(SplatoonRotationRepository rotationRepository) {
+		this.rotationRepository = rotationRepository;
+	}
 
 	@Autowired
 	public void setStagesLoader(RequestSender stagesLoader) {
@@ -40,11 +61,6 @@ public class RotationWatcher {
 	public void setDiscordBot(DiscordBot discordBot) {
 		this.discordBot = discordBot;
 	}
-
-	// TODO wie mache ich das mit der Benachrichtigung?
-	// Überlegung:
-	// - Discord: CHECK Ranked-, Turf- und League-Channel. Posten des kompletten Schedules zur vollen Zeit
-	// - Twitch: Erinnerung 10 Minuten vorher
 
 	@Scheduled(cron = "20 0 * * * *")
 //	@Scheduled(cron = "20 * * * * *")
@@ -113,9 +129,72 @@ public class RotationWatcher {
 			logger.info("checking for new stages");
 			stages = stagesLoader.querySplatoonApi("/api/schedules", SplatNetStages.class);
 
+			saveStagesInDatabase(stages.getRegular());
+			saveStagesInDatabase(stages.getGachi());
+			saveStagesInDatabase(stages.getLeague());
+
 			logger.info("got an answer from api");
 			logger.info(stages);
 		}
+	}
+
+	private void saveStagesInDatabase(SplatNetStages.SplatNetRotation[] rotations) {
+		for (SplatNetStages.SplatNetRotation rotation : rotations) {
+			boolean storeRotationIntoDatabase = rotationRepository.findBySplatoonApiId(rotation.getId()) == null;
+
+			if (storeRotationIntoDatabase) {
+				SplatoonRotation newRotation = new SplatoonRotation();
+				newRotation.setSplatoonApiId(rotation.getStart_time());
+
+				newRotation.setStartTime(rotation.getStart_time());
+				newRotation.setEndTime(rotation.getEnd_time());
+
+				newRotation.setMode(SplatoonMode.getModeByName(rotation.getGame_mode().getKey()));
+				newRotation.setRule(SplatoonRule.getRuleByName(rotation.getRule().getKey()));
+
+				SplatoonStage stageA = ensureStageIsInDatabase(rotation.getStage_a());
+				newRotation.setStageAId(stageA.getId());
+
+				SplatoonStage stageB = ensureStageIsInDatabase(rotation.getStage_b());
+				newRotation.setStageBId(stageB.getId());
+
+				rotationRepository.save(newRotation);
+
+				discordBot.sendServerMessageWithImages("debug-logs",
+						String.format("New **%s** **%s** rotation with id **%d** on **%s** (id %d) and **%s** (id %d) from **%s** to **%s** was stored into Database!",
+								newRotation.getMode(),
+								newRotation.getRule(),
+								newRotation.getId(),
+								stageA.getName(),
+								stageA.getId(),
+								stageB.getName(),
+								stageB.getId(),
+								newRotation.getStartTimeAsInstant(),
+								newRotation.getEndTimeAsInstant()));
+			}
+		}
+	}
+
+	private SplatoonStage ensureStageIsInDatabase(SplatNetStage splatNetStage) {
+		SplatoonStage stage = stageRepository.findBySplatoonApiId(splatNetStage.getId());
+
+		if (stage == null) {
+			stage = new SplatoonStage();
+
+			stage.setSplatoonApiId(splatNetStage.getId());
+			stage.setName(splatNetStage.getName());
+			stage.setImage(splatNetStage.getImage());
+
+			stage = stageRepository.save(stage);
+
+			discordBot.sendServerMessageWithImages("debug-logs",
+					String.format("New Stage with id **%d** and Name **%s** was stored into Database!",
+							stage.getId(),
+							stage.getName()),
+					String.format("https://app.splatoon2.nintendo.net%s", stage.getImage()));
+		}
+
+		return stage;
 	}
 
 	private String formatDiscordMessage(SplatNetStages.SplatNetRotation[] rotations) {
