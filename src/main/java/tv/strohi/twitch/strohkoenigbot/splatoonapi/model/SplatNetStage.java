@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonStage {
+public class SplatNetStage {
 	private String id;
 	private String name;
 	private String image;

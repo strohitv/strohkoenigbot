@@ -12,7 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMerchandises;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMerchandises;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
 import java.time.Duration;
@@ -68,7 +68,7 @@ public class SplatNetStoreWatcher {
 //	@Scheduled(cron = "10 * * * * *")
 	public void refreshSplatNetShop() {
 		logger.info("checking for new splatnet store offers");
-		SplatoonMerchandises gearOffers = shopLoader.querySplatoonApi("/api/onlineshop/merchandises", SplatoonMerchandises.class);
+		SplatNetMerchandises gearOffers = shopLoader.querySplatoonApi("/api/onlineshop/merchandises", SplatNetMerchandises.class);
 
 		logger.info("found {} offers", gearOffers != null ? gearOffers.getMerchandises().length : 0);
 		logger.info(gearOffers);
@@ -78,7 +78,7 @@ public class SplatNetStoreWatcher {
 
 		if (gearOffers != null && gearOffers.getMerchandises() != null) {
 			if (gearOffers.getMerchandises().length >= 1 && gearOffers.getMerchandises()[0].getEndTime().isBefore(Instant.now().plus(1, ChronoUnit.HOURS))) {
-				SplatoonMerchandises.SplatoonMerchandise gear = gearOffers.getMerchandises()[0];
+				SplatNetMerchandises.SplatNetMerchandise gear = gearOffers.getMerchandises()[0];
 
 				logger.info("Sending last hour notification for gear:");
 				logger.info(gear);
@@ -107,7 +107,7 @@ public class SplatNetStoreWatcher {
 			}
 
 			if (gearOffers.getMerchandises().length > 1 && gearOffers.getMerchandises()[gearOffers.getMerchandises().length - 1].getEndTime().isAfter(Instant.now().plus(11, ChronoUnit.HOURS))) {
-				SplatoonMerchandises.SplatoonMerchandise gear = gearOffers.getMerchandises()[gearOffers.getMerchandises().length - 1];
+				SplatNetMerchandises.SplatNetMerchandise gear = gearOffers.getMerchandises()[gearOffers.getMerchandises().length - 1];
 
 				logger.info("Sending new in store notification for gear:");
 				logger.info(gear);
@@ -139,7 +139,7 @@ public class SplatNetStoreWatcher {
 		}
 	}
 
-	private void sendDiscordNotification(SplatoonMerchandises.SplatoonMerchandise gear, String discordMessage) {
+	private void sendDiscordNotification(SplatNetMerchandises.SplatNetMerchandise gear, String discordMessage) {
 		logger.info("Sending out discord notifications to server channel");
 		discordBot.sendServerMessageWithImages("splatnet-gear",
 				discordMessage,
@@ -170,7 +170,7 @@ public class SplatNetStoreWatcher {
 		logger.info("Finished sending out discord notifications to users");
 	}
 
-	private List<AbilityNotification> findNotifications(SplatoonMerchandises.SplatoonMerchandise gear) {
+	private List<AbilityNotification> findNotifications(SplatNetMerchandises.SplatNetMerchandise gear) {
 		return abilityNotificationRepository.findAll().stream()
 				.filter(an ->
 						(an.getGear() == GearType.Any || an.getGear() == Arrays.stream(GearType.values()).filter(gt -> gt.getName().equals(gear.getGear().getKind())).findFirst().orElse(GearType.Any))

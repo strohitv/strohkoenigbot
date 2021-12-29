@@ -22,7 +22,7 @@ public class Statistics {
 			"</body>\n" +
 			"</html>";
 
-	private final List<SplatoonMatchResultsCollection.SplatoonMatchResult> includedMatches = new ArrayList<>();
+	private final List<SplatNetMatchResultsCollection.SplatNetMatchResult> includedMatches = new ArrayList<>();
 	private final Map<String, Integer> weaponPaints = new HashMap<>();
 	private final String imageHost = "https://app.splatoon2.nintendo.net";
 
@@ -67,8 +67,8 @@ public class Statistics {
 			long victoryCount = includedMatches.stream().filter(m -> m.getMy_team_result().getKey().equalsIgnoreCase("victory")).count();
 			long defeatCount = includedMatches.stream().filter(m -> m.getMy_team_result().getKey().equalsIgnoreCase("defeat")).count();
 
-			SplatoonMatchResultsCollection.SplatoonMatchResult lastMatch = includedMatches.get(includedMatches.size() - 1);
-			SplatoonMatchResultsCollection.SplatoonMatchResult.SplatoonPlayerResult.SplatoonPlayer player = lastMatch.getPlayer_result().getPlayer();
+			SplatNetMatchResultsCollection.SplatNetMatchResult lastMatch = includedMatches.get(includedMatches.size() - 1);
+			SplatNetMatchResultsCollection.SplatNetMatchResult.SplatNetPlayerResult.SplatNetPlayer player = lastMatch.getPlayer_result().getPlayer();
 
 			String mainWeaponPoints = String.format("%,d", lastMatch.getWeapon_paint_point())
 					.replace(DecimalFormatSymbols.getInstance().getGroupingSeparator(), ' ');
@@ -181,12 +181,12 @@ public class Statistics {
 		}
 	}
 
-	public void addMatches(List<SplatoonMatchResultsCollection.SplatoonMatchResult> matches) {
+	public void addMatches(List<SplatNetMatchResultsCollection.SplatNetMatchResult> matches) {
 		if (matches.size() > 0) {
 			dirty = true;
 			includedMatches.addAll(matches);
 
-			for (SplatoonMatchResultsCollection.SplatoonMatchResult result : matches) {
+			for (SplatNetMatchResultsCollection.SplatNetMatchResult result : matches) {
 				String weaponId = result.getPlayer_result().getPlayer().getWeapon().getId();
 
 				int newPaint = weaponPaints.getOrDefault(weaponId, 0);

@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.PlayerLeaderboardPeaksLoader;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonMatchResultsCollection;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonPlayerPeaks;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResultsCollection;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetPlayerPeaks;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.Statistics;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
@@ -58,7 +58,7 @@ public class ResultsExporter {
 	}
 
 	private boolean peaksLoaded = false;
-	private SplatoonPlayerPeaks peaks;
+	private SplatNetPlayerPeaks peaks;
 
 	public String getHtml() {
 		return statistics.getCurrentHtml();
@@ -74,13 +74,13 @@ public class ResultsExporter {
 		if (running && !alreadyRunning) {
 			alreadyRunning = true;
 
-			SplatoonMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApi("/api/results", SplatoonMatchResultsCollection.class);
+			SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApi("/api/results", SplatNetMatchResultsCollection.class);
 
 			if (lastAnalysedMatchStart == null) {
 				lastAnalysedMatchStart = Instant.now();
 			}
 
-			List<SplatoonMatchResultsCollection.SplatoonMatchResult> results = new ArrayList<>();
+			List<SplatNetMatchResultsCollection.SplatNetMatchResult> results = new ArrayList<>();
 			for (int i = collection.getResults().length - 1; i >= 0; i--) {
 				results.add(collection.getResults()[i]);
 			}

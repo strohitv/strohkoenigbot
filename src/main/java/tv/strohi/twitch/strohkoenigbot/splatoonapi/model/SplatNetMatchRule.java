@@ -1,6 +1,5 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.model;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonGearSkill {
+public class SplatNetMatchRule {
 	private String name;
-	private String image;
-	private String id;
+	private String key;
+	private String multiline_name;
 }

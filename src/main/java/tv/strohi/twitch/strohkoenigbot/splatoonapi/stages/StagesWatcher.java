@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonStages;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
 import java.time.Instant;
@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class StagesWatcher {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private SplatoonStages stages = null;
+	private SplatNetStages stages = null;
 
 	private RequestSender stagesLoader;
 
@@ -53,7 +53,7 @@ public class StagesWatcher {
 
 		if (force || stages == null || Arrays.stream(stages.getGachi()).anyMatch(s -> s.getEndTimeAsInstant().isBefore(Instant.now()))) {
 			logger.info("checking for new stages");
-			stages = stagesLoader.querySplatoonApi("/api/schedules", SplatoonStages.class);
+			stages = stagesLoader.querySplatoonApi("/api/schedules", SplatNetStages.class);
 
 			logger.info("got an answer from api");
 			logger.info(stages);
@@ -77,7 +77,7 @@ public class StagesWatcher {
 		}
 	}
 
-	private String formatDiscordMessage(SplatoonStages.SplatoonRotation[] rotations) {
+	private String formatDiscordMessage(SplatNetStages.SplatNetRotation[] rotations) {
 		boolean isTurf = rotations[0].getRule().getKey().equals("turf_war");
 
 		StringBuilder builder = new StringBuilder();

@@ -3,8 +3,8 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonPlayerPeaks;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonXRankLeaderBoard;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetPlayerPeaks;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetXRankLeaderBoard;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -39,14 +39,14 @@ public class PlayerLeaderboardPeaksLoader {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	public SplatoonPlayerPeaks getPlayerPeaks() {
-		SplatoonPlayerPeaks peaks = new SplatoonPlayerPeaks();
+	public SplatNetPlayerPeaks getPlayerPeaks() {
+		SplatNetPlayerPeaks peaks = new SplatNetPlayerPeaks();
 
 		int year = 2018;
 		int month = 5;
 
 		while (Instant.now().isAfter(Instant.parse(String.format("%04d-%02d-01T01:00:00.00Z", year, month)))) {
-			SplatoonXRankLeaderBoard leaderBoard = getLeaderBoard(year, month);
+			SplatNetXRankLeaderBoard leaderBoard = getLeaderBoard(year, month);
 
 			if (leaderBoard.getRainmaker().getMy_ranking() != null && leaderBoard.getRainmaker().getMy_ranking().getX_power() > peaks.getRainmakerPeak()) {
 				peaks.setRainmakerPeak(leaderBoard.getRainmaker().getMy_ranking().getX_power());
@@ -83,7 +83,7 @@ public class PlayerLeaderboardPeaksLoader {
 		return peaks;
 	}
 
-	private SplatoonXRankLeaderBoard getLeaderBoard(int year, int month) {
+	private SplatNetXRankLeaderBoard getLeaderBoard(int year, int month) {
 		int endYear = month < 12 ? year : year + 1;
 		int endMonth = (month % 12) + 1;
 
@@ -111,7 +111,7 @@ public class PlayerLeaderboardPeaksLoader {
 				.setHeader("Accept-Language", "en-US")
 				.build();
 
-		return sendRequestAndParseGzippedJson(request, SplatoonXRankLeaderBoard.class);
+		return sendRequestAndParseGzippedJson(request, SplatNetXRankLeaderBoard.class);
 	}
 
 	private <T> T sendRequestAndParseGzippedJson(HttpRequest request, Class<T> valueType) {

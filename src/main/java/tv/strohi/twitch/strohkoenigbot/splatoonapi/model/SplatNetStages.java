@@ -9,22 +9,22 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonStages {
-	private SplatoonRotation[] league;
-	private SplatoonRotation[] gachi;
-	private SplatoonRotation[] regular;
+public class SplatNetStages {
+	private SplatNetRotation[] league;
+	private SplatNetRotation[] gachi;
+	private SplatNetRotation[] regular;
 
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class SplatoonRotation {
+	public static class SplatNetRotation {
 		private long id;
 		private int start_time;
 		private int end_time;
 
-		private SplatoonMatchRule rule;
-		private SplatoonStage stage_a;
-		private SplatoonStage stage_b;
+		private SplatNetMatchRule rule;
+		private SplatNetStage stage_a;
+		private SplatNetStage stage_b;
 		private KeyNameTuple game_mode;
 
 		public Instant getStartTimeAsInstant() {
