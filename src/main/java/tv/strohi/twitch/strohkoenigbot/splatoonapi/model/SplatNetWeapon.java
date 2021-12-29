@@ -7,19 +7,19 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonWeapon {
+public class SplatNetWeapon {
 	private String id;
 	private String name;
 	private String image;
 	private String thumbnail;
 
-	private SplatoonWeaponDetail sub;
-	private SplatoonWeaponDetail special;
+	private SplatNetWeaponDetail sub;
+	private SplatNetWeaponDetail special;
 
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class SplatoonWeaponDetail {
+	public static class SplatNetWeaponDetail {
 		private String id;
 		private String name;
 		private String image_a;

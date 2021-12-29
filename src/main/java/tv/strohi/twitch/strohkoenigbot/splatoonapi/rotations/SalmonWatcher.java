@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatoonSalmonRunSchedules;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetSalmonRunSchedules;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
 import java.time.Duration;
@@ -19,7 +19,7 @@ import java.util.Arrays;
 public class SalmonWatcher {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private SplatoonSalmonRunSchedules schedules;
+	private SplatNetSalmonRunSchedules schedules;
 
 	private RequestSender rotationLoader;
 
@@ -46,7 +46,7 @@ public class SalmonWatcher {
 	public void sendDiscordNotifications() {
 		refreshRotations();
 
-		SplatoonSalmonRunSchedules.SplatoonScheduleDetail detail =
+		SplatNetSalmonRunSchedules.SplatNetScheduleDetail detail =
 				Arrays.stream(schedules.getDetails())
 						.filter(s -> Instant.now().minus(10, ChronoUnit.MINUTES).isBefore(s.getStartTimeAsInstant())
 								&& Instant.now().plus(5, ChronoUnit.MINUTES).isAfter(s.getStartTimeAsInstant()))
@@ -70,7 +70,7 @@ public class SalmonWatcher {
 	private void refreshRotations() {
 		if (schedules == null || Arrays.stream(schedules.getDetails()).anyMatch(s -> s.getEndTimeAsInstant().isBefore(Instant.now()))) {
 			logger.info("checking for new salmon run rotations");
-			schedules = rotationLoader.querySplatoonApi("/api/coop_schedules", SplatoonSalmonRunSchedules.class);
+			schedules = rotationLoader.querySplatoonApi("/api/coop_schedules", SplatNetSalmonRunSchedules.class);
 
 			logger.info("got an answer from api");
 			logger.info(schedules);
@@ -85,12 +85,12 @@ public class SalmonWatcher {
 		logger.info("Finished sending out discord notifications to server channel '{}'", channelName);
 	}
 
-	private String formatRotation(SplatoonSalmonRunSchedules.SplatoonScheduleDetail detail) {
+	private String formatRotation(SplatNetSalmonRunSchedules.SplatNetScheduleDetail detail) {
 		StringBuilder builder = new StringBuilder("**Current Salmon Run rotation**\n\n**Stage**:\n- ");
 		builder.append(detail.getStage().getName())
 				.append("\n\n**Weapons**:\n");
 
-		for (SplatoonSalmonRunSchedules.SplatoonScheduleDetail.WeaponDetail weapon : detail.getWeapons()) {
+		for (SplatNetSalmonRunSchedules.SplatNetScheduleDetail.WeaponDetail weapon : detail.getWeapons()) {
 			builder.append("- ").append(weapon.getWeapon().getName()).append("\n");
 		}
 
@@ -101,10 +101,10 @@ public class SalmonWatcher {
 		return builder.toString();
 	}
 
-	private String formatWeapons(SplatoonSalmonRunSchedules.SplatoonScheduleDetail detail) {
+	private String formatWeapons(SplatNetSalmonRunSchedules.SplatNetScheduleDetail detail) {
 		StringBuilder builder = new StringBuilder();
 
-		for (SplatoonSalmonRunSchedules.SplatoonScheduleDetail.WeaponDetail weapon : detail.getWeapons()) {
+		for (SplatNetSalmonRunSchedules.SplatNetScheduleDetail.WeaponDetail weapon : detail.getWeapons()) {
 			builder.append(weapon.getWeapon().getName()).append(", ");
 		}
 

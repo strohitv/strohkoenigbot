@@ -9,14 +9,14 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonSalmonRunSchedules {
-	private SplatoonSchedule[] schedules;
-	private SplatoonScheduleDetail[] details;
+public class SplatNetSalmonRunSchedules {
+	private SplatNetSchedule[] schedules;
+	private SplatNetScheduleDetail[] details;
 
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class SplatoonSchedule {
+	public static class SplatNetSchedule {
 		private Long start_time;
 		private Long end_time;
 
@@ -32,11 +32,11 @@ public class SplatoonSalmonRunSchedules {
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class SplatoonScheduleDetail {
+	public static class SplatNetScheduleDetail {
 		private Long start_time;
 		private Long end_time;
 
-		private SplatoonStage stage;
+		private SplatNetStage stage;
 
 		private WeaponDetail[] weapons;
 
@@ -54,7 +54,7 @@ public class SplatoonSalmonRunSchedules {
 		@AllArgsConstructor
 		public static class WeaponDetail {
 			private String id;
-			private SplatoonWeapon weapon;
+			private SplatNetWeapon weapon;
 		}
 	}
 }

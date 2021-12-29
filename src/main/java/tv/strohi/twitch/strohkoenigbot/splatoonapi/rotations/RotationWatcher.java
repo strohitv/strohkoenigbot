@@ -111,14 +111,14 @@ public class RotationWatcher {
 	private void refreshStages() {
 		if (stages == null || Arrays.stream(stages.getGachi()).anyMatch(s -> s.getEndTimeAsInstant().isBefore(Instant.now()))) {
 			logger.info("checking for new stages");
-			stages = stagesLoader.querySplatoonApi("/api/schedules", SplatoonStages.class);
+			stages = stagesLoader.querySplatoonApi("/api/schedules", SplatNetStages.class);
 
 			logger.info("got an answer from api");
 			logger.info(stages);
 		}
 	}
 
-	private String formatDiscordMessage(SplatoonStages.SplatoonRotation[] rotations) {
+	private String formatDiscordMessage(SplatNetStages.SplatNetRotation[] rotations) {
 		boolean isTurf = rotations[0].getRule().getKey().equals("turf_war");
 
 		StringBuilder builder = new StringBuilder();

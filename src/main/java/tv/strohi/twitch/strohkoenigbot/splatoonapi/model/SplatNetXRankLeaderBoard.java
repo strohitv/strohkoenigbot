@@ -41,7 +41,7 @@ public class SplatNetXRankLeaderBoard {
 			private String rank_change;
 			private Integer rank;
 
-			private SplatNetMatchResultsCollection.SplatNetMatchResult.SplatNetPlayerResult.SplatNetPlayer.SplatNetWeapon weapon;
+			private SplatNetWeapon weapon;
 		}
 	}
 }
