@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+
+	<!-- TODO ONLY FOR TESTING PURPOSES - RESET TO 5 SECONDS AFTER USE -->
+	<!--	<meta http-equiv="refresh" content="600">-->
+
+	<title>Splatoon 2 statistics</title>
+
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: Splatoon2, sans-serif;
+			font-size: x-large;
+			color: white;
+			text-align: center;
+			/*background-color: rgba(0, 0, 0, 0);*/
+
+			background-image: url("Lobby_Screen.png");
+		}
+
+		h3 {
+			margin: 0;
+			padding: 0;
+		}
+
+		p {
+			margin: 0;
+		}
+
+		.overlay {
+			width: 80vw;
+			min-height: 82vh;
+
+			margin: 9vh auto;
+
+			display: flex;
+			flex-direction: row;
+			align-content: center;
+		}
+
+		.rounded-corners-black-transparent {
+			background-color: rgba(68, 68, 68, 0.90);
+			border-radius: 5vh;
+		}
+
+		.inner-margin {
+			margin: 0 2vw;
+			width: 76vw;
+			min-height: 10vh;
+			/*background-color: #88ff88;*/
+
+			/*display: inline-flex;*/
+		}
+
+		table {
+			border-collapse: collapse;
+			border-style: hidden;
+		}
+
+		table td {
+			padding: 0.2vw 0.5vw;
+			border: 3px solid white;
+			min-width: 5vw;
+		}
+
+		.full-width {
+			width: 100%;
+		}
+
+		.half-width {
+			width: 50%;
+		}
+
+		.full-height {
+			height: 100%;
+		}
+
+		.auto-margin {
+			margin: auto;
+		}
+
+		.right-panel {
+			margin-left: 85vw;
+			width: 15vw;
+			height: 85vh;
+			background-color: darkblue;
+		}
+
+		.bottom-panel {
+			width: 100vw;
+			height: 15vh;
+			background-color: darkblue;
+		}
+
+		.vertical-space-small {
+			height: 0.75vh;
+		}
+
+		.horizontal-space-big {
+			width: 3vh;
+		}
+
+		.horizontal-space-small {
+			width: 0.75vh;
+		}
+
+		.flex-row {
+			margin-top: 0.3vh;
+
+			display: flex;
+			flex-direction: row;
+
+			align-items: center;
+		}
+
+		.flex-column {
+			display: flex;
+			flex-direction: column;
+
+			align-items: center;
+		}
+
+		.rounded-corners-transparent {
+			background-color: rgba(68, 68, 68, 0.65);
+			border-radius: 1.8vh;
+
+			padding: 0.3vh;
+		}
+
+		.rounded-corners-bright {
+			background-color: #BBB;
+			border-radius: 1.2vh;
+			padding: 0.3vh;
+		}
+
+		.rounded-corners-black {
+			background-color: black;
+			border-radius: 1.2vh;
+
+			padding: 0.3vh;
+		}
+
+		.rounded-corners-border {
+			border-radius: 1.2vh;
+			border: black 0.3vh solid;
+
+			padding: 0.3vh;
+		}
+
+		.stage-image-max {
+			height: 12.6vh;
+		}
+
+		.image-max {
+			height: 12.6vh;
+			width: 12.6vh;
+		}
+
+		.image-big {
+			height: 7.5vh;
+			width: 7.5vh;
+		}
+
+		.image-medium {
+			height: 5.25vh;
+			width: 5.25vh;
+		}
+
+		.image-small {
+			height: 3.75vh;
+			width: 3.75vh;
+		}
+
+		.black-circle {
+			background-color: black;
+			border-radius: 50%;
+		}
+
+		.green {
+			color: #8f8;
+		}
+
+		.red {
+			color: #f88;
+		}
+
+		.hidden {
+			display: none;
+			visibility: hidden;
+		}
+	</style>
+</head>
+
+<body>
+
+<div class="rounded-corners-black-transparent overlay">
+	<div class="inner-margin">
+		<div class="flex-column full-height">
+			<div class="flex-column auto-margin full-width">
+				<div class="flex-row full-width">
+					<div class="flex-column half-width">
+						<h3>Custom Range Blaster</h3>
+					</div>
+
+					<div class="flex-column half-width">
+						<h3>Gear</h3>
+					</div>
+				</div>
+
+				<div class="flex-row full-width full-width">
+					<div class="flex-column half-width">
+						<div class="flex-row">
+							<div class="horizontal-space-small"></div>
+
+							<!-- weapon-->
+							<div class="flex-row">
+								<img class="image-max rounded-corners-bright"
+									 src="https://app.splatoon2.nintendo.net/images/weapon/82f77775662c32ca0de28610520144b0044db006.png"/>
+								<div class="horizontal-space-small"></div>
+								<div class="flex-column">
+									<img class="image-medium rounded-corners-black"
+										 src="https://app.splatoon2.nintendo.net/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png"/>
+									<div class="vertical-space-small"></div>
+									<img class="image-medium rounded-corners-black"
+										 src="https://app.splatoon2.nintendo.net/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png"/>
+								</div>
+							</div>
+
+							<div class="horizontal-space-big"></div>
+
+							<table>
+								<tr>
+									<td>
+
+									</td>
+									<td>
+										turf
+									</td>
+									<td>
+										wins
+									</td>
+								</tr>
+								<tr>
+									<td>
+										stream
+									</td>
+									<td>
+										+ 6 543p
+									</td>
+									<td>
+										+ 10
+									</td>
+								</tr>
+								<tr>
+									<td>
+										total
+									</td>
+									<td>
+										100 000p
+									</td>
+									<td>
+										100
+									</td>
+								</tr>
+							</table>
+
+							<!--				<div class="horizontal-space-big"></div>-->
+
+							<!-- gear section-->
+							<div class="horizontal-space-small"></div>
+						</div>
+					</div>
+
+					<div class="flex-column half-width">
+						<div class="flex-row">
+							<div class="flex-column">
+								<div>
+									<div class="flex-row">
+										<div class="flex-column rounded-corners-bright">
+											<img class="image-big"
+												 src="https://app.splatoon2.nintendo.net/images/head/505a2f74b2915a6dbf97bd70794ffdb5d764d6ff.png"/>
+											<div class="flex-row">
+												<img class="image-medium black-circle"
+													 src="https://app.splatoon2.nintendo.net/images/skill/bdc5135874439cf3169d9a54b3f1fbdba3731b34.png"/>
+
+												<div class="horizontal-space-small"></div>
+
+												<div class="flex-row rounded-corners-border">
+													<img class="image-small black-circle"
+														 src="https://app.splatoon2.nintendo.net/images/skill/1378f3963526d7216ec44da35b924b81a8ff6a37.png"/>
+													<div class="horizontal-space-small "></div>
+													<img class="image-small black-circle "
+														 src="https://app.splatoon2.nintendo.net/images/skill/39f3e937b709d378c178ef2bf00d9a7295b8159d.png"/>
+													<div class="horizontal-space-small "></div>
+													<img class="image-small black-circle "
+														 src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png"/>
+												</div>
+											</div>
+										</div>
+
+										<div class="horizontal-space-small"></div>
+
+										<div class="flex-column rounded-corners-bright">
+											<img class="image-big"
+												 src="https://app.splatoon2.nintendo.net/images/clothes/cc85410d277785e672f350269b95657d76f9c5a2.png"/>
+											<div class="flex-row">
+												<img class="image-medium black-circle"
+													 src="https://app.splatoon2.nintendo.net/images/skill/04b1de71fba1f14197b9163503955c52fd74858b.png"/>
+
+												<div class="horizontal-space-small"></div>
+
+												<div class="flex-row rounded-corners-border">
+													<img class="image-small black-circle"
+														 src="https://app.splatoon2.nintendo.net/images/skill/34e114a50a001778a574f7061039d43e632137b7.png"/>
+													<div class="horizontal-space-small "></div>
+													<img class="image-small black-circle "
+														 src="https://app.splatoon2.nintendo.net/images/skill/04b1de71fba1f14197b9163503955c52fd74858b.png"/>
+													<div class="horizontal-space-small "></div>
+													<img class="image-small black-circle "
+														 src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png"/>
+												</div>
+											</div>
+										</div>
+
+										<div class="horizontal-space-small"></div>
+
+										<div class="flex-column rounded-corners-bright">
+											<img class="image-big"
+												 src="https://app.splatoon2.nintendo.net/images/shoes/7068179926414639f790977779ac9aa34ca8a970.png"/>
+											<div class="flex-row">
+												<img class="image-medium black-circle"
+													 src="https://app.splatoon2.nintendo.net/images/skill/47a74cd575b25a9de3e3592084ff3870db0cf4e0.png"/>
+
+												<div class="horizontal-space-small"></div>
+
+												<div class="flex-row rounded-corners-border">
+													<img class="image-small black-circle"
+														 src="https://app.splatoon2.nintendo.net/images/skill/f20a3e85feeb6b4bb021d28059afd6265cee0b43.png"/>
+													<div class="horizontal-space-small "></div>
+													<img class="image-small black-circle "
+														 src="https://app.splatoon2.nintendo.net/images/skill/39f3e937b709d378c178ef2bf00d9a7295b8159d.png"/>
+													<div class="horizontal-space-small "></div>
+													<img class="image-small black-circle "
+														 src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png"/>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+			<div class="flex-column auto-margin full-width">
+				<div class="flex-row full-width">
+					<div class="flex-column half-width">
+						<h3>X-Power</h3>
+					</div>
+
+					<div class="flex-column half-width">
+						<h3>General Stats</h3>
+					</div>
+				</div>
+
+				<div class="flex-row full-width full-width">
+					<div class="flex-column half-width">
+						<table>
+							<tr>
+								<td>
+
+								</td>
+								<td>
+									Zones
+								</td>
+								<td>
+									Rainmaker
+								</td>
+								<td>
+									Tower Control
+								</td>
+								<td>
+									Clam Blitz
+								</td>
+							</tr>
+							<tr>
+								<td>
+									current
+								</td>
+								<td>
+
+								</td>
+								<td>
+									2180.3
+								</td>
+								<td>
+									2010.0
+								</td>
+								<td>
+
+								</td>
+							</tr>
+							<tr>
+								<td>
+									peak
+								</td>
+								<td>
+									2202.0
+								</td>
+								<td>
+									2252.4
+								</td>
+								<td>
+									2195.9
+								</td>
+								<td>
+									2180.3
+								</td>
+							</tr>
+						</table>
+					</div>
+
+					<div class="flex-column half-width">
+						<table>
+							<tr>
+								<td>
+
+								</td>
+								<td>
+									power (mode)
+								</td>
+								<td>
+									w/d (mode)
+								</td>
+								<td>
+									w/d (ranked)
+								</td>
+								<!--							<td>-->
+								<!--								w/d (total) / probably not relevant => let's not include it at first -->
+								<!--							</td>-->
+								<td>
+									DCs (total)
+								</td>
+							</tr>
+							<tr>
+								<td>
+									stream
+								</td>
+								<td>
+									+ 120.0
+								</td>
+								<td>
+									8/2
+								</td>
+								<td>
+									18/12
+								</td>
+								<!--							<td>-->
+								<!--								38/32-->
+								<!--							</td>-->
+								<td>
+									2
+								</td>
+							</tr>
+							<tr>
+								<td>
+									month
+								</td>
+								<td>
+									<!--								Difference to last month's end power -->
+									+ 20.0
+								</td>
+								<td>
+									58/52
+								</td>
+								<td>
+									78/72
+								</td>
+								<!--							<td>-->
+								<!--								98/92-->
+								<!--							</td>-->
+								<td>
+									280
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<div class="flex-column auto-margin full-width">
+				<div class="flex-row full-width">
+					<div class="flex-column half-width">
+						<h3>Current Ranked Rotation: Rainmaker</h3>
+					</div>
+
+					<div class="flex-column half-width">
+						<h3>Next Ranked Rotation: Tower Control</h3>
+					</div>
+				</div>
+
+				<div class="flex-row full-width">
+					<div class="flex-column half-width">
+						<div class="flex-row">
+							<div class="horizontal-space-small"></div>
+
+							<!-- wins, defeats -->
+							<div class="flex-column">
+								<p class="green">
+									3 w
+								</p>
+								<p class="red">
+									5 d
+								</p>
+							</div>
+
+							<div class="horizontal-space-small"></div>
+
+							<!-- Stage 1 -->
+							<img class="stage-image-max rounded-corners-bright"
+								 src="https://app.splatoon2.nintendo.net/images/stage/83acec875a5bb19418d7b87d5df4ba1e38ceac66.png"/>
+
+							<div class="horizontal-space-big"></div>
+
+							<img class="stage-image-max rounded-corners-bright"
+								 src="https://app.splatoon2.nintendo.net/images/stage/98baf21c0366ce6e03299e2326fe6d27a7582dce.png"/>
+
+							<div class="horizontal-space-small"></div>
+
+							<div class="flex-column">
+								<p class="green">
+									8 w
+								</p>
+								<p class="red">
+									1 d
+								</p>
+							</div>
+
+							<div class="horizontal-space-small"></div>
+						</div>
+					</div>
+
+					<div class="flex-column half-width">
+						<div class="flex-row">
+							<div class="horizontal-space-small"></div>
+
+							<!-- Stage 1 -->
+							<img class="stage-image-max rounded-corners-bright"
+								 src="https://app.splatoon2.nintendo.net/images/stage/758338859615898a59e93b84f7e1ca670f75e865.png"/>
+
+							<div class="horizontal-space-big"></div>
+
+							<img class="stage-image-max rounded-corners-bright"
+								 src="https://app.splatoon2.nintendo.net/images/stage/132327c819abf2bd44d0adc0f4a21aad9cc84bb2.png"/>
+
+							<div class="horizontal-space-small"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!--<div class="right-panel">-->
+
+<!--</div>-->
+
+<!--&lt;!&ndash;TODO Idee: Spiel in voller Größe lassen und erweiterte Stats in die Mitte des Screens, so wie ich es auch auf meiner Homepage gemacht habe&ndash;&gt;-->
+
+<!--<div class="bottom-panel">-->
+<!--	<div style="display: table; height: 100%;">-->
+<!--		<div class="flex-row">-->
+<!--			<div class="horizontal-space-small"></div>-->
+
+<!--			&lt;!&ndash; wins, defeats &ndash;&gt;-->
+<!--			<div class="flex-column">-->
+<!--				<p class="green">-->
+<!--					25 victories-->
+<!--				</p>-->
+<!--				<p class="red">-->
+<!--					25 defeats-->
+<!--				</p>-->
+<!--			</div>-->
+
+<!--			<div class="horizontal-space-big"></div>-->
+
+<!--			&lt;!&ndash; weapon&ndash;&gt;-->
+<!--			<div class="flex-row">-->
+<!--				<img class="image-max rounded-corners-bright" src="https://app.splatoon2.nintendo.net/images/weapon/82f77775662c32ca0de28610520144b0044db006.png" />-->
+<!--				<div class="horizontal-space-small"></div>-->
+<!--				<div class="flex-column">-->
+<!--					<img class="image-medium rounded-corners-black" src="https://app.splatoon2.nintendo.net/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png" />-->
+<!--					<div class="vertical-space-small"></div>-->
+<!--					<img class="image-medium rounded-corners-black" src="https://app.splatoon2.nintendo.net/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png" />-->
+<!--				</div>-->
+<!--			</div>-->
+
+<!--			<div class="horizontal-space-big"></div>-->
+
+<!--			&lt;!&ndash; inked turf &ndash;&gt;-->
+<!--			<div class="flex-column">-->
+<!--				<p>-->
+<!--					18 380p-->
+<!--				</p>-->
+<!--				<p>-->
+<!--					(+ 3 541)-->
+<!--				</p>-->
+<!--			</div>-->
+
+<!--			<div class="horizontal-space-big"></div>-->
+
+<!--			&lt;!&ndash; gear section&ndash;&gt;-->
+<!--			<div class="flex-column">-->
+<!--				<div>-->
+<!--					<div class="flex-row">-->
+<!--						<div class="flex-column rounded-corners-bright">-->
+<!--							<img class="image-big" src="https://app.splatoon2.nintendo.net/images/head/505a2f74b2915a6dbf97bd70794ffdb5d764d6ff.png" />-->
+<!--							<div class="flex-row">-->
+<!--								<img class="image-medium black-circle" src="https://app.splatoon2.nintendo.net/images/skill/bdc5135874439cf3169d9a54b3f1fbdba3731b34.png" />-->
+
+<!--								<div class="horizontal-space-small"></div>-->
+
+<!--								<div class="flex-row rounded-corners-border">-->
+<!--									<img class="image-small black-circle" src="https://app.splatoon2.nintendo.net/images/skill/1378f3963526d7216ec44da35b924b81a8ff6a37.png" />-->
+<!--									<div class="horizontal-space-small "></div>-->
+<!--									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/39f3e937b709d378c178ef2bf00d9a7295b8159d.png" />-->
+<!--									<div class="horizontal-space-small "></div>-->
+<!--									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />-->
+<!--								</div>-->
+<!--							</div>-->
+<!--						</div>-->
+
+<!--						<div class="horizontal-space-small"></div>-->
+
+<!--						<div class="flex-column rounded-corners-bright">-->
+<!--							<img class="image-big" src="https://app.splatoon2.nintendo.net/images/clothes/cc85410d277785e672f350269b95657d76f9c5a2.png" />-->
+<!--							<div class="flex-row">-->
+<!--								<img class="image-medium black-circle" src="https://app.splatoon2.nintendo.net/images/skill/04b1de71fba1f14197b9163503955c52fd74858b.png" />-->
+
+<!--								<div class="horizontal-space-small"></div>-->
+
+<!--								<div class="flex-row rounded-corners-border">-->
+<!--									<img class="image-small black-circle" src="https://app.splatoon2.nintendo.net/images/skill/34e114a50a001778a574f7061039d43e632137b7.png" />-->
+<!--									<div class="horizontal-space-small "></div>-->
+<!--									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/04b1de71fba1f14197b9163503955c52fd74858b.png" />-->
+<!--									<div class="horizontal-space-small "></div>-->
+<!--									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />-->
+<!--								</div>-->
+<!--							</div>-->
+<!--						</div>-->
+
+<!--						<div class="horizontal-space-small"></div>-->
+
+<!--						<div class="flex-column rounded-corners-bright">-->
+<!--							<img class="image-big" src="https://app.splatoon2.nintendo.net/images/shoes/7068179926414639f790977779ac9aa34ca8a970.png" />-->
+<!--							<div class="flex-row">-->
+<!--								<img class="image-medium black-circle" src="https://app.splatoon2.nintendo.net/images/skill/47a74cd575b25a9de3e3592084ff3870db0cf4e0.png" />-->
+
+<!--								<div class="horizontal-space-small"></div>-->
+
+<!--								<div class="flex-row rounded-corners-border">-->
+<!--									<img class="image-small black-circle" src="https://app.splatoon2.nintendo.net/images/skill/f20a3e85feeb6b4bb021d28059afd6265cee0b43.png" />-->
+<!--									<div class="horizontal-space-small "></div>-->
+<!--									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/39f3e937b709d378c178ef2bf00d9a7295b8159d.png" />-->
+<!--									<div class="horizontal-space-small "></div>-->
+<!--									<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />-->
+<!--								</div>-->
+<!--							</div>-->
+<!--						</div>-->
+<!--					</div>-->
+<!--				</div>-->
+<!--			</div>-->
+
+<!--			<div class="horizontal-space-small"></div>-->
+<!--		</div>-->
+<!--	</div>-->
+<!--</div>-->
+
+<!--	<div class="rounded-corners">-->
+<!--	</div>-->
+
+<!--	&lt;!&ndash; TODO ONLY FOR TESTING PURPOSES - REMOVE AFTER USE &ndash;&gt;-->
+<!--	<iframe src="https://player.twitch.tv/?channel=noxtan13&parent=localhost" height="100%" width="100%"-->
+<!--		allowfullscreen="true" style="position: absolute; z-index: -100; top: 0; left: 0; width: 99%; height: 99%">-->
+<!--	</iframe>-->
+
+</body>
+
+</html>

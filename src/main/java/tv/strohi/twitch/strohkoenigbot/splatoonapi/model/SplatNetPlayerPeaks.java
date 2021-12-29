@@ -9,7 +9,7 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonPlayerPeaks {
+public class SplatNetPlayerPeaks {
 	private double rainmakerPeak = -1;
 	private String rainmakerPeakWeaponImage;
 	private Integer rainmakerPeakRank;

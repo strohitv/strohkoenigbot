@@ -9,26 +9,26 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonMatchResultsCollection {
+public class SplatNetMatchResultsCollection {
 	private String unique_id;
-	private SplatoonMatchResult[] results;
-	private SplatoonMatchResultsSummary summary;
+	private SplatNetMatchResult[] results;
+	private SplatNetMatchResultsSummary summary;
 
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class SplatoonMatchResult {
+	public static class SplatNetMatchResult {
 		private String battle_number;
 		private long start_time;
 		private int elapsed_time;
 
-		private SplatoonStage stage;
+		private SplatNetStage stage;
 
 		private String type;
 		private KeyNameTuple game_mode;
-		private SplatoonMatchRule rule;
+		private SplatNetMatchRule rule;
 
-		private SplatoonPlayerResult player_result;
+		private SplatNetPlayerResult player_result;
 
 		// how often did the player win in a row
 		private int win_meter;
@@ -48,7 +48,7 @@ public class SplatoonMatchResultsCollection {
 		private Double estimate_gachi_power;
 		private Double estimate_x_power;
 
-		private SplatoonUdemae udemae;
+		private SplatNetUdemae udemae;
 		private String rank;
 		private String[] crown_players;
 
@@ -66,7 +66,7 @@ public class SplatoonMatchResultsCollection {
 		@Data
 		@NoArgsConstructor
 		@AllArgsConstructor
-		public static class SplatoonPlayerResult {
+		public static class SplatNetPlayerResult {
 			private int special_count;
 			private int game_paint_point;
 			private int kill_count;
@@ -74,35 +74,35 @@ public class SplatoonMatchResultsCollection {
 			private int sort_score;
 			private int assist_count;
 
-			private SplatoonPlayer player;
+			private SplatNetPlayer player;
 
 			@Data
 			@NoArgsConstructor
 			@AllArgsConstructor
-			public static class SplatoonPlayer {
+			public static class SplatNetPlayer {
 				private String nickname;
 				private String principal_id;
 				private int star_rank;
 				private int player_rank;
 
-				private SplatoonPlayerType player_type;
+				private SplatNetPlayerType player_type;
 
-				private SplatoonWeapon weapon;
+				private SplatNetWeapon weapon;
 
-				private SplatoonGear head;
-				private SplatoonGear clothes;
-				private SplatoonGear shoes;
+				private SplatNetGear head;
+				private SplatNetGear clothes;
+				private SplatNetGear shoes;
 
-				private SplatoonGearSkills head_skills;
-				private SplatoonGearSkills clothes_skills;
-				private SplatoonGearSkills shoes_skills;
+				private SplatNetGearSkills head_skills;
+				private SplatNetGearSkills clothes_skills;
+				private SplatNetGearSkills shoes_skills;
 
-				private SplatoonUdemae udemae;
+				private SplatNetUdemae udemae;
 
 				@Data
 				@NoArgsConstructor
 				@AllArgsConstructor
-				public static class SplatoonPlayerType {
+				public static class SplatNetPlayerType {
 					private String style;
 					private String species;
 				}
@@ -110,9 +110,9 @@ public class SplatoonMatchResultsCollection {
 				@Data
 				@NoArgsConstructor
 				@AllArgsConstructor
-				public static class SplatoonGearSkills {
-					private SplatoonGearSkill main;
-					private SplatoonGearSkill[] subs;
+				public static class SplatNetGearSkills {
+					private SplatNetGearSkill main;
+					private SplatNetGearSkill[] subs;
 				}
 			}
 		}
@@ -120,7 +120,7 @@ public class SplatoonMatchResultsCollection {
 		@Data
 		@NoArgsConstructor
 		@AllArgsConstructor
-		public static class SplatoonUdemae {
+		public static class SplatNetUdemae {
 			private boolean is_number_reached;
 			private String name;
 			private String s_plus_number;
@@ -148,7 +148,7 @@ public class SplatoonMatchResultsCollection {
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class SplatoonMatchResultsSummary {
+	public static class SplatNetMatchResultsSummary {
 		private int count;
 		private int victory_count;
 		private double special_count_average;

@@ -9,21 +9,21 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonMerchandises {
-	SplatoonMerchandise ordered_info;
-	SplatoonMerchandise[] merchandises;
+public class SplatNetMerchandises {
+	SplatNetMerchandise ordered_info;
+	SplatNetMerchandise[] merchandises;
 
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class SplatoonMerchandise {
+	public static class SplatNetMerchandise {
 		String id;
 		String kind;
 		Integer price;
 		Integer end_time;
 
-		SplatoonGear gear;
-		SplatoonGearSkill skill;
+		SplatNetGear gear;
+		SplatNetGearSkill skill;
 
 		public Instant getEndTime() {
 			return end_time != null ? Instant.ofEpochSecond(end_time) : null;

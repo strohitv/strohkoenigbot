@@ -7,32 +7,32 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonXRankLeaderBoard {
-	private SplatoonXRankModeLeaderBoard rainmaker;
-	private SplatoonXRankModeLeaderBoard splat_zones;
-	private SplatoonXRankModeLeaderBoard tower_control;
-	private SplatoonXRankModeLeaderBoard clam_blitz;
+public class SplatNetXRankLeaderBoard {
+	private SplatNetXRankModeLeaderBoard rainmaker;
+	private SplatNetXRankModeLeaderBoard splat_zones;
+	private SplatNetXRankModeLeaderBoard tower_control;
+	private SplatNetXRankModeLeaderBoard clam_blitz;
 
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class SplatoonXRankModeLeaderBoard {
+	public static class SplatNetXRankModeLeaderBoard {
 		private String season_id;
 		private int top_rankings_count;
 		private long start_time;
 		private long end_time;
 		private String status;
 
-		private SplatoonMatchRule rule;
+		private SplatNetMatchRule rule;
 
-		private SplatoonXRankWeaponRanking weapon_ranking;
-		private SplatoonXRankWeaponRanking[] top_rankings;
-		private SplatoonXRankWeaponRanking my_ranking;
+		private SplatNetXRankWeaponRanking weapon_ranking;
+		private SplatNetXRankWeaponRanking[] top_rankings;
+		private SplatNetXRankWeaponRanking my_ranking;
 
 		@Data
 		@NoArgsConstructor
 		@AllArgsConstructor
-		public static class SplatoonXRankWeaponRanking {
+		public static class SplatNetXRankWeaponRanking {
 			private boolean cheater;
 			private String unique_id;
 			private String principal_id;
@@ -41,7 +41,7 @@ public class SplatoonXRankLeaderBoard {
 			private String rank_change;
 			private Integer rank;
 
-			private SplatoonWeapon weapon;
+			private SplatNetWeapon weapon;
 		}
 	}
 }
