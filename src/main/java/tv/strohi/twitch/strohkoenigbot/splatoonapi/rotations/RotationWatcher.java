@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.splatoonapi.stages;
+package tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 
 @Component
-public class StagesWatcher {
+public class RotationWatcher {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private SplatoonStages stages = null;
@@ -44,22 +44,14 @@ public class StagesWatcher {
 	// TODO wie mache ich das mit der Benachrichtigung?
 	// Überlegung:
 	// - Discord: CHECK Ranked-, Turf- und League-Channel. Posten des kompletten Schedules zur vollen Zeit
-	// - Twitch: Erinnerung 15 Minuten vorher
+	// - Twitch: Erinnerung 10 Minuten vorher
 
 	@Scheduled(cron = "20 0 * * * *")
 //	@Scheduled(cron = "20 * * * * *")
-	public void refreshStages() {
-		boolean force = false;
+	public void sendDiscordNotifications() {
+		refreshStages();
 
-		if (force || stages == null || Arrays.stream(stages.getGachi()).anyMatch(s -> s.getEndTimeAsInstant().isBefore(Instant.now()))) {
-			logger.info("checking for new stages");
-			stages = stagesLoader.querySplatoonApi("/api/schedules", SplatoonStages.class);
-
-			logger.info("got an answer from api");
-			logger.info(stages);
-		}
-
-		if (force || Arrays.stream(stages.getGachi()).allMatch(s -> s.getEndTimeAsInstant().isAfter(Instant.now().plus(1, ChronoUnit.HOURS)))) {
+		if (Arrays.stream(stages.getGachi()).allMatch(s -> s.getEndTimeAsInstant().isAfter(Instant.now().plus(1, ChronoUnit.HOURS)))) {
 			sendDiscordMessageToChannel("turf-war-rotations",
 					formatDiscordMessage(stages.getRegular()),
 					stages.getRegular()[0].getStage_a().getImage(),
@@ -74,6 +66,55 @@ public class StagesWatcher {
 					formatDiscordMessage(stages.getLeague()),
 					stages.getLeague()[0].getStage_a().getImage(),
 					stages.getLeague()[0].getStage_b().getImage());
+		}
+	}
+
+	@Scheduled(cron = "0 50 * * * *")
+//	@Scheduled(cron = "0 * * * * *")
+	public void sendStagesToTwitch() {
+		refreshStages();
+
+		SplatoonStages.SplatoonRotation turf = Arrays.stream(stages.getRegular())
+				.filter(rot -> Instant.now().isBefore(rot.getStartTimeAsInstant())
+						&& Instant.now().plus(15, ChronoUnit.MINUTES).isAfter(rot.getStartTimeAsInstant()))
+				.findFirst()
+				.orElse(null);
+
+		SplatoonStages.SplatoonRotation ranked = Arrays.stream(stages.getGachi())
+				.filter(rot -> Instant.now().isBefore(rot.getStartTimeAsInstant())
+						&& Instant.now().plus(15, ChronoUnit.MINUTES).isAfter(rot.getStartTimeAsInstant()))
+				.findFirst()
+				.orElse(null);
+
+		SplatoonStages.SplatoonRotation league = Arrays.stream(stages.getLeague())
+				.filter(rot -> Instant.now().isBefore(rot.getStartTimeAsInstant())
+						&& Instant.now().plus(15, ChronoUnit.MINUTES).isAfter(rot.getStartTimeAsInstant()))
+				.findFirst()
+				.orElse(null);
+
+		if (turf != null) {
+			channelMessageSender.send("strohkoenig",
+					String.format("Next Turf War: %s and %s", turf.getStage_a().getName(), turf.getStage_b().getName()));
+		}
+
+		if (ranked != null) {
+			channelMessageSender.send("strohkoenig",
+					String.format("Next Ranked: %s on %s and %s", ranked.getRule().getName(), ranked.getStage_a().getName(), ranked.getStage_b().getName()));
+		}
+
+		if (league != null) {
+			channelMessageSender.send("strohkoenig",
+					String.format("Next League: %s on %s and %s", league.getRule().getName(), league.getStage_a().getName(), league.getStage_b().getName()));
+		}
+	}
+
+	private void refreshStages() {
+		if (stages == null || Arrays.stream(stages.getGachi()).anyMatch(s -> s.getEndTimeAsInstant().isBefore(Instant.now()))) {
+			logger.info("checking for new stages");
+			stages = stagesLoader.querySplatoonApi("/api/schedules", SplatoonStages.class);
+
+			logger.info("got an answer from api");
+			logger.info(stages);
 		}
 	}
 
