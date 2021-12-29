@@ -11,5 +11,5 @@ import java.util.List;
 public interface SplatoonMonthlyResultRepository extends CrudRepository<SplatoonMonthlyResult, Long> {
 	@NotNull List<SplatoonMonthlyResult> findAll();
 
-	SplatoonMonthlyResult findByPeriodYearAndPeriodMonth(int month, int year);
+	SplatoonMonthlyResult findByPeriodYearAndPeriodMonth(int year, int month);
 }

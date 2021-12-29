@@ -10,6 +10,9 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetXRankLeaderBoar
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Component
@@ -27,7 +30,7 @@ public class PeaksExporter {
 	public void setSplatoonPeaksLoader(RequestSender splatoonPeaksLoader) {
 		this.splatoonPeaksLoader = splatoonPeaksLoader;
 	}
-	
+
 	private WeaponExporter weaponExporter;
 
 	@Autowired
@@ -42,7 +45,7 @@ public class PeaksExporter {
 		this.discordBot = discordBot;
 	}
 
-	@Scheduled(initialDelay = 30000, fixedDelay = Integer.MAX_VALUE)
+	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void reloadMonthlyResults() {
 		List<SplatoonMonthlyResult> peaks = monthlyResultRepository.findAll();
 
@@ -88,7 +91,6 @@ public class PeaksExporter {
 
 				splatoonMonthlyResult = monthlyResultRepository.save(splatoonMonthlyResult);
 
-
 				discordBot.sendServerMessageWithImages("debug-logs",
 						String.format("New X Rank peak month **%d-%d** with id **%d** and peaks Zones: **%s**, Rainmaker: **%s**, Tower: **%s**, Clams: **%s** was stored into Database!",
 								splatoonMonthlyResult.getPeriodYear(),
@@ -128,6 +130,58 @@ public class PeaksExporter {
 		if (september21result != null && september21result.getClamsPeak() < 2195.4) {
 			september21result.setClamsPeak(2195.4);
 			monthlyResultRepository.save(september21result);
+		}
+	}
+
+
+	@Scheduled(cron = "0 0 5 1 * *")
+//	@Scheduled(cron = "0 * * * * *")
+	public void refreshPreviousMonth() {
+		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault()).minus(5, ChronoUnit.DAYS);
+		int year = date.getYear();
+		int month = date.getMonthValue();
+
+		SplatoonMonthlyResult result = monthlyResultRepository.findByPeriodYearAndPeriodMonth(year, month);
+		SplatNetXRankLeaderBoard board = getLeaderBoard(year, month);
+
+		boolean changed = false;
+
+		if (board.getSplat_zones().getMy_ranking() != null) {
+			result.setZonesCurrent(board.getSplat_zones().getMy_ranking().getX_power());
+			result.setZonesWeaponId(weaponExporter.loadWeapon(board.getSplat_zones().getMy_ranking().getWeapon()).getId());
+			changed = true;
+		}
+
+		if (board.getRainmaker().getMy_ranking() != null) {
+			result.setRainmakerCurrent(board.getRainmaker().getMy_ranking().getX_power());
+			result.setRainmakerWeaponId(weaponExporter.loadWeapon(board.getRainmaker().getMy_ranking().getWeapon()).getId());
+			changed = true;
+		}
+
+		if (board.getTower_control().getMy_ranking() != null) {
+			result.setTowerCurrent(board.getTower_control().getMy_ranking().getX_power());
+			result.setTowerWeaponId(weaponExporter.loadWeapon(board.getTower_control().getMy_ranking().getWeapon()).getId());
+			changed = true;
+		}
+
+		if (board.getClam_blitz().getMy_ranking() != null) {
+			result.setClamsCurrent(board.getClam_blitz().getMy_ranking().getX_power());
+			result.setClamsWeaponId(weaponExporter.loadWeapon(board.getClam_blitz().getMy_ranking().getWeapon()).getId());
+			changed = true;
+		}
+
+		if (changed) {
+			result = monthlyResultRepository.save(result);
+
+			discordBot.sendServerMessageWithImages("debug-logs",
+					String.format("New X Rank month **%d-%d** with id **%d** was refreshed to final powers Zones: **%s**, Rainmaker: **%s**, Tower: **%s**, Clams: **%s** and has been stored into Database!",
+							result.getPeriodYear(),
+							result.getPeriodMonth(),
+							result.getId(),
+							result.getZonesPeak(),
+							result.getRainmakerPeak(),
+							result.getTowerPeak(),
+							result.getClamsPeak()));
 		}
 	}
 
