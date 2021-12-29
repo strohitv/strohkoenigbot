@@ -61,7 +61,7 @@ public class TwitchBotClient {
 					client.getClientHelper().enableStreamEventListener(channelName);
 					client.getClientHelper().enableFollowEventListener(channelName);
 
-					goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> resultsExporter.start(event.getFiredAtInstant()));
+					goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> resultsExporter.start());
 
 					goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> resultsExporter.stop());
 
