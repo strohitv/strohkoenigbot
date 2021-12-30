@@ -12,8 +12,6 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonStage;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonRotationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonStageRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStage;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
@@ -29,11 +27,11 @@ public class RotationWatcher {
 
 	private RequestSender stagesLoader;
 
-	private SplatoonStageRepository stageRepository;
+	private StagesExporter stagesExporter;
 
 	@Autowired
-	public void setStageRepository(SplatoonStageRepository stageRepository) {
-		this.stageRepository = stageRepository;
+	public void setStagesExporter(StagesExporter stagesExporter) {
+		this.stagesExporter = stagesExporter;
 	}
 
 	private SplatoonRotationRepository rotationRepository;
@@ -152,15 +150,15 @@ public class RotationWatcher {
 				newRotation.setMode(SplatoonMode.getModeByName(rotation.getGame_mode().getKey()));
 				newRotation.setRule(SplatoonRule.getRuleByName(rotation.getRule().getKey()));
 
-				SplatoonStage stageA = ensureStageIsInDatabase(rotation.getStage_a());
+				SplatoonStage stageA = stagesExporter.loadStage(rotation.getStage_a());
 				newRotation.setStageAId(stageA.getId());
 
-				SplatoonStage stageB = ensureStageIsInDatabase(rotation.getStage_b());
+				SplatoonStage stageB = stagesExporter.loadStage(rotation.getStage_b());
 				newRotation.setStageBId(stageB.getId());
 
 				rotationRepository.save(newRotation);
 
-				discordBot.sendServerMessageWithImages("debug-logs",
+				discordBot.sendServerMessageWithImages("debug-logs-temp",
 						String.format("New **%s** **%s** rotation with id **%d** on **%s** (id %d) and **%s** (id %d) from **%s** to **%s** was stored into Database!",
 								newRotation.getMode(),
 								newRotation.getRule(),
@@ -173,28 +171,6 @@ public class RotationWatcher {
 								newRotation.getEndTimeAsInstant()));
 			}
 		}
-	}
-
-	private SplatoonStage ensureStageIsInDatabase(SplatNetStage splatNetStage) {
-		SplatoonStage stage = stageRepository.findBySplatoonApiId(splatNetStage.getId());
-
-		if (stage == null) {
-			stage = new SplatoonStage();
-
-			stage.setSplatoonApiId(splatNetStage.getId());
-			stage.setName(splatNetStage.getName());
-			stage.setImage(splatNetStage.getImage());
-
-			stage = stageRepository.save(stage);
-
-			discordBot.sendServerMessageWithImages("debug-logs",
-					String.format("New Stage with id **%d** and Name **%s** was stored into Database!",
-							stage.getId(),
-							stage.getName()),
-					String.format("https://app.splatoon2.nintendo.net%s", stage.getImage()));
-		}
-
-		return stage;
 	}
 
 	private String formatDiscordMessage(SplatNetStages.SplatNetRotation[] rotations) {

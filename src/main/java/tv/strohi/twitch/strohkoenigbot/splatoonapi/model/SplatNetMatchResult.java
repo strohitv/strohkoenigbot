@@ -24,17 +24,17 @@ public class SplatNetMatchResult {
 
 	// how often did the player win in a row
 	private int win_meter;
-	private int weapon_paint_point;
+	private long weapon_paint_point;
 	private int player_rank;
 	private int star_rank;
 
 	private KeyNameTuple my_team_result;
-	private int my_team_count;
-	private double my_team_percentage;
+	private Integer my_team_count;
+	private Double my_team_percentage;
 
 	private KeyNameTuple other_team_result;
-	private int other_team_count;
-	private double other_team_percentage;
+	private Integer other_team_count;
+	private Double other_team_percentage;
 
 	private Double x_power;
 	private Double estimate_gachi_power;
@@ -45,10 +45,10 @@ public class SplatNetMatchResult {
 	private String[] crown_players;
 
 	// league
-	private double my_estimate_league_point;
-	private double other_estimate_league_point;
-	private double max_league_point;
-	private double league_point;
+	private Double my_estimate_league_point;
+	private Double other_estimate_league_point;
+	private Double max_league_point;
+	private Double league_point;
 	private String tag_id;
 
 	private SplatNetPlayerResult[] my_team_members;

@@ -644,6 +644,402 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "5",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_gear",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatoon_api_id",
+                    "type": "varchar(10)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "kind",
+                    "type": "varchar(15)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(40)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image",
+                    "type": "varchar(80)"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createTable": {
+              "tableName": "splatoon_ability",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatoon_api_id",
+                    "type": "varchar(10)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(40)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image",
+                    "type": "varchar(80)"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createTable": {
+              "tableName": "splatoon_match",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "battle_number",
+                    "type": "varchar(6)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "elapsed_time",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rotation_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_match_rotation_id",
+                      "references": "splatoon_rotation(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stage_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_match_stage_id",
+                      "references": "splatoon_stage(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "mode",
+                    "type": "varchar(30)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rule",
+                    "type": "varchar(30)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rank",
+                    "type": "varchar(3)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "x_power",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "x_power_estimate",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "x_lobby_power",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "league_tag",
+                    "type": "varchar(20)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "league_power",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "league_power_max",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "league_power_estimate",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "league_enemy_power",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_match_weapon_id",
+                      "references": "splatoon_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "turf_gain",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "turf_total",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "kills",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "assist",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "deaths",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "specials",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "own_score",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "own_percentage",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "enemy_score",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "enemy_percentage",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "match_result",
+                    "type": "varchar(10)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_ko",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "headgear_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_match_headgear_id",
+                      "references": "splatoon_gear(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clothes_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_match_clothes_id",
+                      "references": "splatoon_gear(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shoes_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_match_shoes_id",
+                      "references": "splatoon_gear(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "json_overview",
+                    "type": "clob(15000)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "json_match",
+                    "type": "clob(100000)"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createTable": {
+              "tableName": "splatoon_ability_match",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "ability_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_ability_match_ability_id",
+                      "references": "splatoon_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "match_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_ability_match_match_id",
+                      "references": "splatoon_match(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "kind",
+                    "type": "varchar(15)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "gear_position",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }

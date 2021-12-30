@@ -46,7 +46,7 @@ public class WeaponExporter {
 
 			weapon = weaponRepository.save(weapon);
 
-			discordBot.sendServerMessageWithImages("debug-logs",
+			discordBot.sendServerMessageWithImages("debug-logs-temp",
 					String.format("New Weapon with id **%d** and Name **%s** was stored into Database!",
 							weapon.getId(),
 							weapon.getName()),

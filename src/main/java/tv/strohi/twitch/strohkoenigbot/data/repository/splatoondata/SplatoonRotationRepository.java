@@ -8,4 +8,6 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMod
 @Repository
 public interface SplatoonRotationRepository extends CrudRepository<SplatoonRotation, Long> {
 	SplatoonRotation findBySplatoonApiIdAndMode(Long splatoonApiId, SplatoonMode mode);
+
+	SplatoonRotation findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(long startTime, long endTime, SplatoonMode mode);
 }
