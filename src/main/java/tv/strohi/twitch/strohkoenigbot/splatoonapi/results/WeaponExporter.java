@@ -6,6 +6,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetWeapon;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 @Component
 public class WeaponExporter {
@@ -46,7 +47,7 @@ public class WeaponExporter {
 
 			weapon = weaponRepository.save(weapon);
 
-			discordBot.sendServerMessageWithImages("debug-logs-temp",
+			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 					String.format("New Weapon with id **%d** and Name **%s** was stored into Database!",
 							weapon.getId(),
 							weapon.getName()),

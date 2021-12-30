@@ -6,6 +6,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonStage;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonStageRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStage;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 @Component
 public class StagesExporter {
@@ -35,7 +36,7 @@ public class StagesExporter {
 
 			stage = stageRepository.save(stage);
 
-			discordBot.sendServerMessageWithImages("debug-logs-temp",
+			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 					String.format("New Stage with id **%d** and Name **%s** was stored into Database!",
 							stage.getId(),
 							stage.getName()),

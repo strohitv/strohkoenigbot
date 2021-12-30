@@ -22,6 +22,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResultsCol
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.Statistics;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.nio.file.Paths;
 import java.time.ZoneId;
@@ -211,7 +212,7 @@ public class ResultsExporter {
 
 				matchRepository.save(match);
 
-				discordBot.sendServerMessageWithImages("debug-logs-temp",
+				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 						String.format("Put new Match with id **%d** for mode **%s** and rule **%s** into database. It was a **%s**.",
 								match.getId(),
 								match.getMode(),
@@ -235,7 +236,7 @@ public class ResultsExporter {
 
 				abilityMatchRepository.saveAll(abilitiesUsedInMatch);
 
-				discordBot.sendServerMessageWithImages("debug-logs-temp", String.format("Added used abilities to Match with id **%d**", match.getId()));
+				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), String.format("Added used abilities to Match with id **%d**", match.getId()));
 			}
 
 			// TODO prüfen, ob hier dann auch definitv alle Matches des Streams ankommen!!
@@ -298,7 +299,7 @@ public class ResultsExporter {
 						case SplatZones:
 							if (!Objects.equals(result.getZonesCurrent(), rankedMatch.getX_power())) {
 								result.setZonesCurrent(rankedMatch.getX_power());
-								discordBot.sendServerMessageWithImages("debug-logs-temp",
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 										String.format("Current zones power for month **%d-%d** is now **%.1f**.",
 												result.getPeriodYear(),
 												result.getPeriodMonth(),
@@ -308,7 +309,7 @@ public class ResultsExporter {
 
 							if (result.getZonesPeak() == null || result.getZonesPeak() < rankedMatch.getX_power()) {
 								result.setZonesPeak(rankedMatch.getX_power());
-								discordBot.sendServerMessageWithImages("debug-logs-temp",
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 										String.format("Zones peak for month **%d-%d** is now **%.1f**.",
 												result.getPeriodYear(),
 												result.getPeriodMonth(),
@@ -319,7 +320,7 @@ public class ResultsExporter {
 						case Rainmaker:
 							if (!Objects.equals(result.getRainmakerCurrent(), rankedMatch.getX_power())) {
 								result.setRainmakerCurrent(rankedMatch.getX_power());
-								discordBot.sendServerMessageWithImages("debug-logs-temp",
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 										String.format("Current rainmaker power for month **%d-%d** is now **%.1f**.",
 												result.getPeriodYear(),
 												result.getPeriodMonth(),
@@ -329,7 +330,7 @@ public class ResultsExporter {
 
 							if (result.getRainmakerPeak() == null || result.getRainmakerPeak() < rankedMatch.getX_power()) {
 								result.setRainmakerPeak(rankedMatch.getX_power());
-								discordBot.sendServerMessageWithImages("debug-logs-temp",
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 										String.format("Rainmaker peak for month **%d-%d** is now **%.1f**.",
 												result.getPeriodYear(),
 												result.getPeriodMonth(),
@@ -340,7 +341,7 @@ public class ResultsExporter {
 						case TowerControl:
 							if (!Objects.equals(result.getTowerCurrent(), rankedMatch.getX_power())) {
 								result.setTowerCurrent(rankedMatch.getX_power());
-								discordBot.sendServerMessageWithImages("debug-logs-temp",
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 										String.format("Current tower power for month **%d-%d** is now **%.1f**.",
 												result.getPeriodYear(),
 												result.getPeriodMonth(),
@@ -350,7 +351,7 @@ public class ResultsExporter {
 
 							if (result.getTowerPeak() == null || result.getTowerPeak() < rankedMatch.getX_power()) {
 								result.setTowerPeak(rankedMatch.getX_power());
-								discordBot.sendServerMessageWithImages("debug-logs-temp",
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 										String.format("Tower peak for month **%d-%d** is now **%.1f**.",
 												result.getPeriodYear(),
 												result.getPeriodMonth(),
@@ -361,7 +362,7 @@ public class ResultsExporter {
 						case ClamBlitz:
 							if (!Objects.equals(result.getClamsCurrent(), rankedMatch.getX_power())) {
 								result.setClamsCurrent(rankedMatch.getX_power());
-								discordBot.sendServerMessageWithImages("debug-logs-temp",
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 										String.format("Current clams power for month **%d-%d** is now **%.1f**.",
 												result.getPeriodYear(),
 												result.getPeriodMonth(),
@@ -371,7 +372,7 @@ public class ResultsExporter {
 
 							if (result.getClamsPeak() == null || result.getClamsPeak() < rankedMatch.getX_power()) {
 								result.setClamsPeak(rankedMatch.getX_power());
-								discordBot.sendServerMessageWithImages("debug-logs-temp",
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 										String.format("Clams peak for month **%d-%d** is now **%.1f**.",
 												result.getPeriodYear(),
 												result.getPeriodMonth(),
@@ -380,7 +381,7 @@ public class ResultsExporter {
 							}
 							break;
 						default:
-							discordBot.sendServerMessageWithImages("debug-logs-temp",
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 									String.format("Error: received invalid rule **%s** for ranked mode.", rule));
 							break;
 					}
@@ -391,7 +392,7 @@ public class ResultsExporter {
 				monthlyResultRepository.save(result);
 			}
 		} else {
-			discordBot.sendServerMessageWithImages("debug-logs-temp", "Error: a monthly result for this month does NOT exist!");
+			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Error: a monthly result for this month does NOT exist!");
 		}
 	}
 }

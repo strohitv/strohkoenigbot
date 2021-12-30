@@ -6,6 +6,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonAbility;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonAbilityRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 @Component
 public class AbilityExporter {
@@ -35,7 +36,7 @@ public class AbilityExporter {
 
 			ability = abilityRepository.save(ability);
 
-			discordBot.sendServerMessageWithImages("debug-logs-temp",
+			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 					String.format("New Ability with id **%d** and name **%s** was stored into Database!",
 							ability.getId(),
 							ability.getName()),

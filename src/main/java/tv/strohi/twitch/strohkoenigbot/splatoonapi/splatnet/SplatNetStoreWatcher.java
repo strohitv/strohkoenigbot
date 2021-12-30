@@ -14,6 +14,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationReposi
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMerchandises;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -141,7 +142,7 @@ public class SplatNetStoreWatcher {
 
 	private void sendDiscordNotification(SplatNetMerchandises.SplatNetMerchandise gear, String discordMessage) {
 		logger.info("Sending out discord notifications to server channel");
-		discordBot.sendServerMessageWithImages("splatnet-gear",
+		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getSplatNetGearChannel(),
 				discordMessage,
 				String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getImage()),
 				String.format("https://app.splatoon2.nintendo.net%s", gear.getSkill().getImage()),

@@ -7,6 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonGear;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonGearType;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonGearRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGear;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 @Component
 public class GearExporter {
@@ -37,7 +38,7 @@ public class GearExporter {
 
 			gear = gearRepository.save(gear);
 
-			discordBot.sendServerMessageWithImages("debug-logs-temp",
+			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 					String.format("New Gear with id **%d** and Name **%s** was stored into Database!",
 							gear.getId(),
 							gear.getName()),

@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetSalmonRunSchedules;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -56,7 +57,7 @@ public class SalmonWatcher {
 		if (detail != null) {
 			// new rotation started!
 			logger.info("Posting new salmon run rotation into discord");
-			sendDiscordMessageToChannel("salmon-run-rotations", formatRotation(detail), detail.getStage().getImage());
+			sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getSalmonRunChannel(), formatRotation(detail), detail.getStage().getImage());
 
 			logger.info("Posting new salmon run rotation into twitch");
 			channelMessageSender.send("strohkoenig",

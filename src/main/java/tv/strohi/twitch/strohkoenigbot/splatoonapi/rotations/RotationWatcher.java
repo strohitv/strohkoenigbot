@@ -14,6 +14,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRul
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -66,17 +67,17 @@ public class RotationWatcher {
 		refreshStages();
 
 		if (Arrays.stream(stages.getGachi()).allMatch(s -> s.getEndTimeAsInstant().isAfter(Instant.now().plus(1, ChronoUnit.HOURS)))) {
-			sendDiscordMessageToChannel("turf-war-rotations",
+			sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getTurfWarChannel(),
 					formatDiscordMessage(stages.getRegular()),
 					stages.getRegular()[0].getStage_a().getImage(),
 					stages.getRegular()[0].getStage_b().getImage());
 
-			sendDiscordMessageToChannel("ranked-rotations",
+			sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getRankedChannel(),
 					formatDiscordMessage(stages.getGachi()),
 					stages.getGachi()[0].getStage_a().getImage(),
 					stages.getGachi()[0].getStage_b().getImage());
 
-			sendDiscordMessageToChannel("league-rotations",
+			sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getLeagueChannel(),
 					formatDiscordMessage(stages.getLeague()),
 					stages.getLeague()[0].getStage_a().getImage(),
 					stages.getLeague()[0].getStage_b().getImage());
@@ -158,7 +159,7 @@ public class RotationWatcher {
 
 				rotationRepository.save(newRotation);
 
-				discordBot.sendServerMessageWithImages("debug-logs-temp",
+				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 						String.format("New **%s** **%s** rotation with id **%d** on **%s** (id %d) and **%s** (id %d) from **%s** to **%s** was stored into Database!",
 								newRotation.getMode(),
 								newRotation.getRule(),
