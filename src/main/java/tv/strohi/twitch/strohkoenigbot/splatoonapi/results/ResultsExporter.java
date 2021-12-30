@@ -141,8 +141,6 @@ public class ResultsExporter {
 				results.add(collection.getResults()[i]);
 			}
 
-			// TODO: Sobald ich die Datenbanktabelle für Matches habe: statt nach lastAnalysedMatchStart
-			// TODO: nach den Match-Keys filtern, die NICHT in der Tabelle enthalten sind.
 			results = results.stream()
 					.filter(r -> matchRepository.findByBattleNumber(r.getBattle_number()) == null)
 					.collect(Collectors.toList());
