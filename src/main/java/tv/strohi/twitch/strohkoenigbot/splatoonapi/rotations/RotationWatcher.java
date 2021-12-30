@@ -140,7 +140,7 @@ public class RotationWatcher {
 
 	private void saveStagesInDatabase(SplatNetStages.SplatNetRotation[] rotations) {
 		for (SplatNetStages.SplatNetRotation rotation : rotations) {
-			boolean storeRotationIntoDatabase = rotationRepository.findBySplatoonApiId(rotation.getId()) == null;
+			boolean storeRotationIntoDatabase = rotationRepository.findBySplatoonApiIdAndMode(rotation.getId(), SplatoonMode.getModeByName(rotation.getGame_mode().getKey())) == null;
 
 			if (storeRotationIntoDatabase) {
 				SplatoonRotation newRotation = new SplatoonRotation();
