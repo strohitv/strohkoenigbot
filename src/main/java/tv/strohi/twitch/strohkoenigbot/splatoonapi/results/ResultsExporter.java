@@ -8,6 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMonthlyRe
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonMonthlyResultRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResultsCollection;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.Statistics;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
@@ -81,7 +82,7 @@ public class ResultsExporter {
 
 			SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApi("/api/results", SplatNetMatchResultsCollection.class);
 
-			List<SplatNetMatchResultsCollection.SplatNetMatchResult> results = new ArrayList<>();
+			List<SplatNetMatchResult> results = new ArrayList<>();
 			for (int i = collection.getResults().length - 1; i >= 0; i--) {
 				results.add(collection.getResults()[i]);
 			}
@@ -107,7 +108,7 @@ public class ResultsExporter {
 		}
 	}
 
-	private void refreshMonthlyRankedResults(List<SplatNetMatchResultsCollection.SplatNetMatchResult> results) {
+	private void refreshMonthlyRankedResults(List<SplatNetMatchResult> results) {
 		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault()).minus(5, ChronoUnit.DAYS);
 		int year = date.getYear();
 		int month = date.getMonthValue();
@@ -117,11 +118,11 @@ public class ResultsExporter {
 		if (result != null) {
 			boolean isDirty = false;
 
-			List<SplatNetMatchResultsCollection.SplatNetMatchResult> rankedMatches = results.stream()
+			List<SplatNetMatchResult> rankedMatches = results.stream()
 					.filter(r -> SplatoonMode.getModeByName(r.getGame_mode().getKey()) == SplatoonMode.Ranked)
 					.collect(Collectors.toList());
 
-			for (SplatNetMatchResultsCollection.SplatNetMatchResult rankedMatch : rankedMatches) {
+			for (SplatNetMatchResult rankedMatch : rankedMatches) {
 				SplatoonRule rule = SplatoonRule.getRuleByName(rankedMatch.getRule().getKey());
 
 				if (rankedMatch.getX_power() != null) {

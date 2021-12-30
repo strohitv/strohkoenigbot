@@ -22,9 +22,8 @@ public class Statistics {
 			"</body>\n" +
 			"</html>";
 
-	private final List<SplatNetMatchResultsCollection.SplatNetMatchResult> includedMatches = new ArrayList<>();
+	private final List<SplatNetMatchResult> includedMatches = new ArrayList<>();
 	private final Map<String, Integer> weaponPaints = new HashMap<>();
-	private final String imageHost = "https://app.splatoon2.nintendo.net";
 
 	private boolean dirty;
 
@@ -67,14 +66,15 @@ public class Statistics {
 			long victoryCount = includedMatches.stream().filter(m -> m.getMy_team_result().getKey().equalsIgnoreCase("victory")).count();
 			long defeatCount = includedMatches.stream().filter(m -> m.getMy_team_result().getKey().equalsIgnoreCase("defeat")).count();
 
-			SplatNetMatchResultsCollection.SplatNetMatchResult lastMatch = includedMatches.get(includedMatches.size() - 1);
-			SplatNetMatchResultsCollection.SplatNetMatchResult.SplatNetPlayerResult.SplatNetPlayer player = lastMatch.getPlayer_result().getPlayer();
+			SplatNetMatchResult lastMatch = includedMatches.get(includedMatches.size() - 1);
+			SplatNetMatchResult.SplatNetPlayerResult.SplatNetPlayer player = lastMatch.getPlayer_result().getPlayer();
 
 			String mainWeaponPoints = String.format("%,d", lastMatch.getWeapon_paint_point())
 					.replace(DecimalFormatSymbols.getInstance().getGroupingSeparator(), ' ');
 			String mainWeaponPointsGain = String.format("%,d", weaponPaints.getOrDefault(lastMatch.getPlayer_result().getPlayer().getWeapon().getId(), 0))
 					.replace(DecimalFormatSymbols.getInstance().getGroupingSeparator(), ' ');
 
+			String imageHost = "https://app.splatoon2.nintendo.net";
 			String mainWeaponUrl = String.format("%s%s", imageHost, player.getWeapon().getImage());
 			String subWeaponUrl = String.format("%s%s", imageHost, player.getWeapon().getSub().getImage_a());
 			String specialWeaponUrl = String.format("%s%s", imageHost, player.getWeapon().getSpecial().getImage_a());
@@ -181,12 +181,12 @@ public class Statistics {
 		}
 	}
 
-	public void addMatches(List<SplatNetMatchResultsCollection.SplatNetMatchResult> matches) {
+	public void addMatches(List<SplatNetMatchResult> matches) {
 		if (matches.size() > 0) {
 			dirty = true;
 			includedMatches.addAll(matches);
 
-			for (SplatNetMatchResultsCollection.SplatNetMatchResult result : matches) {
+			for (SplatNetMatchResult result : matches) {
 				String weaponId = result.getPlayer_result().getPlayer().getWeapon().getId();
 
 				int newPaint = weaponPaints.getOrDefault(weaponId, 0);
