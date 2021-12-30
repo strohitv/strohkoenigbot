@@ -8,6 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMonthlyRe
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonMonthlyResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetXRankLeaderBoard;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -91,7 +92,7 @@ public class PeaksExporter {
 
 				splatoonMonthlyResult = monthlyResultRepository.save(splatoonMonthlyResult);
 
-				discordBot.sendServerMessageWithImages("debug-logs",
+				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 						String.format("New X Rank peak month **%d-%d** with id **%d** and peaks Zones: **%s**, Rainmaker: **%s**, Tower: **%s**, Clams: **%s** was stored into Database!",
 								splatoonMonthlyResult.getPeriodYear(),
 								splatoonMonthlyResult.getPeriodMonth(),
@@ -173,7 +174,7 @@ public class PeaksExporter {
 		if (changed) {
 			result = monthlyResultRepository.save(result);
 
-			discordBot.sendServerMessageWithImages("debug-logs",
+			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 					String.format("New X Rank month **%d-%d** with id **%d** was refreshed to final powers Zones: **%s**, Rainmaker: **%s**, Tower: **%s**, Clams: **%s** and has been stored into Database!",
 							result.getPeriodYear(),
 							result.getPeriodMonth(),

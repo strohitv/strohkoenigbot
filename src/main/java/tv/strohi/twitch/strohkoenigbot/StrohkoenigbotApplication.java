@@ -10,6 +10,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import javax.annotation.PreDestroy;
 import java.util.Arrays;
@@ -40,6 +41,10 @@ public class StrohkoenigbotApplication {
 	}
 
 	public static void main(String[] args) {
+		if (args != null && Arrays.stream(args).anyMatch(arg -> arg != null && arg.trim().toLowerCase().equals("local_debug"))) {
+			DiscordChannelDecisionMaker.setIsLocalDebug(true);
+		}
+
 		arguments = Arrays.stream(args).collect(Collectors.toUnmodifiableList());
 		app = SpringApplication.run(StrohkoenigbotApplication.class, args);
 	}
