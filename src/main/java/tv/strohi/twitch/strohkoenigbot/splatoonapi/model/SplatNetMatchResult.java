@@ -94,6 +94,15 @@ public class SplatNetMatchResult {
 
 			private SplatNetUdemae udemae;
 
+			// only when loaded from stats tab api request
+			private SplatNetUdemae udemae_zones;
+			private SplatNetUdemae udemae_rainmaker;
+			private SplatNetUdemae udemae_tower;
+			private SplatNetUdemae udemae_clam;
+
+			private Double max_league_point_pair;
+			private Double max_league_point_team;
+
 			@Data
 			@NoArgsConstructor
 			@AllArgsConstructor

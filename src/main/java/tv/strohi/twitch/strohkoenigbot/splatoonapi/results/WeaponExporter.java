@@ -44,6 +44,7 @@ public class WeaponExporter {
 
 			weapon.setTurf(0L);
 			weapon.setWins(0);
+			weapon.setDefeats(0);
 
 			weapon = weaponRepository.save(weapon);
 

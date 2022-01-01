@@ -1040,6 +1040,131 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "6",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "defeats",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_weapon"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "zones_wins",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_stage"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "zones_defeats",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_stage"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rainmaker_wins",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_stage"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rainmaker_defeats",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_stage"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "tower_wins",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_stage"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "tower_defeats",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_stage"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "clams_wins",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_stage"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "clams_defeats",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_stage"
+            }
+          }
+        ]
+      }
     }
   ]
 }

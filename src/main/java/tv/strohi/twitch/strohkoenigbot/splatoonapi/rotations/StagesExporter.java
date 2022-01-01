@@ -34,6 +34,15 @@ public class StagesExporter {
 			stage.setName(splatNetStage.getName());
 			stage.setImage(splatNetStage.getImage());
 
+			stage.setZonesWins(0);
+			stage.setZonesDefeats(0);
+			stage.setRainmakerWins(0);
+			stage.setRainmakerDefeats(0);
+			stage.setTowerWins(0);
+			stage.setTowerDefeats(0);
+			stage.setClamsWins(0);
+			stage.setClamsDefeats(0);
+
 			stage = stageRepository.save(stage);
 
 			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
