@@ -32,4 +32,5 @@ public class SplatoonWeapon {
 
 	private Long turf;
 	private Integer wins;
+	private Integer defeats;
 }

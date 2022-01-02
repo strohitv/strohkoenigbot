@@ -1,0 +1,5059 @@
+{
+  "challenges": {
+    "next_challenge_octa": {
+      "paint_points": 5324000,
+      "key": "challenger_deep",
+      "url_message": "To JAMSTEC official website",
+      "is_last": false,
+      "image": "/images/challenges_season_2/4f85410e7c3022bc8f6d64d9750d55d7ad8050aa.png",
+      "url": "http://www.jamstec.go.jp/e/",
+      "name": "Challenger Deep"
+    },
+    "archived_challenges_octa": [
+      {
+        "url": null,
+        "name": "Chilean Marble Cathedral",
+        "paint_points": 2400,
+        "key": "catedral_de_marmol",
+        "image": "/images/challenges_season_2/89b633816e5f54e73b351b2529fd9d48bb2bd333.png",
+        "is_last": false,
+        "url_message": null
+      },
+      {
+        "paint_points": 40000,
+        "image": "/images/challenges_season_2/94360cbe10d5b9204fc94aea675125c3f884cb7a.png",
+        "is_last": false,
+        "url_message": null,
+        "key": "large_hadron_collider",
+        "url": null,
+        "name": "CERN Large Hadron Collider"
+      },
+      {
+        "name": "Frankfurt U-Bahn",
+        "url": null,
+        "key": "frankfurt_u_bahn",
+        "image": "/images/challenges_season_2/bdc6628176da671d14bbd66480fcae3d1b081b0c.png",
+        "is_last": false,
+        "url_message": null,
+        "paint_points": 135000
+      },
+      {
+        "image": "/images/challenges_season_2/50e916ae1d12d19d4d41bc9c743b892c5c04c20e.png",
+        "is_last": false,
+        "url_message": null,
+        "key": "channel_tunnel",
+        "paint_points": 242000,
+        "name": "English Channel Tunnel",
+        "url": null
+      },
+      {
+        "url": null,
+        "name": "Arizona Meteor Crater",
+        "paint_points": 341000,
+        "image": "/images/challenges_season_2/d9997b4fb3301d51085371bed602283dc87f0bd4.png",
+        "is_last": false,
+        "url_message": null,
+        "key": "meteor_crater"
+      },
+      {
+        "paint_points": 407000,
+        "image": "/images/challenges_season_2/17eebe0a2f0e6bb9ef8499ff56cdad6328bc7d22.png",
+        "url_message": null,
+        "is_last": false,
+        "key": "tokyo_metro",
+        "url": null,
+        "name": "Tokyo Metro"
+      }
+    ],
+    "next_challenge": null,
+    "archived_challenges": [
+      {
+        "paint_points": 16000,
+        "name": "Great Pyramid of Giza",
+        "key": "great_pyramid_at_giza",
+        "image": "/images/challenge/2509440d7e6a290451640485abc91ec1b2c20bbc.png"
+      },
+      {
+        "key": "tenfold_squid_research_lab",
+        "name": "Squid Research HQ x10",
+        "image": "/images/challenge/bc823e738fddce2cfb96469da441a5e58099740e.png",
+        "paint_points": 121000
+      },
+      {
+        "paint_points": 293000,
+        "image": "/images/challenge/12211d428f8a2dfec07e96ea40a9165bd9f03fe4.png",
+        "name": "Mont-Saint-Michel",
+        "key": "mont_saint_michel"
+      },
+      {
+        "paint_points": 611000,
+        "key": "principality_of_monaco",
+        "name": "Monaco",
+        "image": "/images/challenge/9d84680b8a8ab5b050ca4831f18a88a113e2e5b3.png"
+      },
+      {
+        "key": "central_park",
+        "name": "Central Park",
+        "image": "/images/challenge/5758acd12ffff602c526bacd710b918f42647afe.png",
+        "paint_points": 1031000
+      },
+      {
+        "key": "machu_picchu",
+        "name": "Machu Picchu",
+        "image": "/images/challenge/179e5cf35e5d2a089d101523bcae0e8082ddfeb1.png",
+        "paint_points": 1512000
+      },
+      {
+        "image": "/images/challenge/3780bea228f0767c5c99e401e773ca65850e7d1f.png",
+        "key": "yosemite_valley",
+        "name": "Yosemite Valley",
+        "paint_points": 4652000
+      }
+    ],
+    "rewards": [
+      {
+        "images": [
+          {
+            "thumbnail": "/images/rewards/6c5c1de0eddc1cfb8e43b53b4816d5befdc15dcd.png",
+            "url": "https://dl.splatoon2.nintendo.net/4c819b08329f80c9f34a08da289dca3334d08fd2.png"
+          },
+          {
+            "url": "https://dl.splatoon2.nintendo.net/cf1f853469dac8e6795788077780cba36610b277.png",
+            "thumbnail": "/images/rewards/96fd39441bdaf2b6293dbde056ecee566938cf37.png"
+          }
+        ],
+        "id": "0",
+        "paint_points": 200000
+      },
+      {
+        "id": "1",
+        "paint_points": 800000,
+        "images": [
+          {
+            "thumbnail": "/images/rewards/0eaccada15b2f21f6e8f90a152cff1889c62987c.png",
+            "url": "https://dl.splatoon2.nintendo.net/de6881f416ca3bd30d2946d033b5b5ff89b68688.png"
+          },
+          {
+            "thumbnail": "/images/rewards/12d13fb30fd358fd786184298b6b1384eb3b7617.png",
+            "url": "https://dl.splatoon2.nintendo.net/e793a6e76981bb4670b93fd768fc8caa88051f4a.png"
+          }
+        ]
+      }
+    ],
+    "total_paint_point_octa": 5253851,
+    "total_paint_point": 8518779,
+    "rewards_octa": [
+      {
+        "id": "0",
+        "paint_points": 88888,
+        "images": [
+          {
+            "url": "https://dl.splatoon2.nintendo.net/bfadffe5209abbf787dda61802428a881296c8c9.png",
+            "thumbnail": "/images/rewards/68d62f6c8588b8dd4c67cba2d9cc11b79ec2405a.png"
+          },
+          {
+            "thumbnail": "/images/rewards/c18d3efed6a6275c7fab5d6bcd907bb4afedf3da.png",
+            "url": "https://dl.splatoon2.nintendo.net/f15e2f30881fb1dccb18bd05ee308ca9d156b3fe.png"
+          }
+        ]
+      },
+      {
+        "images": [
+          {
+            "url": "https://dl.splatoon2.nintendo.net/9a071186b2874c0612940cf878280125cb2c1fdd.png",
+            "thumbnail": "/images/rewards/6f1adc06379a163134ec7482d00074a5505fdec9.png"
+          },
+          {
+            "thumbnail": "/images/rewards/01a02af26202890d1890df5609be54c20b425ea1.png",
+            "url": "https://dl.splatoon2.nintendo.net/9fa9cac072191b71b6a98c8551ad7ac7b026796d.png"
+          }
+        ],
+        "paint_points": 888888,
+        "id": "1"
+      }
+    ]
+  },
+  "records": {
+    "recent_win_count": 26,
+    "weapon_stats": {
+      "5000": {
+        "last_use_time": 1635613366,
+        "lose_count": 2,
+        "win_meter": 0.5,
+        "total_paint_point": 3584,
+        "weapon": {
+          "image": "/images/weapon/cc4bc30ff53bf2b45bd5e3dadceb39d52b95761f.png",
+          "thumbnail": "/images/weapon/377fede68e69d13c1790fc90c3cb8c912a2a89db.png",
+          "special": {
+            "id": "3",
+            "image_b": "/images/special/0ee7864672be208c9ea57904eb172e942dc4471f.png",
+            "image_a": "/images/special/0a6b11ca3d93e99fa53aa50ee8a948c6747a651d.png",
+            "name": "Suction-Bomb Launcher"
+          },
+          "name": "Dapple Dualies",
+          "sub": {
+            "id": "10",
+            "image_b": "/images/sub/9c61e8fb4acef3d926be099603a74a02b0976431.png",
+            "image_a": "/images/sub/5a31dff440e88eb711c6e810c25b8ae3ce8e64b8.png",
+            "name": "Squid Beakon"
+          },
+          "id": "5000"
+        },
+        "win_count": 3,
+        "max_win_meter": 1
+      },
+      "5012": {
+        "lose_count": 7,
+        "last_use_time": 1613856085,
+        "win_count": 7,
+        "win_meter": 3,
+        "total_paint_point": 10059,
+        "weapon": {
+          "sub": {
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "name": "Suction Bomb"
+          },
+          "id": "5012",
+          "image": "/images/weapon/c2a4f493e3ed577c8010c21059319c2b1c2001a1.png",
+          "thumbnail": "/images/weapon/cae61852be10e21edb75d99b4ccfdd58c25b6242.png",
+          "special": {
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "id": "11",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "name": "Baller"
+          },
+          "name": "Kensa Splat Dualies"
+        },
+        "max_win_meter": 3
+      },
+      "5041": {
+        "win_count": 6,
+        "weapon": {
+          "sub": {
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png",
+            "name": "Sprinkler",
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "id": "6"
+          },
+          "id": "5041",
+          "image": "/images/weapon/1c5554f0aea879c0e363b02273ff0f587b300bd7.png",
+          "special": {
+            "image_b": "/images/special/f19e3d8b25542cb9e7329c1add7bc1dbe5f5eea7.png",
+            "id": "6",
+            "name": "Autobomb Launcher",
+            "image_a": "/images/special/c4b7d07d3c0f9d536274aa957581c6dd596bc79b.png"
+          },
+          "name": "Light Tetra Dualies",
+          "thumbnail": "/images/weapon/2034c1d1a59d730c91ea23f879befa7259b9f947.png"
+        },
+        "total_paint_point": 13424,
+        "win_meter": 1.5,
+        "max_win_meter": 3,
+        "last_use_time": 1624999690,
+        "lose_count": 9
+      },
+      "5011": {
+        "win_meter": 10,
+        "total_paint_point": 44987,
+        "weapon": {
+          "special": {
+            "id": "8",
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png",
+            "name": "Inkjet"
+          },
+          "name": "Enperry Splat Dualies",
+          "thumbnail": "/images/weapon/dd413cbc15fed38922b1d2a27b6b84571ef3d087.png",
+          "image": "/images/weapon/30c1038df50a93b33438fd63410cc7680c72cf1b.png",
+          "id": "5011",
+          "sub": {
+            "image_a": "/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png",
+            "name": "Curling Bomb",
+            "image_b": "/images/sub/2b5797c0ad847a54b9bd8168e75050484919d373.png",
+            "id": "3"
+          }
+        },
+        "win_count": 30,
+        "max_win_meter": 10,
+        "last_use_time": 1611866626,
+        "lose_count": 31
+      },
+      "4030": {
+        "last_use_time": 1603047355,
+        "lose_count": 1,
+        "max_win_meter": 0,
+        "win_meter": 0,
+        "weapon": {
+          "thumbnail": "/images/weapon/dee7a86b925710935d1ac9d3039d4867bc9ea5db.png",
+          "name": "Ballpoint Splatling",
+          "special": {
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "id": "8",
+            "name": "Inkjet",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png"
+          },
+          "image": "/images/weapon/f208b6222acb5014ab96285e9b9a3e98039c884b.png",
+          "id": "4030",
+          "sub": {
+            "name": "Toxic Mist",
+            "image_a": "/images/sub/7d58593453b479138bca576ea13c19b870059ce9.png",
+            "image_b": "/images/sub/9ab41340bfcef91125430d18015ccf98985efdb6.png",
+            "id": "7"
+          }
+        },
+        "total_paint_point": 796,
+        "win_count": 0
+      },
+      "50": {
+        "last_use_time": 1606257868,
+        "lose_count": 7,
+        "max_win_meter": 10.5,
+        "win_meter": 10.5,
+        "total_paint_point": 16873,
+        "weapon": {
+          "image": "/images/weapon/df04ddaf086cea94491df553a6d2550230a4da3c.png",
+          "name": ".52 Gal",
+          "special": {
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "name": "Baller",
+            "id": "11",
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png"
+          },
+          "thumbnail": "/images/weapon/3e69eaa1b1463689ddbe4fe23661f007dc216b08.png",
+          "sub": {
+            "name": "Point Sensor",
+            "image_a": "/images/sub/14b4d4ef62e915e87bd7caa8b99fb4e986caea26.png",
+            "id": "8",
+            "image_b": "/images/sub/627ae0ea02ab649a7a482ee7ee7ace85ca307f44.png"
+          },
+          "id": "50"
+        },
+        "win_count": 14
+      },
+      "60": {
+        "lose_count": 41,
+        "last_use_time": 1621006590,
+        "max_win_meter": 12.5,
+        "win_count": 47,
+        "win_meter": 10,
+        "total_paint_point": 73779,
+        "weapon": {
+          "special": {
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "name": "Ink Armor",
+            "id": "1",
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png"
+          },
+          "name": "N-ZAP '85",
+          "thumbnail": "/images/weapon/fdcd7cbe806eb84df374ea8f7e074ac9637d4762.png",
+          "image": "/images/weapon/1f2b1db5917ef7a4e62f0e15b8805275e33f2179.png",
+          "id": "60",
+          "sub": {
+            "name": "Suction Bomb",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png"
+          }
+        }
+      },
+      "6012": {
+        "last_use_time": 1635513075,
+        "lose_count": 3,
+        "win_count": 4,
+        "weapon": {
+          "id": "6012",
+          "sub": {
+            "name": "Ink Mine",
+            "image_a": "/images/sub/2705be54dafc7a426539c9e8f701197b7a9373f5.png",
+            "id": "5",
+            "image_b": "/images/sub/2e2d1dca678ca3b3e011c3e4620c5c0fa31a9248.png"
+          },
+          "special": {
+            "name": "Ultra Stamp",
+            "image_a": "/images/special/90e1d8273105af7fcc9662eb4d1cf68f14034a00.png",
+            "id": "18",
+            "image_b": "/images/special/9ec05d05567361f6eb26e7ec58ea0749b26658f0.png"
+          },
+          "name": "Tenta Camo Brella",
+          "thumbnail": "/images/weapon/fd7e54f28e13a3c87bf67c4d377ed0378d276e8b.png",
+          "image": "/images/weapon/742c5ed0a062a5a1cd0e236664c0628adeec7a19.png"
+        },
+        "total_paint_point": 5131,
+        "win_meter": 2.5,
+        "max_win_meter": 3
+      },
+      "312": {
+        "last_use_time": 1637343646,
+        "lose_count": 15,
+        "win_meter": 6,
+        "weapon": {
+          "id": "312",
+          "sub": {
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png",
+            "id": "9",
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall"
+          },
+          "thumbnail": "/images/weapon/420770410cdcb567575b9b28a4dc315e4fc94fb8.png",
+          "name": "Cherry H-3 Nozzlenose",
+          "special": {
+            "id": "12",
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png",
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png",
+            "name": "Bubble Blower"
+          },
+          "image": "/images/weapon/f7afe0e2a0969ece5b128e1808e91114815c494f.png"
+        },
+        "total_paint_point": 22154,
+        "win_count": 12,
+        "max_win_meter": 6
+      },
+      "6011": {
+        "win_count": 1,
+        "win_meter": 1,
+        "total_paint_point": 1229,
+        "weapon": {
+          "sub": {
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png",
+            "id": "9",
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall"
+          },
+          "id": "6011",
+          "image": "/images/weapon/1913b28a01c670ca34ef8bb769a2e95e03e60882.png",
+          "thumbnail": "/images/weapon/710cd6f02a2956f401082f0db1d5b47a967ec5c7.png",
+          "special": {
+            "image_a": "/images/special/718f3506bce0bd3c17a90c45903798eb09935324.png",
+            "name": "Curling-Bomb Launcher",
+            "image_b": "/images/special/b8340ae3c4c5102a9223f84c4f92bb60ff2d0704.png",
+            "id": "5"
+          },
+          "name": "Tenta Sorella Brella"
+        },
+        "max_win_meter": 1,
+        "lose_count": 1,
+        "last_use_time": 1622463041
+      },
+      "3030": {
+        "lose_count": 30,
+        "last_use_time": 1610488284,
+        "win_meter": 10.5,
+        "total_paint_point": 63517,
+        "weapon": {
+          "id": "3030",
+          "sub": {
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png",
+            "id": "9",
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall"
+          },
+          "thumbnail": "/images/weapon/e8d17d8b73fc1eaa3e3672c54e8800163d909ede.png",
+          "name": "Bloblobber",
+          "special": {
+            "name": "Ink Storm",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png",
+            "id": "10",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png"
+          },
+          "image": "/images/weapon/2835f6d61a4296b4ac3876337884a0c453a4fa4f.png"
+        },
+        "win_count": 48,
+        "max_win_meter": 13.5
+      },
+      "302": {
+        "max_win_meter": 1,
+        "win_meter": 1,
+        "total_paint_point": 913,
+        "weapon": {
+          "sub": {
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png",
+            "id": "9",
+            "name": "Splash Wall",
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png"
+          },
+          "id": "302",
+          "image": "/images/weapon/67a4e4429da48b32b1a6a13a17e0a7cb4ec7624b.png",
+          "special": {
+            "image_b": "/images/special/9ec05d05567361f6eb26e7ec58ea0749b26658f0.png",
+            "id": "18",
+            "image_a": "/images/special/90e1d8273105af7fcc9662eb4d1cf68f14034a00.png",
+            "name": "Ultra Stamp"
+          },
+          "name": "Kensa L-3 Nozzlenose",
+          "thumbnail": "/images/weapon/00593ba2e0b7457dcaf3630167669e61911da284.png"
+        },
+        "win_count": 1,
+        "last_use_time": 1613512056,
+        "lose_count": 0
+      },
+      "61": {
+        "lose_count": 55,
+        "last_use_time": 1635090873,
+        "win_count": 61,
+        "win_meter": 11.5,
+        "total_paint_point": 96256,
+        "weapon": {
+          "id": "61",
+          "sub": {
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png",
+            "name": "Autobomb",
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png",
+            "id": "4"
+          },
+          "special": {
+            "name": "Tenta Missiles",
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "id": "0",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png"
+          },
+          "name": "N-ZAP '89",
+          "thumbnail": "/images/weapon/762846bf92742185c5507347aec26014afc7a43a.png",
+          "image": "/images/weapon/e5d361c200bb4793713fcc04770d9e78d7e5bc24.png"
+        },
+        "max_win_meter": 15
+      },
+      "2030": {
+        "total_paint_point": 23796,
+        "weapon": {
+          "special": {
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png",
+            "name": "Ink Storm",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png",
+            "id": "10"
+          },
+          "name": "E-liter 4K",
+          "thumbnail": "/images/weapon/029c670a12106e979c7b775979f86e5759784e3c.png",
+          "image": "/images/weapon/a6279990ad871fccdd9f2a64a2951f8726f45c48.png",
+          "id": "2030",
+          "sub": {
+            "image_b": "/images/sub/2e2d1dca678ca3b3e011c3e4620c5c0fa31a9248.png",
+            "id": "5",
+            "image_a": "/images/sub/2705be54dafc7a426539c9e8f701197b7a9373f5.png",
+            "name": "Ink Mine"
+          }
+        },
+        "win_meter": 4.5,
+        "win_count": 16,
+        "max_win_meter": 5.5,
+        "last_use_time": 1626210263,
+        "lose_count": 22
+      },
+      "202": {
+        "last_use_time": 1635612316,
+        "lose_count": 4,
+        "win_meter": 5,
+        "total_paint_point": 6280,
+        "weapon": {
+          "sub": {
+            "image_a": "/images/sub/6b589403f151ac0c39e99c6e163cf2c461a1fb25.png",
+            "name": "Fizzy Bomb",
+            "image_b": "/images/sub/8d5de4aa7c2222a224dcbb9cdb2b320a38cf7ed9.png",
+            "id": "11"
+          },
+          "id": "202",
+          "image": "/images/weapon/0d9f01063225b36f100f085a65a0c369c43cbbc3.png",
+          "thumbnail": "/images/weapon/64eddf25a944ce84dadf53f26ce45a9584d6ebbc.png",
+          "name": "Kensa Luna Blaster",
+          "special": {
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png",
+            "id": "10",
+            "name": "Ink Storm",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png"
+          }
+        },
+        "win_count": 5,
+        "max_win_meter": 5
+      },
+      "51": {
+        "lose_count": 20,
+        "last_use_time": 1625601354,
+        "max_win_meter": 15,
+        "weapon": {
+          "id": "51",
+          "sub": {
+            "id": "3",
+            "image_b": "/images/sub/2b5797c0ad847a54b9bd8168e75050484919d373.png",
+            "image_a": "/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png",
+            "name": "Curling Bomb"
+          },
+          "name": ".52 Gal Deco",
+          "special": {
+            "image_b": "/images/special/485b748720bbf809d8b28f9f4ee1a505cbcb339b.png",
+            "id": "7",
+            "name": "Sting Ray",
+            "image_a": "/images/special/7af300fdd872feb27b3d8e68a969457fac8b3bb7.png"
+          },
+          "thumbnail": "/images/weapon/7c1f6652d03aeb89872cb48ec355205232926869.png",
+          "image": "/images/weapon/2c25adafa26ea3bb287b0aa21d02aaa856e19321.png"
+        },
+        "total_paint_point": 33681,
+        "win_meter": 15,
+        "win_count": 24
+      },
+      "2052": {
+        "max_win_meter": 6.5,
+        "win_count": 8,
+        "weapon": {
+          "id": "2052",
+          "sub": {
+            "image_a": "/images/sub/6b589403f151ac0c39e99c6e163cf2c461a1fb25.png",
+            "name": "Fizzy Bomb",
+            "id": "11",
+            "image_b": "/images/sub/8d5de4aa7c2222a224dcbb9cdb2b320a38cf7ed9.png"
+          },
+          "name": "Bamboozler 14 Mk III",
+          "special": {
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png",
+            "name": "Bubble Blower",
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png",
+            "id": "12"
+          },
+          "thumbnail": "/images/weapon/f4346e7a69af435ac7228a3eb84b7655baea3049.png",
+          "image": "/images/weapon/504a1ef4a0ce1578d6d7102fedfd9a958df6f767.png"
+        },
+        "total_paint_point": 8675,
+        "win_meter": 6.5,
+        "last_use_time": 1635611867,
+        "lose_count": 7
+      },
+      "2051": {
+        "last_use_time": 1640882869,
+        "lose_count": 13,
+        "max_win_meter": 11.5,
+        "win_meter": 11.5,
+        "total_paint_point": 20194,
+        "weapon": {
+          "image": "/images/weapon/ad893c6e8fe92c63c07299601fec3162b02801f4.png",
+          "special": {
+            "image_a": "/images/special/7a02badac63ad3ac275c42f699b161f0164b97c4.png",
+            "name": "Burst-Bomb Launcher",
+            "image_b": "/images/special/7e77263fb6f87825d6b7c6ebc584a23404385a81.png",
+            "id": "4"
+          },
+          "name": "Bamboozler 14 Mk II",
+          "thumbnail": "/images/weapon/067bd14e170d7a66e55a881d4ae37280e600baac.png",
+          "sub": {
+            "name": "Toxic Mist",
+            "image_a": "/images/sub/7d58593453b479138bca576ea13c19b870059ce9.png",
+            "image_b": "/images/sub/9ab41340bfcef91125430d18015ccf98985efdb6.png",
+            "id": "7"
+          },
+          "id": "2051"
+        },
+        "win_count": 18
+      },
+      "241": {
+        "last_use_time": 1613857978,
+        "lose_count": 1,
+        "max_win_meter": 1,
+        "win_meter": 1,
+        "total_paint_point": 1215,
+        "weapon": {
+          "thumbnail": "/images/weapon/9b5ece6105fd7077f6b22015d57e3a26aee93d39.png",
+          "name": "Rapid Blaster Deco",
+          "special": {
+            "id": "8",
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png",
+            "name": "Inkjet"
+          },
+          "image": "/images/weapon/a90b59baa8158ec7376699488d71980fa6d9fdb2.png",
+          "id": "241",
+          "sub": {
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "name": "Suction Bomb",
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png"
+          }
+        },
+        "win_count": 1
+      },
+      "3005": {
+        "last_use_time": 1638895287,
+        "lose_count": 23,
+        "max_win_meter": 8.5,
+        "win_meter": 7.5,
+        "total_paint_point": 39186,
+        "weapon": {
+          "sub": {
+            "name": "Suction Bomb",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png"
+          },
+          "id": "3005",
+          "image": "/images/weapon/571f4e5dbbe3d0dc6f29759c808e415c0526788f.png",
+          "thumbnail": "/images/weapon/bfffe83ae6538217c44072a52b66cbcaa102d6c5.png",
+          "name": "Hero Slosher Replica",
+          "special": {
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles",
+            "id": "0",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png"
+          }
+        },
+        "win_count": 28
+      },
+      "4021": {
+        "last_use_time": 1638188221,
+        "lose_count": 20,
+        "max_win_meter": 8.5,
+        "weapon": {
+          "image": "/images/weapon/d5eb0df29ce05a085a8c07210d06bc278b8883ab.png",
+          "thumbnail": "/images/weapon/ffea4ec56bfca91a023c6f8c8a79cb368e8df030.png",
+          "name": "Custom Hydra Splatling",
+          "special": {
+            "name": "Ink Armor",
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png",
+            "id": "1"
+          },
+          "sub": {
+            "name": "Ink Mine",
+            "image_a": "/images/sub/2705be54dafc7a426539c9e8f701197b7a9373f5.png",
+            "id": "5",
+            "image_b": "/images/sub/2e2d1dca678ca3b3e011c3e4620c5c0fa31a9248.png"
+          },
+          "id": "4021"
+        },
+        "total_paint_point": 24414,
+        "win_meter": 8.5,
+        "win_count": 20
+      },
+      "1010": {
+        "max_win_meter": 11.5,
+        "win_meter": 6.5,
+        "weapon": {
+          "id": "1010",
+          "sub": {
+            "image_b": "/images/sub/2b5797c0ad847a54b9bd8168e75050484919d373.png",
+            "id": "3",
+            "name": "Curling Bomb",
+            "image_a": "/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png"
+          },
+          "thumbnail": "/images/weapon/626210255f99cb22bee1eded39457c51aa9622aa.png",
+          "special": {
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "id": "9",
+            "name": "Splashdown",
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png"
+          },
+          "name": "Splat Roller",
+          "image": "/images/weapon/1041dbdd11b3036671148d47c2e0798cecf3dba2.png"
+        },
+        "total_paint_point": 40747,
+        "win_count": 33,
+        "last_use_time": 1544911025,
+        "lose_count": 30
+      },
+      "215": {
+        "last_use_time": 1626210903,
+        "lose_count": 18,
+        "max_win_meter": 6.5,
+        "total_paint_point": 17647,
+        "weapon": {
+          "image": "/images/weapon/c7756a12bd5dbfeb877afbf808b003effca2cd6b.png",
+          "special": {
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "id": "9",
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png",
+            "name": "Splashdown"
+          },
+          "name": "Hero Blaster Replica",
+          "thumbnail": "/images/weapon/a20cd4e509af52149456457fea2939e628ba83e5.png",
+          "sub": {
+            "image_b": "/images/sub/9ab41340bfcef91125430d18015ccf98985efdb6.png",
+            "id": "7",
+            "image_a": "/images/sub/7d58593453b479138bca576ea13c19b870059ce9.png",
+            "name": "Toxic Mist"
+          },
+          "id": "215"
+        },
+        "win_meter": 3,
+        "win_count": 13
+      },
+      "1001": {
+        "lose_count": 35,
+        "last_use_time": 1620856469,
+        "win_count": 33,
+        "total_paint_point": 43895,
+        "weapon": {
+          "sub": {
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png",
+            "id": "2",
+            "name": "Burst Bomb",
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png"
+          },
+          "id": "1001",
+          "image": "/images/weapon/4f086d745b2204c9e4034188ccc5850a059c1431.png",
+          "thumbnail": "/images/weapon/a4b83907f8a0050f293bf446a4ce693af3a12afd.png",
+          "special": {
+            "name": "Autobomb Launcher",
+            "image_a": "/images/special/c4b7d07d3c0f9d536274aa957581c6dd596bc79b.png",
+            "image_b": "/images/special/f19e3d8b25542cb9e7329c1add7bc1dbe5f5eea7.png",
+            "id": "6"
+          },
+          "name": "Carbon Roller Deco"
+        },
+        "win_meter": 6,
+        "max_win_meter": 7
+      },
+      "1102": {
+        "win_meter": 5,
+        "total_paint_point": 18719,
+        "weapon": {
+          "thumbnail": "/images/weapon/8ef629f5ace0c5237e0256e247e556525a9d5192.png",
+          "special": {
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png",
+            "id": "1",
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "name": "Ink Armor"
+          },
+          "name": "Permanent Inkbrush",
+          "image": "/images/weapon/0c2ee5ee180151cb9d74cd9ed2c869e11705aa5d.png",
+          "id": "1102",
+          "sub": {
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "id": "6",
+            "name": "Sprinkler",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png"
+          }
+        },
+        "win_count": 12,
+        "max_win_meter": 7,
+        "last_use_time": 1622493695,
+        "lose_count": 12
+      },
+      "1101": {
+        "win_count": 17,
+        "win_meter": 10.5,
+        "total_paint_point": 19950,
+        "weapon": {
+          "sub": {
+            "image_b": "/images/sub/2e2d1dca678ca3b3e011c3e4620c5c0fa31a9248.png",
+            "id": "5",
+            "name": "Ink Mine",
+            "image_a": "/images/sub/2705be54dafc7a426539c9e8f701197b7a9373f5.png"
+          },
+          "id": "1101",
+          "image": "/images/weapon/43f011dfe2b876fc8c18b65d28da81c41876174f.png",
+          "special": {
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "id": "11",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "name": "Baller"
+          },
+          "name": "Inkbrush Nouveau",
+          "thumbnail": "/images/weapon/1bb669aa8f0b5f314f8b50dede301058e124c879.png"
+        },
+        "max_win_meter": 10.5,
+        "last_use_time": 1577572650,
+        "lose_count": 10
+      },
+      "1110": {
+        "lose_count": 27,
+        "last_use_time": 1606419856,
+        "win_count": 24,
+        "weapon": {
+          "image": "/images/weapon/f1d5740dfb7d87f7e43974bbe5585445368741b8.png",
+          "thumbnail": "/images/weapon/5f565ede7ae220d5b1d453b3ef55b8d20d7b9a2a.png",
+          "special": {
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png",
+            "name": "Inkjet",
+            "id": "8",
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png"
+          },
+          "name": "Octobrush",
+          "sub": {
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png",
+            "name": "Autobomb",
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png",
+            "id": "4"
+          },
+          "id": "1110"
+        },
+        "total_paint_point": 34859,
+        "win_meter": 9,
+        "max_win_meter": 9
+      },
+      "230": {
+        "max_win_meter": 1,
+        "win_meter": 1,
+        "total_paint_point": 1112,
+        "weapon": {
+          "image": "/images/weapon/2b684d81508ca5286060767e29dd81ca38303f43.png",
+          "name": "Clash Blaster",
+          "special": {
+            "image_a": "/images/special/7af300fdd872feb27b3d8e68a969457fac8b3bb7.png",
+            "name": "Sting Ray",
+            "image_b": "/images/special/485b748720bbf809d8b28f9f4ee1a505cbcb339b.png",
+            "id": "7"
+          },
+          "thumbnail": "/images/weapon/34f78531f33c2952f9522eeb550838070ecde432.png",
+          "sub": {
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "name": "Splat Bomb",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0"
+          },
+          "id": "230"
+        },
+        "win_count": 1,
+        "last_use_time": 1613511798,
+        "lose_count": 1
+      },
+      "220": {
+        "win_count": 8,
+        "weapon": {
+          "image": "/images/weapon/109b2b851481510eaacb50afc8ce9fb79b7f20ad.png",
+          "name": "Range Blaster",
+          "special": {
+            "id": "10",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png",
+            "name": "Ink Storm",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png"
+          },
+          "thumbnail": "/images/weapon/01b9c027ce23361582f6fd4c5ade502e5e5211b2.png",
+          "sub": {
+            "name": "Suction Bomb",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png"
+          },
+          "id": "220"
+        },
+        "total_paint_point": 12414,
+        "win_meter": 3.5,
+        "max_win_meter": 4,
+        "last_use_time": 1614526910,
+        "lose_count": 11
+      },
+      "0": {
+        "last_use_time": 1601402738,
+        "lose_count": 21,
+        "max_win_meter": 10.5,
+        "weapon": {
+          "image": "/images/weapon/32d41a5d14de756c3e5a1ee97a9bd8fcb9e69bf5.png",
+          "thumbnail": "/images/weapon/60cff5009fde2559f7a4106aafcfd1a3c724971f.png",
+          "name": "Sploosh-o-matic",
+          "special": {
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png",
+            "name": "Splashdown",
+            "id": "9",
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png"
+          },
+          "sub": {
+            "id": "3",
+            "image_b": "/images/sub/2b5797c0ad847a54b9bd8168e75050484919d373.png",
+            "name": "Curling Bomb",
+            "image_a": "/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png"
+          },
+          "id": "0"
+        },
+        "total_paint_point": 42745,
+        "win_meter": 9,
+        "win_count": 29
+      },
+      "2022": {
+        "max_win_meter": 11.5,
+        "win_count": 53,
+        "total_paint_point": 100089,
+        "weapon": {
+          "name": "Kensa Splatterscope",
+          "special": {
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "name": "Baller",
+            "id": "11",
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png"
+          },
+          "thumbnail": "/images/weapon/2ea9e602522c002b982d36720f548f7e383716f1.png",
+          "image": "/images/weapon/74b59db0d77e75765192e9a41fc5a42454529310.png",
+          "id": "2022",
+          "sub": {
+            "id": "6",
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png",
+            "name": "Sprinkler"
+          }
+        },
+        "win_meter": 2.5,
+        "lose_count": 81,
+        "last_use_time": 1637272528
+      },
+      "2021": {
+        "last_use_time": 1635882707,
+        "lose_count": 70,
+        "max_win_meter": 11.5,
+        "win_count": 66,
+        "total_paint_point": 100025,
+        "weapon": {
+          "id": "2021",
+          "sub": {
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall",
+            "id": "9",
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png"
+          },
+          "special": {
+            "name": "Suction-Bomb Launcher",
+            "image_a": "/images/special/0a6b11ca3d93e99fa53aa50ee8a948c6747a651d.png",
+            "image_b": "/images/special/0ee7864672be208c9ea57904eb172e942dc4471f.png",
+            "id": "3"
+          },
+          "name": "Firefin Splatterscope",
+          "thumbnail": "/images/weapon/f273f3c84188b69cb8e192003e5e7e0a527593b7.png",
+          "image": "/images/weapon/20db4f5e0798f2b3ec968895353dcc06d991f943.png"
+        },
+        "win_meter": 4.5
+      },
+      "3022": {
+        "last_use_time": 1637350174,
+        "lose_count": 59,
+        "win_meter": 9.5,
+        "total_paint_point": 89099,
+        "weapon": {
+          "image": "/images/weapon/9a3149a88a223c646b89c195475de5e4d058c8ac.png",
+          "name": "Kensa Sloshing Machine",
+          "special": {
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png",
+            "name": "Splashdown",
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "id": "9"
+          },
+          "thumbnail": "/images/weapon/eb97dac50a72bcfa76de5c0a2aab00b59191abf5.png",
+          "sub": {
+            "id": "11",
+            "image_b": "/images/sub/8d5de4aa7c2222a224dcbb9cdb2b320a38cf7ed9.png",
+            "name": "Fizzy Bomb",
+            "image_a": "/images/sub/6b589403f151ac0c39e99c6e163cf2c461a1fb25.png"
+          },
+          "id": "3022"
+        },
+        "win_count": 59,
+        "max_win_meter": 9.5
+      },
+      "3021": {
+        "lose_count": 22,
+        "last_use_time": 1612868406,
+        "weapon": {
+          "id": "3021",
+          "sub": {
+            "name": "Point Sensor",
+            "image_a": "/images/sub/14b4d4ef62e915e87bd7caa8b99fb4e986caea26.png",
+            "image_b": "/images/sub/627ae0ea02ab649a7a482ee7ee7ace85ca307f44.png",
+            "id": "8"
+          },
+          "name": "Sloshing Machine Neo",
+          "special": {
+            "name": "Splat-Bomb Launcher",
+            "image_a": "/images/special/18990f646c551ee77c5b283ec814e371f692a553.png",
+            "image_b": "/images/special/9e89e1d67803c3021203182ecc7f38bc2c0f5400.png",
+            "id": "2"
+          },
+          "thumbnail": "/images/weapon/49509dd4dae88c644eb88ebbc407dde3fb5ce88f.png",
+          "image": "/images/weapon/b07a826039bc01ed637c4820dfd2318810cecac7.png"
+        },
+        "total_paint_point": 34304,
+        "win_meter": 8,
+        "win_count": 27,
+        "max_win_meter": 8
+      },
+      "2010": {
+        "max_win_meter": 4,
+        "win_count": 17,
+        "win_meter": 0,
+        "weapon": {
+          "sub": {
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0",
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png"
+          },
+          "id": "2010",
+          "image": "/images/weapon/1ed94885bef2b0e498ed4dd76bea9064c85cfc94.png",
+          "thumbnail": "/images/weapon/d359c8312037a0c98db73cb0a4122cf2c5665f77.png",
+          "name": "Splat Charger",
+          "special": {
+            "id": "7",
+            "image_b": "/images/special/485b748720bbf809d8b28f9f4ee1a505cbcb339b.png",
+            "image_a": "/images/special/7af300fdd872feb27b3d8e68a969457fac8b3bb7.png",
+            "name": "Sting Ray"
+          }
+        },
+        "total_paint_point": 23358,
+        "last_use_time": 1601513840,
+        "lose_count": 29
+      },
+      "3001": {
+        "last_use_time": 1606249858,
+        "lose_count": 21,
+        "win_meter": 10,
+        "total_paint_point": 27279,
+        "weapon": {
+          "special": {
+            "id": "11",
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "name": "Baller",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png"
+          },
+          "name": "Slosher Deco",
+          "thumbnail": "/images/weapon/97e0132b1f1a4d27d8d7831b429a21985bf088c3.png",
+          "image": "/images/weapon/bbaff592c6040d1aba424e04c909006225034b76.png",
+          "id": "3001",
+          "sub": {
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "id": "6",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png",
+            "name": "Sprinkler"
+          }
+        },
+        "win_count": 18,
+        "max_win_meter": 10
+      },
+      "2040": {
+        "max_win_meter": 12,
+        "weapon": {
+          "image": "/images/weapon/fd4b89e84b375f01290185f2236dbee935dd1682.png",
+          "thumbnail": "/images/weapon/42e1e9d865f3c0f23d49d05a99783d25d023b89f.png",
+          "special": {
+            "name": "Ink Storm",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png",
+            "id": "10",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png"
+          },
+          "name": "E-liter 4K Scope",
+          "sub": {
+            "image_b": "/images/sub/2e2d1dca678ca3b3e011c3e4620c5c0fa31a9248.png",
+            "id": "5",
+            "image_a": "/images/sub/2705be54dafc7a426539c9e8f701197b7a9373f5.png",
+            "name": "Ink Mine"
+          },
+          "id": "2040"
+        },
+        "total_paint_point": 100813,
+        "win_meter": 8,
+        "win_count": 63,
+        "last_use_time": 1629979524,
+        "lose_count": 70
+      },
+      "3002": {
+        "lose_count": 56,
+        "last_use_time": 1637349216,
+        "max_win_meter": 13.5,
+        "win_count": 56,
+        "win_meter": 12.5,
+        "total_paint_point": 79642,
+        "weapon": {
+          "thumbnail": "/images/weapon/b5b4131e9758b804af21c2411ca36f0b569d0547.png",
+          "special": {
+            "name": "Burst-Bomb Launcher",
+            "image_a": "/images/special/7a02badac63ad3ac275c42f699b161f0164b97c4.png",
+            "id": "4",
+            "image_b": "/images/special/7e77263fb6f87825d6b7c6ebc584a23404385a81.png"
+          },
+          "name": "Soda Slosher",
+          "image": "/images/weapon/d731da0d134633287c93d7db86a82b6a7cbe14e5.png",
+          "id": "3002",
+          "sub": {
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "id": "0",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png"
+          }
+        }
+      },
+      "2001": {
+        "total_paint_point": 3057,
+        "weapon": {
+          "sub": {
+            "name": "Autobomb",
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png",
+            "id": "4",
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png"
+          },
+          "id": "2001",
+          "image": "/images/weapon/847feca4f43cf7cc56a952892d344836d706217c.png",
+          "thumbnail": "/images/weapon/87383dc43ce9df6554d0731821badcb69cdbb79f.png",
+          "name": "New Squiffer",
+          "special": {
+            "name": "Baller",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "id": "11"
+          }
+        },
+        "win_meter": 0.5,
+        "win_count": 2,
+        "max_win_meter": 1.5,
+        "lose_count": 4,
+        "last_use_time": 1610483151
+      },
+      "3010": {
+        "total_paint_point": 363664,
+        "weapon": {
+          "id": "3010",
+          "sub": {
+            "name": "Burst Bomb",
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png",
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png",
+            "id": "2"
+          },
+          "special": {
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "name": "Ink Armor",
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png",
+            "id": "1"
+          },
+          "name": "Tri-Slosher",
+          "thumbnail": "/images/weapon/c1befd17d09a527b66f9d2c8a70849a4969642e4.png",
+          "image": "/images/weapon/ad921a57ab1b7721c50873c082bb34591b61021c.png"
+        },
+        "win_meter": 12.5,
+        "win_count": 289,
+        "max_win_meter": 15,
+        "lose_count": 207,
+        "last_use_time": 1639243102
+      },
+      "3040": {
+        "max_win_meter": 5,
+        "win_meter": 2.5,
+        "weapon": {
+          "image": "/images/weapon/6f1c2a339db6ec0dccb65704adee2db93c768245.png",
+          "name": "Explosher",
+          "special": {
+            "id": "12",
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png",
+            "name": "Bubble Blower",
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png"
+          },
+          "thumbnail": "/images/weapon/bf0d4b5ddc35a533fc5080d025707f386b2a5daa.png",
+          "sub": {
+            "id": "6",
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "name": "Sprinkler",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png"
+          },
+          "id": "3040"
+        },
+        "total_paint_point": 35008,
+        "win_count": 17,
+        "last_use_time": 1635610849,
+        "lose_count": 26
+      },
+      "2002": {
+        "lose_count": 10,
+        "last_use_time": 1635512382,
+        "win_count": 5,
+        "win_meter": 1.5,
+        "weapon": {
+          "id": "2002",
+          "sub": {
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "name": "Suction Bomb"
+          },
+          "special": {
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png",
+            "name": "Inkjet",
+            "id": "8",
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png"
+          },
+          "name": "Fresh Squiffer",
+          "thumbnail": "/images/weapon/516e43f1d29d11776cac369d4cf99be51b41b965.png",
+          "image": "/images/weapon/c6c994f058200d2c06193db585385e88f5117508.png"
+        },
+        "total_paint_point": 9306,
+        "max_win_meter": 2
+      },
+      "222": {
+        "last_use_time": 1613857431,
+        "lose_count": 2,
+        "max_win_meter": 3,
+        "win_meter": 2.5,
+        "weapon": {
+          "id": "222",
+          "sub": {
+            "id": "2",
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png",
+            "name": "Burst Bomb",
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png"
+          },
+          "thumbnail": "/images/weapon/c844758e5b5be41de7324c8e16cd559a45234fc3.png",
+          "special": {
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png",
+            "id": "0"
+          },
+          "name": "Grim Range Blaster",
+          "image": "/images/weapon/c3652374f3048b9affa9ae858bfd563bf61e9e91.png"
+        },
+        "total_paint_point": 2748,
+        "win_count": 3
+      },
+      "46": {
+        "max_win_meter": 16.5,
+        "win_count": 61,
+        "total_paint_point": 100661,
+        "weapon": {
+          "id": "46",
+          "sub": {
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0"
+          },
+          "name": "Octo Shot Replica",
+          "special": {
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png",
+            "name": "Inkjet",
+            "id": "8",
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png"
+          },
+          "thumbnail": "/images/weapon/c83b40e0bc5c913354bfd8b60c72904eab45d7e6.png",
+          "image": "/images/weapon/62cec5368a7858761cf3b2379c48acf1dec881ef.png"
+        },
+        "win_meter": 16.5,
+        "lose_count": 57,
+        "last_use_time": 1610842437
+      },
+      "62": {
+        "max_win_meter": 15.5,
+        "win_count": 43,
+        "win_meter": 15.5,
+        "weapon": {
+          "id": "62",
+          "sub": {
+            "id": "6",
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "name": "Sprinkler",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png"
+          },
+          "special": {
+            "name": "Ink Storm",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png",
+            "id": "10",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png"
+          },
+          "name": "N-ZAP '83",
+          "thumbnail": "/images/weapon/8665571e5b2e3f0eacf39c47643d9b2e2d21db6b.png",
+          "image": "/images/weapon/9584259f6c8c3568ebae330bf19225e6c47b5795.png"
+        },
+        "total_paint_point": 70310,
+        "last_use_time": 1627909822,
+        "lose_count": 24
+      },
+      "5031": {
+        "last_use_time": 1638896072,
+        "lose_count": 19,
+        "max_win_meter": 8,
+        "win_count": 24,
+        "win_meter": 8,
+        "weapon": {
+          "id": "5031",
+          "sub": {
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0",
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png"
+          },
+          "thumbnail": "/images/weapon/7ccb1233eb949e651d0c9e49971f1c0c6be59138.png",
+          "name": "Custom Dualie Squelchers",
+          "special": {
+            "name": "Ink Storm",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png",
+            "id": "10"
+          },
+          "image": "/images/weapon/a1c290b4abc1b4b9ab03425d8e89b88053390dbe.png"
+        },
+        "total_paint_point": 42834
+      },
+      "1021": {
+        "lose_count": 27,
+        "last_use_time": 1635088242,
+        "max_win_meter": 10,
+        "win_count": 26,
+        "win_meter": 10,
+        "total_paint_point": 34255,
+        "weapon": {
+          "id": "1021",
+          "sub": {
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0",
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png"
+          },
+          "special": {
+            "name": "Ink Armor",
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "id": "1",
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png"
+          },
+          "name": "Gold Dynamo Roller",
+          "thumbnail": "/images/weapon/3804a666bfaeb02c40808e7d60f7ffb364beb228.png",
+          "image": "/images/weapon/5da2f08d47a59c741b67348614a71dbe9fea3d2a.png"
+        }
+      },
+      "1022": {
+        "last_use_time": 1639077162,
+        "lose_count": 110,
+        "win_count": 91,
+        "total_paint_point": 159134,
+        "weapon": {
+          "sub": {
+            "name": "Sprinkler",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png",
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "id": "6"
+          },
+          "id": "1022",
+          "image": "/images/weapon/4f011b881d26bd6c9d8c5c17f54e35fedc012bb0.png",
+          "thumbnail": "/images/weapon/9354e96a72e0396db6121d78d75e63bbd9bf69fc.png",
+          "name": "Kensa Dynamo Roller",
+          "special": {
+            "image_a": "/images/special/e6f33512755e462874f57d1f02b61bb1c41ad79f.png",
+            "name": "Booyah Bomb",
+            "id": "17",
+            "image_b": "/images/special/714c00b84b54d68c5e0b6da4186d41831fb4a442.png"
+          }
+        },
+        "win_meter": 10.5,
+        "max_win_meter": 10.5
+      },
+      "4002": {
+        "win_meter": 5.5,
+        "weapon": {
+          "thumbnail": "/images/weapon/a07c8b4be43017c069f3424a913cfae15ecbb9db.png",
+          "special": {
+            "id": "18",
+            "image_b": "/images/special/9ec05d05567361f6eb26e7ec58ea0749b26658f0.png",
+            "image_a": "/images/special/90e1d8273105af7fcc9662eb4d1cf68f14034a00.png",
+            "name": "Ultra Stamp"
+          },
+          "name": "Kensa Mini Splatling",
+          "image": "/images/weapon/89aba4858deeda363b49a41230c7396e629128ef.png",
+          "id": "4002",
+          "sub": {
+            "image_a": "/images/sub/7d58593453b479138bca576ea13c19b870059ce9.png",
+            "name": "Toxic Mist",
+            "image_b": "/images/sub/9ab41340bfcef91125430d18015ccf98985efdb6.png",
+            "id": "7"
+          }
+        },
+        "total_paint_point": 34946,
+        "win_count": 20,
+        "max_win_meter": 5.5,
+        "lose_count": 22,
+        "last_use_time": 1640871888
+      },
+      "52": {
+        "lose_count": 26,
+        "last_use_time": 1594057425,
+        "win_meter": 8.5,
+        "weapon": {
+          "thumbnail": "/images/weapon/7287d8c9884a52cd7a40088f1eb214ed0fdd4804.png",
+          "special": {
+            "image_a": "/images/special/e6f33512755e462874f57d1f02b61bb1c41ad79f.png",
+            "name": "Booyah Bomb",
+            "id": "17",
+            "image_b": "/images/special/714c00b84b54d68c5e0b6da4186d41831fb4a442.png"
+          },
+          "name": "Kensa .52 Gal",
+          "image": "/images/weapon/51640794843aefa0e2583e71343e78e6cddbb851.png",
+          "id": "52",
+          "sub": {
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall",
+            "id": "9",
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png"
+          }
+        },
+        "total_paint_point": 44168,
+        "win_count": 28,
+        "max_win_meter": 10
+      },
+      "200": {
+        "lose_count": 9,
+        "last_use_time": 1635514028,
+        "win_count": 11,
+        "total_paint_point": 13058,
+        "weapon": {
+          "sub": {
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "name": "Splat Bomb",
+            "id": "0",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png"
+          },
+          "id": "200",
+          "image": "/images/weapon/3f840ce3cc5ac0b8cbf7451079b57e807d8b95f1.png",
+          "thumbnail": "/images/weapon/2764365e99414ebb3f8b62548beb4dd5f65b70b2.png",
+          "special": {
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "name": "Baller",
+            "id": "11",
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png"
+          },
+          "name": "Luna Blaster"
+        },
+        "win_meter": 6,
+        "max_win_meter": 7
+      },
+      "2061": {
+        "win_count": 0,
+        "weapon": {
+          "image": "/images/weapon/de8ffe6a57f1324556d179f7db3099eb34d036c7.png",
+          "name": "Custom Goo Tuber",
+          "special": {
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "id": "8",
+            "name": "Inkjet",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png"
+          },
+          "thumbnail": "/images/weapon/5a1bdae8e7787233508ff826dfdf597f801d62a9.png",
+          "sub": {
+            "image_b": "/images/sub/2b5797c0ad847a54b9bd8168e75050484919d373.png",
+            "id": "3",
+            "name": "Curling Bomb",
+            "image_a": "/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png"
+          },
+          "id": "2061"
+        },
+        "total_paint_point": 937,
+        "win_meter": 0,
+        "max_win_meter": 0,
+        "last_use_time": 1635515112,
+        "lose_count": 1
+      },
+      "300": {
+        "max_win_meter": 7.5,
+        "win_count": 14,
+        "total_paint_point": 27155,
+        "weapon": {
+          "thumbnail": "/images/weapon/41001d5ba8ce0f05aaa00f9a0d6368b1fa109c73.png",
+          "name": "L-3 Nozzlenose",
+          "special": {
+            "id": "11",
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "name": "Baller"
+          },
+          "image": "/images/weapon/202724be5bb5e59457227d087d7c48a32c01db24.png",
+          "id": "300",
+          "sub": {
+            "image_b": "/images/sub/2b5797c0ad847a54b9bd8168e75050484919d373.png",
+            "id": "3",
+            "name": "Curling Bomb",
+            "image_a": "/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png"
+          }
+        },
+        "win_meter": 7.5,
+        "last_use_time": 1610570453,
+        "lose_count": 14
+      },
+      "5015": {
+        "win_count": 2,
+        "win_meter": 0.5,
+        "weapon": {
+          "special": {
+            "name": "Tenta Missiles",
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "id": "0",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png"
+          },
+          "name": "Hero Dualie Replicas",
+          "thumbnail": "/images/weapon/544c6dd7fbaf14f2256e5b7007c9d99bcd964f59.png",
+          "image": "/images/weapon/df2f7f311eba4c2e3b5f84d70dab524187f5dede.png",
+          "id": "5015",
+          "sub": {
+            "id": "2",
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png",
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png",
+            "name": "Burst Bomb"
+          }
+        },
+        "total_paint_point": 3627,
+        "max_win_meter": 1.5,
+        "last_use_time": 1622494292,
+        "lose_count": 3
+      },
+      "400": {
+        "last_use_time": 1583267509,
+        "lose_count": 1,
+        "max_win_meter": 0,
+        "win_count": 0,
+        "weapon": {
+          "sub": {
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall",
+            "id": "9",
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png"
+          },
+          "id": "400",
+          "image": "/images/weapon/b9901d49ef3229d3e62d58fc3e1edc8c48da6873.png",
+          "special": {
+            "image_a": "/images/special/7af300fdd872feb27b3d8e68a969457fac8b3bb7.png",
+            "name": "Sting Ray",
+            "image_b": "/images/special/485b748720bbf809d8b28f9f4ee1a505cbcb339b.png",
+            "id": "7"
+          },
+          "name": "Squeezer",
+          "thumbnail": "/images/weapon/38fd7f743bd9db2e2dfb2b8cd81576028ee7ab89.png"
+        },
+        "total_paint_point": 771,
+        "win_meter": 0
+      },
+      "5020": {
+        "last_use_time": 1605551937,
+        "lose_count": 2,
+        "win_meter": 0,
+        "weapon": {
+          "sub": {
+            "id": "5",
+            "image_b": "/images/sub/2e2d1dca678ca3b3e011c3e4620c5c0fa31a9248.png",
+            "name": "Ink Mine",
+            "image_a": "/images/sub/2705be54dafc7a426539c9e8f701197b7a9373f5.png"
+          },
+          "id": "5020",
+          "image": "/images/weapon/7d6032f0ceee14c4607385b848c6e486b84a2865.png",
+          "name": "Glooga Dualies",
+          "special": {
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "id": "8",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png",
+            "name": "Inkjet"
+          },
+          "thumbnail": "/images/weapon/7fa3c37a222e3acd2e41cd8c7554a94b27a9f46b.png"
+        },
+        "total_paint_point": 1075,
+        "win_count": 0,
+        "max_win_meter": 0
+      },
+      "1030": {
+        "lose_count": 15,
+        "last_use_time": 1637344552,
+        "max_win_meter": 3,
+        "win_count": 9,
+        "win_meter": 1.5,
+        "weapon": {
+          "id": "1030",
+          "sub": {
+            "id": "9",
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png",
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall"
+          },
+          "special": {
+            "image_a": "/images/special/18990f646c551ee77c5b283ec814e371f692a553.png",
+            "name": "Splat-Bomb Launcher",
+            "id": "2",
+            "image_b": "/images/special/9e89e1d67803c3021203182ecc7f38bc2c0f5400.png"
+          },
+          "name": "Flingza Roller",
+          "thumbnail": "/images/weapon/d0145bac97eabd1046263c8856f3e14c68547a90.png",
+          "image": "/images/weapon/e32ed68bb18628c5ede5816a2fbc2b8fcdd04124.png"
+        },
+        "total_paint_point": 16508
+      },
+      "310": {
+        "lose_count": 3,
+        "last_use_time": 1606254403,
+        "total_paint_point": 3424,
+        "weapon": {
+          "sub": {
+            "name": "Point Sensor",
+            "image_a": "/images/sub/14b4d4ef62e915e87bd7caa8b99fb4e986caea26.png",
+            "id": "8",
+            "image_b": "/images/sub/627ae0ea02ab649a7a482ee7ee7ace85ca307f44.png"
+          },
+          "id": "310",
+          "image": "/images/weapon/45e8847cbaf09bdc86c6e6627236286781b09f0f.png",
+          "thumbnail": "/images/weapon/8f342949acc700b1603425071620dbae8536dbed.png",
+          "name": "H-3 Nozzlenose",
+          "special": {
+            "name": "Tenta Missiles",
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png",
+            "id": "0"
+          }
+        },
+        "win_meter": 0,
+        "win_count": 1,
+        "max_win_meter": 1
+      },
+      "250": {
+        "last_use_time": 1610568917,
+        "lose_count": 8,
+        "max_win_meter": 6,
+        "win_count": 8,
+        "total_paint_point": 11217,
+        "weapon": {
+          "name": "Rapid Blaster Pro",
+          "special": {
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png",
+            "id": "10",
+            "name": "Ink Storm",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png"
+          },
+          "thumbnail": "/images/weapon/91208c6fe9fc4e62e81412d6e772fc696b1a7317.png",
+          "image": "/images/weapon/8f64580bb033ba86fa0179179cfeb56b5544fda6.png",
+          "id": "250",
+          "sub": {
+            "id": "7",
+            "image_b": "/images/sub/9ab41340bfcef91125430d18015ccf98985efdb6.png",
+            "image_a": "/images/sub/7d58593453b479138bca576ea13c19b870059ce9.png",
+            "name": "Toxic Mist"
+          }
+        },
+        "win_meter": 6
+      },
+      "210": {
+        "max_win_meter": 1.5,
+        "win_count": 2,
+        "win_meter": 0,
+        "weapon": {
+          "image": "/images/weapon/cfafc8bc42bcd89058fdb22b7b943fb9f893adb8.png",
+          "thumbnail": "/images/weapon/5e26f6a8217836c25ac0c75f05b13e6051bdc644.png",
+          "special": {
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "id": "9",
+            "name": "Splashdown",
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png"
+          },
+          "name": "Blaster",
+          "sub": {
+            "id": "7",
+            "image_b": "/images/sub/9ab41340bfcef91125430d18015ccf98985efdb6.png",
+            "image_a": "/images/sub/7d58593453b479138bca576ea13c19b870059ce9.png",
+            "name": "Toxic Mist"
+          },
+          "id": "210"
+        },
+        "total_paint_point": 5023,
+        "lose_count": 7,
+        "last_use_time": 1640302064
+      },
+      "6020": {
+        "lose_count": 5,
+        "last_use_time": 1639249069,
+        "max_win_meter": 0,
+        "weapon": {
+          "image": "/images/weapon/15fe3fe6bbec24ddb5fdc3ffd06585bc82440531.png",
+          "name": "Undercover Brella",
+          "special": {
+            "name": "Splashdown",
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png",
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "id": "9"
+          },
+          "thumbnail": "/images/weapon/2385e4a32df2857b67e1b9b4f622089e9da36bbc.png",
+          "sub": {
+            "name": "Ink Mine",
+            "image_a": "/images/sub/2705be54dafc7a426539c9e8f701197b7a9373f5.png",
+            "image_b": "/images/sub/2e2d1dca678ca3b3e011c3e4620c5c0fa31a9248.png",
+            "id": "5"
+          },
+          "id": "6020"
+        },
+        "total_paint_point": 10166,
+        "win_meter": 0,
+        "win_count": 6
+      },
+      "6005": {
+        "win_count": 5,
+        "total_paint_point": 7872,
+        "weapon": {
+          "image": "/images/weapon/d81d2a168f729fa0f18a7c402a87320c42cc4a45.png",
+          "thumbnail": "/images/weapon/8b62de420955b0f0d4cf9dd9accecb49fc37c448.png",
+          "special": {
+            "id": "10",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png",
+            "name": "Ink Storm",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png"
+          },
+          "name": "Hero Brella Replica",
+          "sub": {
+            "id": "6",
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png",
+            "name": "Sprinkler"
+          },
+          "id": "6005"
+        },
+        "win_meter": 1.5,
+        "max_win_meter": 3.5,
+        "lose_count": 6,
+        "last_use_time": 1615326965
+      },
+      "2": {
+        "win_count": 26,
+        "total_paint_point": 42178,
+        "weapon": {
+          "id": "2",
+          "sub": {
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "name": "Splat Bomb"
+          },
+          "thumbnail": "/images/weapon/0856db0af087de81ffa3207f96d6e100f9de63d5.png",
+          "special": {
+            "id": "18",
+            "image_b": "/images/special/9ec05d05567361f6eb26e7ec58ea0749b26658f0.png",
+            "image_a": "/images/special/90e1d8273105af7fcc9662eb4d1cf68f14034a00.png",
+            "name": "Ultra Stamp"
+          },
+          "name": "Sploosh-o-matic 7",
+          "image": "/images/weapon/9e6306faaeb2a45c40027a81774d83f3ddb51393.png"
+        },
+        "win_meter": 10,
+        "max_win_meter": 10,
+        "lose_count": 21,
+        "last_use_time": 1628544432
+      },
+      "301": {
+        "last_use_time": 1611865308,
+        "lose_count": 2,
+        "max_win_meter": 5.5,
+        "win_meter": 5.5,
+        "total_paint_point": 6665,
+        "weapon": {
+          "sub": {
+            "name": "Burst Bomb",
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png",
+            "id": "2",
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png"
+          },
+          "id": "301",
+          "image": "/images/weapon/603afe4a79919ea5c9783bb7781a316429ca0c35.png",
+          "name": "L-3 Nozzlenose D",
+          "special": {
+            "id": "8",
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png",
+            "name": "Inkjet"
+          },
+          "thumbnail": "/images/weapon/f35e387803b7ad60b415fcb9c6a67e96cec22208.png"
+        },
+        "win_count": 6
+      },
+      "90": {
+        "max_win_meter": 11.5,
+        "win_count": 67,
+        "weapon": {
+          "id": "90",
+          "sub": {
+            "id": "7",
+            "image_b": "/images/sub/9ab41340bfcef91125430d18015ccf98985efdb6.png",
+            "image_a": "/images/sub/7d58593453b479138bca576ea13c19b870059ce9.png",
+            "name": "Toxic Mist"
+          },
+          "thumbnail": "/images/weapon/2ec8112dc3b29c82869810743473655f4427e65a.png",
+          "name": "Jet Squelcher",
+          "special": {
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png",
+            "id": "0",
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles"
+          },
+          "image": "/images/weapon/007fb7ed50e76dde495ffb0747421b50dfce8aa3.png"
+        },
+        "total_paint_point": 111182,
+        "win_meter": 7,
+        "lose_count": 51,
+        "last_use_time": 1622726632
+      },
+      "201": {
+        "lose_count": 14,
+        "last_use_time": 1603572519,
+        "max_win_meter": 9.5,
+        "weapon": {
+          "sub": {
+            "name": "Ink Mine",
+            "image_a": "/images/sub/2705be54dafc7a426539c9e8f701197b7a9373f5.png",
+            "image_b": "/images/sub/2e2d1dca678ca3b3e011c3e4620c5c0fa31a9248.png",
+            "id": "5"
+          },
+          "id": "201",
+          "image": "/images/weapon/17b0ee72fe4a056545de4d588c90958b2f95d9f2.png",
+          "thumbnail": "/images/weapon/5011acd7fc35c6ce405ffd3c3446011cafe5aab9.png",
+          "name": "Luna Blaster Neo",
+          "special": {
+            "name": "Suction-Bomb Launcher",
+            "image_a": "/images/special/0a6b11ca3d93e99fa53aa50ee8a948c6747a651d.png",
+            "id": "3",
+            "image_b": "/images/special/0ee7864672be208c9ea57904eb172e942dc4471f.png"
+          }
+        },
+        "total_paint_point": 20547,
+        "win_meter": 7.5,
+        "win_count": 14
+      },
+      "211": {
+        "lose_count": 11,
+        "last_use_time": 1613511285,
+        "max_win_meter": 4,
+        "weapon": {
+          "image": "/images/weapon/d5252a5bc225d85a04fd7975e3935cc4be114651.png",
+          "special": {
+            "id": "8",
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "name": "Inkjet",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png"
+          },
+          "name": "Custom Blaster",
+          "thumbnail": "/images/weapon/19d6a4f48f26528131a890314c7b36cd0868eb79.png",
+          "sub": {
+            "name": "Autobomb",
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png",
+            "id": "4",
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png"
+          },
+          "id": "211"
+        },
+        "total_paint_point": 11611,
+        "win_meter": 4,
+        "win_count": 8
+      },
+      "91": {
+        "weapon": {
+          "image": "/images/weapon/b02f1e60bd8c92f7778d832d068fc695c064a0d5.png",
+          "special": {
+            "id": "7",
+            "image_b": "/images/special/485b748720bbf809d8b28f9f4ee1a505cbcb339b.png",
+            "image_a": "/images/special/7af300fdd872feb27b3d8e68a969457fac8b3bb7.png",
+            "name": "Sting Ray"
+          },
+          "name": "Custom Jet Squelcher",
+          "thumbnail": "/images/weapon/92adfb3ab76ed9479e765271992b3fd5378b1bc6.png",
+          "sub": {
+            "name": "Burst Bomb",
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png",
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png",
+            "id": "2"
+          },
+          "id": "91"
+        },
+        "total_paint_point": 22504,
+        "win_meter": 11,
+        "win_count": 19,
+        "max_win_meter": 11,
+        "lose_count": 10,
+        "last_use_time": 1616253662
+      },
+      "311": {
+        "lose_count": 3,
+        "last_use_time": 1632425011,
+        "max_win_meter": 4,
+        "win_count": 4,
+        "win_meter": 4,
+        "weapon": {
+          "sub": {
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png",
+            "id": "1",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "name": "Suction Bomb"
+          },
+          "id": "311",
+          "image": "/images/weapon/f349388933712ba0da08833aceeb3272ff412e8a.png",
+          "special": {
+            "name": "Ink Armor",
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "id": "1",
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png"
+          },
+          "name": "H-3 Nozzlenose D",
+          "thumbnail": "/images/weapon/b8fe14c22c7cf51526aaa252ba6250800e8fc44d.png"
+        },
+        "total_paint_point": 5613
+      },
+      "6021": {
+        "lose_count": 6,
+        "last_use_time": 1613511550,
+        "max_win_meter": 1,
+        "win_meter": 0,
+        "weapon": {
+          "special": {
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "id": "11",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "name": "Baller"
+          },
+          "name": "Undercover Sorella Brella",
+          "thumbnail": "/images/weapon/907517e291eb3c1d5e8b1e40a73ffa67eae104b4.png",
+          "image": "/images/weapon/ed1aa6f4edecafba6c8d028e475a9219281f7bb4.png",
+          "id": "6021",
+          "sub": {
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "name": "Splat Bomb",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0"
+          }
+        },
+        "total_paint_point": 6526,
+        "win_count": 1
+      },
+      "6022": {
+        "lose_count": 6,
+        "last_use_time": 1610482887,
+        "max_win_meter": 6,
+        "total_paint_point": 11322,
+        "weapon": {
+          "id": "6022",
+          "sub": {
+            "image_b": "/images/sub/88f5dd0c10a851227ef618e770b2934a39d7078e.png",
+            "id": "12",
+            "image_a": "/images/sub/e9df0dfef8af0a69f0f0d0a08de90b3314ed82da.png",
+            "name": "Torpedo"
+          },
+          "special": {
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "name": "Ink Armor",
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png",
+            "id": "1"
+          },
+          "name": "Kensa Undercover Brella",
+          "thumbnail": "/images/weapon/13b4449a704ffe38c640fc0dd4144fef28e9e80d.png",
+          "image": "/images/weapon/c109e3798c66515c3ea00c627a10441988279dc0.png"
+        },
+        "win_meter": 6,
+        "win_count": 8
+      },
+      "251": {
+        "max_win_meter": 3.5,
+        "win_count": 4,
+        "win_meter": 3,
+        "weapon": {
+          "name": "Rapid Blaster Pro Deco",
+          "special": {
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "name": "Ink Armor",
+            "id": "1",
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png"
+          },
+          "thumbnail": "/images/weapon/3b6c19b6dceaf4ad369f42864f8276be4f96e88a.png",
+          "image": "/images/weapon/bd90ecaccefb937625821f9227588ba1928e7870.png",
+          "id": "251",
+          "sub": {
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall",
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png",
+            "id": "9"
+          }
+        },
+        "total_paint_point": 4531,
+        "lose_count": 3,
+        "last_use_time": 1611866373
+      },
+      "12": {
+        "last_use_time": 1622461807,
+        "lose_count": 11,
+        "max_win_meter": 10.5,
+        "win_meter": 10.5,
+        "total_paint_point": 27297,
+        "weapon": {
+          "sub": {
+            "id": "12",
+            "image_b": "/images/sub/88f5dd0c10a851227ef618e770b2934a39d7078e.png",
+            "image_a": "/images/sub/e9df0dfef8af0a69f0f0d0a08de90b3314ed82da.png",
+            "name": "Torpedo"
+          },
+          "id": "12",
+          "image": "/images/weapon/7805f5ae2de9f1c1244d3836bb7e2377bf17ad87.png",
+          "thumbnail": "/images/weapon/2f5cbbe7943526e219b78fea09c44db0226bf38d.png",
+          "name": "Kensa Splattershot Jr.",
+          "special": {
+            "id": "12",
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png",
+            "name": "Bubble Blower",
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png"
+          }
+        },
+        "win_count": 17
+      },
+      "401": {
+        "win_count": 4,
+        "weapon": {
+          "thumbnail": "/images/weapon/f4701d24ced7d59622385fb0b8471c38c8869739.png",
+          "name": "Foil Squeezer",
+          "special": {
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png",
+            "id": "12",
+            "name": "Bubble Blower",
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png"
+          },
+          "image": "/images/weapon/092e69d405c430dd0b9aa24800429f364369da57.png",
+          "id": "401",
+          "sub": {
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0",
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png"
+          }
+        },
+        "total_paint_point": 4903,
+        "win_meter": 3,
+        "max_win_meter": 3.5,
+        "lose_count": 2,
+        "last_use_time": 1613855275
+      },
+      "1031": {
+        "max_win_meter": 2,
+        "win_count": 9,
+        "total_paint_point": 13550,
+        "weapon": {
+          "sub": {
+            "name": "Suction Bomb",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png",
+            "id": "1"
+          },
+          "id": "1031",
+          "image": "/images/weapon/ee678bfc384636260d77df17f0b9d3921b8641fa.png",
+          "special": {
+            "id": "0",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png",
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles"
+          },
+          "name": "Foil Flingza Roller",
+          "thumbnail": "/images/weapon/be04e073c9ff2584c5b68c61dd0c19e5b7d38f58.png"
+        },
+        "win_meter": 2,
+        "lose_count": 10,
+        "last_use_time": 1638477762
+      },
+      "5021": {
+        "last_use_time": 1611512477,
+        "lose_count": 1,
+        "total_paint_point": 1383,
+        "weapon": {
+          "special": {
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "name": "Baller",
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "id": "11"
+          },
+          "name": "Glooga Dualies Deco",
+          "thumbnail": "/images/weapon/7bf3815d02c4d310ce69e083b612fbb45aba0865.png",
+          "image": "/images/weapon/7c661d3fd51b68829d99776b0d43a5d17d463a22.png",
+          "id": "5021",
+          "sub": {
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png",
+            "id": "9",
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall"
+          }
+        },
+        "win_meter": 1,
+        "win_count": 1,
+        "max_win_meter": 1
+      },
+      "2011": {
+        "max_win_meter": 4.5,
+        "win_count": 6,
+        "win_meter": 4.5,
+        "total_paint_point": 12624,
+        "weapon": {
+          "image": "/images/weapon/31a1aa9e48e709ba82a3c5b0407ffd6af38e9591.png",
+          "special": {
+            "image_a": "/images/special/0a6b11ca3d93e99fa53aa50ee8a948c6747a651d.png",
+            "name": "Suction-Bomb Launcher",
+            "image_b": "/images/special/0ee7864672be208c9ea57904eb172e942dc4471f.png",
+            "id": "3"
+          },
+          "name": "Firefin Splat Charger",
+          "thumbnail": "/images/weapon/e1aee30e0e64c89286a82cd5bbbd77a764a06446.png",
+          "sub": {
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png",
+            "id": "9",
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall"
+          },
+          "id": "2011"
+        },
+        "last_use_time": 1640883136,
+        "lose_count": 11
+      },
+      "2041": {
+        "lose_count": 90,
+        "last_use_time": 1632770783,
+        "win_count": 55,
+        "win_meter": 3,
+        "weapon": {
+          "id": "2041",
+          "sub": {
+            "image_a": "/images/sub/5a31dff440e88eb711c6e810c25b8ae3ce8e64b8.png",
+            "name": "Squid Beakon",
+            "id": "10",
+            "image_b": "/images/sub/9c61e8fb4acef3d926be099603a74a02b0976431.png"
+          },
+          "thumbnail": "/images/weapon/c23d8f82d8cc9f2994ca7d08493b3bc9b64ad674.png",
+          "special": {
+            "id": "12",
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png",
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png",
+            "name": "Bubble Blower"
+          },
+          "name": "Custom E-liter 4K Scope",
+          "image": "/images/weapon/84e8c3ff8e07f5244ce87128e2a70a1f7063c822.png"
+        },
+        "total_paint_point": 100000,
+        "max_win_meter": 7
+      },
+      "3000": {
+        "max_win_meter": 10.5,
+        "win_meter": 10.5,
+        "total_paint_point": 29371,
+        "weapon": {
+          "id": "3000",
+          "sub": {
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "name": "Suction Bomb"
+          },
+          "thumbnail": "/images/weapon/739b0f54bae840643b470c054808a3740c230a74.png",
+          "name": "Slosher",
+          "special": {
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png",
+            "id": "0",
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles"
+          },
+          "image": "/images/weapon/3963a3fb1ff8038a42072e913587fc6f9aa00d71.png"
+        },
+        "win_count": 26,
+        "lose_count": 16,
+        "last_use_time": 1635609123
+      },
+      "2012": {
+        "last_use_time": 1623149344,
+        "lose_count": 16,
+        "max_win_meter": 5,
+        "total_paint_point": 16852,
+        "weapon": {
+          "id": "2012",
+          "sub": {
+            "id": "6",
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "name": "Sprinkler",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png"
+          },
+          "special": {
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "id": "11",
+            "name": "Baller",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png"
+          },
+          "name": "Kensa Charger",
+          "thumbnail": "/images/weapon/a275a69a05894dc555dae0d2ba926eee4d998b32.png",
+          "image": "/images/weapon/6d06647d94a6f379236a260dd7fd61d9c77c7d0c.png"
+        },
+        "win_meter": 4,
+        "win_count": 14
+      },
+      "20": {
+        "lose_count": 14,
+        "last_use_time": 1635516742,
+        "max_win_meter": 12,
+        "total_paint_point": 33225,
+        "weapon": {
+          "image": "/images/weapon/e5a97d52f12a83a037526588363021f2c1f718b0.png",
+          "thumbnail": "/images/weapon/be61eacdea2c695d28ec5d60e1a04fafbc384736.png",
+          "special": {
+            "id": "8",
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png",
+            "name": "Inkjet"
+          },
+          "name": "Splash-o-matic",
+          "sub": {
+            "id": "7",
+            "image_b": "/images/sub/9ab41340bfcef91125430d18015ccf98985efdb6.png",
+            "image_a": "/images/sub/7d58593453b479138bca576ea13c19b870059ce9.png",
+            "name": "Toxic Mist"
+          },
+          "id": "20"
+        },
+        "win_meter": 12,
+        "win_count": 23
+      },
+      "1015": {
+        "win_count": 10,
+        "win_meter": 6,
+        "total_paint_point": 14368,
+        "weapon": {
+          "image": "/images/weapon/e3a04bc009779c7b8c67a38eca480d8490227bbb.png",
+          "name": "Hero Roller Replica",
+          "special": {
+            "name": "Splashdown",
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png",
+            "id": "9",
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png"
+          },
+          "thumbnail": "/images/weapon/d782fd218fe45d0f2b82a8a1f72fb3d824e7c759.png",
+          "sub": {
+            "image_b": "/images/sub/2b5797c0ad847a54b9bd8168e75050484919d373.png",
+            "id": "3",
+            "image_a": "/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png",
+            "name": "Curling Bomb"
+          },
+          "id": "1015"
+        },
+        "max_win_meter": 6,
+        "last_use_time": 1631660819,
+        "lose_count": 12
+      },
+      "30": {
+        "max_win_meter": 15,
+        "win_count": 98,
+        "total_paint_point": 174825,
+        "weapon": {
+          "sub": {
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png",
+            "name": "Suction Bomb",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png"
+          },
+          "id": "30",
+          "image": "/images/weapon/c6ab7ebff7af7f7604eb53a12851da880b1ec2c7.png",
+          "thumbnail": "/images/weapon/33b212a5ed9d0ab13bc06efa634ce52e8560b68b.png",
+          "special": {
+            "id": "5",
+            "image_b": "/images/special/b8340ae3c4c5102a9223f84c4f92bb60ff2d0704.png",
+            "name": "Curling-Bomb Launcher",
+            "image_a": "/images/special/718f3506bce0bd3c17a90c45903798eb09935324.png"
+          },
+          "name": "Aerospray MG"
+        },
+        "win_meter": 15,
+        "last_use_time": 1588448759,
+        "lose_count": 106
+      },
+      "3011": {
+        "max_win_meter": 38.5,
+        "win_count": 1606,
+        "total_paint_point": 2568340,
+        "weapon": {
+          "sub": {
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "name": "Splat Bomb",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0"
+          },
+          "id": "3011",
+          "image": "/images/weapon/b58fcf2a82a3ad75f7a068a86b7316e2a70a497c.png",
+          "thumbnail": "/images/weapon/149f183355354c83153f1a03ac610c23aba20a2d.png",
+          "name": "Tri-Slosher Nouveau",
+          "special": {
+            "name": "Ink Storm",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png",
+            "id": "10",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png"
+          }
+        },
+        "win_meter": 23.5,
+        "last_use_time": 1638978814,
+        "lose_count": 1177
+      },
+      "3041": {
+        "last_use_time": 1638217203,
+        "lose_count": 13,
+        "max_win_meter": 3.5,
+        "win_meter": 3.5,
+        "weapon": {
+          "id": "3041",
+          "sub": {
+            "image_a": "/images/sub/14b4d4ef62e915e87bd7caa8b99fb4e986caea26.png",
+            "name": "Point Sensor",
+            "id": "8",
+            "image_b": "/images/sub/627ae0ea02ab649a7a482ee7ee7ace85ca307f44.png"
+          },
+          "thumbnail": "/images/weapon/a3cb2eb16ca00c38eb0e8903ff03d8b01bddd1f6.png",
+          "name": "Custom Explosher",
+          "special": {
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "id": "11",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "name": "Baller"
+          },
+          "image": "/images/weapon/b791a73233c9c8b3c76fc604961fb2f2612f63f0.png"
+        },
+        "total_paint_point": 17687,
+        "win_count": 11
+      },
+      "2000": {
+        "lose_count": 67,
+        "last_use_time": 1639189003,
+        "win_count": 70,
+        "total_paint_point": 101867,
+        "weapon": {
+          "id": "2000",
+          "sub": {
+            "image_b": "/images/sub/627ae0ea02ab649a7a482ee7ee7ace85ca307f44.png",
+            "id": "8",
+            "name": "Point Sensor",
+            "image_a": "/images/sub/14b4d4ef62e915e87bd7caa8b99fb4e986caea26.png"
+          },
+          "thumbnail": "/images/weapon/a0730bdef035d247bcc5d2361abb561aa4a4d6ed.png",
+          "name": "Classic Squiffer",
+          "special": {
+            "name": "Ink Armor",
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "id": "1",
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png"
+          },
+          "image": "/images/weapon/5a0a20324f1374a363363d721a605849e36ffff2.png"
+        },
+        "win_meter": 16,
+        "max_win_meter": 16
+      },
+      "45": {
+        "last_use_time": 1610484197,
+        "lose_count": 6,
+        "win_count": 14,
+        "win_meter": 10.5,
+        "weapon": {
+          "sub": {
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png",
+            "name": "Burst Bomb",
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png",
+            "id": "2"
+          },
+          "id": "45",
+          "image": "/images/weapon/71086d01fbc7e38bab74dc60b4e6b9129c001876.png",
+          "thumbnail": "/images/weapon/9192b55c5189f75d4326db8f5d915bd684a4123f.png",
+          "name": "Hero Shot Replica",
+          "special": {
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png",
+            "name": "Splashdown",
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "id": "9"
+          }
+        },
+        "total_paint_point": 15966,
+        "max_win_meter": 10.5
+      },
+      "41": {
+        "win_meter": 11.5,
+        "total_paint_point": 31440,
+        "weapon": {
+          "image": "/images/weapon/331d889d8113b794131080c8943e05a3d2c4547d.png",
+          "special": {
+            "id": "8",
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png",
+            "name": "Inkjet"
+          },
+          "name": "Tentatek Splattershot",
+          "thumbnail": "/images/weapon/5f519a8b3f436c854dc81ee14bfc3a26aef09ebc.png",
+          "sub": {
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "id": "0",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png"
+          },
+          "id": "41"
+        },
+        "win_count": 21,
+        "max_win_meter": 11.5,
+        "last_use_time": 1639591000,
+        "lose_count": 20
+      },
+      "71": {
+        "lose_count": 7,
+        "last_use_time": 1616324513,
+        "win_count": 4,
+        "win_meter": 1,
+        "weapon": {
+          "image": "/images/weapon/2568ff485aa5ac6636ff5d1f78af4b94f86a3e1a.png",
+          "name": "Forge Splattershot Pro",
+          "special": {
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png",
+            "name": "Bubble Blower",
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png",
+            "id": "12"
+          },
+          "thumbnail": "/images/weapon/f296766203483ad4dc9c12604500fea5a4699b0f.png",
+          "sub": {
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "name": "Suction Bomb",
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png"
+          },
+          "id": "71"
+        },
+        "total_paint_point": 8563,
+        "max_win_meter": 2
+      },
+      "1020": {
+        "win_count": 27,
+        "total_paint_point": 34202,
+        "weapon": {
+          "thumbnail": "/images/weapon/b3ae201685123edb72b1fb2686eebd3b1b58437f.png",
+          "special": {
+            "name": "Sting Ray",
+            "image_a": "/images/special/7af300fdd872feb27b3d8e68a969457fac8b3bb7.png",
+            "id": "7",
+            "image_b": "/images/special/485b748720bbf809d8b28f9f4ee1a505cbcb339b.png"
+          },
+          "name": "Dynamo Roller",
+          "image": "/images/weapon/3d274190988ad20dd1b02825448edbb6e12c720c.png",
+          "id": "1020",
+          "sub": {
+            "id": "5",
+            "image_b": "/images/sub/2e2d1dca678ca3b3e011c3e4620c5c0fa31a9248.png",
+            "image_a": "/images/sub/2705be54dafc7a426539c9e8f701197b7a9373f5.png",
+            "name": "Ink Mine"
+          }
+        },
+        "win_meter": 11.5,
+        "max_win_meter": 11.5,
+        "last_use_time": 1629980083,
+        "lose_count": 27
+      },
+      "4011": {
+        "win_count": 5,
+        "weapon": {
+          "name": "Heavy Splatling Deco",
+          "special": {
+            "name": "Bubble Blower",
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png",
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png",
+            "id": "12"
+          },
+          "thumbnail": "/images/weapon/1db8bbfe2fd6ce2f64711d6a1b2acf27acf11882.png",
+          "image": "/images/weapon/ec344528f377f9ca7f04d26e414cb681cc803ffc.png",
+          "id": "4011",
+          "sub": {
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall",
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png",
+            "id": "9"
+          }
+        },
+        "total_paint_point": 6618,
+        "win_meter": 4.5,
+        "max_win_meter": 4.5,
+        "lose_count": 4,
+        "last_use_time": 1635538873
+      },
+      "4041": {
+        "lose_count": 82,
+        "last_use_time": 1639235176,
+        "max_win_meter": 7.5,
+        "win_meter": 5.5,
+        "total_paint_point": 92054,
+        "weapon": {
+          "image": "/images/weapon/eb2f56a84d871c9aa8d0f5e79ad776f8ade82360.png",
+          "special": {
+            "id": "8",
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "name": "Inkjet",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png"
+          },
+          "name": "Nautilus 79",
+          "thumbnail": "/images/weapon/d278baf341686f935c7516e6a6e1616833f18e4b.png",
+          "sub": {
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png",
+            "name": "Suction Bomb",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png"
+          },
+          "id": "4041"
+        },
+        "win_count": 57
+      },
+      "4012": {
+        "lose_count": 134,
+        "last_use_time": 1634295375,
+        "weapon": {
+          "image": "/images/weapon/d766e99e9c97bb5d796743dd2b2760c9b458ea17.png",
+          "thumbnail": "/images/weapon/58291b961224a69acae2050fbbd87bee6392bbaa.png",
+          "special": {
+            "name": "Booyah Bomb",
+            "image_a": "/images/special/e6f33512755e462874f57d1f02b61bb1c41ad79f.png",
+            "id": "17",
+            "image_b": "/images/special/714c00b84b54d68c5e0b6da4186d41831fb4a442.png"
+          },
+          "name": "Heavy Splatling Remix",
+          "sub": {
+            "name": "Point Sensor",
+            "image_a": "/images/sub/14b4d4ef62e915e87bd7caa8b99fb4e986caea26.png",
+            "id": "8",
+            "image_b": "/images/sub/627ae0ea02ab649a7a482ee7ee7ace85ca307f44.png"
+          },
+          "id": "4012"
+        },
+        "total_paint_point": 211746,
+        "win_meter": 16,
+        "win_count": 123,
+        "max_win_meter": 16
+      },
+      "70": {
+        "win_count": 17,
+        "weapon": {
+          "image": "/images/weapon/2e2b59379b8f14cfed0600f84590be0ecad707b6.png",
+          "special": {
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png",
+            "name": "Ink Storm",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png",
+            "id": "10"
+          },
+          "name": "Splattershot Pro",
+          "thumbnail": "/images/weapon/05d735502f00fe9cbcaca8714f7102653da888fd.png",
+          "sub": {
+            "image_b": "/images/sub/627ae0ea02ab649a7a482ee7ee7ace85ca307f44.png",
+            "id": "8",
+            "name": "Point Sensor",
+            "image_a": "/images/sub/14b4d4ef62e915e87bd7caa8b99fb4e986caea26.png"
+          },
+          "id": "70"
+        },
+        "total_paint_point": 21734,
+        "win_meter": 8.5,
+        "max_win_meter": 9.5,
+        "last_use_time": 1631125071,
+        "lose_count": 11
+      },
+      "40": {
+        "lose_count": 39,
+        "last_use_time": 1625501034,
+        "max_win_meter": 10,
+        "win_count": 33,
+        "weapon": {
+          "id": "40",
+          "sub": {
+            "name": "Burst Bomb",
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png",
+            "id": "2",
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png"
+          },
+          "thumbnail": "/images/weapon/98282e995fc07e2f2ba6157bcfdc997c5161f309.png",
+          "special": {
+            "id": "9",
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png",
+            "name": "Splashdown"
+          },
+          "name": "Splattershot",
+          "image": "/images/weapon/e1d09fc9502a81c82137c8dcd5a872eb872af697.png"
+        },
+        "total_paint_point": 58126,
+        "win_meter": 10
+      },
+      "5030": {
+        "last_use_time": 1609111713,
+        "lose_count": 14,
+        "win_count": 12,
+        "weapon": {
+          "name": "Dualie Squelchers",
+          "special": {
+            "name": "Tenta Missiles",
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "id": "0",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png"
+          },
+          "thumbnail": "/images/weapon/3abcd1e1152e6d819bee363311edcf4737d14a45.png",
+          "image": "/images/weapon/aaead5ff0b63cdcb989b211d649b2552bb3e3a1b.png",
+          "id": "5030",
+          "sub": {
+            "image_a": "/images/sub/14b4d4ef62e915e87bd7caa8b99fb4e986caea26.png",
+            "name": "Point Sensor",
+            "id": "8",
+            "image_b": "/images/sub/627ae0ea02ab649a7a482ee7ee7ace85ca307f44.png"
+          }
+        },
+        "total_paint_point": 18980,
+        "win_meter": 4,
+        "max_win_meter": 6
+      },
+      "4000": {
+        "lose_count": 34,
+        "last_use_time": 1640792174,
+        "win_meter": 2.5,
+        "weapon": {
+          "thumbnail": "/images/weapon/585e0e72053689bbab848d97ec07bac4ea769e68.png",
+          "special": {
+            "name": "Tenta Missiles",
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "id": "0",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png"
+          },
+          "name": "Mini Splatling",
+          "image": "/images/weapon/2a1c5ca0e68919b4d655bd860cac3b2942b95498.png",
+          "id": "4000",
+          "sub": {
+            "id": "2",
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png",
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png",
+            "name": "Burst Bomb"
+          }
+        },
+        "total_paint_point": 51895,
+        "win_count": 23,
+        "max_win_meter": 4.5
+      },
+      "31": {
+        "win_meter": 12.5,
+        "total_paint_point": 59950,
+        "weapon": {
+          "thumbnail": "/images/weapon/4b547e6e039b8a142db19618970a55fb441830d4.png",
+          "name": "Aerospray RG",
+          "special": {
+            "name": "Baller",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "id": "11"
+          },
+          "image": "/images/weapon/30d6350313bff0557dfff31bd58427dd1fede9a0.png",
+          "id": "31",
+          "sub": {
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "id": "6",
+            "name": "Sprinkler",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png"
+          }
+        },
+        "win_count": 37,
+        "max_win_meter": 14.5,
+        "lose_count": 31,
+        "last_use_time": 1609451919
+      },
+      "21": {
+        "max_win_meter": 20.5,
+        "weapon": {
+          "image": "/images/weapon/dea2b808b42d65aff5223b016fc6dc5859e88976.png",
+          "name": "Neo Splash-o-matic",
+          "special": {
+            "name": "Suction-Bomb Launcher",
+            "image_a": "/images/special/0a6b11ca3d93e99fa53aa50ee8a948c6747a651d.png",
+            "id": "3",
+            "image_b": "/images/special/0ee7864672be208c9ea57904eb172e942dc4471f.png"
+          },
+          "thumbnail": "/images/weapon/b4fd108db45846a5f006dbdcbe09c4c50b8be4b7.png",
+          "sub": {
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png",
+            "id": "2",
+            "name": "Burst Bomb",
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png"
+          },
+          "id": "21"
+        },
+        "total_paint_point": 563948,
+        "win_meter": 18,
+        "win_count": 351,
+        "lose_count": 271,
+        "last_use_time": 1638048227
+      },
+      "1115": {
+        "lose_count": 3,
+        "last_use_time": 1605387405,
+        "win_meter": 3,
+        "total_paint_point": 3674,
+        "weapon": {
+          "id": "1115",
+          "sub": {
+            "name": "Autobomb",
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png",
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png",
+            "id": "4"
+          },
+          "thumbnail": "/images/weapon/9d255e4abc48ac0b67f7a6b7c8e7199a741aced8.png",
+          "name": "Herobrush Replica",
+          "special": {
+            "image_b": "/images/special/26e8117808ce17dadb0f23943359e5909fef4085.png",
+            "id": "8",
+            "image_a": "/images/special/9871c82952ed0141be0310ace1942c9f5f66d655.png",
+            "name": "Inkjet"
+          },
+          "image": "/images/weapon/ff16174e92430f653aa0f2b4c9b42d9ea5399d39.png"
+        },
+        "win_count": 3,
+        "max_win_meter": 3
+      },
+      "242": {
+        "win_meter": 5,
+        "total_paint_point": 5192,
+        "weapon": {
+          "sub": {
+            "id": "12",
+            "image_b": "/images/sub/88f5dd0c10a851227ef618e770b2934a39d7078e.png",
+            "image_a": "/images/sub/e9df0dfef8af0a69f0f0d0a08de90b3314ed82da.png",
+            "name": "Torpedo"
+          },
+          "id": "242",
+          "image": "/images/weapon/d03d1c4d89e4ad9e19e2f9519efac423408c8008.png",
+          "thumbnail": "/images/weapon/42f6471ad13905ec61336ad28635b0a4bf4768e7.png",
+          "special": {
+            "id": "11",
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png",
+            "name": "Baller",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png"
+          },
+          "name": "Kensa Rapid Blaster"
+        },
+        "win_count": 6,
+        "max_win_meter": 5,
+        "last_use_time": 1606246937,
+        "lose_count": 2
+      },
+      "1012": {
+        "weapon": {
+          "image": "/images/weapon/0dffd0b1d57cfceb656ce2902d981bd63c8b97cd.png",
+          "name": "Kensa Splat Roller",
+          "special": {
+            "name": "Bubble Blower",
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png",
+            "id": "12",
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png"
+          },
+          "thumbnail": "/images/weapon/e8248f9fe8360700b93b60617f3613be018e049f.png",
+          "sub": {
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "name": "Splat Bomb",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0"
+          },
+          "id": "1012"
+        },
+        "total_paint_point": 4028,
+        "win_meter": 3,
+        "win_count": 4,
+        "max_win_meter": 3,
+        "lose_count": 1,
+        "last_use_time": 1635614274
+      },
+      "80": {
+        "max_win_meter": 15,
+        "weapon": {
+          "sub": {
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "id": "6",
+            "name": "Sprinkler",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png"
+          },
+          "id": "80",
+          "image": "/images/weapon/df90f6065594378690647c23d42440e2de89c99d.png",
+          "name": ".96 Gal",
+          "special": {
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "name": "Ink Armor",
+            "id": "1",
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png"
+          },
+          "thumbnail": "/images/weapon/a696c21270a22fdb9babb63512031f5283be7c31.png"
+        },
+        "total_paint_point": 138695,
+        "win_meter": 15,
+        "win_count": 115,
+        "last_use_time": 1637351852,
+        "lose_count": 101
+      },
+      "1011": {
+        "max_win_meter": 13.5,
+        "win_count": 32,
+        "win_meter": 13.5,
+        "weapon": {
+          "special": {
+            "name": "Baller",
+            "image_a": "/images/special/3e9cd3e60367fbe82d6237a10fdc826d695b9fa0.png",
+            "id": "11",
+            "image_b": "/images/special/caf32476e5010e27a4ef9923dbe323978b1d7510.png"
+          },
+          "name": "Krak-On Splat Roller",
+          "thumbnail": "/images/weapon/40ac15e0a6e28784fe270aabda044c1d77a3e49d.png",
+          "image": "/images/weapon/e3c87d5f06b4e4ae2ce67ed4b68051194e302c24.png",
+          "id": "1011",
+          "sub": {
+            "image_a": "/images/sub/5a31dff440e88eb711c6e810c25b8ae3ce8e64b8.png",
+            "name": "Squid Beakon",
+            "id": "10",
+            "image_b": "/images/sub/9c61e8fb4acef3d926be099603a74a02b0976431.png"
+          }
+        },
+        "total_paint_point": 39747,
+        "last_use_time": 1589309775,
+        "lose_count": 20
+      },
+      "4020": {
+        "last_use_time": 1635541227,
+        "lose_count": 6,
+        "total_paint_point": 13690,
+        "weapon": {
+          "sub": {
+            "id": "4",
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png",
+            "name": "Autobomb",
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png"
+          },
+          "id": "4020",
+          "image": "/images/weapon/e34bbd580e49695b97d5fc4464cc901d4fe08ce5.png",
+          "thumbnail": "/images/weapon/3a92a1fa8320222ca300d3c3ac25474c5077c304.png",
+          "name": "Hydra Splatling",
+          "special": {
+            "name": "Splashdown",
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png",
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "id": "9"
+          }
+        },
+        "win_meter": 12,
+        "win_count": 15,
+        "max_win_meter": 12
+      },
+      "2015": {
+        "win_count": 77,
+        "win_meter": 9.5,
+        "weapon": {
+          "id": "2015",
+          "sub": {
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "id": "0",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png"
+          },
+          "thumbnail": "/images/weapon/5a901e56b8f13eb20fee865d116199b490d1f7ae.png",
+          "name": "Hero Charger Replica",
+          "special": {
+            "name": "Sting Ray",
+            "image_a": "/images/special/7af300fdd872feb27b3d8e68a969457fac8b3bb7.png",
+            "id": "7",
+            "image_b": "/images/special/485b748720bbf809d8b28f9f4ee1a505cbcb339b.png"
+          },
+          "image": "/images/weapon/f4380ea765fc330a02562c442995500fb89187e0.png"
+        },
+        "total_paint_point": 100316,
+        "max_win_meter": 12.5,
+        "last_use_time": 1640301476,
+        "lose_count": 80
+      },
+      "10": {
+        "last_use_time": 1629977276,
+        "lose_count": 40,
+        "win_count": 68,
+        "total_paint_point": 100864,
+        "weapon": {
+          "id": "10",
+          "sub": {
+            "id": "0",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png"
+          },
+          "name": "Splattershot Jr.",
+          "special": {
+            "image_a": "/images/special/abe458a7d13d855f1b27135ccf3e96f46f1f3d10.png",
+            "name": "Ink Armor",
+            "image_b": "/images/special/415bf85acb0b0dcc478316332fe86efb1fe4f203.png",
+            "id": "1"
+          },
+          "thumbnail": "/images/weapon/f1419d88f30dfacdb94a8122ccdd8c14bbadc7c4.png",
+          "image": "/images/weapon/91b6666bcbfccc204d86f21222a8db22a27d08d0.png"
+        },
+        "win_meter": 14.5,
+        "max_win_meter": 28
+      },
+      "1000": {
+        "weapon": {
+          "image": "/images/weapon/123db7c37066e10e2c437656db2a26f18898e6b6.png",
+          "thumbnail": "/images/weapon/193d0700fdbd08d58c72b7ac0e282984e77a7ffc.png",
+          "special": {
+            "id": "10",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png",
+            "name": "Ink Storm",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png"
+          },
+          "name": "Carbon Roller",
+          "sub": {
+            "name": "Autobomb",
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png",
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png",
+            "id": "4"
+          },
+          "id": "1000"
+        },
+        "total_paint_point": 33547,
+        "win_meter": 7.5,
+        "win_count": 24,
+        "max_win_meter": 11,
+        "last_use_time": 1635536994,
+        "lose_count": 24
+      },
+      "240": {
+        "max_win_meter": 5,
+        "win_count": 5,
+        "win_meter": 5,
+        "weapon": {
+          "sub": {
+            "id": "5",
+            "image_b": "/images/sub/2e2d1dca678ca3b3e011c3e4620c5c0fa31a9248.png",
+            "name": "Ink Mine",
+            "image_a": "/images/sub/2705be54dafc7a426539c9e8f701197b7a9373f5.png"
+          },
+          "id": "240",
+          "image": "/images/weapon/72bdcf5f6077bd7149832153034b3f43d16ac461.png",
+          "thumbnail": "/images/weapon/0a362970b38864f80cca68fed6deb43354333703.png",
+          "name": "Rapid Blaster",
+          "special": {
+            "image_b": "/images/special/9e89e1d67803c3021203182ecc7f38bc2c0f5400.png",
+            "id": "2",
+            "name": "Splat-Bomb Launcher",
+            "image_a": "/images/special/18990f646c551ee77c5b283ec814e371f692a553.png"
+          }
+        },
+        "total_paint_point": 4262,
+        "lose_count": 1,
+        "last_use_time": 1607289513
+      },
+      "2020": {
+        "last_use_time": 1634829636,
+        "lose_count": 79,
+        "max_win_meter": 14,
+        "win_count": 65,
+        "weapon": {
+          "image": "/images/weapon/0ec07bb00918f071975b35191e0860152bdcb321.png",
+          "thumbnail": "/images/weapon/928d52eca6c3f907f7c6f9132236cbf92e658466.png",
+          "name": "Splatterscope",
+          "special": {
+            "id": "7",
+            "image_b": "/images/special/485b748720bbf809d8b28f9f4ee1a505cbcb339b.png",
+            "name": "Sting Ray",
+            "image_a": "/images/special/7af300fdd872feb27b3d8e68a969457fac8b3bb7.png"
+          },
+          "sub": {
+            "id": "0",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png"
+          },
+          "id": "2020"
+        },
+        "total_paint_point": 100573,
+        "win_meter": 12
+      },
+      "4015": {
+        "max_win_meter": 8,
+        "win_meter": 7,
+        "weapon": {
+          "sub": {
+            "id": "6",
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png",
+            "name": "Sprinkler"
+          },
+          "id": "4015",
+          "image": "/images/weapon/db72f8ce65d8ac8e70e071e2a6dcb65d75cb4bf6.png",
+          "special": {
+            "id": "7",
+            "image_b": "/images/special/485b748720bbf809d8b28f9f4ee1a505cbcb339b.png",
+            "image_a": "/images/special/7af300fdd872feb27b3d8e68a969457fac8b3bb7.png",
+            "name": "Sting Ray"
+          },
+          "name": "Hero Splatling Replica",
+          "thumbnail": "/images/weapon/671fa6a5866cfacdcb82119f141774cfb1ab88c3.png"
+        },
+        "total_paint_point": 37729,
+        "win_count": 22,
+        "last_use_time": 1635604581,
+        "lose_count": 28
+      },
+      "221": {
+        "last_use_time": 1640303888,
+        "lose_count": 18,
+        "max_win_meter": 4.5,
+        "win_count": 14,
+        "win_meter": 4.5,
+        "weapon": {
+          "image": "/images/weapon/82f77775662c32ca0de28610520144b0044db006.png",
+          "thumbnail": "/images/weapon/62a55f1f8fe10aac6fe04c2850d2e3a8d28bca58.png",
+          "name": "Custom Range Blaster",
+          "special": {
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png",
+            "name": "Bubble Blower",
+            "id": "12",
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png"
+          },
+          "sub": {
+            "image_b": "/images/sub/2b5797c0ad847a54b9bd8168e75050484919d373.png",
+            "id": "3",
+            "name": "Curling Bomb",
+            "image_a": "/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png"
+          },
+          "id": "221"
+        },
+        "total_paint_point": 18380
+      },
+      "3020": {
+        "win_meter": 0,
+        "weapon": {
+          "image": "/images/weapon/27a026e7dec5a068777bb7883f50451aec799d71.png",
+          "thumbnail": "/images/weapon/e3a38f4e457c8d8d7e5629d7f8508487c6c12746.png",
+          "name": "Sloshing Machine",
+          "special": {
+            "image_b": "/images/special/485b748720bbf809d8b28f9f4ee1a505cbcb339b.png",
+            "id": "7",
+            "name": "Sting Ray",
+            "image_a": "/images/special/7af300fdd872feb27b3d8e68a969457fac8b3bb7.png"
+          },
+          "sub": {
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png",
+            "name": "Autobomb",
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png",
+            "id": "4"
+          },
+          "id": "3020"
+        },
+        "total_paint_point": 2233,
+        "win_count": 1,
+        "max_win_meter": 1,
+        "last_use_time": 1613852583,
+        "lose_count": 2
+      },
+      "1100": {
+        "lose_count": 51,
+        "last_use_time": 1591209123,
+        "max_win_meter": 10,
+        "win_count": 50,
+        "total_paint_point": 81994,
+        "weapon": {
+          "id": "1100",
+          "sub": {
+            "name": "Splat Bomb",
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "id": "0",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png"
+          },
+          "special": {
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "id": "9",
+            "name": "Splashdown",
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png"
+          },
+          "name": "Inkbrush",
+          "thumbnail": "/images/weapon/e5be617760b68c9a1e3fc778275a6f4a1aedc1e6.png",
+          "image": "/images/weapon/1f94c29067c918ac9143b756dc607ff0f8cf4e63.png"
+        },
+        "win_meter": 7.5
+      },
+      "231": {
+        "last_use_time": 1638219424,
+        "lose_count": 2,
+        "win_count": 9,
+        "total_paint_point": 5885,
+        "weapon": {
+          "name": "Clash Blaster Neo",
+          "special": {
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png",
+            "id": "0"
+          },
+          "thumbnail": "/images/weapon/9176035499629be618544bb8313044f6bb3b1344.png",
+          "image": "/images/weapon/03300b6db070d0cdf00f8f305b73f53738fe138d.png",
+          "id": "231",
+          "sub": {
+            "image_b": "/images/sub/2b5797c0ad847a54b9bd8168e75050484919d373.png",
+            "id": "3",
+            "image_a": "/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png",
+            "name": "Curling Bomb"
+          }
+        },
+        "win_meter": 4.5,
+        "max_win_meter": 4.5
+      },
+      "11": {
+        "lose_count": 44,
+        "last_use_time": 1591392769,
+        "max_win_meter": 11.5,
+        "win_meter": 8.5,
+        "total_paint_point": 71999,
+        "weapon": {
+          "id": "11",
+          "sub": {
+            "name": "Autobomb",
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png",
+            "id": "4",
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png"
+          },
+          "name": "Custom Splattershot Jr.",
+          "special": {
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png",
+            "id": "10",
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png",
+            "name": "Ink Storm"
+          },
+          "thumbnail": "/images/weapon/adb23cb4b136704f93bd3bf1d21bbfd596e8b62e.png",
+          "image": "/images/weapon/89f1e63475de867b80daa22c1132fcc66360339b.png"
+        },
+        "win_count": 41
+      },
+      "1112": {
+        "lose_count": 6,
+        "last_use_time": 1635517556,
+        "win_count": 7,
+        "total_paint_point": 8015,
+        "weapon": {
+          "sub": {
+            "id": "1",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png",
+            "name": "Suction Bomb",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png"
+          },
+          "id": "1112",
+          "image": "/images/weapon/ed86ec2e0d4eb5384a532acc36474038238b758b.png",
+          "special": {
+            "image_a": "/images/special/90e1d8273105af7fcc9662eb4d1cf68f14034a00.png",
+            "name": "Ultra Stamp",
+            "image_b": "/images/special/9ec05d05567361f6eb26e7ec58ea0749b26658f0.png",
+            "id": "18"
+          },
+          "name": "Kensa Octobrush",
+          "thumbnail": "/images/weapon/c32a200ce6485096839626fb3c88ae0374e55f95.png"
+        },
+        "win_meter": 4.5,
+        "max_win_meter": 5.5
+      },
+      "1111": {
+        "weapon": {
+          "image": "/images/weapon/277ef479288fc6069382bdd411d36d0ccd159c51.png",
+          "thumbnail": "/images/weapon/65d7449a3ba5f558b60d352a75038f2e003db5e1.png",
+          "name": "Octobrush Nouveau",
+          "special": {
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles",
+            "id": "0",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png"
+          },
+          "sub": {
+            "id": "10",
+            "image_b": "/images/sub/9c61e8fb4acef3d926be099603a74a02b0976431.png",
+            "image_a": "/images/sub/5a31dff440e88eb711c6e810c25b8ae3ce8e64b8.png",
+            "name": "Squid Beakon"
+          },
+          "id": "1111"
+        },
+        "total_paint_point": 53888,
+        "win_meter": 13.5,
+        "win_count": 48,
+        "max_win_meter": 13.5,
+        "lose_count": 34,
+        "last_use_time": 1601839962
+      },
+      "81": {
+        "last_use_time": 1623786713,
+        "lose_count": 23,
+        "max_win_meter": 7.5,
+        "win_count": 24,
+        "total_paint_point": 32365,
+        "weapon": {
+          "thumbnail": "/images/weapon/5c61f04a1a2218fca2816e614a8aa0e6c02ca8d6.png",
+          "special": {
+            "name": "Splashdown",
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png",
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "id": "9"
+          },
+          "name": ".96 Gal Deco",
+          "image": "/images/weapon/fd7b18f1acac0d51eb9d57f953e80d7fe96ed3d8.png",
+          "id": "81",
+          "sub": {
+            "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+            "name": "Splash Wall",
+            "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png",
+            "id": "9"
+          }
+        },
+        "win_meter": 4.5
+      },
+      "1": {
+        "lose_count": 59,
+        "last_use_time": 1610845151,
+        "win_meter": 15.5,
+        "weapon": {
+          "id": "1",
+          "sub": {
+            "id": "10",
+            "image_b": "/images/sub/9c61e8fb4acef3d926be099603a74a02b0976431.png",
+            "image_a": "/images/sub/5a31dff440e88eb711c6e810c25b8ae3ce8e64b8.png",
+            "name": "Squid Beakon"
+          },
+          "name": "Neo Sploosh-o-matic",
+          "special": {
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles",
+            "id": "0",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png"
+          },
+          "thumbnail": "/images/weapon/c5831ecfe6c46fa457afd4263754114c9c1922d1.png",
+          "image": "/images/weapon/0534f24ced5b8b67e89f4eb6710f9ae916c69e24.png"
+        },
+        "total_paint_point": 100000,
+        "win_count": 58,
+        "max_win_meter": 15.5
+      },
+      "6001": {
+        "lose_count": 3,
+        "last_use_time": 1605310285,
+        "win_count": 0,
+        "win_meter": 0,
+        "total_paint_point": 2536,
+        "weapon": {
+          "id": "6001",
+          "sub": {
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png",
+            "id": "4",
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png",
+            "name": "Autobomb"
+          },
+          "thumbnail": "/images/weapon/21835942cc2b4b083b6a7351501fdc78c40b3b6f.png",
+          "name": "Sorella Brella",
+          "special": {
+            "id": "2",
+            "image_b": "/images/special/9e89e1d67803c3021203182ecc7f38bc2c0f5400.png",
+            "name": "Splat-Bomb Launcher",
+            "image_a": "/images/special/18990f646c551ee77c5b283ec814e371f692a553.png"
+          },
+          "image": "/images/weapon/ae4ae38ed89f32cd5ab2df7e1dcaa364379d818c.png"
+        },
+        "max_win_meter": 0
+      },
+      "72": {
+        "win_count": 117,
+        "win_meter": 11,
+        "weapon": {
+          "sub": {
+            "image_a": "/images/sub/d2eaeec524d28ef315a13f8a9e11dd1039cb78aa.png",
+            "name": "Splat Bomb",
+            "image_b": "/images/sub/b13bf755b279af83904892fae01cd98c866dfec7.png",
+            "id": "0"
+          },
+          "id": "72",
+          "image": "/images/weapon/69cb46d940fa310937264d9cd962143e85ee633b.png",
+          "thumbnail": "/images/weapon/54ce83bf80f87263854d3c96ebdb54f427aa0a09.png",
+          "special": {
+            "name": "Booyah Bomb",
+            "image_a": "/images/special/e6f33512755e462874f57d1f02b61bb1c41ad79f.png",
+            "id": "17",
+            "image_b": "/images/special/714c00b84b54d68c5e0b6da4186d41831fb4a442.png"
+          },
+          "name": "Kensa Splattershot Pro"
+        },
+        "total_paint_point": 201098,
+        "max_win_meter": 12,
+        "last_use_time": 1623173490,
+        "lose_count": 140
+      },
+      "5002": {
+        "weapon": {
+          "id": "5002",
+          "sub": {
+            "name": "Torpedo",
+            "image_a": "/images/sub/e9df0dfef8af0a69f0f0d0a08de90b3314ed82da.png",
+            "image_b": "/images/sub/88f5dd0c10a851227ef618e770b2934a39d7078e.png",
+            "id": "12"
+          },
+          "thumbnail": "/images/weapon/aa2c27ad9564d43c954c2c48d95e9256bce61062.png",
+          "special": {
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png",
+            "name": "Splashdown",
+            "id": "9",
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png"
+          },
+          "name": "Clear Dapple Dualies",
+          "image": "/images/weapon/2cb3234f45ec50dfd6bd6243cfa9885ebd89f3ce.png"
+        },
+        "total_paint_point": 16836,
+        "win_meter": 8.5,
+        "win_count": 13,
+        "max_win_meter": 9.5,
+        "last_use_time": 1632421375,
+        "lose_count": 7
+      },
+      "42": {
+        "last_use_time": 1640791739,
+        "lose_count": 98,
+        "max_win_meter": 11.5,
+        "win_count": 67,
+        "win_meter": 11.5,
+        "total_paint_point": 149606,
+        "weapon": {
+          "id": "42",
+          "sub": {
+            "name": "Suction Bomb",
+            "image_a": "/images/sub/79ec06c8afca6af0e14da4d9941706bb15f9927e.png",
+            "image_b": "/images/sub/9d6336b855940f6c8fc82979a972f9f3381c0e65.png",
+            "id": "1"
+          },
+          "thumbnail": "/images/weapon/fe42a0e502228e086d6cb7c90d74592e1f1c2d36.png",
+          "name": "Kensa Splattershot",
+          "special": {
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png",
+            "id": "0",
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles"
+          },
+          "image": "/images/weapon/6108e83b27959e8c2f6e577c4e9cd4b01de5f353.png"
+        }
+      },
+      "4031": {
+        "lose_count": 42,
+        "last_use_time": 1640204202,
+        "win_meter": 0.5,
+        "total_paint_point": 51940,
+        "weapon": {
+          "name": "Ballpoint Splatling Nouveau",
+          "special": {
+            "image_a": "/images/special/b07cb8cd5b8afbf509b98a9cbb768ed0f2e34898.png",
+            "name": "Ink Storm",
+            "id": "10",
+            "image_b": "/images/special/b2ffd060612d3ed4cfa7bee583cb28d22307064a.png"
+          },
+          "thumbnail": "/images/weapon/0948019a40074c92affe00fd0d9d003101b6fd9d.png",
+          "image": "/images/weapon/34fd511c4ac8a10a66fe8a5f54375a14a523cfe9.png",
+          "id": "4031",
+          "sub": {
+            "image_b": "/images/sub/9c61e8fb4acef3d926be099603a74a02b0976431.png",
+            "id": "10",
+            "name": "Squid Beakon",
+            "image_a": "/images/sub/5a31dff440e88eb711c6e810c25b8ae3ce8e64b8.png"
+          }
+        },
+        "win_count": 36,
+        "max_win_meter": 3.5
+      },
+      "5040": {
+        "last_use_time": 1611865828,
+        "lose_count": 2,
+        "max_win_meter": 3,
+        "total_paint_point": 3306,
+        "weapon": {
+          "name": "Dark Tetra Dualies",
+          "special": {
+            "id": "9",
+            "image_b": "/images/special/4eb81e00f5d707248879a7c7037d8475716a8045.png",
+            "name": "Splashdown",
+            "image_a": "/images/special/324d41e9582d84101152849bc8c96d6595c9b0ff.png"
+          },
+          "thumbnail": "/images/weapon/78f0df8c7b0f625d91f5b4ea953b10872109c77b.png",
+          "image": "/images/weapon/ba750d284eb067abdc995435c3358eed4e6f90fa.png",
+          "id": "5040",
+          "sub": {
+            "image_a": "/images/sub/457de86fa079df54c7a3c96decca49a55a1686ae.png",
+            "name": "Autobomb",
+            "id": "4",
+            "image_b": "/images/sub/f0e4b4bad0e37031b8cb8ff397d4bb0ad9c86307.png"
+          }
+        },
+        "win_meter": 2,
+        "win_count": 3
+      },
+      "5010": {
+        "max_win_meter": 13,
+        "win_count": 19,
+        "win_meter": 11.5,
+        "weapon": {
+          "thumbnail": "/images/weapon/c60760efc43e3a509187a1b714be477f7fb6c514.png",
+          "special": {
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles",
+            "id": "0",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png"
+          },
+          "name": "Splat Dualies",
+          "image": "/images/weapon/bb5caf24e43f8c7ceb126670bf24fd3aa9a3c3fc.png",
+          "id": "5010",
+          "sub": {
+            "id": "2",
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png",
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png",
+            "name": "Burst Bomb"
+          }
+        },
+        "total_paint_point": 24062,
+        "last_use_time": 1624999421,
+        "lose_count": 14
+      },
+      "2050": {
+        "weapon": {
+          "id": "2050",
+          "sub": {
+            "image_a": "/images/sub/e398a9e0360f048b6a0c4c3c1e89211cca96577f.png",
+            "name": "Curling Bomb",
+            "image_b": "/images/sub/2b5797c0ad847a54b9bd8168e75050484919d373.png",
+            "id": "3"
+          },
+          "thumbnail": "/images/weapon/bbabdf1a9ad9fc2217c21cc35993c04ee9bc58b5.png",
+          "special": {
+            "id": "0",
+            "image_b": "/images/special/4819d9d318668bdd5dab248a23397ec351bc5c60.png",
+            "image_a": "/images/special/e395a50d51459dcee4db62d8d1fbc4bb263bc326.png",
+            "name": "Tenta Missiles"
+          },
+          "name": "Bamboozler 14 Mk I",
+          "image": "/images/weapon/6ecbbb897d6c59a5c03097216ef4f803366ea6fa.png"
+        },
+        "total_paint_point": 40851,
+        "win_meter": 7,
+        "win_count": 29,
+        "max_win_meter": 7,
+        "last_use_time": 1622496492,
+        "lose_count": 46
+      },
+      "3031": {
+        "lose_count": 60,
+        "last_use_time": 1637702830,
+        "win_meter": 5.5,
+        "weapon": {
+          "sub": {
+            "image_b": "/images/sub/47b6c31e712634bd793d5b920288fe7b1fb3c2bd.png",
+            "id": "6",
+            "name": "Sprinkler",
+            "image_a": "/images/sub/46f5b9fe851d4ac8df9eb959e7270ff72526dffe.png"
+          },
+          "id": "3031",
+          "image": "/images/weapon/0ea421c37e7fa6ed7327e4c2f03764655e0d40ee.png",
+          "name": "Bloblobber Deco",
+          "special": {
+            "name": "Suction-Bomb Launcher",
+            "image_a": "/images/special/0a6b11ca3d93e99fa53aa50ee8a948c6747a651d.png",
+            "id": "3",
+            "image_b": "/images/special/0ee7864672be208c9ea57904eb172e942dc4471f.png"
+          },
+          "thumbnail": "/images/weapon/c30fc877495c0403b13aa9ad4ae1a5639bce99bb.png"
+        },
+        "total_paint_point": 88683,
+        "win_count": 44,
+        "max_win_meter": 10.5
+      },
+      "2031": {
+        "lose_count": 81,
+        "last_use_time": 1638044785,
+        "total_paint_point": 100068,
+        "weapon": {
+          "sub": {
+            "image_b": "/images/sub/9c61e8fb4acef3d926be099603a74a02b0976431.png",
+            "id": "10",
+            "image_a": "/images/sub/5a31dff440e88eb711c6e810c25b8ae3ce8e64b8.png",
+            "name": "Squid Beakon"
+          },
+          "id": "2031",
+          "image": "/images/weapon/e46d05acf3a7dd1caa3afbd78ec85a116a6273de.png",
+          "name": "Custom E-liter 4K",
+          "special": {
+            "image_b": "/images/special/7cebdb0c336b64b829a1cfae2d40c0c4cb24a897.png",
+            "id": "12",
+            "image_a": "/images/special/f49b0c33e1e25853a15dfc6a6c95705e8d290741.png",
+            "name": "Bubble Blower"
+          },
+          "thumbnail": "/images/weapon/de573343cfbc69465a6f270a8a46dffe4dcd40f6.png"
+        },
+        "win_meter": 5,
+        "win_count": 63,
+        "max_win_meter": 10.5
+      },
+      "32": {
+        "lose_count": 24,
+        "last_use_time": 1640801143,
+        "max_win_meter": 10,
+        "weapon": {
+          "image": "/images/weapon/682ee1a07c75652dc3dfc6e8edb153e85bcbd12c.png",
+          "name": "Aerospray PG",
+          "special": {
+            "id": "17",
+            "image_b": "/images/special/714c00b84b54d68c5e0b6da4186d41831fb4a442.png",
+            "name": "Booyah Bomb",
+            "image_a": "/images/special/e6f33512755e462874f57d1f02b61bb1c41ad79f.png"
+          },
+          "thumbnail": "/images/weapon/06c772d8a308136b401ef996414b76b14c28bc3c.png",
+          "sub": {
+            "image_a": "/images/sub/5f978ddb4716f0d04fcc737755b0b3d212d5671c.png",
+            "name": "Burst Bomb",
+            "image_b": "/images/sub/0c90dd7487c0c1179e0e6827b8928143cf04e336.png",
+            "id": "2"
+          },
+          "id": "32"
+        },
+        "total_paint_point": 50760,
+        "win_meter": 9.5,
+        "win_count": 27
+      }
+    },
+    "total_paint_point_octa": 5253851,
+    "unique_id": "15228359194300492953",
+    "update_time": 1640883136,
+    "lose_count": 5090,
+    "league_stats": {
+      "pair": {
+        "silver_count": 15,
+        "no_medal_count": 5,
+        "gold_count": 1,
+        "bronze_count": 30
+      },
+      "team": {
+        "bronze_count": 12,
+        "no_medal_count": 4,
+        "gold_count": 0,
+        "silver_count": 1
+      }
+    },
+    "player": {
+      "clothes_skills": {
+        "subs": [
+          {
+            "image": "/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png",
+            "name": "question mark",
+            "id": "255"
+          },
+          {
+            "id": "255",
+            "name": "question mark",
+            "image": "/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png"
+          },
+          {
+            "id": "255",
+            "image": "/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png",
+            "name": "question mark"
+          }
+        ],
+        "main": {
+          "image": "/images/skill/7de1bdfd875ef470b6066c17bed726b5b5113d48.png",
+          "name": "Run Speed Up",
+          "id": "3"
+        }
+      },
+      "star_rank": 1,
+      "weapon": {
+        "thumbnail": "/images/weapon/e1aee30e0e64c89286a82cd5bbbd77a764a06446.png",
+        "name": "Firefin Splat Charger",
+        "special": {
+          "id": "3",
+          "image_b": "/images/special/0ee7864672be208c9ea57904eb172e942dc4471f.png",
+          "name": "Suction-Bomb Launcher",
+          "image_a": "/images/special/0a6b11ca3d93e99fa53aa50ee8a948c6747a651d.png"
+        },
+        "image": "/images/weapon/31a1aa9e48e709ba82a3c5b0407ffd6af38e9591.png",
+        "id": "2011",
+        "sub": {
+          "name": "Splash Wall",
+          "image_a": "/images/sub/b00df7ddec57c9254094c901dbb7533b61e5a3e3.png",
+          "id": "9",
+          "image_b": "/images/sub/42940c5ac8fea75599f8d8379f9e0c5bbd2eaedd.png"
+        }
+      },
+      "head_skills": {
+        "subs": [
+          {
+            "id": "0",
+            "image": "/images/skill/04b1de71fba1f14197b9163503955c52fd74858b.png",
+            "name": "Ink Saver (Main)"
+          },
+          {
+            "id": "255",
+            "image": "/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png",
+            "name": "question mark"
+          },
+          {
+            "image": "/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png",
+            "name": "question mark",
+            "id": "255"
+          }
+        ],
+        "main": {
+          "name": "Run Speed Up",
+          "image": "/images/skill/7de1bdfd875ef470b6066c17bed726b5b5113d48.png",
+          "id": "3"
+        }
+      },
+      "shoes": {
+        "rarity": 0,
+        "image": "/images/shoes/0334a79fe510a1dcac8612c82f5669fdb99bbd35.png",
+        "kind": "shoes",
+        "name": "Banana Basics",
+        "brand": {
+          "id": "2",
+          "name": "Krak-On",
+          "frequent_skill": {
+            "id": "4",
+            "name": "Swim Speed Up",
+            "image": "/images/skill/d138c293c8ddac42fadf0e6531100a88c79c81f6.png"
+          },
+          "image": "/images/brand/9ac5752790dd6dbdc7a427df95e1bfe89fe318e0.png"
+        },
+        "thumbnail": "/images/shoes/db27b1ab0bfd1d1939662026fbd667c494076f35.png",
+        "id": "1001"
+      },
+      "clothes": {
+        "name": "Krak-On 528",
+        "brand": {
+          "image": "/images/brand/9ac5752790dd6dbdc7a427df95e1bfe89fe318e0.png",
+          "name": "Krak-On",
+          "frequent_skill": {
+            "image": "/images/skill/d138c293c8ddac42fadf0e6531100a88c79c81f6.png",
+            "name": "Swim Speed Up",
+            "id": "4"
+          },
+          "id": "2"
+        },
+        "thumbnail": "/images/clothes/b774b32647819c8d6ba164d9f51210fbeb3daa35.png",
+        "id": "5016",
+        "image": "/images/clothes/0738abb8860e9946ae3af005da4d7b415f13b5c8.png",
+        "rarity": 0,
+        "kind": "clothes"
+      },
+      "max_league_point_team": 2154.2,
+      "max_league_point_pair": 2337,
+      "udemae_tower": {
+        "s_plus_number": null,
+        "is_x": true,
+        "name": "X",
+        "is_number_reached": true,
+        "number": 128
+      },
+      "player_type": {
+        "style": "girl",
+        "species": "octolings"
+      },
+      "nickname": "VA\u25c6stroh",
+      "shoes_skills": {
+        "main": {
+          "id": "109",
+          "name": "Stealth Jump",
+          "image": "/images/skill/8a3f06a972689b094f762626ff36b3db8ee545b5.png"
+        },
+        "subs": [
+          {
+            "name": "question mark",
+            "image": "/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png",
+            "id": "255"
+          },
+          {
+            "name": "question mark",
+            "image": "/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png",
+            "id": "255"
+          },
+          {
+            "id": "255",
+            "name": "question mark",
+            "image": "/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png"
+          }
+        ]
+      },
+      "udemae_clam": {
+        "name": "X",
+        "is_x": true,
+        "s_plus_number": null,
+        "number": 128,
+        "is_number_reached": true
+      },
+      "head": {
+        "thumbnail": "/images/head/348846af1c96af5929f0d9afb15cdf59bef67d15.png",
+        "brand": {
+          "id": "0",
+          "image": "/images/brand/5547e529d160b188d104e3b68ff4b7566eab9771.png",
+          "frequent_skill": {
+            "name": "Ink Resistance Up",
+            "image": "/images/skill/33087a476135074af856151a89a6fe4d1d3a996e.png",
+            "id": "11"
+          },
+          "name": "SquidForce"
+        },
+        "name": "Jetflame Crest",
+        "id": "24012",
+        "rarity": 2,
+        "image": "/images/head/89c47e7bda67be90676664b51ed807eec59099b7.png",
+        "kind": "head"
+      },
+      "player_rank": 62,
+      "udemae_zones": {
+        "name": "X",
+        "s_plus_number": null,
+        "is_x": true,
+        "is_number_reached": true,
+        "number": 128
+      },
+      "principal_id": "b2c1a6d94ae09d7c",
+      "udemae_rainmaker": {
+        "s_plus_number": null,
+        "is_x": true,
+        "name": "X",
+        "is_number_reached": true,
+        "number": 128
+      }
+    },
+    "recent_lose_count": 24,
+    "fes_results": {
+      "5052": {
+        "fes_point": 4,
+        "fes_start_time": 1520690400,
+        "fes_grade": {
+          "rank": 1,
+          "name": "Egg Fiend"
+        },
+        "fes_id": "5052",
+        "fes_power": 0
+      },
+      "3055": {
+        "fes_point": 32,
+        "fes_start_time": 1523109600,
+        "fes_grade": {
+          "name": "Salty Champion",
+          "rank": 3
+        },
+        "fes_id": "3055",
+        "fes_power": 18318
+      },
+      "3058": {
+        "fes_id": "3058",
+        "fes_grade": {
+          "name": "Kid Queen",
+          "rank": 4
+        },
+        "fes_contribution_regular": {
+          "average": 2147.51851851852,
+          "total": 57983
+        },
+        "fes_power": 0,
+        "fes_contribution_challenge": {
+          "total": 0,
+          "average": 0
+        },
+        "fes_point": 0,
+        "fes_start_time": 1560607200
+      },
+      "3057": {
+        "fes_id": "3057",
+        "fes_grade": {
+          "rank": 4,
+          "name": "Eat It Queen"
+        },
+        "fes_contribution_regular": {
+          "average": 2543.94594594595,
+          "total": 94126
+        },
+        "fes_power": 0,
+        "fes_contribution_challenge": {
+          "average": 0,
+          "total": 0
+        },
+        "fes_point": 0,
+        "fes_start_time": 1543068000
+      },
+      "3056": {
+        "fes_power": 20121,
+        "fes_id": "3056",
+        "fes_grade": {
+          "name": "Relax Queen",
+          "rank": 4
+        },
+        "fes_point": 0,
+        "fes_start_time": 1534600800
+      },
+      "4062": {
+        "fes_start_time": 1598047200,
+        "fes_point": 0,
+        "fes_contribution_challenge": {
+          "average": 1632.5,
+          "total": 45710
+        },
+        "fes_power": 21127,
+        "fes_contribution_regular": {
+          "average": 2245.58064516129,
+          "total": 69613
+        },
+        "fes_grade": {
+          "name": "Chicken Queen",
+          "rank": 4
+        },
+        "fes_id": "4062"
+      },
+      "4061": {
+        "fes_id": "4061",
+        "fes_grade": {
+          "rank": 4,
+          "name": "Mayo Queen"
+        },
+        "fes_contribution_regular": {
+          "total": 66586,
+          "average": 2219.53333333333
+        },
+        "fes_power": 21091,
+        "fes_contribution_challenge": {
+          "total": 19740,
+          "average": 1161.17647058824
+        },
+        "fes_point": 0,
+        "fes_start_time": 1590184800
+      },
+      "4064": {
+        "fes_start_time": 1610748000,
+        "fes_point": 0,
+        "fes_contribution_challenge": {
+          "total": 86910,
+          "average": 2021.16279069767
+        },
+        "fes_power": 0,
+        "fes_contribution_regular": {
+          "average": 1651,
+          "total": 41275
+        },
+        "fes_grade": {
+          "name": "Super Star Queen",
+          "rank": 4
+        },
+        "fes_id": "4064"
+      },
+      "4055": {
+        "fes_start_time": 1546610400,
+        "fes_point": 0,
+        "fes_contribution_challenge": {
+          "average": 0,
+          "total": 0
+        },
+        "fes_power": 0,
+        "fes_contribution_regular": {
+          "total": 41773,
+          "average": 1228.61764705882
+        },
+        "fes_grade": {
+          "rank": 4,
+          "name": "Fam Queen"
+        },
+        "fes_id": "4055"
+      },
+      "4054": {
+        "fes_contribution_regular": {
+          "total": 54247,
+          "average": 2169.88
+        },
+        "fes_contribution_challenge": {
+          "average": 0,
+          "total": 0
+        },
+        "fes_power": 0,
+        "fes_start_time": 1544882400,
+        "fes_point": 0,
+        "fes_id": "4054",
+        "fes_grade": {
+          "name": "Hero Queen",
+          "rank": 4
+        }
+      },
+      "4052": {
+        "fes_point": 6,
+        "fes_start_time": 1532181600,
+        "fes_grade": {
+          "rank": 3,
+          "name": "Squid Champion"
+        },
+        "fes_id": "4052",
+        "fes_power": 19746
+      },
+      "4063": {
+        "fes_power": 0,
+        "fes_contribution_challenge": {
+          "total": 246700,
+          "average": 10726.0869565217
+        },
+        "fes_contribution_regular": {
+          "total": 54353,
+          "average": 1358.825
+        },
+        "fes_point": 0,
+        "fes_start_time": 1604095200,
+        "fes_id": "4063",
+        "fes_grade": {
+          "name": "Trick Queen",
+          "rank": 4
+        }
+      },
+      "4057": {
+        "fes_id": "4057",
+        "fes_grade": {
+          "name": "Hare Queen",
+          "rank": 4
+        },
+        "fes_contribution_regular": {
+          "average": 2037.62162162162,
+          "total": 75392
+        },
+        "fes_contribution_challenge": {
+          "average": 0,
+          "total": 0
+        },
+        "fes_power": 0,
+        "fes_start_time": 1555682400,
+        "fes_point": 0
+      },
+      "4058": {
+        "fes_start_time": 1563451200,
+        "fes_point": 0,
+        "fes_contribution_challenge": {
+          "average": 0,
+          "total": 0
+        },
+        "fes_power": 0,
+        "fes_contribution_regular": {
+          "total": 62118,
+          "average": 1678.86486486486
+        },
+        "fes_grade": {
+          "name": "Chaos Queen",
+          "rank": 4
+        },
+        "fes_id": "4058"
+      }
+    },
+    "stage_stats": {
+      "5": {
+        "yagura_lose": 11,
+        "hoko_win": 21,
+        "yagura_win": 20,
+        "hoko_lose": 32,
+        "asari_win": 9,
+        "area_lose": 59,
+        "asari_lose": 7,
+        "last_play_time": 1634809127,
+        "area_win": 58,
+        "stage": {
+          "name": "Humpback Pump Track",
+          "image": "/images/stage/fc23fedca2dfbbd8707a14606d719a4004403d13.png",
+          "id": "5"
+        }
+      },
+      "17": {
+        "last_play_time": 1636976931,
+        "area_win": 21,
+        "stage": {
+          "name": "Piranha Pit",
+          "image": "/images/stage/828e49a8414a4bbc0a5da3e61454ab148a9f4063.png",
+          "id": "17"
+        },
+        "area_lose": 21,
+        "asari_win": 18,
+        "asari_lose": 23,
+        "hoko_lose": 24,
+        "yagura_win": 8,
+        "yagura_lose": 9,
+        "hoko_win": 21
+      },
+      "18": {
+        "area_win": 16,
+        "last_play_time": 1640200532,
+        "stage": {
+          "id": "18",
+          "name": "Goby Arena",
+          "image": "/images/stage/8cab733d543efc9dd561bfcc9edac52594e62522.png"
+        },
+        "area_lose": 12,
+        "asari_win": 11,
+        "asari_lose": 9,
+        "hoko_lose": 16,
+        "yagura_lose": 9,
+        "yagura_win": 21,
+        "hoko_win": 23
+      },
+      "3": {
+        "stage": {
+          "id": "3",
+          "name": "Sturgeon Shipyard",
+          "image": "/images/stage/bc794e337900afd763f8a88359f83df5679ddf12.png"
+        },
+        "area_win": 58,
+        "last_play_time": 1635085454,
+        "asari_lose": 5,
+        "area_lose": 56,
+        "asari_win": 5,
+        "hoko_lose": 26,
+        "yagura_win": 12,
+        "yagura_lose": 20,
+        "hoko_win": 32
+      },
+      "1": {
+        "stage": {
+          "id": "1",
+          "name": "Musselforge Fitness",
+          "image": "/images/stage/83acec875a5bb19418d7b87d5df4ba1e38ceac66.png"
+        },
+        "last_play_time": 1639084614,
+        "area_win": 28,
+        "asari_lose": 18,
+        "asari_win": 23,
+        "area_lose": 28,
+        "hoko_lose": 40,
+        "yagura_lose": 10,
+        "yagura_win": 9,
+        "hoko_win": 30
+      },
+      "19": {
+        "asari_lose": 5,
+        "asari_win": 8,
+        "area_lose": 30,
+        "stage": {
+          "image": "/images/stage/98a7d7a4009fae9fb7479554535425a5a604e88e.png",
+          "name": "New Albacore Hotel",
+          "id": "19"
+        },
+        "last_play_time": 1639590613,
+        "area_win": 24,
+        "hoko_win": 33,
+        "yagura_lose": 9,
+        "yagura_win": 12,
+        "hoko_lose": 28
+      },
+      "20": {
+        "hoko_lose": 15,
+        "yagura_win": 7,
+        "yagura_lose": 5,
+        "hoko_win": 17,
+        "last_play_time": 1640871741,
+        "area_win": 18,
+        "stage": {
+          "id": "20",
+          "name": "Wahoo World",
+          "image": "/images/stage/555c356487ac3edb0088c416e8045576c6b37fcc.png"
+        },
+        "area_lose": 8,
+        "asari_win": 12,
+        "asari_lose": 3
+      },
+      "2": {
+        "hoko_lose": 21,
+        "yagura_lose": 18,
+        "hoko_win": 19,
+        "yagura_win": 24,
+        "stage": {
+          "id": "2",
+          "image": "/images/stage/187987856bf575c4155d021cb511034931d06d24.png",
+          "name": "Starfish Mainstage"
+        },
+        "area_win": 19,
+        "last_play_time": 1639247991,
+        "asari_lose": 15,
+        "area_lose": 22,
+        "asari_win": 14
+      },
+      "10": {
+        "last_play_time": 1639244633,
+        "area_win": 12,
+        "stage": {
+          "id": "10",
+          "name": "Kelp Dome",
+          "image": "/images/stage/a12e4bf9f871677a5f3735d421317fbbf09e1a78.png"
+        },
+        "asari_win": 15,
+        "area_lose": 13,
+        "asari_lose": 9,
+        "hoko_lose": 6,
+        "hoko_win": 5,
+        "yagura_lose": 13,
+        "yagura_win": 6
+      },
+      "16": {
+        "stage": {
+          "name": "Camp Triggerfish",
+          "image": "/images/stage/e4c4800be9fff23112334b193abb0fdf36e05933.png",
+          "id": "16"
+        },
+        "last_play_time": 1640792174,
+        "area_win": 20,
+        "asari_lose": 4,
+        "asari_win": 2,
+        "area_lose": 9,
+        "hoko_lose": 5,
+        "yagura_lose": 6,
+        "hoko_win": 15,
+        "yagura_win": 2
+      },
+      "8": {
+        "hoko_lose": 8,
+        "yagura_lose": 19,
+        "yagura_win": 18,
+        "hoko_win": 9,
+        "stage": {
+          "id": "8",
+          "name": "Moray Towers",
+          "image": "/images/stage/96fd8c0492331a30e60a217c94fd1d4c73a966cc.png"
+        },
+        "last_play_time": 1639594621,
+        "area_win": 8,
+        "asari_lose": 5,
+        "area_lose": 10,
+        "asari_win": 1
+      },
+      "6": {
+        "asari_lose": 8,
+        "area_lose": 28,
+        "asari_win": 13,
+        "stage": {
+          "id": "6",
+          "image": "/images/stage/070d7ee287fdf3c5df02411950c2a1ce5b238746.png",
+          "name": "Manta Maria"
+        },
+        "area_win": 22,
+        "last_play_time": 1639591000,
+        "yagura_win": 14,
+        "yagura_lose": 10,
+        "hoko_win": 32,
+        "hoko_lose": 21
+      },
+      "9": {
+        "yagura_lose": 9,
+        "hoko_win": 20,
+        "yagura_win": 16,
+        "hoko_lose": 29,
+        "asari_lose": 8,
+        "area_lose": 19,
+        "asari_win": 8,
+        "stage": {
+          "id": "9",
+          "name": "Snapper Canal",
+          "image": "/images/stage/8c95053b3043e163cbfaaf1ec1e5f3eb770e5e07.png"
+        },
+        "last_play_time": 1637351624,
+        "area_win": 14
+      },
+      "14": {
+        "asari_lose": 4,
+        "asari_win": 3,
+        "area_lose": 13,
+        "stage": {
+          "image": "/images/stage/65c99da154295109d6fe067005f194f681762f8c.png",
+          "name": "Walleye Warehouse",
+          "id": "14"
+        },
+        "area_win": 5,
+        "last_play_time": 1638218699,
+        "yagura_win": 19,
+        "yagura_lose": 19,
+        "hoko_win": 16,
+        "hoko_lose": 12
+      },
+      "13": {
+        "yagura_lose": 19,
+        "yagura_win": 29,
+        "hoko_win": 27,
+        "hoko_lose": 36,
+        "area_lose": 33,
+        "asari_win": 14,
+        "asari_lose": 15,
+        "last_play_time": 1640871888,
+        "area_win": 35,
+        "stage": {
+          "image": "/images/stage/d9f0f6c330aaa3b975e572637b00c4c0b6b89f7d.png",
+          "name": "MakoMart",
+          "id": "13"
+        }
+      },
+      "4": {
+        "asari_lose": 18,
+        "area_lose": 21,
+        "asari_win": 18,
+        "stage": {
+          "name": "Inkblot Art Academy",
+          "image": "/images/stage/5c030a505ee57c889d3e5268a4b10c1f1f37880a.png",
+          "id": "4"
+        },
+        "area_win": 18,
+        "last_play_time": 1640201184,
+        "yagura_win": 20,
+        "yagura_lose": 15,
+        "hoko_win": 12,
+        "hoko_lose": 24
+      },
+      "7": {
+        "hoko_win": 3,
+        "yagura_lose": 7,
+        "yagura_win": 10,
+        "hoko_lose": 3,
+        "asari_win": 0,
+        "area_lose": 28,
+        "asari_lose": 5,
+        "area_win": 24,
+        "last_play_time": 1639594265,
+        "stage": {
+          "image": "/images/stage/0907fc7dc325836a94d385919fe01dc13848612a.png",
+          "name": "Port Mackerel",
+          "id": "7"
+        }
+      },
+      "21": {
+        "stage": {
+          "image": "/images/stage/1430e5ac7ae9396a126078eeab824a186b490b5a.png",
+          "name": "Ancho-V Games",
+          "id": "21"
+        },
+        "area_win": 23,
+        "last_play_time": 1635095517,
+        "asari_lose": 10,
+        "area_lose": 17,
+        "asari_win": 14,
+        "hoko_lose": 26,
+        "hoko_win": 32,
+        "yagura_lose": 16,
+        "yagura_win": 21
+      },
+      "11": {
+        "hoko_lose": 30,
+        "yagura_lose": 1,
+        "yagura_win": 3,
+        "hoko_win": 31,
+        "area_win": 31,
+        "last_play_time": 1638977957,
+        "stage": {
+          "name": "Blackbelly Skatepark",
+          "image": "/images/stage/758338859615898a59e93b84f7e1ca670f75e865.png",
+          "id": "11"
+        },
+        "area_lose": 23,
+        "asari_win": 22,
+        "asari_lose": 19
+      },
+      "12": {
+        "stage": {
+          "id": "12",
+          "image": "/images/stage/23259c80272f45cea2d5c9e60bc0cedb6ce29e46.png",
+          "name": "Shellendorf Institute"
+        },
+        "last_play_time": 1639249069,
+        "area_win": 0,
+        "asari_lose": 22,
+        "asari_win": 15,
+        "area_lose": 0,
+        "hoko_lose": 15,
+        "yagura_lose": 23,
+        "hoko_win": 29,
+        "yagura_win": 12
+      },
+      "22": {
+        "hoko_lose": 22,
+        "yagura_lose": 30,
+        "yagura_win": 31,
+        "hoko_win": 40,
+        "area_win": 49,
+        "last_play_time": 1639601978,
+        "stage": {
+          "name": "Skipper Pavilion",
+          "image": "/images/stage/132327c819abf2bd44d0adc0f4a21aad9cc84bb2.png",
+          "id": "22"
+        },
+        "asari_win": 17,
+        "area_lose": 33,
+        "asari_lose": 22
+      },
+      "0": {
+        "area_lose": 29,
+        "asari_win": 27,
+        "asari_lose": 8,
+        "area_win": 24,
+        "last_play_time": 1640791534,
+        "stage": {
+          "image": "/images/stage/98baf21c0366ce6e03299e2326fe6d27a7582dce.png",
+          "name": "The Reef",
+          "id": "0"
+        },
+        "yagura_win": 14,
+        "yagura_lose": 18,
+        "hoko_win": 17,
+        "hoko_lose": 25
+      },
+      "15": {
+        "hoko_win": 38,
+        "yagura_lose": 4,
+        "yagura_win": 2,
+        "hoko_lose": 29,
+        "asari_lose": 12,
+        "area_lose": 5,
+        "asari_win": 10,
+        "stage": {
+          "id": "15",
+          "name": "Arowana Mall",
+          "image": "/images/stage/dcf332bdcc80f566f3ae59c1c3a29bc6312d0ba8.png"
+        },
+        "area_win": 2,
+        "last_play_time": 1638050353
+      }
+    },
+    "start_time": 1515706210,
+    "win_count": 5487,
+    "recent_disconnect_count": 0
+  },
+  "festivals": [
+    {
+      "times": {
+        "announce": 1559721600,
+        "result": 1560700800,
+        "start": 1560607200,
+        "end": 1560693600
+      },
+      "images": {
+        "panel": "/images/festival/6d1cc1dbf5b0e8010e97fe50bf527410.png",
+        "bravo": "/images/festival/368e297b819b3f5fada04ce8d1e3f231.png",
+        "alpha": "/images/festival/1cd6efbde03bb0d553aec884db48ab72.png"
+      },
+      "names": {
+        "bravo_long": "I'd rather be a GROWN-UP!",
+        "alpha_long": "I'd rather be a KID!",
+        "alpha_short": "Kid",
+        "bravo_short": "Grown-Up"
+      },
+      "colors": {
+        "middle": {
+          "g": 0.93,
+          "a": 1,
+          "b": 0.45,
+          "css_rgb": "rgb(82%,93%,45%)",
+          "r": 0.82
+        },
+        "bravo": {
+          "g": 0.23,
+          "b": 0.25,
+          "a": 1,
+          "css_rgb": "rgb(32%,23%,25%)",
+          "r": 0.32
+        },
+        "alpha": {
+          "r": 0.19,
+          "b": 0.4,
+          "a": 1,
+          "css_rgb": "rgb(19%,53%,40%)",
+          "g": 0.53
+        }
+      },
+      "festival_id": 3058,
+      "special_stage": {
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png",
+        "name": "Shifty Station",
+        "id": "9999"
+      }
+    },
+    {
+      "images": {
+        "panel": "/images/festival/8afc85501a96a2e391bbe3490225d8ff.png",
+        "alpha": "/images/festival/3bfe62c7c39c0e43023dcee2d24a8b25.png",
+        "bravo": "/images/festival/66cefb0dab93de7ea6672c158dd23589.png"
+      },
+      "names": {
+        "bravo_short": "Save It",
+        "alpha_short": "Eat It",
+        "bravo_long": "I always save the best for last!",
+        "alpha_long": "I always eat the best bit first!"
+      },
+      "festival_id": 3057,
+      "colors": {
+        "middle": {
+          "r": 0.39,
+          "b": 0.84,
+          "a": 1,
+          "css_rgb": "rgb(39%,39%,84%)",
+          "g": 0.39
+        },
+        "bravo": {
+          "r": 0.65,
+          "css_rgb": "rgb(65%,68%,55%)",
+          "a": 1,
+          "b": 0.55,
+          "g": 0.68
+        },
+        "alpha": {
+          "g": 0.13,
+          "r": 0.77,
+          "a": 1,
+          "b": 0.22,
+          "css_rgb": "rgb(77%,13%,22%)"
+        }
+      },
+      "times": {
+        "start": 1543068000,
+        "end": 1543154400,
+        "announce": 1542355200,
+        "result": 1543161600
+      },
+      "special_stage": {
+        "id": "9999",
+        "name": "Shifty Station",
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png"
+      }
+    },
+    {
+      "images": {
+        "panel": "/images/festival/2d775938af4c25ccca0782dcdd2603ef.png",
+        "bravo": "/images/festival/2a7dd792d7abeb796e789e71c5f169af.png",
+        "alpha": "/images/festival/354db35544c99fb950b59f4baa0abc07.png"
+      },
+      "names": {
+        "alpha_long": "Adventure on holiday!",
+        "bravo_long": "Relax on holiday!",
+        "alpha_short": "Adventure",
+        "bravo_short": "Relax"
+      },
+      "festival_id": 3056,
+      "colors": {
+        "middle": {
+          "r": 0.2941177,
+          "b": 0.7843137,
+          "a": 1,
+          "css_rgb": "rgb(29%,13%,78%)",
+          "g": 0.1333333
+        },
+        "bravo": {
+          "r": 0,
+          "a": 1,
+          "b": 0.4784314,
+          "css_rgb": "rgb(0%,59%,48%)",
+          "g": 0.5882353
+        },
+        "alpha": {
+          "css_rgb": "rgb(100%,71%,0%)",
+          "b": 0,
+          "a": 1,
+          "r": 1,
+          "g": 0.7137255
+        }
+      },
+      "times": {
+        "announce": 1533952800,
+        "result": 1534694400,
+        "end": 1534687200,
+        "start": 1534600800
+      },
+      "special_stage": {
+        "name": "Shifty Station",
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png",
+        "id": "9999"
+      }
+    },
+    {
+      "colors": {
+        "middle": {
+          "css_rgb": "rgb(93%,15%,21%)",
+          "a": 1,
+          "b": 0.207,
+          "r": 0.929,
+          "g": 0.149
+        },
+        "alpha": {
+          "a": 1,
+          "b": 0.921,
+          "css_rgb": "rgb(94%,95%,92%)",
+          "r": 0.937,
+          "g": 0.949
+        },
+        "bravo": {
+          "r": 0.98,
+          "css_rgb": "rgb(98%,75%,31%)",
+          "a": 1,
+          "b": 0.313,
+          "g": 0.749
+        }
+      },
+      "festival_id": 4062,
+      "names": {
+        "alpha_long": "THE CHICKEN\ncame first",
+        "bravo_long": "THE EGG\ncame first",
+        "alpha_short": "Chicken",
+        "bravo_short": "Egg"
+      },
+      "images": {
+        "bravo": "/images/festival/03e6fc67603a9115d379b3751b810f2e.png",
+        "alpha": "/images/festival/79dec466d07e84349d12fb3e4e2119bf.png",
+        "panel": "/images/festival/b454ef12822e676b2747682be5d3ee11.png"
+      },
+      "times": {
+        "start": 1598047200,
+        "end": 1598220000,
+        "announce": 1596787200,
+        "result": 1598227200
+      },
+      "special_stage": {
+        "id": "110",
+        "name": "The Bunker Games",
+        "image": "/images/stage/d405e6d27a501cf431809ec942c7309791e5bcf0.png"
+      }
+    },
+    {
+      "special_stage": {
+        "image": "/images/stage/f7fcaba5c169259ebc65256fb466b5cb795879bf.png",
+        "name": "Wayslide Cool",
+        "id": "101"
+      },
+      "times": {
+        "result": 1590364800,
+        "announce": 1588320000,
+        "end": 1590357600,
+        "start": 1590184800
+      },
+      "names": {
+        "bravo_long": "Ketchup is better than Mayo!",
+        "alpha_long": "Mayo is better than Ketchup!",
+        "alpha_short": "Mayo",
+        "bravo_short": "Ketchup"
+      },
+      "images": {
+        "panel": "/images/festival/941d35ffa3742692c62965cc87876a30.png",
+        "alpha": "/images/festival/8d3bacc0ef3479c1bfa5f111cf35f6c5.png",
+        "bravo": "/images/festival/273866ecd34058df6bf54e79b18df3ec.png"
+      },
+      "colors": {
+        "middle": {
+          "b": 0.148,
+          "a": 1,
+          "css_rgb": "rgb(11%,69%,15%)",
+          "r": 0.107,
+          "g": 0.692
+        },
+        "alpha": {
+          "g": 0.914,
+          "r": 1,
+          "css_rgb": "rgb(100%,91%,61%)",
+          "b": 0.609,
+          "a": 1
+        },
+        "bravo": {
+          "b": 0.117,
+          "a": 1,
+          "css_rgb": "rgb(98%,20%,12%)",
+          "r": 0.984,
+          "g": 0.195
+        }
+      },
+      "festival_id": 4061
+    },
+    {
+      "special_stage": {
+        "id": "9999",
+        "name": "Shifty Station",
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png"
+      },
+      "names": {
+        "bravo_short": "Super Star",
+        "alpha_short": "Super Mushroom",
+        "bravo_long": "SUPER STAR",
+        "alpha_long": "SUPER MUSHROOM"
+      },
+      "images": {
+        "alpha": "/images/festival/f9bca24258d2afdf92dbb64af51c32b3.png",
+        "bravo": "/images/festival/47eda55efc2e1c581e18c67c6e794feb.png",
+        "panel": "/images/festival/15195d4abf17afbc6bc1c22cbff56012.png"
+      },
+      "colors": {
+        "middle": {
+          "g": 0.25,
+          "r": 0.05,
+          "css_rgb": "rgb(5%,25%,87%)",
+          "a": 1,
+          "b": 0.87
+        },
+        "bravo": {
+          "b": 0.05,
+          "a": 1,
+          "css_rgb": "rgb(70%,63%,5%)",
+          "r": 0.7,
+          "g": 0.63
+        },
+        "alpha": {
+          "r": 0.8,
+          "b": 0.12,
+          "a": 1,
+          "css_rgb": "rgb(80%,12%,12%)",
+          "g": 0.12
+        }
+      },
+      "festival_id": 4064,
+      "times": {
+        "start": 1610748000,
+        "end": 1610920800,
+        "announce": 1609120800,
+        "result": 1610928000
+      }
+    },
+    {
+      "special_stage": {
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png",
+        "name": "Shifty Station",
+        "id": "9999"
+      },
+      "festival_id": 3055,
+      "colors": {
+        "middle": {
+          "b": 0.474,
+          "a": 1,
+          "css_rgb": "rgb(85%,30%,47%)",
+          "r": 0.85,
+          "g": 0.298
+        },
+        "alpha": {
+          "g": 0.858,
+          "b": 0.819,
+          "a": 1,
+          "css_rgb": "rgb(69%,86%,82%)",
+          "r": 0.694
+        },
+        "bravo": {
+          "g": 0.58,
+          "r": 0.886,
+          "css_rgb": "rgb(89%,58%,25%)",
+          "b": 0.25,
+          "a": 1
+        }
+      },
+      "images": {
+        "alpha": "/images/festival/93969f3fcb05ab8c4f1e6c1b74d4ece4.png",
+        "bravo": "/images/festival/b4cb026a123b26d0fa983d659bd595c4.png",
+        "panel": "/images/festival/d72170698dc7f9d93eca1d783f69111e.png"
+      },
+      "names": {
+        "bravo_long": "Popcorn should be \nSWEET!",
+        "alpha_long": "Popcorn should be \nSALTY!",
+        "alpha_short": "Salty",
+        "bravo_short": "Sweet"
+      },
+      "times": {
+        "end": 1523196000,
+        "start": 1523109600,
+        "announce": 1522461600,
+        "result": 1523203200
+      }
+    },
+    {
+      "festival_id": 5052,
+      "colors": {
+        "alpha": {
+          "r": 0.937,
+          "css_rgb": "rgb(94%,95%,92%)",
+          "b": 0.921,
+          "a": 1,
+          "g": 0.949
+        },
+        "bravo": {
+          "r": 0.98,
+          "a": 1,
+          "b": 0.313,
+          "css_rgb": "rgb(98%,75%,31%)",
+          "g": 0.749
+        },
+        "middle": {
+          "r": 0.929,
+          "a": 1,
+          "b": 0.207,
+          "css_rgb": "rgb(93%,15%,21%)",
+          "g": 0.149
+        }
+      },
+      "images": {
+        "panel": "/images/festival/9f1730d002628e22c74f52f6dbd8622a.png",
+        "bravo": "/images/festival/00e4c5fdccd3720d07127084fc1f4152.png",
+        "alpha": "/images/festival/a070cc6b405b4fb335992d824097acd8.png"
+      },
+      "names": {
+        "bravo_short": "Egg",
+        "alpha_short": "Chicken",
+        "alpha_long": "THE CHICKEN\ncame first",
+        "bravo_long": "THE EGG\ncame first"
+      },
+      "times": {
+        "result": 1520784000,
+        "announce": 1520042400,
+        "start": 1520690400,
+        "end": 1520776800
+      },
+      "special_stage": {
+        "id": "9999",
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png",
+        "name": "Shifty Station"
+      }
+    },
+    {
+      "special_stage": {
+        "name": "Railway Chillin'",
+        "image": "/images/stage/609b50a5e61db8324d45933b897159fe2d7e797f.png",
+        "id": "115"
+      },
+      "times": {
+        "result": 1604275200,
+        "announce": 1602835200,
+        "end": 1604268000,
+        "start": 1604095200
+      },
+      "colors": {
+        "middle": {
+          "g": 0.9019608,
+          "r": 0.3058824,
+          "a": 1,
+          "b": 0.6235294,
+          "css_rgb": "rgb(31%,90%,62%)"
+        },
+        "bravo": {
+          "css_rgb": "rgb(53%,2%,80%)",
+          "b": 0.8,
+          "a": 1,
+          "r": 0.5333334,
+          "g": 0.02
+        },
+        "alpha": {
+          "b": 0.145098,
+          "a": 1,
+          "css_rgb": "rgb(93%,44%,15%)",
+          "r": 0.9254902,
+          "g": 0.4431373
+        }
+      },
+      "festival_id": 4063,
+      "images": {
+        "bravo": "/images/festival/6bf7d31afbd3c9d9605036a4086352a0.png",
+        "alpha": "/images/festival/0957e57c58c75b6897b8cff48017464b.png",
+        "panel": "/images/festival/ae3bbc0b7ccfb6f686938a14ce7a725b.png"
+      },
+      "names": {
+        "bravo_short": "Treat",
+        "alpha_short": "Trick",
+        "alpha_long": "TRICK",
+        "bravo_long": "TREAT"
+      }
+    },
+    {
+      "special_stage": {
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png",
+        "name": "Shifty Station",
+        "id": "9999"
+      },
+      "times": {
+        "result": 1555891200,
+        "announce": 1554451200,
+        "start": 1555682400,
+        "end": 1555855200
+      },
+      "images": {
+        "alpha": "/images/festival/64bf92868ec61febf48914368a341694.png",
+        "bravo": "/images/festival/25b2f0f54ab695af7501796a84dcd23e.png",
+        "panel": "/images/festival/636ecf532b58e1f99310d3a60e2eb3ae.png"
+      },
+      "names": {
+        "alpha_short": "Hare",
+        "bravo_short": "Tortoise",
+        "bravo_long": "TORTOISE",
+        "alpha_long": "HARE"
+      },
+      "festival_id": 4057,
+      "colors": {
+        "middle": {
+          "g": 0.81,
+          "r": 0.09,
+          "a": 1,
+          "b": 0.87,
+          "css_rgb": "rgb(9%,81%,87%)"
+        },
+        "alpha": {
+          "g": 0.41,
+          "css_rgb": "rgb(91%,41%,75%)",
+          "b": 0.75,
+          "a": 1,
+          "r": 0.91
+        },
+        "bravo": {
+          "g": 0.81,
+          "r": 0.54,
+          "css_rgb": "rgb(54%,81%,28%)",
+          "b": 0.28,
+          "a": 1
+        }
+      }
+    },
+    {
+      "festival_id": 4058,
+      "colors": {
+        "alpha": {
+          "b": 0.23,
+          "a": 1,
+          "css_rgb": "rgb(41%,36%,23%)",
+          "r": 0.41,
+          "g": 0.36
+        },
+        "bravo": {
+          "g": 0.5,
+          "b": 0.6,
+          "a": 1,
+          "css_rgb": "rgb(50%,50%,60%)",
+          "r": 0.5
+        },
+        "middle": {
+          "r": 0.6,
+          "css_rgb": "rgb(60%,6%,17%)",
+          "b": 0.17,
+          "a": 1,
+          "g": 0.06
+        }
+      },
+      "names": {
+        "bravo_long": "ORDER",
+        "alpha_long": "CHAOS",
+        "bravo_short": "Order",
+        "alpha_short": "Chaos"
+      },
+      "images": {
+        "bravo": "/images/festival/494b9443b6600e2307ccb4da85d8afba.png",
+        "alpha": "/images/festival/bcff7915c5c2a281a6b54a0fcd904abf.png",
+        "panel": "/images/festival/e82a1714c7195898b0ee418642339da7.png"
+      },
+      "times": {
+        "end": 1563710400,
+        "start": 1563451200,
+        "result": 1563717600,
+        "announce": 1561536000
+      },
+      "special_stage": {
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png",
+        "name": "Shifty Station",
+        "id": "9999"
+      }
+    },
+    {
+      "special_stage": {
+        "id": "9999",
+        "name": "Shifty Station",
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png"
+      },
+      "images": {
+        "bravo": "/images/festival/9a6de731cff750fe27dc9badc4685cb2.png",
+        "alpha": "/images/festival/7a5af2320b5b1c9e66fac2fde60cbfbe.png",
+        "panel": "/images/festival/87049765012ba33c5566e53e2ee23acc.png"
+      },
+      "names": {
+        "bravo_long": "FRIENDS",
+        "alpha_long": "FAMILY",
+        "alpha_short": "Fam",
+        "bravo_short": "Friend"
+      },
+      "colors": {
+        "alpha": {
+          "b": 0.15,
+          "a": 1,
+          "css_rgb": "rgb(49%,36%,15%)",
+          "r": 0.49,
+          "g": 0.36
+        },
+        "bravo": {
+          "css_rgb": "rgb(51%,53%,56%)",
+          "b": 0.56,
+          "a": 1,
+          "r": 0.51,
+          "g": 0.53
+        },
+        "middle": {
+          "r": 0.76,
+          "css_rgb": "rgb(76%,8%,2%)",
+          "b": 0.02,
+          "a": 1,
+          "g": 0.08
+        }
+      },
+      "festival_id": 4055,
+      "times": {
+        "end": 1546783200,
+        "start": 1546610400,
+        "result": 1546819200,
+        "announce": 1545379200
+      }
+    },
+    {
+      "special_stage": {
+        "id": "9999",
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png",
+        "name": "Shifty Station"
+      },
+      "names": {
+        "alpha_short": "Hero",
+        "bravo_short": "Villain",
+        "alpha_long": "HEROES",
+        "bravo_long": "VILLAINS"
+      },
+      "images": {
+        "alpha": "/images/festival/f29f516d41a0eadab392a1025a0d82a8.png",
+        "bravo": "/images/festival/4dcd1203ab683be2f811c4b6cfbe6ef3.png",
+        "panel": "/images/festival/d60f05b972835085c1dd65645377e496.png"
+      },
+      "festival_id": 4054,
+      "colors": {
+        "middle": {
+          "g": 0.82,
+          "r": 0.82,
+          "a": 1,
+          "b": 0.82,
+          "css_rgb": "rgb(82%,82%,82%)"
+        },
+        "bravo": {
+          "r": 0.27,
+          "css_rgb": "rgb(27%,9%,82%)",
+          "a": 1,
+          "b": 0.82,
+          "g": 0.09
+        },
+        "alpha": {
+          "g": 0.14,
+          "r": 0.93,
+          "a": 1,
+          "b": 0.01,
+          "css_rgb": "rgb(93%,14%,1%)"
+        }
+      },
+      "times": {
+        "start": 1544882400,
+        "end": 1544968800,
+        "announce": 1544169600,
+        "result": 1544976000
+      }
+    },
+    {
+      "names": {
+        "bravo_long": "I'm team\nOCTOPUS!",
+        "alpha_long": "I'm team\nSQUID!",
+        "bravo_short": "Octopus",
+        "alpha_short": "Squid"
+      },
+      "images": {
+        "panel": "/images/festival/816e592b8b504c8a9a3abbcb295a7d98.png",
+        "alpha": "/images/festival/ab723b3031a07ffe63c66d0081092f15.png",
+        "bravo": "/images/festival/4f1310bc2f08932e2206af62e78d4c86.png"
+      },
+      "colors": {
+        "middle": {
+          "r": 0.2941177,
+          "css_rgb": "rgb(29%,13%,78%)",
+          "a": 1,
+          "b": 0.7843137,
+          "g": 0.1333333
+        },
+        "bravo": {
+          "r": 0.9137255,
+          "a": 1,
+          "b": 0.8235294,
+          "css_rgb": "rgb(91%,0%,82%)",
+          "g": 0
+        },
+        "alpha": {
+          "g": 0.8352941,
+          "a": 1,
+          "b": 0.145098,
+          "css_rgb": "rgb(31%,84%,15%)",
+          "r": 0.3137255
+        }
+      },
+      "festival_id": 4052,
+      "times": {
+        "start": 1532181600,
+        "end": 1532268000,
+        "result": 1532275200,
+        "announce": 1530928800
+      },
+      "special_stage": {
+        "id": "9999",
+        "name": "Shifty Station",
+        "image": "/images/stage/77f1b9058f27c0215effd00feb5c6b6623b8d5b1.png"
+      }
+    }
+  ]
+}
