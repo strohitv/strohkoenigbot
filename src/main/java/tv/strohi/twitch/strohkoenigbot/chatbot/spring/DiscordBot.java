@@ -125,6 +125,10 @@ public class DiscordBot {
 			return false;
 		}
 
+		if (message == null) {
+			message = "ERROR: Message was NULL!";
+		}
+
 		boolean result = false;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().block();
