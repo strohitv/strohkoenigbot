@@ -29,12 +29,11 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -119,12 +118,12 @@ public class ResultsExporter {
 		this.abilityExporter = abilityExporter;
 	}
 
-//	private ExtendedStatisticsExporter extendedStatisticsExporter;
-//
-//	@Autowired
-//	public void setExtendedStatisticsExporter(ExtendedStatisticsExporter extendedStatisticsExporter) {
-//		this.extendedStatisticsExporter = extendedStatisticsExporter;
-//	}
+	private ExtendedStatisticsExporter extendedStatisticsExporter;
+
+	@Autowired
+	public void setExtendedStatisticsExporter(ExtendedStatisticsExporter extendedStatisticsExporter) {
+		this.extendedStatisticsExporter = extendedStatisticsExporter;
+	}
 
 	public String getHtml() {
 		return statistics.getCurrentHtml();
@@ -134,30 +133,34 @@ public class ResultsExporter {
 		isStreamRunning = true;
 		statistics.reset();
 
-//		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault());
-//		int year = date.getYear();
-//		int month = date.getMonthValue();
-//
-//		SplatoonMonthlyResult result = monthlyResultRepository.findByPeriodYearAndPeriodMonth(year, month);
-//		Map<SplatoonRule, Double> startPowers = new HashMap<>() {{
-//			put(SplatoonRule.SplatZones, result.getZonesCurrent());
-//			put(SplatoonRule.Rainmaker, result.getRainmakerCurrent());
-//			put(SplatoonRule.TowerControl, result.getTowerCurrent());
-//			put(SplatoonRule.ClamBlitz, result.getClamsCurrent());
-//		}};
-//		extendedStatisticsExporter.start(Instant.now(), startPowers);
+		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault());
+		int year = date.getYear();
+		int month = date.getMonthValue();
+
+		SplatoonMonthlyResult result = monthlyResultRepository.findByPeriodYearAndPeriodMonth(year, month);
+		Map<SplatoonRule, Double> startPowers = new HashMap<>() {{
+			put(SplatoonRule.SplatZones, result.getZonesCurrent());
+			put(SplatoonRule.Rainmaker, result.getRainmakerCurrent());
+			put(SplatoonRule.TowerControl, result.getTowerCurrent());
+			put(SplatoonRule.ClamBlitz, result.getClamsCurrent());
+		}};
+		extendedStatisticsExporter.start(Instant.now(), startPowers);
 	}
 
 	public void stop() {
 		isStreamRunning = false;
 		statistics.stop();
-//		extendedStatisticsExporter.end();
+		extendedStatisticsExporter.end();
 	}
 
 	@Scheduled(fixedRate = 15000, initialDelay = 90000)
 	public void loadGameResultsScheduled() {
 		if (!alreadyRunning) {
 			alreadyRunning = true;
+
+//			if (!isStreamRunning) {
+//				start();
+//			}
 
 			try {
 				SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApi("/api/results", SplatNetMatchResultsCollection.class);
@@ -271,9 +274,9 @@ public class ResultsExporter {
 
 				refreshMonthlyRankedResults(results);
 
-//				if (isStreamRunning) {
-//					extendedStatisticsExporter.export();
-//				}
+				if (isStreamRunning) {
+					extendedStatisticsExporter.export();
+				}
 			} catch (Exception ex) {
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Exception occured while refreshing results!!!");
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), ex.getMessage());
