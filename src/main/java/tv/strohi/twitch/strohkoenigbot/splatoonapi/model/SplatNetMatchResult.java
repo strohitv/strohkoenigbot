@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -54,6 +55,7 @@ public class SplatNetMatchResult {
 	private SplatNetPlayerResult[] my_team_members;
 	private SplatNetPlayerResult[] other_team_members;
 
+	@JsonIgnore
 	public Instant getStartTimeAsInstant() {
 		return Instant.ofEpochSecond(start_time);
 	}

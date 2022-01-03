@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,10 +21,12 @@ public class SplatNetSalmonRunSchedules {
 		private Long start_time;
 		private Long end_time;
 
+		@JsonIgnore
 		public Instant getStartTimeAsInstant() {
 			return Instant.ofEpochSecond(start_time);
 		}
 
+		@JsonIgnore
 		public Instant getEndTimeAsInstant() {
 			return Instant.ofEpochSecond(end_time);
 		}
@@ -40,10 +43,12 @@ public class SplatNetSalmonRunSchedules {
 
 		private WeaponDetail[] weapons;
 
+		@JsonIgnore
 		public Instant getStartTimeAsInstant() {
 			return Instant.ofEpochSecond(start_time);
 		}
 
+		@JsonIgnore
 		public Instant getEndTimeAsInstant() {
 			return Instant.ofEpochSecond(end_time);
 		}
