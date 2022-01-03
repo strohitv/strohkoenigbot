@@ -304,21 +304,21 @@ public class ExtendedStatisticsExporter {
 					.replace("{main-weapon-defeats}", String.format("%d", lastMatchWeapon.getDefeats()))
 
 					.replace("{main-weapon}", lastMatchWeapon.getName())
-					.replace("{main-weapon-image}", lastMatchWeapon.getImage())
-					.replace("{sub-weapon-image}", lastMatchWeapon.getSubImage())
-					.replace("{special-weapon-image}", lastMatchWeapon.getSpecialImage())
+					.replace("{main-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getImage()))
+					.replace("{sub-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getSubImage()))
+					.replace("{special-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getSpecialImage()))
 
-					.replace("{head-image}", lastMatchHead.getImage())
-					.replace("{head-main-image}", perkImages.get(SplatoonGearType.Head).get(0))
-					.replace("{head-sub-1-image}", perkImages.get(SplatoonGearType.Head).get(1))
+					.replace("{head-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchHead.getImage()))
+					.replace("{head-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Head).get(0)))
+					.replace("{head-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Head).get(1)))
 
-					.replace("{clothing-image}", lastMatchClothes.getImage())
-					.replace("{clothing-main-image}", perkImages.get(SplatoonGearType.Clothes).get(0))
-					.replace("{clothing-sub-1-image}", perkImages.get(SplatoonGearType.Clothes).get(1))
+					.replace("{clothing-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchClothes.getImage()))
+					.replace("{clothing-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Clothes).get(0)))
+					.replace("{clothing-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Clothes).get(1)))
 
-					.replace("{shoes-image}", lastMatchShoes.getImage())
-					.replace("{shoes-main-image}", perkImages.get(SplatoonGearType.Shoes).get(0))
-					.replace("{shoes-sub-1-image}", perkImages.get(SplatoonGearType.Shoes).get(1))
+					.replace("{shoes-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchShoes.getImage()))
+					.replace("{shoes-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Shoes).get(0)))
+					.replace("{shoes-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Shoes).get(1)))
 
 					.replace("{zones-power-current}", currentMonthResult.getZonesCurrent() != null ? String.format("%4.1f", currentMonthResult.getZonesCurrent()) : "")
 					.replace("{rainmaker-power-current}", currentMonthResult.getRainmakerCurrent() != null ? String.format("%4.1f", currentMonthResult.getRainmakerCurrent()) : "")
@@ -371,17 +371,17 @@ public class ExtendedStatisticsExporter {
 
 					.replace("{stage-a-wins}", String.format("%d", stageAWins))
 					.replace("{stage-a-defeats}", String.format("%d", stageADefeats))
-					.replace("{stage-a-image}", stageA.getImage())
+					.replace("{stage-a-image}", String.format("https://app.splatoon2.nintendo.net%s", stageA.getImage()))
 
 					.replace("{stage-b-wins}", String.format("%d", stageBWins))
 					.replace("{stage-b-defeats}", String.format("%d", stageBDefeats))
-					.replace("{stage-b-image}", stageB.getImage())
+					.replace("{stage-b-image}", String.format("https://app.splatoon2.nintendo.net%s", stageB.getImage()))
 
-					.replace("{next-rotation-stage-a-image}", nextStageA.getImage())
-					.replace("{next-rotation-stage-b-image}", nextStageB.getImage());
+					.replace("{next-rotation-stage-a-image}", String.format("https://app.splatoon2.nintendo.net%s", nextStageA.getImage()))
+					.replace("{next-rotation-stage-b-image}", String.format("https://app.splatoon2.nintendo.net%s", nextStageB.getImage()));
 
 			if (perkImages.get(SplatoonGearType.Head).size() > 2) {
-				currentHtml = currentHtml.replace("{head-sub-2-image}", perkImages.get(SplatoonGearType.Head).get(2))
+				currentHtml = currentHtml.replace("{head-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Head).get(2)))
 						.replace("{head-sub-2-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{head-sub-2-image}", "")
@@ -389,7 +389,7 @@ public class ExtendedStatisticsExporter {
 			}
 
 			if (perkImages.get(SplatoonGearType.Head).size() > 3) {
-				currentHtml = currentHtml.replace("{head-sub-3-image}", perkImages.get(SplatoonGearType.Head).get(3))
+				currentHtml = currentHtml.replace("{head-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Head).get(3)))
 						.replace("{head-sub-3-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{head-sub-3-image}", "")
@@ -397,7 +397,7 @@ public class ExtendedStatisticsExporter {
 			}
 
 			if (perkImages.get(SplatoonGearType.Clothes).size() > 2) {
-				currentHtml = currentHtml.replace("{clothing-sub-2-image}", perkImages.get(SplatoonGearType.Clothes).get(2))
+				currentHtml = currentHtml.replace("{clothing-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Clothes).get(2)))
 						.replace("{clothing-sub-2-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{clothing-sub-2-image}", "")
@@ -405,7 +405,7 @@ public class ExtendedStatisticsExporter {
 			}
 
 			if (perkImages.get(SplatoonGearType.Clothes).size() > 3) {
-				currentHtml = currentHtml.replace("{clothing-sub-3-image}", perkImages.get(SplatoonGearType.Clothes).get(3))
+				currentHtml = currentHtml.replace("{clothing-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Clothes).get(3)))
 						.replace("{clothing-sub-3-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{clothing-sub-3-image}", "")
@@ -413,7 +413,7 @@ public class ExtendedStatisticsExporter {
 			}
 
 			if (perkImages.get(SplatoonGearType.Shoes).size() > 2) {
-				currentHtml = currentHtml.replace("{shoes-sub-2-image}", perkImages.get(SplatoonGearType.Shoes).get(2))
+				currentHtml = currentHtml.replace("{shoes-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Shoes).get(2)))
 						.replace("{shoes-sub-2-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{shoes-sub-2-image}", "")
@@ -421,7 +421,7 @@ public class ExtendedStatisticsExporter {
 			}
 
 			if (perkImages.get(SplatoonGearType.Shoes).size() > 3) {
-				currentHtml = currentHtml.replace("{shoes-sub-3-image}", perkImages.get(SplatoonGearType.Shoes).get(3))
+				currentHtml = currentHtml.replace("{shoes-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Shoes).get(3)))
 						.replace("{shoes-sub-3-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{shoes-sub-3-image}", "")
