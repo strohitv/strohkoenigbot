@@ -6,5 +6,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonStage;
 
 @Repository
 public interface SplatoonStageRepository extends CrudRepository<SplatoonStage, Long> {
+	SplatoonStage findById(long id);
+
 	SplatoonStage findBySplatoonApiId(String splatoonApiId);
 }

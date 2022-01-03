@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.data.model.splatoondata;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,10 +33,12 @@ public class SplatoonRotation {
 
 	private SplatoonRule rule;
 
+	@JsonIgnore
 	public Instant getStartTimeAsInstant() {
 		return Instant.ofEpochSecond(startTime);
 	}
 
+	@JsonIgnore
 	public Instant getEndTimeAsInstant() {
 		return Instant.ofEpochSecond(endTime);
 	}

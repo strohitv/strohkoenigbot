@@ -61,6 +61,13 @@ public class RotationWatcher {
 		this.discordBot = discordBot;
 	}
 
+	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
+	public void sendDiscordNotificationsOnLocalDebug() {
+		if (DiscordChannelDecisionMaker.isIsLocalDebug()) {
+			sendDiscordNotifications();
+		}
+	}
+
 	@Scheduled(cron = "20 0 * * * *")
 //	@Scheduled(cron = "20 * * * * *")
 	public void sendDiscordNotifications() {

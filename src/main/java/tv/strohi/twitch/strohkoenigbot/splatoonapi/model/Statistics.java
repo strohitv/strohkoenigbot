@@ -1,8 +1,9 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.model;
 
-import java.io.FileWriter;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,8 +25,6 @@ public class Statistics {
 
 	private final List<SplatNetMatchResult> includedMatches = new ArrayList<>();
 	private final Map<String, Integer> weaponPaints = new HashMap<>();
-
-	private boolean dirty;
 
 	private final String path;
 
@@ -62,7 +61,7 @@ public class Statistics {
 	}
 
 	public void exportHtml() {
-		if (dirty && includedMatches.size() > 0) {
+		if (includedMatches.size() > 0) {
 			long victoryCount = includedMatches.stream().filter(m -> m.getMy_team_result().getKey().equalsIgnoreCase("victory")).count();
 			long defeatCount = includedMatches.stream().filter(m -> m.getMy_team_result().getKey().equalsIgnoreCase("defeat")).count();
 
@@ -97,6 +96,28 @@ public class Statistics {
 			String shoesGearSub2 = player.getShoes_skills().getSubs().length > 1 && player.getShoes_skills().getSubs()[1] != null ? String.format("%s%s", imageHost, player.getShoes_skills().getSubs()[1].getImage()) : null;
 			String shoesGearSub3 = player.getShoes_skills().getSubs().length > 2 && player.getShoes_skills().getSubs()[2] != null ? String.format("%s%s", imageHost, player.getShoes_skills().getSubs()[2].getImage()) : null;
 
+			String possiblePowerHidden  = "hidden";
+			String possiblePowerGain = "";
+			String possiblePowerLoss = "";
+
+			Path htmlFilePath = Paths.get(path).getParent();
+			try {
+				InputStream isPowerGain = new FileInputStream(Paths.get(htmlFilePath.toString(),"/snowpoke/win.txt").toString());
+				InputStream isPowerLoss = new FileInputStream(Paths.get(htmlFilePath.toString(),"/snowpoke/lose.txt").toString());
+
+				String possiblePowerGainRead = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
+				String possiblePowerLossRead = new String(isPowerLoss.readAllBytes(), StandardCharsets.UTF_8);
+
+				if (!possiblePowerGainRead.isBlank() && !possiblePowerLossRead.isBlank()) {
+					possiblePowerGain = possiblePowerGainRead.trim();
+					possiblePowerLoss = possiblePowerLossRead.trim();
+
+					possiblePowerHidden = "";
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
 			InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/template.html");
 
 			try {
@@ -119,7 +140,10 @@ public class Statistics {
 						.replace("{clothing-sub-1}", clothesGearSub1)
 						.replace("{shoes}", shoesGear)
 						.replace("{shoes-main}", shoesGearMain)
-						.replace("{shoes-sub-1}", shoesGearSub1);
+						.replace("{shoes-sub-1}", shoesGearSub1)
+						.replace("{possible-power-change-hidden}", possiblePowerHidden)
+						.replace("{possible-x-power-gain}", possiblePowerGain)
+						.replace("{possible-x-power-loss}", possiblePowerLoss);
 
 				if (headGearSub2 != null) {
 					currentHtml = currentHtml.replace("{head-sub-2}", headGearSub2)
@@ -176,14 +200,11 @@ public class Statistics {
 				e.printStackTrace();
 				return;
 			}
-
-			dirty = false;
 		}
 	}
 
 	public void addMatches(List<SplatNetMatchResult> matches) {
 		if (matches.size() > 0) {
-			dirty = true;
 			includedMatches.addAll(matches);
 
 			for (SplatNetMatchResult result : matches) {
