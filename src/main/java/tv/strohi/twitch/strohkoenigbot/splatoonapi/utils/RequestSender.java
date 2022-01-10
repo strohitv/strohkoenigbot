@@ -57,27 +57,32 @@ public class RequestSender {
 	}
 
 	private <T> T sendRequestAndParseGzippedJson(HttpRequest request, Class<T> valueType) {
+		String body = "";
+
 		try {
 			logger.info("RequestSender sending new request to '{}'", request.uri().toString());
-			logger.info(request);
 			HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
 			logger.info("got response with status code {}:", response.statusCode());
-			logger.info(response);
 
 			if (response.statusCode() < 300) {
-				String body = new String(response.body());
+				body = new String(response.body());
 
 				if (response.headers().map().containsKey("Content-Encoding") && !response.headers().map().get("Content-Encoding").isEmpty() && "gzip".equals(response.headers().map().get("Content-Encoding").get(0))) {
 					body = new String(new GZIPInputStream(new ByteArrayInputStream(response.body())).readAllBytes());
 				}
 
-				logger.info("response body: '{}'", body);
-
 				return mapper.readValue(body, valueType);
+			} else {
+				logger.info("request:");
+				logger.info(request);
+				logger.info("response:");
+				logger.info(response);
 			}
 		} catch (IOException | InterruptedException e) {
 			logger.error("exception while sending request");
+			logger.error("response body: '{}'", body);
+
 			logger.error(e);
 		}
 
