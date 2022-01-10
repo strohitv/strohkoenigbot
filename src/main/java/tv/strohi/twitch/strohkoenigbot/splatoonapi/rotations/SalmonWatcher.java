@@ -92,7 +92,11 @@ public class SalmonWatcher {
 				.append("\n\n**Weapons**:\n");
 
 		for (SplatNetSalmonRunSchedules.SplatNetScheduleDetail.WeaponDetail weapon : detail.getWeapons()) {
-			builder.append("- ").append(weapon.getWeapon().getName()).append("\n");
+			if (weapon.getWeapon() != null) {
+				builder.append("- ").append(weapon.getWeapon().getName()).append("\n");
+			} else if (weapon.getCoop_special_weapon() != null) {
+				builder.append("- ").append(weapon.getCoop_special_weapon().getName()).append("\n");
+			}
 		}
 
 		builder.append("\nRotation will be running for **")
@@ -106,7 +110,11 @@ public class SalmonWatcher {
 		StringBuilder builder = new StringBuilder();
 
 		for (SplatNetSalmonRunSchedules.SplatNetScheduleDetail.WeaponDetail weapon : detail.getWeapons()) {
-			builder.append(weapon.getWeapon().getName()).append(", ");
+			if (weapon.getWeapon() != null) {
+				builder.append(weapon.getWeapon().getName()).append(", ");
+			} else if (weapon.getCoop_special_weapon() != null) {
+				builder.append(weapon.getCoop_special_weapon().getName()).append(", ");
+			}
 		}
 
 		return builder.substring(0, builder.length() - 2);

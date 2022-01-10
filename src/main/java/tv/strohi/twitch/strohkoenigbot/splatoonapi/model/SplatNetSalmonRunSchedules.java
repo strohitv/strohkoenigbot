@@ -60,6 +60,16 @@ public class SplatNetSalmonRunSchedules {
 		public static class WeaponDetail {
 			private String id;
 			private SplatNetWeapon weapon;
+			private CoopWeaponDetail coop_special_weapon;
+		}
+
+
+		@Data
+		@NoArgsConstructor
+		@AllArgsConstructor
+		public static class CoopWeaponDetail {
+			private String name;
+			private String image;
 		}
 	}
 }

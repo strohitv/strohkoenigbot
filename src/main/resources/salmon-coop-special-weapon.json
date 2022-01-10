@@ -1,0 +1,110 @@
+{
+  "schedules": [
+    {
+      "end_time": 1641772800,
+      "start_time": 1641621600
+    },
+    {
+      "start_time": 1641794400,
+      "end_time": 1641924000
+    },
+    {
+      "start_time": 1641945600,
+      "end_time": 1642075200
+    },
+    {
+      "end_time": 1642226400,
+      "start_time": 1642096800
+    },
+    {
+      "end_time": 1642399200,
+      "start_time": 1642248000
+    }
+  ],
+  "details": [
+    {
+      "start_time": 1641621600,
+      "end_time": 1641772800,
+      "weapons": [
+        {
+          "id": "-1",
+          "coop_special_weapon": {
+            "image": "/images/coop_weapons/746f7e90bc151334f0bf0d2a1f0987e311b03736.png",
+            "name": "Random"
+          }
+        },
+        {
+          "id": "-1",
+          "coop_special_weapon": {
+            "image": "/images/coop_weapons/746f7e90bc151334f0bf0d2a1f0987e311b03736.png",
+            "name": "Random"
+          }
+        },
+        {
+          "coop_special_weapon": {
+            "name": "Random",
+            "image": "/images/coop_weapons/746f7e90bc151334f0bf0d2a1f0987e311b03736.png"
+          },
+          "id": "-1"
+        },
+        {
+          "id": "-1",
+          "coop_special_weapon": {
+            "image": "/images/coop_weapons/746f7e90bc151334f0bf0d2a1f0987e311b03736.png",
+            "name": "Random"
+          }
+        }
+      ],
+      "stage": {
+        "name": "Spawning Grounds",
+        "image": "/images/coop_stage/65c68c6f0641cc5654434b78a6f10b0ad32ccdee.png"
+      }
+    },
+    {
+      "weapons": [
+        {
+          "weapon": {
+            "id": "3010",
+            "image": "/images/weapon/ad921a57ab1b7721c50873c082bb34591b61021c.png",
+            "name": "Tri-Slosher",
+            "thumbnail": "/images/weapon/c1befd17d09a527b66f9d2c8a70849a4969642e4.png"
+          },
+          "id": "3010"
+        },
+        {
+          "id": "70",
+          "weapon": {
+            "id": "70",
+            "name": "Splattershot Pro",
+            "thumbnail": "/images/weapon/05d735502f00fe9cbcaca8714f7102653da888fd.png",
+            "image": "/images/weapon/2e2b59379b8f14cfed0600f84590be0ecad707b6.png"
+          }
+        },
+        {
+          "id": "50",
+          "weapon": {
+            "id": "50",
+            "image": "/images/weapon/df04ddaf086cea94491df553a6d2550230a4da3c.png",
+            "name": ".52 Gal",
+            "thumbnail": "/images/weapon/3e69eaa1b1463689ddbe4fe23661f007dc216b08.png"
+          }
+        },
+        {
+          "id": "4020",
+          "weapon": {
+            "id": "4020",
+            "thumbnail": "/images/weapon/3a92a1fa8320222ca300d3c3ac25474c5077c304.png",
+            "name": "Hydra Splatling",
+            "image": "/images/weapon/e34bbd580e49695b97d5fc4464cc901d4fe08ce5.png"
+          }
+        }
+      ],
+      "stage": {
+        "name": "Ruins of Ark Polaris",
+        "image": "/images/coop_stage/50064ec6e97aac91e70df5fc2cfecf61ad8615fd.png"
+      },
+      "start_time": 1641794400,
+      "end_time": 1641924000
+    }
+  ]
+}
