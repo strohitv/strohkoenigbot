@@ -41,6 +41,10 @@ public class ExtendedStatisticsExporter {
 			"</body>\n" +
 			"</html>";
 
+	public String getCurrentHtml() {
+		return currentHtml;
+	}
+
 	private Instant started = Instant.now();
 	private Map<SplatoonRule, Double> powersBeforeStream;
 
