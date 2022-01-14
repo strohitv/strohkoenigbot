@@ -72,10 +72,10 @@ public class SplatNetStoreWatcher {
 		SplatNetMerchandises gearOffers = shopLoader.querySplatoonApi("/api/onlineshop/merchandises", SplatNetMerchandises.class);
 
 		logger.info("found {} offers", gearOffers != null ? gearOffers.getMerchandises().length : 0);
-		logger.info(gearOffers);
+		logger.debug(gearOffers);
 
-		logger.info("filters in database: ");
-		logger.info(abilityNotificationRepository.findAll());
+		logger.debug("filters in database: ");
+		logger.debug(abilityNotificationRepository.findAll());
 
 		if (gearOffers != null && gearOffers.getMerchandises() != null) {
 			if (gearOffers.getMerchandises().length >= 1 && gearOffers.getMerchandises()[0].getEndTime().isBefore(Instant.now().plus(1, ChronoUnit.HOURS))) {
@@ -141,13 +141,13 @@ public class SplatNetStoreWatcher {
 	}
 
 	private void sendDiscordNotification(SplatNetMerchandises.SplatNetMerchandise gear, String discordMessage) {
-		logger.info("Sending out discord notifications to server channel");
+		logger.debug("Sending out discord notifications to server channel");
 		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getSplatNetGearChannel(),
 				discordMessage,
 				String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getImage()),
 				String.format("https://app.splatoon2.nintendo.net%s", gear.getSkill().getImage()),
 				String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getBrand().getFrequent_skill().getImage()));
-		logger.info("Finished sending out discord notifications to server channel");
+		logger.debug("Finished sending out discord notifications to server channel");
 
 		logger.info("Sending out discord notifications to users");
 		List<AbilityNotification> notifications = findNotifications(gear);

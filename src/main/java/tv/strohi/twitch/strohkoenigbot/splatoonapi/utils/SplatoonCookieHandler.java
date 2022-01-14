@@ -38,17 +38,17 @@ public class SplatoonCookieHandler extends CookieHandler {
 
 	@Override
 	public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
-		logger.info("putting authentication information into request");
+		logger.debug("putting authentication information into request");
 
 		List<SplatoonLogin> logins = splatoonLoginRepository.findAll();
 		SplatoonLogin login = logins.stream().findFirst().orElse(null);
-		logger.info("found {} splatoon logins", logins.size());
-		logger.info("using login:");
-		logger.info(login);
+		logger.debug("found {} splatoon logins", logins.size());
+		logger.debug("using login:");
+		logger.debug(login);
 
 		if (login == null) {
 			login = splatoonLoginRepository.save(new SplatoonLogin());
-			logger.info("creating new login");
+			logger.debug("creating new login");
 		}
 
 		if (login.getSessionToken() == null || login.getSessionToken().isBlank()) {
@@ -62,10 +62,10 @@ public class SplatoonCookieHandler extends CookieHandler {
 		}
 
 		if (login.getExpiresAt() == null || Instant.now().isAfter(login.getExpiresAt())) {
-			logger.info("refreshing auth data");
+			logger.debug("refreshing auth data");
 			AuthenticationData authData = authenticator.refreshAccess(login.getSessionToken());
-			logger.info("new auth data:");
-			logger.info(authData);
+			logger.debug("new auth data:");
+			logger.debug(authData);
 
 			login.setCookie(authData.getCookie());
 			login.setExpiresAt(authData.getCookieExpiresAt());
