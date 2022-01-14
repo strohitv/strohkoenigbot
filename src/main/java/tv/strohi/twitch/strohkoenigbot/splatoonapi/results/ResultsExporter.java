@@ -160,10 +160,10 @@ public class ResultsExporter {
 
 	@Scheduled(fixedRate = 15000, initialDelay = 90000)
 	public void loadGameResultsScheduled() {
-		logger.info("running results exporter");
+		logger.debug("running results exporter");
 		if (!alreadyRunning) {
 			alreadyRunning = true;
-			logger.info("wasn't already running");
+			logger.info("loading results");
 
 //			counter++;
 //			if (DiscordChannelDecisionMaker.isIsLocalDebug() && !isStreamRunning && counter == 10) {
@@ -320,7 +320,7 @@ public class ResultsExporter {
 				logger.error(t);
 			}
 
-			logger.info("done");
+			logger.info("results refresh successful");
 			alreadyRunning = false;
 		}
 	}

@@ -139,8 +139,8 @@ public class RotationWatcher {
 			saveStagesInDatabase(stages.getGachi());
 			saveStagesInDatabase(stages.getLeague());
 
-			logger.info("got an answer from api");
-			logger.info(stages);
+			logger.info("finished stage loading");
+			logger.debug(stages);
 		}
 	}
 
