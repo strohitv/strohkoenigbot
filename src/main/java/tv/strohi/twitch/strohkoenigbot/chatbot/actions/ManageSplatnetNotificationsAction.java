@@ -51,6 +51,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			put("ability doubler", AbilityType.AbilityDoubler);
 			put("ability double", AbilityType.AbilityDoubler);
 			put("ability", AbilityType.AbilityDoubler);
+			put("doubler", AbilityType.AbilityDoubler);
 			put("ad", AbilityType.AbilityDoubler);
 
 			put("bomb defense up dx", AbilityType.BombDefenseUpDx);
@@ -67,6 +68,8 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 			put("drop roller", AbilityType.DropRoller);
 			put("droproller", AbilityType.DropRoller);
+			put("drop", AbilityType.DropRoller);
+			put("roller", AbilityType.DropRoller);
 			put("dr", AbilityType.DropRoller);
 
 			put("haunt", AbilityType.Haunt);
@@ -79,6 +82,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			put("ink resistance", AbilityType.InkResistanceUp);
 			put("resistance", AbilityType.InkResistanceUp);
 			put("ink res", AbilityType.InkResistanceUp);
+			put("inkres", AbilityType.InkResistanceUp);
 			put("ink", AbilityType.InkResistanceUp);
 			put("iru", AbilityType.InkResistanceUp);
 			put("ir", AbilityType.InkResistanceUp);
