@@ -9,6 +9,7 @@ public class DiscordChannelDecisionMaker {
 	private final static String rankedChannel = "ranked-rotations";
 	private final static String leagueChannel = "league-rotations";
 	private final static String salmonRunChannel = "salmon-run-rotations";
+	private final static String matchChannel = "matches";
 
 	private static boolean isLocalDebug = false;
 
@@ -67,6 +68,14 @@ public class DiscordChannelDecisionMaker {
 			return debugTempChannel;
 		} else {
 			return salmonRunChannel;
+		}
+	}
+
+	public static String getMatchChannelName() {
+		if (isLocalDebug) {
+			return debugTempChannel;
+		} else {
+			return matchChannel;
 		}
 	}
 }

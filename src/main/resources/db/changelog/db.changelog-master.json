@@ -1165,6 +1165,68 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "7",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_clips",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time",
+                    "type": "timestamp"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time",
+                    "type": "timestamp"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_good_play",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clip_url",
+                    "type": "varchar(150)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "description",
+                    "type": "varchar(500)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "match_id",
+                    "type": "bigint"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }

@@ -8,18 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonAbilityMatch;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMatch;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMonthlyResult;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonRotation;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonGearType;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMatchResult;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonAbilityMatchRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonMatchRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonMonthlyResultRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonRotationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResultsCollection;
@@ -80,6 +74,13 @@ public class ResultsExporter {
 	}
 
 	private SplatoonMonthlyResultRepository monthlyResultRepository;
+
+	private SplatoonClipRepository clipRepository;
+
+	@Autowired
+	public void setClipRepository(SplatoonClipRepository clipRepository) {
+		this.clipRepository = clipRepository;
+	}
 
 	@Autowired
 	public void setMonthlyResultRepository(SplatoonMonthlyResultRepository monthlyResultRepository) {
@@ -272,6 +273,54 @@ public class ResultsExporter {
 
 						abilityMatchRepository.saveAll(abilitiesUsedInMatch);
 
+						String discordResultMessage = String.format(
+								"**I finished a Splatoon 2 match!**\n" +
+										"\n" +
+										"**General results**:\n" +
+										"- Mode: **%s**\n" +
+										"- Rule: **%s**\n" +
+										"- It was a **%s**\n" +
+										"- My weapon: **%s**\n" +
+										"- Our score: **%s**\n" +
+										"- Enemy score: **%s**\n" +
+										"\n" +
+										"**Personal results**:\n" +
+										"- Splats: **%d**\n" +
+										"- Assists: **%d**\n" +
+										"- Deaths: **%d**\n" +
+										"- Paint: + **%d** points\n",
+								match.getMode(),
+								match.getRule(),
+								match.getMatchResult(),
+								loadedMatch.getPlayer_result().getPlayer().getWeapon().getName(),
+								match.getOwnPercentage() != null ? match.getOwnPercentage() : match.getOwnScore(),
+								match.getEnemyPercentage() != null ? match.getEnemyPercentage() : match.getEnemyScore(),
+
+								match.getKills(),
+								match.getAssists(),
+								match.getDeaths(),
+								match.getTurfGain());
+
+						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), discordResultMessage);
+
+						// refresh clips and send them to discord
+						List<SplatoonClip> clips = clipRepository.getAllByStartTimeIsGreaterThanAndEndTimeIsLessThan(match.getStartTime(), match.getEndTime());
+						if (clips.size() > 0) {
+							StringBuilder ratingsMessageBuilder = new StringBuilder("**Viewers rated my performance**:\n");
+
+							for (SplatoonClip clip : clips) {
+							    ratingsMessageBuilder.append(String.format("\n- **%s** play - Clip: <%s> - Description: \"%s\"",
+										clip.getIsGoodPlay() ? "GOOD" : "BAD",
+										clip.getClipUrl(),
+										clip.getDescription()));
+
+							    clip.setMatchId(match.getId());
+							}
+
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), ratingsMessageBuilder.toString());
+							clipRepository.saveAll(clips);
+						}
+
 						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), String.format("Added used abilities to Match with id **%d**", match.getId()));
 					}
 
@@ -316,7 +365,7 @@ public class ResultsExporter {
 				} catch (Exception ex2) {
 					logger.error(ex2);
 				}
-			} catch(Throwable t) {
+			} catch (Throwable t) {
 				logger.error(t);
 			}
 
