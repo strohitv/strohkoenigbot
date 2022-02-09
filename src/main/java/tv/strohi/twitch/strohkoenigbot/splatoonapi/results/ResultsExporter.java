@@ -157,7 +157,11 @@ public class ResultsExporter {
 		extendedStatisticsExporter.end();
 	}
 
-//	int counter = 0;
+	public boolean isStreamRunning() {
+		return isStreamRunning;
+	}
+
+	//	int counter = 0;
 
 	@Scheduled(fixedRate = 15000, initialDelay = 90000)
 	public void loadGameResultsScheduled() {
