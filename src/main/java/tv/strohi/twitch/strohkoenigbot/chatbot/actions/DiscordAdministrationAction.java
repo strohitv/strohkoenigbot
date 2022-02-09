@@ -10,6 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 
 import java.util.EnumSet;
 
@@ -41,6 +42,13 @@ public class DiscordAdministrationAction extends ChatAction {
 		this.discordBot = discordBot;
 	}
 
+	private ResultsExporter resultsExporter;
+
+	@Autowired
+	public void setResultsExporter(ResultsExporter resultsExporter) {
+		this.resultsExporter = resultsExporter;
+	}
+
 	@Override
 	protected void execute(ActionArgs args) {
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
@@ -62,6 +70,12 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Token was set successfully.");
 			}
+		} else if (message.startsWith("!start") && !resultsExporter.isStreamRunning()) {
+			resultsExporter.start();
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export started successfully.");
+		} else if (message.startsWith("!stop") && resultsExporter.isStreamRunning()) {
+			resultsExporter.stop();
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export stopped successfully.");
 		}
 	}
 }
