@@ -1,10 +1,13 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.SpecialWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.SubWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
@@ -16,6 +19,13 @@ import java.util.stream.Collectors;
 @Component
 public class RandomWeaponAction extends ChatAction {
 	private final Random random = new Random();
+
+	private SplatoonWeaponRepository splatoonWeaponRepository;
+
+	@Autowired
+	public void setSplatoonWeaponRepository(SplatoonWeaponRepository splatoonWeaponRepository) {
+		this.splatoonWeaponRepository = splatoonWeaponRepository;
+	}
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
@@ -33,6 +43,13 @@ public class RandomWeaponAction extends ChatAction {
 
 		if (message.startsWith("!rw")) {
 			List<WeaponKit> kits = new ArrayList<>(WeaponKit.All);
+
+			if (message.contains("100k")) {
+				List<SplatoonWeapon> redBadgeWeapons = splatoonWeaponRepository.findByTurfGreaterThanEqual(100_000);
+				kits = kits.stream()
+						.filter(k -> redBadgeWeapons.stream().noneMatch(rbw -> k.getName().toLowerCase(Locale.ROOT).equals(rbw.getName().toLowerCase(Locale.ROOT))))
+						.collect(Collectors.toList());
+			}
 
 			List<WeaponClass> chosenClasses = new ArrayList<>();
 			for (WeaponClass weaponClass : WeaponClass.All) {
