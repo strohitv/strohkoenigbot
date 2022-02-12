@@ -2,6 +2,8 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon;
 
 import lombok.Getter;
 
+import java.util.EnumSet;
+
 @Getter
 public enum SubWeapon {
 	SplatBomb("Splat Bomb"),
@@ -23,4 +25,6 @@ public enum SubWeapon {
 	SubWeapon(String name) {
 		this.name = name;
 	}
+
+	public static final EnumSet<SubWeapon> All = EnumSet.allOf(SubWeapon.class);
 }

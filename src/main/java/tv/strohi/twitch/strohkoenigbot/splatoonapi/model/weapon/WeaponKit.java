@@ -2,6 +2,8 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon;
 
 import lombok.Getter;
 
+import java.util.EnumSet;
+
 @Getter
 public enum WeaponKit {
 	// Shooters
@@ -223,4 +225,6 @@ public enum WeaponKit {
 		this.subWeapon = subWeapon;
 		this.specialWeapon = specialWeapon;
 	}
+
+	public static final EnumSet<WeaponKit> All = EnumSet.allOf(WeaponKit.class);
 }
