@@ -1,13 +1,10 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.SpecialWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.SubWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
@@ -23,20 +20,6 @@ public class RandomWeaponAction extends ChatAction {
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
 		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.DiscordPrivateMessage);
-	}
-
-	private TwitchMessageSender messageSender;
-
-	@Autowired
-	public void setMessageSender(TwitchMessageSender messageSender) {
-		this.messageSender = messageSender;
-	}
-
-	private DiscordBot discordBot;
-
-	@Autowired
-	public void setDiscordBot(DiscordBot discordBot) {
-		this.discordBot = discordBot;
 	}
 
 	@Override
