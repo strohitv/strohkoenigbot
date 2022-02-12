@@ -15,6 +15,8 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonClip;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
@@ -100,6 +102,17 @@ public class TwitchBotClient {
 					args.getArguments().put(ArgumentKey.MessageNonce, event.getNonce());
 					args.getArguments().put(ArgumentKey.ReplyMessageId, event.getMessageEvent().getMessageId().orElse(event.getEventId()));
 
+					args.setReplySender(
+							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(),
+									null,
+									TriggerReason.ChatMessage,
+									event.getMessageEvent().getChannelName().orElse(null),
+									event.getNonce(),
+									event.getMessageEvent().getMessageId().orElse(event.getEventId()),
+									null
+							)
+					);
+
 					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
 				});
 
@@ -112,6 +125,17 @@ public class TwitchBotClient {
 
 					args.getArguments().put(ArgumentKey.Event, event);
 					args.getArguments().put(ArgumentKey.Message, event.getMessage());
+
+					args.setReplySender(
+							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(),
+									null,
+									TriggerReason.PrivateMessage,
+									event.getUser().getName(),
+									null,
+									null,
+									null
+							)
+					);
 
 					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
 				});
@@ -131,8 +155,13 @@ public class TwitchBotClient {
 	}
 
 	public SplatoonClip createClip(String message, boolean isGoodPlay) {
-		if (!isStreamRunning) return null;
-		if (Instant.now().isBefore(lastClipCreatedTime.plus(20, ChronoUnit.SECONDS))) return null;
+		if (!isStreamRunning) {
+			return null;
+		}
+
+		if (Instant.now().isBefore(lastClipCreatedTime.plus(20, ChronoUnit.SECONDS))) {
+			return null;
+		}
 
 		lastClipCreatedTime = Instant.now();
 

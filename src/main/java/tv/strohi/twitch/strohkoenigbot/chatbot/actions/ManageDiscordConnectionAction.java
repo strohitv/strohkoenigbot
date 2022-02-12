@@ -11,7 +11,6 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
@@ -37,13 +36,6 @@ public class ManageDiscordConnectionAction extends ChatAction {
 		this.discordBot = discordBot;
 
 		this.discordBot.subscribe(accepted);
-	}
-
-	private TwitchMessageSender messageSender;
-
-	@Autowired
-	public void setMessageSender(TwitchMessageSender messageSender) {
-		this.messageSender = messageSender;
 	}
 
 	@Autowired
@@ -73,18 +65,7 @@ public class ManageDiscordConnectionAction extends ChatAction {
 	@Override
 	public void execute(ActionArgs args) {
 		boolean isTwitchMessage = args.getReason() == TriggerReason.ChatMessage || args.getReason() == TriggerReason.PrivateMessage;
-
-		TwitchDiscordMessageSender sender = new TwitchDiscordMessageSender(
-				messageSender,
-				discordBot,
-				args.getReason(),
-				// was sent from twitch
-				(isTwitchMessage) ? (String) args.getArguments().get(ArgumentKey.ChannelName) : null,
-				(isTwitchMessage) ? (String) args.getArguments().get(ArgumentKey.MessageNonce) : null,
-				(isTwitchMessage) ? (String) args.getArguments().get(ArgumentKey.ReplyMessageId) : null,
-				// was sent from discord
-				(!isTwitchMessage) ? Long.parseLong(args.getUserId()) : null
-		);
+		TwitchDiscordMessageSender sender = args.getReplySender();
 
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
 		boolean remove = false;
@@ -124,7 +105,7 @@ public class ManageDiscordConnectionAction extends ChatAction {
 			message = message.substring("!connect".length()).trim();
 			String discordTag;
 			if (isTwitchMessage) {
-				 discordTag = Arrays.stream(message.split(" "))
+				discordTag = Arrays.stream(message.split(" "))
 						.filter(m -> m.contains("#"))
 						.findFirst()
 						.orElse(null);
@@ -158,10 +139,7 @@ public class ManageDiscordConnectionAction extends ChatAction {
 							if (discordBot.sendPrivateMessage(account.getDiscordId(),
 									String.format("Hello!\nTwitch user '@%s' wants to connect his account with your discord account to receive automated notifications about new gear in the splat net shop.\n\nIf this is you and you want to receive those notifications, please respond with 'yes'. If this is not you or you don't want to receive any more messages, please ignore this message.",
 											args.getArguments().get(ArgumentKey.ChannelName)))) {
-								messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-										"I sent you a message on discord. Please respond with 'yes' to it to finish the connection process.",
-										(String) args.getArguments().get(ArgumentKey.MessageNonce),
-										(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
+								sender.send("I sent you a message on discord. Please respond with 'yes' to it to finish the connection process.");
 							}
 						} else {
 							accepted.accept(account.getDiscordId());

@@ -10,7 +10,6 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
@@ -263,13 +262,6 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 	private final AbilityNotificationRepository abilityNotificationRepository;
 	private final DiscordAccountRepository discordAccountRepository;
 
-	private TwitchMessageSender messageSender;
-
-	@Autowired
-	public void setMessageSender(TwitchMessageSender messageSender) {
-		this.messageSender = messageSender;
-	}
-
 	private DiscordBot discordBot;
 
 	@Autowired
@@ -291,19 +283,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 	@Override
 	public void execute(ActionArgs args) {
 		boolean isTwitchMessage = args.getReason() == TriggerReason.ChatMessage || args.getReason() == TriggerReason.PrivateMessage;
-
-		TwitchDiscordMessageSender sender = new TwitchDiscordMessageSender(
-				messageSender,
-				discordBot,
-				args.getReason(),
-				// was sent from twitch
-				(isTwitchMessage) ? (String) args.getArguments().get(ArgumentKey.ChannelName) : null,
-				(isTwitchMessage) ? (String) args.getArguments().get(ArgumentKey.MessageNonce) : null,
-				(isTwitchMessage) ? (String) args.getArguments().get(ArgumentKey.ReplyMessageId) : null,
-				// was sent from discord
-				(!isTwitchMessage) ? Long.parseLong(args.getUserId()) : null
-		);
-
+		TwitchDiscordMessageSender sender = args.getReplySender();
 
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
 		boolean remove = false;
@@ -339,15 +319,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				discordBot.sendPrivateMessage(account.getDiscordId(), builder.toString());
 
 				if (isTwitchMessage) {
-					if (args.getReason() == TriggerReason.ChatMessage) {
-						messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-								"I've sent you a list with your active notifications on discord.",
-								(String) args.getArguments().get(ArgumentKey.MessageNonce),
-								(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
-					} else {
-						messageSender.replyPrivate(args.getUser(),
-								"I've sent you a list with your active notifications on discord.");
-					}
+					sender.send("I've sent you a list with your active notifications on discord.");
 				}
 			} else {
 				sender.send("You didn't register any notifications.");

@@ -20,6 +20,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 
@@ -83,6 +84,16 @@ public class DiscordBot {
 
 											args.getArguments().put(ArgumentKey.Event, event);
 											args.getArguments().put(ArgumentKey.Message, message.getContent());
+
+											args.setReplySender(
+													new TwitchDiscordMessageSender(null,
+															this,
+															TriggerReason.DiscordPrivateMessage,
+															null,
+															null,
+															null,
+															author.getId().asLong())
+											);
 
 											botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.DiscordPrivateMessage)).forEach(action -> action.run(args));
 										}

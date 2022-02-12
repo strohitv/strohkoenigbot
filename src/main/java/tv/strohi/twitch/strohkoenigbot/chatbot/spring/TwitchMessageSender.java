@@ -7,11 +7,18 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 
 @Component
 public class TwitchMessageSender {
+	private static TwitchMessageSender botTwitchMessageSender;
+
+	public static TwitchMessageSender getBotTwitchMessageSender() {
+		return botTwitchMessageSender;
+	}
+
 	private final TwitchBotClient botClient;
 
 	@Autowired
 	public TwitchMessageSender(@Qualifier("botClient") TwitchBotClient botClient) {
 		this.botClient = botClient;
+		TwitchMessageSender.botTwitchMessageSender = this;
 	}
 
 	public void send(String channel, String message) {
