@@ -41,11 +41,12 @@ public class StrohkoenigbotApplication {
 	}
 
 	public static void main(String[] args) {
-		if (args != null && Arrays.stream(args).anyMatch(arg -> arg != null && arg.trim().toLowerCase().equals("local_debug"))) {
+		if (Arrays.stream(args).anyMatch(arg -> arg != null && arg.trim().equalsIgnoreCase("local_debug"))) {
 			DiscordChannelDecisionMaker.setIsLocalDebug(true);
 		}
 
 		arguments = Arrays.stream(args).collect(Collectors.toUnmodifiableList());
+
 		app = SpringApplication.run(StrohkoenigbotApplication.class, args);
 	}
 
@@ -75,7 +76,7 @@ public class StrohkoenigbotApplication {
 		}
 	}
 
-//	@Scheduled(cron = "0 53 4 * * *")
+	//	@Scheduled(cron = "0 53 4 * * *")
 	public void sendHello() {
 		logger.info("sending hello message to strohkoenig");
 		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "Bot is started and ready to go!");
