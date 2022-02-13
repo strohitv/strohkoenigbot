@@ -14,10 +14,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMat
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.*;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResultsCollection;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.Statistics;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.*;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -75,6 +72,11 @@ public class ResultsExporter {
 
 	private SplatoonMonthlyResultRepository monthlyResultRepository;
 
+	@Autowired
+	public void setMonthlyResultRepository(SplatoonMonthlyResultRepository monthlyResultRepository) {
+		this.monthlyResultRepository = monthlyResultRepository;
+	}
+
 	private SplatoonClipRepository clipRepository;
 
 	@Autowired
@@ -82,9 +84,11 @@ public class ResultsExporter {
 		this.clipRepository = clipRepository;
 	}
 
+	private SplatoonWeaponRepository weaponRepository;
+
 	@Autowired
-	public void setMonthlyResultRepository(SplatoonMonthlyResultRepository monthlyResultRepository) {
-		this.monthlyResultRepository = monthlyResultRepository;
+	public void setWeaponRepository(SplatoonWeaponRepository weaponRepository) {
+		this.weaponRepository = weaponRepository;
 	}
 
 	private DiscordBot discordBot;
@@ -225,7 +229,9 @@ public class ResultsExporter {
 						match.setLeaguePowerEstimate(loadedMatch.getMy_estimate_league_point());
 						match.setLeagueEnemyPower(loadedMatch.getOther_estimate_league_point());
 
-						match.setWeaponId(weaponExporter.loadWeapon(loadedMatch.getPlayer_result().getPlayer().getWeapon()).getId());
+						SplatoonWeapon weapon = weaponExporter.loadWeapon(loadedMatch.getPlayer_result().getPlayer().getWeapon());
+
+						match.setWeaponId(weapon.getId());
 						match.setTurfGain(loadedMatch.getPlayer_result().getGame_paint_point());
 						match.setTurfTotal(loadedMatch.getWeapon_paint_point());
 
@@ -252,6 +258,15 @@ public class ResultsExporter {
 						match.setMatchResultDetails(loadedMatch);
 
 						matchRepository.save(match);
+
+						weapon.setTurf(loadedMatch.getWeapon_paint_point());
+						if (match.getMatchResult() == SplatoonMatchResult.Win) {
+							weapon.setWins(weapon.getWins() + 1);
+						} else {
+							weapon.setDefeats(weapon.getDefeats() + 1);
+						}
+
+						weaponRepository.save(weapon);
 
 						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 								String.format("Put new Match with id **%d** for mode **%s** and rule **%s** into database. It was a **%s**.",

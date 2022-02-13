@@ -71,6 +71,11 @@ public class StatsExporter {
 
 			boolean isDirty = false;
 
+			if (!Objects.equals(weapon.getTurf(), singleWeaponStats.getTotal_paint_point())) {
+				weapon.setTurf(singleWeaponStats.getTotal_paint_point());
+				isDirty = true;
+			}
+
 			if (!Objects.equals(weapon.getWins(), singleWeaponStats.getWin_count())) {
 				weapon.setWins(singleWeaponStats.getWin_count());
 				isDirty = true;
