@@ -103,6 +103,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			put("subsaver", AbilityType.InkSaverSub);
 			put("iss", AbilityType.InkSaverSub);
 
+			put("last-ditch effort", AbilityType.LastDitchEffort);
 			put("last ditch effort", AbilityType.LastDitchEffort);
 			put("lastditcheffort", AbilityType.LastDitchEffort);
 			put("last ditch", AbilityType.LastDitchEffort);
