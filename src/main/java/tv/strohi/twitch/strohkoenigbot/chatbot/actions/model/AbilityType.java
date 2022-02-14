@@ -3,7 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions.model;
 public enum AbilityType {
 	Any("Any"),
 	AbilityDoubler("Ability Doubler"),
-	BombDefenseUpDx("Bomb Defense Up Dx"),
+	BombDefenseUpDx("Bomb Defense Up DX"),
 	Comeback("Comeback"),
 	DropRoller("Drop Roller"),
 	Haunt("Haunt"),
@@ -11,7 +11,7 @@ public enum AbilityType {
 	InkResistanceUp("Ink Resistance Up"),
 	InkSaverMain("Ink Saver (Main)"),
 	InkSaverSub("Ink Saver (Sub)"),
-	LastDitchEffort("Last Ditch Effort"),
+	LastDitchEffort("Last-Ditch Effort"),
 	MainPowerUp("Main Power Up"),
 	NinjaSquid("Ninja Squid"),
 	ObjectShredder("Object Shredder"),
