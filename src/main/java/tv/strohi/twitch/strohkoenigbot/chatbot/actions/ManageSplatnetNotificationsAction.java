@@ -16,8 +16,6 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationReposi
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static tv.strohi.twitch.strohkoenigbot.utils.ParseUtils.parseLongSafe;
@@ -515,10 +513,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		if (type == AbilityType.Any) {
 			result = String.format("any %s ability", favoredAbility ? "favored" : "main");
 		} else {
-			Pattern pattern = Pattern.compile("[A-Z]");
-			Matcher matcher = pattern.matcher(type.toString());
-			result = matcher.replaceAll(matchResult -> String.format(" %s", matchResult.group())).trim();
-
+			result = type.getName();
 			result = String.format("%s as %s ability", result, favoredAbility ? "favored" : "main");
 		}
 
@@ -531,9 +526,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		if (type == AbilityType.Any) {
 			result = "Any";
 		} else {
-			Pattern pattern = Pattern.compile("[A-Z]");
-			Matcher matcher = pattern.matcher(type.toString());
-			result = matcher.replaceAll(matchResult -> String.format(" %s", matchResult.group())).trim();
+			result = type.getName();
 		}
 
 		return result;
