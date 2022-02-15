@@ -8,13 +8,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonGearType;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMatchResult;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.*;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.*;
+import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResultsCollection;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.Statistics;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -25,7 +31,6 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,10 +41,15 @@ public class ResultsExporter {
 
 	private boolean alreadyRunning = false;
 	private boolean isStreamRunning = false;
+	private boolean isRankedRunning = false;
 
 	public ResultsExporter() {
 		String path = Paths.get(".").toAbsolutePath().normalize().toString();
 		statistics = new Statistics(String.format("%s\\src\\main\\resources\\html\\template-example.html", path));
+	}
+
+	public void setRankedRunning(boolean rankedRunning) {
+		isRankedRunning = rankedRunning;
 	}
 
 	private SplatoonMatchRepository matchRepository;
@@ -91,6 +101,13 @@ public class ResultsExporter {
 		this.weaponRepository = weaponRepository;
 	}
 
+	private ConfigurationRepository configurationRepository;
+
+	@Autowired
+	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
+		this.configurationRepository = configurationRepository;
+	}
+
 	private DiscordBot discordBot;
 
 	@Autowired
@@ -133,6 +150,13 @@ public class ResultsExporter {
 		this.extendedStatisticsExporter = extendedStatisticsExporter;
 	}
 
+	private ObsSceneSwitcher obsSceneSwitcher;
+
+	@Autowired
+	public void setObsSceneSwitcher(ObsSceneSwitcher obsSceneSwitcher) {
+		this.obsSceneSwitcher = obsSceneSwitcher;
+	}
+
 	public String getHtml() {
 		return statistics.getCurrentHtml();
 	}
@@ -157,6 +181,7 @@ public class ResultsExporter {
 
 	public void stop() {
 		isStreamRunning = false;
+		isRankedRunning = false;
 		statistics.stop();
 		extendedStatisticsExporter.end();
 	}
@@ -165,19 +190,12 @@ public class ResultsExporter {
 		return isStreamRunning;
 	}
 
-	//	int counter = 0;
-
-	@Scheduled(fixedRate = 15000, initialDelay = 90000)
+	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
 	public void loadGameResultsScheduled() {
 		logger.debug("running results exporter");
 		if (!alreadyRunning) {
 			alreadyRunning = true;
 			logger.info("loading results");
-
-//			counter++;
-//			if (DiscordChannelDecisionMaker.isIsLocalDebug() && !isStreamRunning && counter == 10) {
-//				start();
-//			}
 
 			try {
 				SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApi("/api/results", SplatNetMatchResultsCollection.class);
@@ -355,6 +373,16 @@ public class ResultsExporter {
 						extendedStatisticsExporter.export();
 					}
 				}
+
+				// TODO automatic scene switch in obs
+				// TODO load current ranked results from splatnet
+				// TODO check if current mode != null
+				// TODO in that case, check if current mode != last match power (refreshMonthlyRankedResults)
+				// TODO if != : switch to game scene
+				// TODO if == : switch to results overview scene
+				if (isStreamRunning && isRankedRunning) {
+					controlOBS();
+				}
 			} catch (Exception ex) {
 				logger.error(ex);
 
@@ -393,6 +421,63 @@ public class ResultsExporter {
 		}
 	}
 
+	private void controlOBS() {
+		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault());
+		int year = date.getYear();
+		int month = date.getMonthValue();
+
+		String prefix = configurationRepository.findByConfigName(ConfigurationRepository.streamPrefix).stream().map(Configuration::getConfigValue).findFirst().orElse(null);
+		if (prefix != null) {
+			String gameSceneName = configurationRepository.findByConfigName(prefix + ConfigurationRepository.gameSceneName)
+					.stream().map(Configuration::getConfigValue).findFirst().orElse(null);
+			String resultsSceneName = configurationRepository.findByConfigName(prefix + ConfigurationRepository.resultsSceneName)
+					.stream().map(Configuration::getConfigValue).findFirst().orElse(null);
+
+			SplatoonRotation rotation = rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(Instant.now().getEpochSecond(),
+					Instant.now().getEpochSecond(),
+					SplatoonMode.Ranked);
+			SplatoonMonthlyResult currentMonthPerformance = monthlyResultRepository.findByPeriodYearAndPeriodMonth(year, month);
+
+			Double currentPower = getCurrentPower(currentMonthPerformance, rotation);
+			if (currentPower != null) {
+				SplatoonMatch match = matchRepository.findTop1ByModeAndRuleOrderByStartTimeDesc(SplatoonMode.Ranked, rotation.getRule());
+
+				if (match != null) {
+					if (match.getXPower() == null || !match.getXPower().equals(currentPower)
+							|| matchRepository.findByStartTimeGreaterThanEqualAndMode(extendedStatisticsExporter.getStarted().getEpochSecond(), SplatoonMode.Ranked).size() == 0) {
+						obsSceneSwitcher.switchScene(gameSceneName);
+					} else {
+						obsSceneSwitcher.switchScene(resultsSceneName);
+					}
+				}
+			} else {
+				obsSceneSwitcher.switchScene(gameSceneName);
+			}
+		}
+	}
+
+	private Double getCurrentPower(SplatoonMonthlyResult result, SplatoonRotation rotation) {
+		Double power;
+
+		switch (rotation.getRule()){
+			case Rainmaker:
+				power = result.getRainmakerCurrent();
+				break;
+			case TowerControl:
+				power = result.getTowerCurrent();
+				break;
+			case ClamBlitz:
+				power = result.getClamsCurrent();
+				break;
+			case SplatZones:
+			default:
+				power = result.getZonesCurrent();
+				break;
+		}
+
+		return power;
+	}
+
 	private List<SplatoonAbilityMatch> parseAbilities(SplatNetMatchResult.SplatNetPlayerResult.SplatNetPlayer.SplatNetGearSkills skills, String gearKind, long matchId) {
 		List<SplatoonAbilityMatch> abilitiesUsed = new ArrayList<>();
 
@@ -420,7 +505,7 @@ public class ResultsExporter {
 	}
 
 	private void refreshMonthlyRankedResults(List<SplatNetMatchResult> results) {
-		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault()).minus(5, ChronoUnit.DAYS);
+		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault());
 		int year = date.getYear();
 		int month = date.getMonthValue();
 
