@@ -1,6 +1,5 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,6 +45,11 @@ public class ExtendedStatisticsExporter {
 	}
 
 	private Instant started = Instant.now();
+
+	public Instant getStarted() {
+		return started;
+	}
+
 	private Map<SplatoonRule, Double> powersBeforeStream;
 
 	private String path;
@@ -133,8 +137,8 @@ public class ExtendedStatisticsExporter {
 		int previousPeriodMonth = date.minusDays(date.getDayOfMonth() + 5).getMonthValue();
 		SplatoonMonthlyResult lastMonthResult = monthlyResultRepository.findByPeriodYearAndPeriodMonth(previousPeriodYear, previousPeriodMonth);
 
-		List<SplatoonMatch> allStreamMatches = matchRepository.findByStartTimeLessThanEqualAndMode(started.getEpochSecond(), SplatoonMode.Ranked);
-		List<SplatoonMatch> allMonthMatches = matchRepository.findByStartTimeLessThanEqualAndMode(currentMonthResult.getStartTime(), SplatoonMode.Ranked);
+		List<SplatoonMatch> allStreamMatches = matchRepository.findByStartTimeGreaterThanEqualAndMode(started.getEpochSecond(), SplatoonMode.Ranked);
+		List<SplatoonMatch> allMonthMatches = matchRepository.findByStartTimeGreaterThanEqualAndMode(currentMonthResult.getStartTime(), SplatoonMode.Ranked);
 
 		SplatoonMatch lastMatch = allStreamMatches.stream()
 				.max(Comparator.comparing(SplatoonMatch::getStartTime))
@@ -176,10 +180,12 @@ public class ExtendedStatisticsExporter {
 		};
 
 		SplatNetMatchResult result = null;
-		try {
-			result = mapper.readValue(lastMatch.getJsonMatch(), SplatNetMatchResult.class);
-		} catch (JsonProcessingException ignored) {
-			// ignored
+		if (lastMatch.getJsonMatch() != null) {
+			try {
+				result = mapper.readValue(lastMatch.getJsonMatch(), SplatNetMatchResult.class);
+			} catch (Exception ignored) {
+				// ignored
+			}
 		}
 
 		if (result != null) {
@@ -200,6 +206,10 @@ public class ExtendedStatisticsExporter {
 					.filter(Objects::nonNull)
 					.map(SplatNetGearSkill::getImage)
 					.collect(Collectors.toList()));
+		} else {
+			perkImages.get(SplatoonGearType.Head).addAll(Arrays.asList("", ""));
+			perkImages.get(SplatoonGearType.Clothes).addAll(Arrays.asList("", ""));
+			perkImages.get(SplatoonGearType.Shoes).addAll(Arrays.asList("", ""));
 		}
 
 		long stageAWins = allStreamMatches.stream()
@@ -224,7 +234,7 @@ public class ExtendedStatisticsExporter {
 				.filter(m -> m.getRule() == lastMatch.getRule())
 				.filter(m -> m.getMatchResult() == SplatoonMatchResult.Win)
 				.count();
-		long allMonthRuleDefeats = allStreamMatches.stream()
+		long allMonthRuleDefeats = allMonthMatches.stream()
 				.filter(m -> m.getRule() == lastMatch.getRule())
 				.filter(m -> m.getMatchResult() != SplatoonMatchResult.Win)
 				.count();
@@ -232,7 +242,7 @@ public class ExtendedStatisticsExporter {
 		long allMonthWins = allMonthMatches.stream()
 				.filter(m -> m.getMatchResult() == SplatoonMatchResult.Win)
 				.count();
-		long allMonthDefeats = allStreamMatches.stream()
+		long allMonthDefeats = allMonthMatches.stream()
 				.filter(m -> m.getMatchResult() != SplatoonMatchResult.Win)
 				.count();
 
@@ -307,7 +317,7 @@ public class ExtendedStatisticsExporter {
 					.replace("{main-weapon-wins}", String.format("%d", lastMatchWeapon.getWins()))
 					.replace("{main-weapon-defeats}", String.format("%d", lastMatchWeapon.getDefeats()))
 
-					.replace("{main-weapon}", lastMatchWeapon.getName())
+					.replace("{main-weapon}", String.format("%s", lastMatchWeapon.getName()))
 					.replace("{main-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getImage()))
 					.replace("{sub-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getSubImage()))
 					.replace("{special-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getSpecialImage()))
@@ -444,20 +454,24 @@ public class ExtendedStatisticsExporter {
 	private Double getPowerForRule(SplatoonMonthlyResult result, SplatoonRule rule) {
 		Double power;
 
-		switch (rule) {
-			case Rainmaker:
-				power = result.getRainmakerCurrent();
-				break;
-			case TowerControl:
-				power = result.getTowerCurrent();
-				break;
-			case ClamBlitz:
-				power = result.getClamsCurrent();
-				break;
-			case SplatZones:
-			default:
-				power = result.getZonesCurrent();
-				break;
+		if (rule != null) {
+			switch (rule) {
+				case Rainmaker:
+					power = result.getRainmakerCurrent();
+					break;
+				case TowerControl:
+					power = result.getTowerCurrent();
+					break;
+				case ClamBlitz:
+					power = result.getClamsCurrent();
+					break;
+				case SplatZones:
+				default:
+					power = result.getZonesCurrent();
+					break;
+			}
+		} else {
+			power = result.getZonesCurrent();
 		}
 
 		return power;

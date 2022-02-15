@@ -5,6 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMatch;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
 
 import java.util.List;
 
@@ -14,6 +15,6 @@ public interface SplatoonMatchRepository extends CrudRepository<SplatoonMatch, L
 
 	SplatoonMatch findByBattleNumber(String battleNumber);
 
-	@NotNull List<SplatoonMatch> findByRotationId(long rotationId);
-	@NotNull List<SplatoonMatch> findByStartTimeLessThanEqualAndMode(long startTime, SplatoonMode mode);
+	@NotNull List<SplatoonMatch> findByStartTimeGreaterThanEqualAndMode(long startTime, SplatoonMode mode);
+	SplatoonMatch findTop1ByModeAndRuleOrderByStartTimeDesc(SplatoonMode mode, SplatoonRule rule);
 }
