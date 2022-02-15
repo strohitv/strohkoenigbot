@@ -8,7 +8,6 @@ import java.util.stream.Stream;
 
 @Converter(autoApply = true)
 public class AbilityConverter implements AttributeConverter<AbilityType, String> {
-
 	@Override
 	public String convertToDatabaseColumn(AbilityType ability) {
 		if (ability == null) {
