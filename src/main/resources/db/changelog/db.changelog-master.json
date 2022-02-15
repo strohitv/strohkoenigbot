@@ -1227,6 +1227,50 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "8",
+        "author": "strohkoenig",
+        "changes":[
+          {
+            "columns": [
+              {
+                "column": {
+                  "name": "main",
+                  "value": "Last-Ditch Effort"
+                }
+              }
+            ],
+            "tableName": "ability_notification",
+            "where":"main='Last Ditch Effort'"
+          },
+          {
+            "columns": [
+              {
+                "column": {
+                  "name": "main",
+                  "value": "Bomb Defense Up DX"
+                }
+              }
+            ],
+            "tableName": "ability_notification",
+            "where":"main='Bomb Defense Up Dx'"
+          },
+          {
+            "columns": [
+              {
+                "column": {
+                  "name": "favored",
+                  "value": "Bomb Defense Up DX"
+                }
+              }
+            ],
+            "tableName": "ability_notification",
+            "where":"favored='Bomb Defense Up Dx'"
+          }
+        ]
+      }
     }
   ]
 }
