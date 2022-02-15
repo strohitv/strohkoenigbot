@@ -9,6 +9,10 @@ import java.util.List;
 
 @Repository
 public interface ConfigurationRepository extends CrudRepository<Configuration, Long> {
+	String streamPrefix = "streamPrefix";
+	String gameSceneName = "GameScene";
+	String resultsSceneName = "ResultsScene";
+
 	@NotNull List<Configuration> findAll();
 
 	Configuration findById(long id);
