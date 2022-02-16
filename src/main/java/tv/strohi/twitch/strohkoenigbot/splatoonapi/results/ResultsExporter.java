@@ -17,10 +17,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRul
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResultsCollection;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.Statistics;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.*;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -141,6 +138,13 @@ public class ResultsExporter {
 	@Autowired
 	public void setAbilityExporter(AbilityExporter abilityExporter) {
 		this.abilityExporter = abilityExporter;
+	}
+
+	private PeaksExporter peaksExporter;
+
+	@Autowired
+	public void setPeaksExporter(PeaksExporter peaksExporter) {
+		this.peaksExporter = peaksExporter;
 	}
 
 	private ExtendedStatisticsExporter extendedStatisticsExporter;
@@ -346,12 +350,12 @@ public class ResultsExporter {
 							StringBuilder ratingsMessageBuilder = new StringBuilder("**Viewers rated my performance**:\n");
 
 							for (SplatoonClip clip : clips) {
-							    ratingsMessageBuilder.append(String.format("\n- **%s** play - Clip: <%s> - Description: \"%s\"",
+								ratingsMessageBuilder.append(String.format("\n- **%s** play - Clip: <%s> - Description: \"%s\"",
 										clip.getIsGoodPlay() ? "GOOD" : "BAD",
 										clip.getClipUrl(),
 										clip.getDescription()));
 
-							    clip.setMatchId(match.getId());
+								clip.setMatchId(match.getId());
 							}
 
 							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), ratingsMessageBuilder.toString());
@@ -436,15 +440,19 @@ public class ResultsExporter {
 			SplatoonRotation rotation = rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(Instant.now().getEpochSecond(),
 					Instant.now().getEpochSecond(),
 					SplatoonMode.Ranked);
-			SplatoonMonthlyResult currentMonthPerformance = monthlyResultRepository.findByPeriodYearAndPeriodMonth(year, month);
 
-			Double currentPower = getCurrentPower(currentMonthPerformance, rotation);
+			SplatNetXRankLeaderBoard leaderBoard = peaksExporter.getLeaderBoard(year, month);
+			Double currentPower = getCurrentPower(leaderBoard, rotation);
 			if (currentPower != null) {
 				SplatoonMatch match = matchRepository.findTop1ByModeAndRuleOrderByStartTimeDesc(SplatoonMode.Ranked, rotation.getRule());
 
 				if (match != null) {
 					if (match.getXPower() == null || !match.getXPower().equals(currentPower)
-							|| matchRepository.findByStartTimeGreaterThanEqualAndMode(extendedStatisticsExporter.getStarted().getEpochSecond(), SplatoonMode.Ranked).size() == 0) {
+							|| matchRepository.findByStartTimeGreaterThanEqualAndMode(
+									extendedStatisticsExporter.getStarted().getEpochSecond() > rotation.getStartTime()
+											? extendedStatisticsExporter.getStarted().getEpochSecond()
+											: rotation.getStartTime()
+							, SplatoonMode.Ranked).size() == 0) {
 						obsSceneSwitcher.switchScene(gameSceneName);
 					} else {
 						obsSceneSwitcher.switchScene(resultsSceneName);
@@ -456,22 +464,30 @@ public class ResultsExporter {
 		}
 	}
 
-	private Double getCurrentPower(SplatoonMonthlyResult result, SplatoonRotation rotation) {
-		Double power;
+	private Double getCurrentPower(SplatNetXRankLeaderBoard result, SplatoonRotation rotation) {
+		Double power = null;
 
-		switch (rotation.getRule()){
+		switch (rotation.getRule()) {
 			case Rainmaker:
-				power = result.getRainmakerCurrent();
+				if (result.getRainmaker().getMy_ranking() != null) {
+					power = result.getRainmaker().getMy_ranking().getX_power();
+				}
 				break;
 			case TowerControl:
-				power = result.getTowerCurrent();
+				if (result.getTower_control().getMy_ranking() != null) {
+					power = result.getTower_control().getMy_ranking().getX_power();
+				}
 				break;
 			case ClamBlitz:
-				power = result.getClamsCurrent();
+				if (result.getClam_blitz().getMy_ranking() != null) {
+					power = result.getClam_blitz().getMy_ranking().getX_power();
+				}
 				break;
 			case SplatZones:
 			default:
-				power = result.getZonesCurrent();
+				if (result.getSplat_zones().getMy_ranking() != null) {
+					power = result.getSplat_zones().getMy_ranking().getX_power();
+				}
 				break;
 		}
 
