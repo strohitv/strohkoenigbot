@@ -26,7 +26,7 @@ public class GearExporter {
 	}
 
 	public SplatoonGear loadGear(SplatNetGear splatNetGear) {
-		SplatoonGear gear = gearRepository.findBySplatoonApiId(splatNetGear.getId());
+		SplatoonGear gear = gearRepository.findBySplatoonApiIdAndKind(splatNetGear.getId(), SplatoonGearType.getGearTypeByKey(splatNetGear.getKind()));
 
 		if (gear == null) {
 			gear = new SplatoonGear();

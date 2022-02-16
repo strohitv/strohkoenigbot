@@ -186,7 +186,7 @@ public class PeaksExporter {
 		}
 	}
 
-	private SplatNetXRankLeaderBoard getLeaderBoard(int year, int month) {
+	public SplatNetXRankLeaderBoard getLeaderBoard(int year, int month) {
 		int endYear = month < 12 ? year : year + 1;
 		int endMonth = (month % 12) + 1;
 

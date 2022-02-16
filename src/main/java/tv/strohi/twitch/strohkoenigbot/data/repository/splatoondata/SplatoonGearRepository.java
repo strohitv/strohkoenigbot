@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonGear;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonGearType;
 
 import java.util.List;
 
@@ -11,5 +12,5 @@ import java.util.List;
 public interface SplatoonGearRepository extends CrudRepository<SplatoonGear, Long> {
 	@NotNull List<SplatoonGear> findAll();
 
-	SplatoonGear findBySplatoonApiId(String splatoonApiId);
+	SplatoonGear findBySplatoonApiIdAndKind(String splatoonApiId, SplatoonGearType kind);
 }

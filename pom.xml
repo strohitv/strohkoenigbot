@@ -25,6 +25,22 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>net.twasi</groupId>
+			<artifactId>obs-websocket-java</artifactId>
+			<version>1.2.0</version> <!-- Last Obs Websocket 4.X.X Compatible Release -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-simple</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.15</version>
