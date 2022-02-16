@@ -249,13 +249,12 @@ public class ExtendedStatisticsExporter {
 		long weaponPointsGain = allStreamMatches.stream()
 				.filter(m -> m.getMode() == SplatoonMode.Ranked)
 				.filter(m -> m.getWeaponId() == lastMatchWeapon.getId())
-				.filter(m -> m.getMatchResult() != SplatoonMatchResult.Win)
 				.mapToInt(SplatoonMatch::getTurfGain)
 				.sum();
 		long weaponWins = allStreamMatches.stream()
 				.filter(m -> m.getMode() == SplatoonMode.Ranked)
 				.filter(m -> m.getWeaponId() == lastMatchWeapon.getId())
-				.filter(m -> m.getMatchResult() != SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() == SplatoonMatchResult.Win)
 				.count();
 		long weaponDefeats = allStreamMatches.stream()
 				.filter(m -> m.getMode() == SplatoonMode.Ranked)
