@@ -72,7 +72,10 @@ public class RateGamePlayAction extends ChatAction {
 				clipRepository.save(clip);
 
 				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-						"Alright, it's noted. Thank you very much! strohk2UwuFree",
+						String.format("Alright, my %s action has been noted. Thank you very much! Clip URL: %s strohk2UwuFree",
+								message.startsWith("!good") ? "good" : "bad",
+								clip.getClipUrl()
+						),
 						(String) args.getArguments().get(ArgumentKey.MessageNonce),
 						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			} else {
