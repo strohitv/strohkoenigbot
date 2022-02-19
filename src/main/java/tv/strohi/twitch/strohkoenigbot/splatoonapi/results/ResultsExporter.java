@@ -194,8 +194,8 @@ public class ResultsExporter {
 		return isStreamRunning;
 	}
 
-	@Scheduled(cron = "*/10 * * * * *")
-//	@Scheduled(fixedRate = 10000, initialDelay = 90000)
+//	@Scheduled(cron = "*/10 * * * * *")
+	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
 	public void loadGameResultsScheduled() {
 		logger.debug("running results exporter");
 		if (!alreadyRunning) {
@@ -208,7 +208,7 @@ public class ResultsExporter {
 				if (matches.size() > 0) {
 					logger.info("db fix 2, found {} matches without integer battle number", matches.size());
 					for (SplatoonMatch match : matches) {
-					    match.setSplatnetBattleNumber(Integer.parseInt(match.getBattleNumber()));
+						match.setSplatnetBattleNumber(Integer.parseInt(match.getBattleNumber()));
 					}
 
 					logger.info("db fix 3");
@@ -228,8 +228,9 @@ public class ResultsExporter {
 					}
 
 					logger.info("3");
+					int maxSavedBattleNumber = matchRepository.findMaxBattleNumber();
 					results = results.stream()
-							.filter(r -> matchRepository.findBySplatnetBattleNumber(r.getBattleNumberAsInteger()) == null)
+							.filter(r -> r.getBattleNumberAsInteger() > maxSavedBattleNumber) // matchRepository.findBySplatnetBattleNumber(r.getBattleNumberAsInteger()) == null)
 							.collect(Collectors.toList());
 					logger.info("3 test");
 
@@ -499,9 +500,9 @@ public class ResultsExporter {
 				if (match != null) {
 					if (match.getXPower() == null || !match.getXPower().equals(currentPower)
 							|| matchRepository.findByStartTimeGreaterThanEqualAndMode(
-									extendedStatisticsExporter.getStarted().getEpochSecond() > rotation.getStartTime()
-											? extendedStatisticsExporter.getStarted().getEpochSecond()
-											: rotation.getStartTime()
+							extendedStatisticsExporter.getStarted().getEpochSecond() > rotation.getStartTime()
+									? extendedStatisticsExporter.getStarted().getEpochSecond()
+									: rotation.getStartTime()
 							, SplatoonMode.Ranked).size() == 0) {
 						logger.info("1 trying to switch to scene: {}", gameSceneName);
 						obsSceneSwitcher.switchScene(gameSceneName);

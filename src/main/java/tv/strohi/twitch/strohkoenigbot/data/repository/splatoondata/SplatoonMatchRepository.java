@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMatch;
@@ -19,4 +20,7 @@ public interface SplatoonMatchRepository extends CrudRepository<SplatoonMatch, L
 
 	@NotNull List<SplatoonMatch> findByStartTimeGreaterThanEqualAndMode(long startTime, SplatoonMode mode);
 	SplatoonMatch findTop1ByModeAndRuleOrderByStartTimeDesc(SplatoonMode mode, SplatoonRule rule);
+
+	@Query("select max(splatnetBattleNumber) from SplatoonMatch")
+	int findMaxBattleNumber();
 }
