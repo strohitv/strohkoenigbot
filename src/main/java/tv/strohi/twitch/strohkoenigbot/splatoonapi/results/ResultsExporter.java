@@ -194,7 +194,8 @@ public class ResultsExporter {
 		return isStreamRunning;
 	}
 
-	@Scheduled(fixedRate = 10000, initialDelay = 90000)
+	@Scheduled(cron = "*/10 * * * * *")
+//	@Scheduled(fixedRate = 10000, initialDelay = 90000)
 	public void loadGameResultsScheduled() {
 		logger.debug("running results exporter");
 		if (!alreadyRunning) {
