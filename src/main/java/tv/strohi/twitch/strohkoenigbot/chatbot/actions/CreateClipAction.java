@@ -58,7 +58,7 @@ public class CreateClipAction extends ChatAction {
 		if (message.startsWith("!clip")) {
 			logger.info("create clip action was called");
 			logger.info(message);
-			SplatoonClip clip = botClient.createClip(message.substring("!rate".length()).trim(), true);
+			SplatoonClip clip = botClient.createClip("This was a regular clip without rating", true);
 			logger.info(clip);
 
 			if (clip != null) {
