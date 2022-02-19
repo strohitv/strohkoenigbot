@@ -203,39 +203,31 @@ public class ResultsExporter {
 			logger.info("loading results");
 
 			try {
-				logger.info("db fix 1");
-				List<SplatoonMatch> matches = matchRepository.findByBattleNumberIsNotNullAndSplatnetBattleNumberIsNull();
-				if (matches.size() > 0) {
-					logger.info("db fix 2, found {} matches without integer battle number", matches.size());
-					for (SplatoonMatch match : matches) {
-						match.setSplatnetBattleNumber(Integer.parseInt(match.getBattleNumber()));
-					}
+//				List<SplatoonMatch> matches = matchRepository.findByBattleNumberIsNotNullAndSplatnetBattleNumberIsNull();
+//				if (matches.size() > 0) {
+//					logger.warn("db fix, found {} matches without integer battle number, fixing...", matches.size());
+//					for (SplatoonMatch match : matches) {
+//						match.setSplatnetBattleNumber(Integer.parseInt(match.getBattleNumber()));
+//					}
+//
+//					matchRepository.saveAll(matches);
+//					logger.warn("finished db fix");
+//				}
 
-					logger.info("db fix 3");
-					matchRepository.saveAll(matches);
-					logger.info("db fix 4");
-				}
-
-
-				logger.info("1");
 				SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApi("/api/results", SplatNetMatchResultsCollection.class);
 
-				logger.info("2");
 				if (collection != null) {
 					List<SplatNetMatchResult> results = new ArrayList<>();
 					for (int i = collection.getResults().length - 1; i >= 0; i--) {
 						results.add(collection.getResults()[i]);
 					}
 
-					logger.info("3");
 					int maxSavedBattleNumber = matchRepository.findMaxBattleNumber();
 					results = results.stream()
 							.filter(r -> r.getBattleNumberAsInteger() > maxSavedBattleNumber) // matchRepository.findBySplatnetBattleNumber(r.getBattleNumberAsInteger()) == null)
 							.collect(Collectors.toList());
-					logger.info("3 test");
 
 					for (SplatNetMatchResult singleResult : results) {
-						logger.info("4");
 						SplatNetMatchResult loadedMatch
 								= splatoonResultsLoader.querySplatoonApi(String.format("/api/results/%s", singleResult.getBattle_number()), SplatNetMatchResult.class);
 
@@ -251,11 +243,9 @@ public class ResultsExporter {
 						match.setMode(SplatoonMode.getModeByName(loadedMatch.getGame_mode().getKey()));
 						match.setRule(SplatoonRule.getRuleByName(loadedMatch.getRule().getKey()));
 
-						logger.info("5");
 						SplatoonRotation rotation
 								= rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(match.getStartTime(), match.getEndTime(), match.getMode());
 
-						logger.info("6");
 						if (rotation != null
 								&& (Objects.equals(rotation.getStageAId(), match.getStageId()) || Objects.equals(rotation.getStageBId(), match.getStageId()))) {
 							match.setRotationId(rotation.getId());
@@ -275,9 +265,7 @@ public class ResultsExporter {
 						match.setLeaguePowerEstimate(loadedMatch.getMy_estimate_league_point());
 						match.setLeagueEnemyPower(loadedMatch.getOther_estimate_league_point());
 
-						logger.info("7");
 						SplatoonWeapon weapon = weaponExporter.loadWeapon(loadedMatch.getPlayer_result().getPlayer().getWeapon());
-						logger.info("8");
 
 						match.setWeaponId(weapon.getId());
 						match.setTurfGain(loadedMatch.getPlayer_result().getGame_paint_point());
@@ -305,9 +293,7 @@ public class ResultsExporter {
 						match.setMatchResultOverview(singleResult);
 						match.setMatchResultDetails(loadedMatch);
 
-						logger.info("9");
 						matchRepository.save(match);
-						logger.info("10");
 
 						weapon.setTurf(loadedMatch.getWeapon_paint_point());
 						if (match.getMatchResult() == SplatoonMatchResult.Win) {
@@ -316,9 +302,7 @@ public class ResultsExporter {
 							weapon.setDefeats(weapon.getDefeats() + 1);
 						}
 
-						logger.info("11");
 						weaponRepository.save(weapon);
-						logger.info("12");
 
 						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 								String.format("Put new Match with id **%d** for mode **%s** and rule **%s** into database. It was a **%s**.",
@@ -326,7 +310,6 @@ public class ResultsExporter {
 										match.getMode(),
 										match.getRule(),
 										match.getMatchResult()));
-						logger.info("13");
 
 						List<SplatoonAbilityMatch> abilitiesUsedInMatch = new ArrayList<>();
 
@@ -343,9 +326,7 @@ public class ResultsExporter {
 								loadedMatch.getPlayer_result().getPlayer().getShoes().getKind(),
 								match.getId()));
 
-						logger.info("14");
 						abilityMatchRepository.saveAll(abilitiesUsedInMatch);
-						logger.info("15");
 
 						String discordResultMessage = String.format(
 								"**I finished a Splatoon 2 match!**\n" +
@@ -375,13 +356,10 @@ public class ResultsExporter {
 								match.getDeaths(),
 								match.getTurfGain());
 
-						logger.info("16");
 						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), discordResultMessage);
-						logger.info("17");
 
 						// refresh clips and send them to discord
 						List<SplatoonClip> clips = clipRepository.getAllByStartTimeIsGreaterThanAndEndTimeIsLessThan(match.getStartTime(), match.getEndTime());
-						logger.info("18");
 						if (clips.size() > 0) {
 							StringBuilder ratingsMessageBuilder = new StringBuilder("**Viewers rated my performance**:\n");
 
@@ -395,32 +373,22 @@ public class ResultsExporter {
 							}
 
 							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), ratingsMessageBuilder.toString());
-							logger.info("19");
 							clipRepository.saveAll(clips);
-							logger.info("20");
 						}
 
-						logger.info("21");
 						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), String.format("Added used abilities to Match with id **%d**", match.getId()));
-						logger.info("22");
 					}
 
 					// TODO prüfen, ob hier dann auch definitv alle Matches des Streams ankommen!!
 					if (isStreamRunning) {
-						logger.info("23");
 						statistics.addMatches(results);
 						statistics.exportHtml();
-						logger.info("24");
 					}
 
-					logger.info("25");
 					refreshMonthlyRankedResults(results);
-					logger.info("26");
 
 					if (isStreamRunning) {
-						logger.info("27");
 						extendedStatisticsExporter.export();
-						logger.info("28");
 					}
 				}
 
