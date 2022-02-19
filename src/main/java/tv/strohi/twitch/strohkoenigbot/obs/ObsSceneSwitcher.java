@@ -29,6 +29,7 @@ public class ObsSceneSwitcher {
 			String obsPassword = configurationRepository.findByConfigName("obsPassword").stream().map(Configuration::getConfigValue).findFirst().orElse(null);
 
 			if (obsUrl == null || obsPassword == null) {
+				logger.info("1 connect to OBS failed");
 				return;
 			}
 
@@ -36,6 +37,7 @@ public class ObsSceneSwitcher {
 
 			if (controller.isFailed()) { // Awaits response from OBS
 				// Here you can handle a failed connection request
+				logger.info("2 connect to OBS failed");
 				controller = null;
 				return;
 			}
@@ -43,9 +45,13 @@ public class ObsSceneSwitcher {
 
 		try {
 			// Now you can start making requests
+			logger.info("Trying to switch scene");
 			controller.getScenes((getSceneListResponse -> {
 				if ("ok".equals(getSceneListResponse.getStatus()) && getSceneListResponse.getScenes().stream().anyMatch(sc -> sc.getName().equals(newSceneName))) {
+					logger.info("scene found, trying to switch");
 					controller.setCurrentScene(newSceneName, System.out::println);
+				} else {
+					logger.info("scene NOT found");
 				}
 			}));
 		} catch (Exception ex) {

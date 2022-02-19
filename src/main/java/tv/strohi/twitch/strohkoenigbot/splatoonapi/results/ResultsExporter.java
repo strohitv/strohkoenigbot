@@ -420,7 +420,7 @@ public class ResultsExporter {
 				logger.error(t);
 			}
 
-			logger.info("results refresh successful");
+			logger.debug("results refresh successful");
 			alreadyRunning = false;
 		}
 	}
@@ -453,12 +453,15 @@ public class ResultsExporter {
 											? extendedStatisticsExporter.getStarted().getEpochSecond()
 											: rotation.getStartTime()
 							, SplatoonMode.Ranked).size() == 0) {
+						logger.info("1 trying to switch to scene: {}", gameSceneName);
 						obsSceneSwitcher.switchScene(gameSceneName);
 					} else {
+						logger.info("2 trying to switch to scene: {}", resultsSceneName);
 						obsSceneSwitcher.switchScene(resultsSceneName);
 					}
 				}
 			} else {
+				logger.info("3 trying to switch to scene: {}", gameSceneName);
 				obsSceneSwitcher.switchScene(gameSceneName);
 			}
 		}
