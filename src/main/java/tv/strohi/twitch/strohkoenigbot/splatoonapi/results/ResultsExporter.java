@@ -450,7 +450,7 @@ public class ResultsExporter {
 			logger.info("current power: {}", currentPower);
 			if (currentPower != null) {
 				SplatoonMatch match = matchRepository.findTop1ByModeAndRuleOrderByStartTimeDesc(SplatoonMode.Ranked, rotation.getRule());
-				logger.info("match: {}", match);
+				logger.info("match != null: {}", match != null);
 				if (match != null) {
 					if (match.getXPower() == null || !match.getXPower().equals(currentPower)
 							|| matchRepository.findByStartTimeGreaterThanEqualAndMode(

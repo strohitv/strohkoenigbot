@@ -17,7 +17,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonClip
 import java.util.EnumSet;
 
 @Component
-public class RateGamePlayAction extends ChatAction {
+public class CreateClipAction extends ChatAction {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	@Override
@@ -55,32 +55,22 @@ public class RateGamePlayAction extends ChatAction {
 
 		message = message.toLowerCase().trim();
 
-		if (message.startsWith("!rate")) {
-			logger.info("Rate gameplay action was called");
+		if (message.startsWith("!clip")) {
+			logger.info("create clip action was called");
 			logger.info(message);
-			messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-					"I want to improve my gameplay. Whenever I play well or badly, please write \"!good DESCRIPTION\" or \"!bad DESCRIPTION\" in the chat to tell me about it. For example: \"!good You saved your team mate from the flanker\" after I've done exactly that in a match. We're going to review those ratings after each match. strohk2PogFree",
-					(String) args.getArguments().get(ArgumentKey.MessageNonce),
-					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
-		} else if (message.startsWith("!good") || message.startsWith("!bad")) {
-			logger.info("Rate gameplay action was called");
-			logger.info(message);
-			SplatoonClip clip = botClient.createClip(message.substring("!rate".length()).trim(), message.startsWith("!good"));
+			SplatoonClip clip = botClient.createClip(message.substring("!rate".length()).trim(), true);
 			logger.info(clip);
 
 			if (clip != null) {
 				clipRepository.save(clip);
 
 				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-						String.format("Alright, my %s action has been noted. Thank you very much! Clip URL: %s strohk2UwuFree",
-								message.startsWith("!good") ? "good" : "bad",
-								clip.getClipUrl()
-						),
+						String.format("Clip has been created. URL: %s", clip.getClipUrl()),
 						(String) args.getArguments().get(ArgumentKey.MessageNonce),
 						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			} else {
 				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-						"I could not save your rating, either because there haven't been 20 seconds passed since the last rating or the stream is not live at the moment. Please try again in some seconds. strohk2OhFree",
+						"I could not create the clip, probably because another one has been created in the last 20 seconds. Please try again in some seconds. strohk2OhFree",
 						(String) args.getArguments().get(ArgumentKey.MessageNonce),
 						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			}

@@ -193,7 +193,7 @@ public class TwitchBotClient {
 					try {
 						logger.info("attempt number: {}", attempt);
 						attempt++;
-						Thread.sleep(5000);
+						Thread.sleep(1000);
 					} catch (Exception ignored) {
 					}
 				}
