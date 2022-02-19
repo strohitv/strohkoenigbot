@@ -1,5 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class StatsExporter {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
 	private SplatoonWeaponRepository weaponRepository;
 
 	@Autowired
@@ -55,14 +59,17 @@ public class StatsExporter {
 
 	@Scheduled(cron = "0 47 4 * * *")
 	public void refreshStageAndWeaponStats() {
+		logger.info("loading stage and weapon stats");
 		SplatNetStatPage splatNetStatPage = splatoonStatsLoader.querySplatoonApi("/api/records", SplatNetStatPage.class);
 
+		logger.info("refreshing weapon stats");
 		refreshWeaponStats(splatNetStatPage.getRecords().getWeapon_stats().values().stream()
 				.sorted((w1, w2) -> -Integer.compare(w1.getWin_count(), w2.getWin_count()))
 				.collect(Collectors.toList())
 		);
-
+		logger.info("refreshing stage stats");
 		refreshStageStats(new ArrayList<>(splatNetStatPage.getRecords().getStage_stats().values()));
+		logger.info("finished refresh");
 	}
 
 	private void refreshWeaponStats(List<SplatNetStatPage.SplatNetRecords.SplatNetWeaponStats> weaponStats) {
