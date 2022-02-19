@@ -431,11 +431,15 @@ public class ResultsExporter {
 		int month = date.getMonthValue();
 
 		String prefix = configurationRepository.findByConfigName(ConfigurationRepository.streamPrefix).stream().map(Configuration::getConfigValue).findFirst().orElse(null);
+		logger.info("prefix name: {}", prefix);
 		if (prefix != null) {
 			String gameSceneName = configurationRepository.findByConfigName(prefix + ConfigurationRepository.gameSceneName)
 					.stream().map(Configuration::getConfigValue).findFirst().orElse(null);
 			String resultsSceneName = configurationRepository.findByConfigName(prefix + ConfigurationRepository.resultsSceneName)
 					.stream().map(Configuration::getConfigValue).findFirst().orElse(null);
+
+			logger.info("game scene name: {}", gameSceneName);
+			logger.info("results scene name: {}", resultsSceneName);
 
 			SplatoonRotation rotation = rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(Instant.now().getEpochSecond(),
 					Instant.now().getEpochSecond(),
@@ -443,9 +447,10 @@ public class ResultsExporter {
 
 			SplatNetXRankLeaderBoard leaderBoard = peaksExporter.getLeaderBoard(year, month);
 			Double currentPower = getCurrentPower(leaderBoard, rotation);
+			logger.info("current power: {}", currentPower);
 			if (currentPower != null) {
 				SplatoonMatch match = matchRepository.findTop1ByModeAndRuleOrderByStartTimeDesc(SplatoonMode.Ranked, rotation.getRule());
-
+				logger.info("match: {}", match);
 				if (match != null) {
 					if (match.getXPower() == null || !match.getXPower().equals(currentPower)
 							|| matchRepository.findByStartTimeGreaterThanEqualAndMode(
