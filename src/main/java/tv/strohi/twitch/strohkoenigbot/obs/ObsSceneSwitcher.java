@@ -51,7 +51,13 @@ public class ObsSceneSwitcher {
 					logger.info("scene found, trying to switch");
 					controller.setCurrentScene(newSceneName, System.out::println);
 				} else {
-					logger.info("scene NOT found");
+					logger.warn("scene NOT found");
+					logger.warn("status: {}", getSceneListResponse.getStatus());
+					logger.warn("error: {}", getSceneListResponse.getError());
+					logger.warn("message id: {}", getSceneListResponse.getMessageId());
+					if (getSceneListResponse.getScenes() != null) {
+						getSceneListResponse.getScenes().forEach(sc -> logger.warn("scene: {}", sc.getName()));
+					}
 				}
 			}));
 		} catch (Exception ex) {
