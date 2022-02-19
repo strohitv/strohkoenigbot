@@ -60,10 +60,10 @@ public class RequestSender {
 		String body = "";
 
 		try {
-			logger.info("RequestSender sending new request to '{}'", request.uri().toString());
+			logger.debug("RequestSender sending new request to '{}'", request.uri().toString());
 			HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
-			logger.info("got response with status code {}:", response.statusCode());
+			logger.debug("got response with status code {}:", response.statusCode());
 
 			if (response.statusCode() < 300) {
 				body = new String(response.body());

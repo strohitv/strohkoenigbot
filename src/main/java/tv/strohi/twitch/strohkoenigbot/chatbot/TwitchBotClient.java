@@ -11,6 +11,8 @@ import com.github.twitch4j.events.ChannelGoOfflineEvent;
 import com.github.twitch4j.helix.domain.Clip;
 import com.github.twitch4j.helix.domain.ClipList;
 import com.github.twitch4j.helix.domain.CreateClipList;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
@@ -27,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TwitchBotClient {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
 	private static String mainAccountId;
 	private static boolean isStreamRunning = false;
 	private static Instant lastClipCreatedTime = Instant.now();
@@ -156,14 +160,18 @@ public class TwitchBotClient {
 
 	public SplatoonClip createClip(String message, boolean isGoodPlay) {
 		if (!isStreamRunning) {
+			logger.warn("Can't create clip -> stream not running");
 			return null;
 		}
 
 		if (Instant.now().isBefore(lastClipCreatedTime.plus(20, ChronoUnit.SECONDS))) {
+			logger.warn("Can't create clip -> a clip has already been created in the last 20 seconds");
+			logger.warn("Current time: {} - last created Clip: {}", Instant.now(), lastClipCreatedTime);
 			return null;
 		}
 
 		lastClipCreatedTime = Instant.now();
+		logger.info("Creating clip at time: {}", lastClipCreatedTime);
 
 		SplatoonClip clip = null;
 
@@ -172,6 +180,8 @@ public class TwitchBotClient {
 
 			List<String> ids = new ArrayList<>();
 			newClip.getData().forEach(c -> ids.add(c.getId()));
+
+			logger.info("Created clip ids: {}", ids);
 
 			if (ids.size() > 0) {
 				String id = ids.get(0);
@@ -187,11 +197,18 @@ public class TwitchBotClient {
 					clip.setDescription(message);
 					clip.setIsGoodPlay(isGoodPlay);
 					clip.setClipUrl(loadedClip.getUrl());
+
+					logger.info("Created clip: {}", clip);
+				} else {
+					logger.warn("Couldn't load the clip with id: {}", ids.get(0));
 				}
+			} else {
+				logger.warn("Didn't receive any clip ids!!");
 			}
 		} catch (Exception ex) {
 			// for example: Stream is not live
-			ex.printStackTrace();
+			logger.error("clip creation failed due to an exception");
+			logger.error(ex);
 		}
 
 		return clip;

@@ -75,7 +75,7 @@ public class SplatoonCookieHandler extends CookieHandler {
 			login = splatoonLoginRepository.save(login);
 		}
 
-		logger.info("setting cookie to: 'iksm_session={}'", login.getCookie());
+		logger.debug("setting cookie to: 'iksm_session={}'", login.getCookie());
 		Map<String, List<String>> requestHeadersCopy = new HashMap<>(requestHeaders);
 		requestHeadersCopy.put("Cookie", Collections.singletonList(String.format("iksm_session=%s", login.getCookie())));
 
