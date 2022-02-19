@@ -1271,6 +1271,28 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "9",
+        "author": "strohkoenig",
+        "changes":[
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "splatnet_battle_number",
+                    "position": 2,
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_match"
+            }
+          }
+        ]
+      }
     }
   ]
 }
