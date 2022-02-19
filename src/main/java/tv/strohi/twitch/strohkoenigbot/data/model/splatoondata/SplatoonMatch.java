@@ -27,6 +27,7 @@ public class SplatoonMatch {
 	private long id;
 
 	private String battleNumber;
+	private Integer splatnetBattleNumber;
 
 	private Long startTime;
 	private Integer elapsedTime;

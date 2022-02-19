@@ -203,6 +203,20 @@ public class ResultsExporter {
 			logger.info("loading results");
 
 			try {
+				logger.info("db fix 1");
+				List<SplatoonMatch> matches = matchRepository.findByBattleNumberIsNotNullAndSplatnetBattleNumberIsNull();
+				if (matches.size() > 0) {
+					logger.info("db fix 2, found {} matches without integer battle number", matches.size());
+					for (SplatoonMatch match : matches) {
+					    match.setSplatnetBattleNumber(Integer.parseInt(match.getBattleNumber()));
+					}
+
+					logger.info("db fix 3");
+					matchRepository.saveAll(matches);
+					logger.info("db fix 4");
+				}
+
+
 				logger.info("1");
 				SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApi("/api/results", SplatNetMatchResultsCollection.class);
 
@@ -215,7 +229,7 @@ public class ResultsExporter {
 
 					logger.info("3");
 					results = results.stream()
-							.filter(r -> matchRepository.findByBattleNumber(r.getBattle_number()) == null)
+							.filter(r -> matchRepository.findBySplatnetBattleNumber(r.getBattleNumberAsInteger()) == null)
 							.collect(Collectors.toList());
 					logger.info("3 test");
 
@@ -226,6 +240,7 @@ public class ResultsExporter {
 
 						SplatoonMatch match = new SplatoonMatch();
 						match.setBattleNumber(loadedMatch.getBattle_number());
+						match.setSplatnetBattleNumber(loadedMatch.getBattleNumberAsInteger());
 
 						match.setStartTime(loadedMatch.getStart_time());
 						match.setElapsedTime(loadedMatch.getElapsed_time());

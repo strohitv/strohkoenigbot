@@ -60,6 +60,11 @@ public class SplatNetMatchResult {
 		return Instant.ofEpochSecond(start_time);
 	}
 
+	@JsonIgnore
+	public Integer getBattleNumberAsInteger() {
+		return Integer.parseInt(battle_number);
+	}
+
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
