@@ -186,7 +186,17 @@ public class TwitchBotClient {
 			if (ids.size() > 0) {
 				String id = ids.get(0);
 
-				ClipList list = client.getHelix().getClips(null, null, null, id, null, null, null, null, null).execute();
+				ClipList list;
+				int attempt = 1;
+
+				while ((list = client.getHelix().getClips(null, null, null, id, null, null, null, null, null).execute()).getData().size() == 0) {
+					try {
+						logger.info("attempt number: {}", attempt);
+						attempt++;
+						Thread.sleep(5000);
+					} catch (Exception ignored) {
+					}
+				}
 
 				if (list.getData().size() > 0) {
 					Clip loadedClip = list.getData().get(0);
