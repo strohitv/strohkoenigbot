@@ -421,7 +421,7 @@ public class ResultsExporter {
 				logger.error(t);
 			}
 
-			logger.debug("results refresh successful");
+			logger.info("results refresh successful");
 			alreadyRunning = false;
 		}
 	}
