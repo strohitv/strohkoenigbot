@@ -203,17 +203,6 @@ public class ResultsExporter {
 			logger.info("loading results");
 
 			try {
-//				List<SplatoonMatch> matches = matchRepository.findByBattleNumberIsNotNullAndSplatnetBattleNumberIsNull();
-//				if (matches.size() > 0) {
-//					logger.warn("db fix, found {} matches without integer battle number, fixing...", matches.size());
-//					for (SplatoonMatch match : matches) {
-//						match.setSplatnetBattleNumber(Integer.parseInt(match.getBattleNumber()));
-//					}
-//
-//					matchRepository.saveAll(matches);
-//					logger.warn("finished db fix");
-//				}
-
 				SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApi("/api/results", SplatNetMatchResultsCollection.class);
 
 				if (collection != null) {
