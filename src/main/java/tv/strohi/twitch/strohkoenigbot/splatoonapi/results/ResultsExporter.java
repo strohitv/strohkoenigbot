@@ -217,6 +217,7 @@ public class ResultsExporter {
 					results = results.stream()
 							.filter(r -> matchRepository.findByBattleNumber(r.getBattle_number()) == null)
 							.collect(Collectors.toList());
+					logger.info("3 test");
 
 					for (SplatNetMatchResult singleResult : results) {
 						logger.info("4");
