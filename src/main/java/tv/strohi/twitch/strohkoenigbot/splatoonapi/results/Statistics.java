@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.splatoonapi.model;
+package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
