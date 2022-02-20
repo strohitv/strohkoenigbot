@@ -36,13 +36,18 @@ public class ResultsExporter {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final Statistics statistics;
 
+	private final ConfigurationRepository configurationRepository;
+
 	private boolean alreadyRunning = false;
 	private boolean isStreamRunning = false;
 	private boolean isRankedRunning = false;
 
-	public ResultsExporter() {
+	@Autowired
+	public ResultsExporter(ConfigurationRepository configurationRepository) {
+		this.configurationRepository = configurationRepository;
+
 		String path = Paths.get(".").toAbsolutePath().normalize().toString();
-		statistics = new Statistics(String.format("%s\\src\\main\\resources\\html\\template-example.html", path));
+		statistics = new Statistics(String.format("%s\\src\\main\\resources\\html\\template-example.html", path), configurationRepository);
 	}
 
 	public void setRankedRunning(boolean rankedRunning) {
@@ -96,13 +101,6 @@ public class ResultsExporter {
 	@Autowired
 	public void setWeaponRepository(SplatoonWeaponRepository weaponRepository) {
 		this.weaponRepository = weaponRepository;
-	}
-
-	private ConfigurationRepository configurationRepository;
-
-	@Autowired
-	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
-		this.configurationRepository = configurationRepository;
 	}
 
 	private DiscordBot discordBot;

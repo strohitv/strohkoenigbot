@@ -1,7 +1,11 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.model;
 
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormatSymbols;
@@ -27,9 +31,11 @@ public class Statistics {
 	private final Map<String, Integer> weaponPaints = new HashMap<>();
 
 	private final String path;
+	private final ConfigurationRepository configurationRepository;
 
-	public Statistics(String path) {
+	public Statistics(String path, ConfigurationRepository configurationRepository) {
 		this.path = path;
+		this.configurationRepository = configurationRepository;
 		reset();
 	}
 
@@ -101,21 +107,25 @@ public class Statistics {
 			String possiblePowerLoss = "";
 
 			Path htmlFilePath = Paths.get(path).getParent();
-			try {
-				InputStream isPowerGain = new FileInputStream(Paths.get(htmlFilePath.toString(),"/snowpoke/win.txt").toString());
-				InputStream isPowerLoss = new FileInputStream(Paths.get(htmlFilePath.toString(),"/snowpoke/lose.txt").toString());
 
-				String possiblePowerGainRead = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
-				String possiblePowerLossRead = new String(isPowerLoss.readAllBytes(), StandardCharsets.UTF_8);
+			Configuration woomyDxDir = configurationRepository.findByConfigName("woomyDxDir").stream().findFirst().orElse(null);
+			if (woomyDxDir != null && Files.exists(Paths.get(woomyDxDir.getConfigValue()))) {
+				try {
+					InputStream isPowerGain = new FileInputStream(Paths.get(htmlFilePath.toString(), String.format("%s/win.txt", woomyDxDir.getConfigValue())).toString());
+					InputStream isPowerLoss = new FileInputStream(Paths.get(htmlFilePath.toString(),String.format("%s/lose.txt", woomyDxDir.getConfigValue())).toString());
 
-				if (!possiblePowerGainRead.isBlank() && !possiblePowerLossRead.isBlank()) {
-					possiblePowerGain = possiblePowerGainRead.trim();
-					possiblePowerLoss = possiblePowerLossRead.trim();
+					String possiblePowerGainRead = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
+					String possiblePowerLossRead = new String(isPowerLoss.readAllBytes(), StandardCharsets.UTF_8);
 
-					possiblePowerHidden = "";
+					if (!possiblePowerGainRead.isBlank() && !possiblePowerLossRead.isBlank()) {
+						possiblePowerGain = possiblePowerGainRead.trim();
+						possiblePowerLoss = possiblePowerLossRead.trim();
+
+						possiblePowerHidden = "";
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 
 			InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/template.html");
