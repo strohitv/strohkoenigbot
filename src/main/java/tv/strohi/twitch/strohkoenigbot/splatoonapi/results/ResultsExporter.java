@@ -24,7 +24,6 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -34,24 +33,20 @@ import java.util.stream.Collectors;
 @Component
 public class ResultsExporter {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final Statistics statistics;
-
-	private final ConfigurationRepository configurationRepository;
 
 	private boolean alreadyRunning = false;
 	private boolean isStreamRunning = false;
 	private boolean isRankedRunning = false;
 
-	@Autowired
-	public ResultsExporter(ConfigurationRepository configurationRepository) {
-		this.configurationRepository = configurationRepository;
-
-		String path = Paths.get(".").toAbsolutePath().normalize().toString();
-		statistics = new Statistics(String.format("%s\\src\\main\\resources\\html\\template-example.html", path), configurationRepository);
-	}
-
 	public void setRankedRunning(boolean rankedRunning) {
 		isRankedRunning = rankedRunning;
+	}
+
+	private RequestSender splatoonResultsLoader;
+
+	@Autowired
+	public void setSplatoonResultsLoader(RequestSender splatoonResultsLoader) {
+		this.splatoonResultsLoader = splatoonResultsLoader;
 	}
 
 	private SplatoonMatchRepository matchRepository;
@@ -75,13 +70,6 @@ public class ResultsExporter {
 		this.abilityMatchRepository = abilityMatchRepository;
 	}
 
-	private RequestSender splatoonResultsLoader;
-
-	@Autowired
-	public void setSplatoonResultsLoader(RequestSender splatoonResultsLoader) {
-		this.splatoonResultsLoader = splatoonResultsLoader;
-	}
-
 	private SplatoonMonthlyResultRepository monthlyResultRepository;
 
 	@Autowired
@@ -101,6 +89,13 @@ public class ResultsExporter {
 	@Autowired
 	public void setWeaponRepository(SplatoonWeaponRepository weaponRepository) {
 		this.weaponRepository = weaponRepository;
+	}
+
+	private ConfigurationRepository configurationRepository;
+
+	@Autowired
+	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
+		this.configurationRepository = configurationRepository;
 	}
 
 	private DiscordBot discordBot;
@@ -143,6 +138,13 @@ public class ResultsExporter {
 	@Autowired
 	public void setPeaksExporter(PeaksExporter peaksExporter) {
 		this.peaksExporter = peaksExporter;
+	}
+
+	private Statistics statistics;
+
+	@Autowired
+	public void setStatistics(Statistics statistics) {
+		this.statistics = statistics;
 	}
 
 	private ExtendedStatisticsExporter extendedStatisticsExporter;
@@ -192,7 +194,7 @@ public class ResultsExporter {
 		return isStreamRunning;
 	}
 
-//	@Scheduled(cron = "*/10 * * * * *")
+	//	@Scheduled(cron = "*/10 * * * * *")
 	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
 	public void loadGameResultsScheduled() {
 		logger.debug("running results exporter");
