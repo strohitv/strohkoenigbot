@@ -1,7 +1,16 @@
-package tv.strohi.twitch.strohkoenigbot.splatoonapi.model;
+package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormatSymbols;
@@ -10,7 +19,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class Statistics {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
+	private final List<SplatNetMatchResult> includedMatches = new ArrayList<>();
+	private final Map<String, Integer> weaponPaints = new HashMap<>();
+
+	private final String path;
+
 	private String currentHtml = "<!DOCTYPE html>\n" +
 			"<html lang=\"en\">\n" +
 			"\n" +
@@ -23,14 +40,16 @@ public class Statistics {
 			"</body>\n" +
 			"</html>";
 
-	private final List<SplatNetMatchResult> includedMatches = new ArrayList<>();
-	private final Map<String, Integer> weaponPaints = new HashMap<>();
-
-	private final String path;
-
-	public Statistics(String path) {
-		this.path = path;
+	public Statistics() {
+		path = String.format("%s\\src\\main\\resources\\html\\template-example.html", Paths.get(".").toAbsolutePath().normalize().toString());
 		reset();
+	}
+
+	private ConfigurationRepository configurationRepository;
+
+	@Autowired
+	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
+		this.configurationRepository = configurationRepository;
 	}
 
 	public void reset() {
@@ -96,26 +115,34 @@ public class Statistics {
 			String shoesGearSub2 = player.getShoes_skills().getSubs().length > 1 && player.getShoes_skills().getSubs()[1] != null ? String.format("%s%s", imageHost, player.getShoes_skills().getSubs()[1].getImage()) : null;
 			String shoesGearSub3 = player.getShoes_skills().getSubs().length > 2 && player.getShoes_skills().getSubs()[2] != null ? String.format("%s%s", imageHost, player.getShoes_skills().getSubs()[2].getImage()) : null;
 
-			String possiblePowerHidden  = "hidden";
+			String possiblePowerHidden = "hidden";
 			String possiblePowerGain = "";
 			String possiblePowerLoss = "";
 
 			Path htmlFilePath = Paths.get(path).getParent();
-			try {
-				InputStream isPowerGain = new FileInputStream(Paths.get(htmlFilePath.toString(),"/snowpoke/win.txt").toString());
-				InputStream isPowerLoss = new FileInputStream(Paths.get(htmlFilePath.toString(),"/snowpoke/lose.txt").toString());
 
-				String possiblePowerGainRead = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
-				String possiblePowerLossRead = new String(isPowerLoss.readAllBytes(), StandardCharsets.UTF_8);
+			Configuration woomyDxDir = configurationRepository.findByConfigName("woomyDxDir").stream().findFirst().orElse(null);
+			logger.info("woomyDxDir: {}", woomyDxDir != null ? woomyDxDir.getConfigValue() : "NULL");
+			if (woomyDxDir != null && Files.exists(Paths.get(woomyDxDir.getConfigValue()))) {
+				try {
+					InputStream isPowerGain = new FileInputStream(Paths.get(htmlFilePath.toString(), String.format("%s/win.txt", woomyDxDir.getConfigValue())).toString());
+					InputStream isPowerLoss = new FileInputStream(Paths.get(htmlFilePath.toString(), String.format("%s/lose.txt", woomyDxDir.getConfigValue())).toString());
 
-				if (!possiblePowerGainRead.isBlank() && !possiblePowerLossRead.isBlank()) {
-					possiblePowerGain = possiblePowerGainRead.trim();
-					possiblePowerLoss = possiblePowerLossRead.trim();
+					String possiblePowerGainRead = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
+					String possiblePowerLossRead = new String(isPowerLoss.readAllBytes(), StandardCharsets.UTF_8);
 
-					possiblePowerHidden = "";
+					if (!possiblePowerGainRead.isBlank() && !possiblePowerLossRead.isBlank()) {
+						logger.info("Setting gain to {} and loss to {}", possiblePowerGainRead.trim(), possiblePowerLossRead.trim());
+						possiblePowerGain = possiblePowerGainRead.trim();
+						possiblePowerLoss = possiblePowerLossRead.trim();
+
+						possiblePowerHidden = "";
+					} else {
+						logger.info("possible power gain and loss are both blank, not setting any powers");
+					}
+				} catch (IOException e) {
+					logger.error(e);
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 
 			InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/template.html");
