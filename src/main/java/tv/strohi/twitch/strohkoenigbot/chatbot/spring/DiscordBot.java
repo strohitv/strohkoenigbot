@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -140,15 +141,15 @@ public class DiscordBot {
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().block();
 		if (guilds != null && guilds.size() > 0) {
-			List<Member> members = guilds.get(0).getMembers(EntityRetrievalStrategy.REST).collectList().block();
+			List<Member> allMembersOfAllServers = guilds.stream()
+					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).collectList().block()).orElse(new ArrayList<>()).stream())
+					.collect(Collectors.toList());
 
-			if (members != null) {
-				result = members.stream()
-						.filter(m -> String.format("%s#%s", m.getMemberData().user().username(), m.getMemberData().user().discriminator()).equals(username))
-						.map(m -> m.getId().asLong())
-						.findFirst()
-						.orElse(null);
-			}
+			result = allMembersOfAllServers.stream()
+					.filter(m -> String.format("%s#%s", m.getMemberData().user().username(), m.getMemberData().user().discriminator()).equals(username))
+					.map(m -> m.getId().asLong())
+					.findFirst()
+					.orElse(null);
 		}
 
 		return result;
@@ -167,39 +168,39 @@ public class DiscordBot {
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().block();
 		if (guilds != null && guilds.size() > 0) {
-			List<GuildChannel> channels = guilds.get(0).getChannels().collectList().block();
+			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
+					.flatMap(g -> Optional.ofNullable(g.getChannels().collectList().block()).orElse(new ArrayList<>()).stream())
+					.collect(Collectors.toList());
 
-			if (channels != null) {
-				TextChannel channel = (TextChannel) channels.stream().filter(c -> c.getName().equals(channelName)).findFirst().orElse(null);
+			TextChannel channel = (TextChannel) allChannelsOfAllServers.stream().filter(c -> c.getName().equals(channelName)).findFirst().orElse(null);
 
-				if (channel != null) {
-					MessageCreateMono createMono = channel.createMessage(message);
+			if (channel != null) {
+				MessageCreateMono createMono = channel.createMessage(message);
 
-					try {
-						List<Tuple<String, InputStream>> streams = new ArrayList<>();
+				try {
+					List<Tuple<String, InputStream>> streams = new ArrayList<>();
 
 
-						for (String imageUrl : imageUrls) {
-							URL url = new URL(imageUrl);
+					for (String imageUrl : imageUrls) {
+						URL url = new URL(imageUrl);
 
-							String[] segments = url.getPath().split("/");
-							String idStr = segments[segments.length - 1];
+						String[] segments = url.getPath().split("/");
+						String idStr = segments[segments.length - 1];
 
-							streams.add(new Tuple<>(idStr, url.openStream()));
-						}
-
-						createMono = createMono.withFiles(
-								streams.stream()
-										.map(s -> MessageCreateFields.File.of(s.x, s.y))
-										.collect(Collectors.toList())
-						);
-					} catch (IOException e) {
-						e.printStackTrace();
+						streams.add(new Tuple<>(idStr, url.openStream()));
 					}
 
-					Message msg = createMono.block();
-					result = msg != null;
+					createMono = createMono.withFiles(
+							streams.stream()
+									.map(s -> MessageCreateFields.File.of(s.x, s.y))
+									.collect(Collectors.toList())
+					);
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
+
+				Message msg = createMono.block();
+				result = msg != null;
 			}
 		}
 
@@ -215,43 +216,47 @@ public class DiscordBot {
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().block();
 		if (guilds != null && guilds.size() > 0) {
-			List<Member> members = guilds.get(0).getMembers(EntityRetrievalStrategy.REST).collectList().block();
+			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 
-			if (members != null) {
-				PrivateChannel channel = members.stream()
-						.filter(m -> m.getId().asLong() == userId)
-						.findFirst()
-						.flatMap(member -> getGateway()
-								.getUserById(member.getId())
-								.blockOptional()
-								.flatMap(u -> u.getPrivateChannel().blockOptional()))
-						.stream()
-						.findFirst()
-						.orElse(null);
+			if (channel != null) {
+				MessageCreateMono createMono = channel.createMessage(message);
 
-				if (channel != null) {
-					MessageCreateMono createMono = channel.createMessage(message);
-
-					try {
-						InputStream gearOffer = new URL(gearUrl).openStream();
-						InputStream mainAbility = new URL(mainAbilityUrl).openStream();
-						InputStream favoredAbility = new URL(favoredAbilityUrl).openStream();
-						createMono = createMono.withFiles(
-								MessageCreateFields.File.of("gear_offer.png", gearOffer),
-								MessageCreateFields.File.of("main_ability.png", mainAbility),
-								MessageCreateFields.File.of("favored_ability.png", favoredAbility)
-						);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-
-					Message msg = createMono.block();
-					result = msg != null;
+				try {
+					InputStream gearOffer = new URL(gearUrl).openStream();
+					InputStream mainAbility = new URL(mainAbilityUrl).openStream();
+					InputStream favoredAbility = new URL(favoredAbilityUrl).openStream();
+					createMono = createMono.withFiles(
+							MessageCreateFields.File.of("gear_offer.png", gearOffer),
+							MessageCreateFields.File.of("main_ability.png", mainAbility),
+							MessageCreateFields.File.of("favored_ability.png", favoredAbility)
+					);
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
+
+				Message msg = createMono.block();
+				result = msg != null;
 			}
 		}
 
 		return result;
+	}
+
+	private PrivateChannel getPrivateChannelForUserInGuild(Long userId, List<Guild> guilds) {
+		List<Member> allMembersOfAllServers = guilds.stream()
+				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).collectList().block()).orElse(new ArrayList<>()).stream())
+				.collect(Collectors.toList());
+
+		return allMembersOfAllServers.stream()
+				.filter(m -> m.getId().asLong() == userId)
+				.findFirst()
+				.flatMap(member -> getGateway()
+						.getUserById(member.getId())
+						.blockOptional()
+						.flatMap(u -> u.getPrivateChannel().blockOptional()))
+				.stream()
+				.findFirst()
+				.orElse(null);
 	}
 
 	public boolean sendPrivateMessage(Long userId, String message) {
@@ -263,24 +268,10 @@ public class DiscordBot {
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().block();
 		if (guilds != null && guilds.size() > 0) {
-			List<Member> members = guilds.get(0).getMembers(EntityRetrievalStrategy.REST).collectList().block();
-
-			if (members != null) {
-				PrivateChannel channel = members.stream()
-						.filter(m -> m.getId().asLong() == userId)
-						.findFirst()
-						.flatMap(member -> getGateway()
-								.getUserById(member.getId())
-								.blockOptional()
-								.flatMap(u -> u.getPrivateChannel().blockOptional()))
-						.stream()
-						.findFirst()
-						.orElse(null);
-
-				if (channel != null) {
-					Message msg = channel.createMessage(message).block();
-					result = msg != null;
-				}
+			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
+			if (channel != null) {
+				Message msg = channel.createMessage(message).block();
+				result = msg != null;
 			}
 		}
 
