@@ -107,15 +107,7 @@ public class TwitchBotClient {
 					args.getArguments().put(ArgumentKey.ReplyMessageId, event.getMessageEvent().getMessageId().orElse(event.getEventId()));
 
 					args.setReplySender(
-							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(),
-									null,
-									TriggerReason.ChatMessage,
-									event.getMessageEvent().getChannelName().orElse(null),
-									event.getNonce(),
-									event.getMessageEvent().getMessageId().orElse(event.getEventId()),
-									null,
-									args
-							)
+							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
 					);
 
 					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
@@ -130,17 +122,10 @@ public class TwitchBotClient {
 
 					args.getArguments().put(ArgumentKey.Event, event);
 					args.getArguments().put(ArgumentKey.Message, event.getMessage());
+					args.getArguments().put(ArgumentKey.ChannelName, event.getUser().getName());
 
 					args.setReplySender(
-							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(),
-									null,
-									TriggerReason.PrivateMessage,
-									event.getUser().getName(),
-									null,
-									null,
-									null,
-									args
-							)
+							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
 					);
 
 					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));

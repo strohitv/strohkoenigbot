@@ -86,14 +86,7 @@ public class DiscordBot {
 											args.getArguments().put(ArgumentKey.Message, message.getContent());
 
 											args.setReplySender(
-													new TwitchDiscordMessageSender(null,
-															this,
-															TriggerReason.DiscordPrivateMessage,
-															null,
-															null,
-															null,
-															author.getId().asLong(),
-															args)
+													new TwitchDiscordMessageSender(null, this, args)
 											);
 
 											botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.DiscordPrivateMessage)).forEach(action -> action.run(args));
@@ -123,14 +116,7 @@ public class DiscordBot {
 										args.getArguments().put(ArgumentKey.ChannelId, textChannel.getId().asString());
 
 										args.setReplySender(
-												new TwitchDiscordMessageSender(null,
-														this,
-														TriggerReason.DiscordMessage,
-														null,
-														null,
-														null,
-														author.getId().asLong(),
-														args)
+												new TwitchDiscordMessageSender(null, this, args)
 										);
 
 										botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.DiscordMessage)).forEach(action -> action.run(args));
