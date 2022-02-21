@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.spring;
 
+import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
@@ -13,6 +14,7 @@ import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
 import discord4j.core.spec.MessageCreateMono;
+import discord4j.core.spec.MessageCreateSpec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ConnectionAccepted;
@@ -36,7 +38,6 @@ public class DiscordBot {
 	private final ConfigurationRepository configurationRepository;
 	private final List<IChatAction> botActions = new ArrayList<>();
 
-	private DiscordClient client = null;
 	private GatewayDiscordClient gateway = null;
 
 	@Autowired
@@ -59,7 +60,7 @@ public class DiscordBot {
 	private GatewayDiscordClient getGateway() {
 		List<Configuration> tokens = configurationRepository.findByConfigName("discordToken");
 		if (gateway == null && tokens.size() > 0) {
-			client = DiscordClient.create(tokens.get(0).getConfigValue());
+			DiscordClient client = DiscordClient.create(tokens.get(0).getConfigValue());
 			gateway = client.login().block();
 
 			if (gateway != null) {
@@ -73,7 +74,6 @@ public class DiscordBot {
 									subscribers.forEach(s -> s.accept(author.getId().asLong()))
 							);
 						} else {
-							// todo let users manage their notifications on discord as well
 							event.getMessage().getAuthor().ifPresent(author -> {
 										if (!"strohkoenigbot#6833".equals(author.getTag())) {
 											ActionArgs args = new ActionArgs();
@@ -92,7 +92,8 @@ public class DiscordBot {
 															null,
 															null,
 															null,
-															author.getId().asLong())
+															author.getId().asLong(),
+															args)
 											);
 
 											botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.DiscordPrivateMessage)).forEach(action -> action.run(args));
@@ -100,6 +101,42 @@ public class DiscordBot {
 									}
 							);
 						}
+					} else if (channel instanceof TextChannel) {
+						// public channel on my discord
+						event.getMessage().getAuthor().ifPresent(author -> {
+									if (!"strohkoenigbot#6833".equals(author.getTag())) {
+										TextChannel textChannel = (TextChannel) channel;
+
+										ActionArgs args = new ActionArgs();
+
+										args.setReason(TriggerReason.DiscordMessage);
+										args.setUser(author.getTag());
+										args.setUserId(author.getId().asString());
+
+										args.getArguments().put(ArgumentKey.Event, event);
+										args.getArguments().put(ArgumentKey.Message, message.getContent());
+										args.getArguments().put(ArgumentKey.MessageNonce, message.getId());
+										args.getArguments().put(ArgumentKey.MessageObject, message);
+
+										args.getArguments().put(ArgumentKey.ChannelObject, textChannel);
+										args.getArguments().put(ArgumentKey.ChannelName, textChannel.getName());
+										args.getArguments().put(ArgumentKey.ChannelId, textChannel.getId().asString());
+
+										args.setReplySender(
+												new TwitchDiscordMessageSender(null,
+														this,
+														TriggerReason.DiscordMessage,
+														null,
+														null,
+														null,
+														author.getId().asLong(),
+														args)
+										);
+
+										botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.DiscordMessage)).forEach(action -> action.run(args));
+									}
+								}
+						);
 					}
 				});
 			}
@@ -262,6 +299,10 @@ public class DiscordBot {
 		}
 
 		return result;
+	}
+
+	public void reply(String message, TextChannel channel, Snowflake reference) {
+		channel.createMessage(MessageCreateSpec.create().withMessageReference(reference).withContent(message)).block();
 	}
 
 	private static class Tuple<X, Y> {

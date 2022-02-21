@@ -113,7 +113,8 @@ public class TwitchBotClient {
 									event.getMessageEvent().getChannelName().orElse(null),
 									event.getNonce(),
 									event.getMessageEvent().getMessageId().orElse(event.getEventId()),
-									null
+									null,
+									args
 							)
 					);
 
@@ -137,7 +138,8 @@ public class TwitchBotClient {
 									event.getUser().getName(),
 									null,
 									null,
-									null
+									null,
+									args
 							)
 					);
 

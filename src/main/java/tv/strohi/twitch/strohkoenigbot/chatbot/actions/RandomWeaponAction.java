@@ -31,7 +31,7 @@ public class RandomWeaponAction extends ChatAction {
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
-		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.DiscordPrivateMessage);
+		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.DiscordMessage, TriggerReason.DiscordPrivateMessage);
 	}
 
 	@Override
