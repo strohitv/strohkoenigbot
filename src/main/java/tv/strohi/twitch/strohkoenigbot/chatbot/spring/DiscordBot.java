@@ -7,10 +7,7 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.channel.GuildChannel;
-import discord4j.core.object.entity.channel.MessageChannel;
-import discord4j.core.object.entity.channel.PrivateChannel;
-import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.*;
 import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
 import discord4j.core.spec.MessageCreateMono;
@@ -172,35 +169,41 @@ public class DiscordBot {
 					.flatMap(g -> Optional.ofNullable(g.getChannels().collectList().block()).orElse(new ArrayList<>()).stream())
 					.collect(Collectors.toList());
 
-			TextChannel channel = (TextChannel) allChannelsOfAllServers.stream().filter(c -> c.getName().equals(channelName)).findFirst().orElse(null);
+			List<TextChannel> allChannels = allChannelsOfAllServers.stream()
+					.filter(c -> c.getName().equals(channelName))
+					.filter(c -> c instanceof TextChannel)
+					.map(c -> (TextChannel)c)
+					.collect(Collectors.toList());
 
-			if (channel != null) {
-				MessageCreateMono createMono = channel.createMessage(message);
+			for (TextChannel channel : allChannels) {
+				if (channel != null) {
+					MessageCreateMono createMono = channel.createMessage(message);
 
-				try {
-					List<Tuple<String, InputStream>> streams = new ArrayList<>();
+					try {
+						List<Tuple<String, InputStream>> streams = new ArrayList<>();
 
 
-					for (String imageUrl : imageUrls) {
-						URL url = new URL(imageUrl);
+						for (String imageUrl : imageUrls) {
+							URL url = new URL(imageUrl);
 
-						String[] segments = url.getPath().split("/");
-						String idStr = segments[segments.length - 1];
+							String[] segments = url.getPath().split("/");
+							String idStr = segments[segments.length - 1];
 
-						streams.add(new Tuple<>(idStr, url.openStream()));
+							streams.add(new Tuple<>(idStr, url.openStream()));
+						}
+
+						createMono = createMono.withFiles(
+								streams.stream()
+										.map(s -> MessageCreateFields.File.of(s.x, s.y))
+										.collect(Collectors.toList())
+						);
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
 
-					createMono = createMono.withFiles(
-							streams.stream()
-									.map(s -> MessageCreateFields.File.of(s.x, s.y))
-									.collect(Collectors.toList())
-					);
-				} catch (IOException e) {
-					e.printStackTrace();
+					Message msg = createMono.block();
+					result = msg != null;
 				}
-
-				Message msg = createMono.block();
-				result = msg != null;
 			}
 		}
 
