@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.AutoSoAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
@@ -20,6 +21,7 @@ public class TwitchChatBot {
 
 	private final ResultsExporter resultsExporter;
 	private final TwitchAuthRepository twitchAuthRepository;
+	private AutoSoAction autoSoAction;
 	private static final List<IChatAction> botActions = new ArrayList<>();
 
 	private TwitchBotClient botClient;
@@ -31,15 +33,16 @@ public class TwitchChatBot {
 	}
 
 	@Autowired
-	public TwitchChatBot(ResultsExporter resultsExporter, TwitchAuthRepository twitchAuthRepository) {
+	public TwitchChatBot(ResultsExporter resultsExporter, TwitchAuthRepository twitchAuthRepository, AutoSoAction autoSoAction) {
 		this.resultsExporter = resultsExporter;
 		this.twitchAuthRepository = twitchAuthRepository;
+		this.autoSoAction = autoSoAction;
 	}
 
 	@Bean("botClient")
 	public TwitchBotClient getBotClient() {
 		if (botClient == null) {
-			botClient = new TwitchBotClient(resultsExporter, botActions, "strohkoenig");
+			botClient = new TwitchBotClient(resultsExporter, botActions, "strohkoenig", autoSoAction);
 			twitchAuthRepository.findByIsMain(false).stream().findFirst().ifPresent(auth -> botClient.initializeClient(auth));
 		}
 
@@ -49,7 +52,7 @@ public class TwitchChatBot {
 	@Bean("mainAccountClient")
 	public TwitchBotClient getMainAccountClient() {
 		if (mainAccountClient == null) {
-			mainAccountClient = new TwitchBotClient(resultsExporter, botActions, "strohkoenig");
+			mainAccountClient = new TwitchBotClient(resultsExporter, botActions, "strohkoenig", autoSoAction);
 			twitchAuthRepository.findByIsMain(true).stream().findFirst().ifPresent(auth -> mainAccountClient.initializeClient(auth));
 		}
 
@@ -58,11 +61,11 @@ public class TwitchChatBot {
 
 	public void initializeClients() {
 		if (botClient == null) {
-			botClient = new TwitchBotClient(resultsExporter, botActions, "strohkoenig");
+			botClient = new TwitchBotClient(resultsExporter, botActions, "strohkoenig", autoSoAction);
 		}
 
 		if (mainAccountClient == null) {
-			mainAccountClient = new TwitchBotClient(resultsExporter, botActions, "strohkoenig");
+			mainAccountClient = new TwitchBotClient(resultsExporter, botActions, "strohkoenig", autoSoAction);
 		}
 
 		List<TwitchAuth> auths = twitchAuthRepository.findAll();

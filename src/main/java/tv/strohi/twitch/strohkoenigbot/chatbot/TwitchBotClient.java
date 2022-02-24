@@ -5,6 +5,7 @@ import com.github.philippheuer.events4j.api.domain.IDisposable;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
+import com.github.twitch4j.chat.events.channel.RaidEvent;
 import com.github.twitch4j.common.events.user.PrivateMessageEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.github.twitch4j.events.ChannelGoOfflineEvent;
@@ -13,6 +14,7 @@ import com.github.twitch4j.helix.domain.ClipList;
 import com.github.twitch4j.helix.domain.CreateClipList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.AutoSoAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
@@ -39,13 +41,15 @@ public class TwitchBotClient {
 	private final ResultsExporter resultsExporter;
 	private final List<IChatAction> botActions;
 	private final String channelName;
+	private AutoSoAction autoSoAction;
 
 	private String accessToken;
 
-	public TwitchBotClient(ResultsExporter resultsExporter, List<IChatAction> botActions, String channelName) {
+	public TwitchBotClient(ResultsExporter resultsExporter, List<IChatAction> botActions, String channelName, AutoSoAction autoSoAction) {
 		this.resultsExporter = resultsExporter;
 		this.botActions = botActions;
 		this.channelName = channelName;
+		this.autoSoAction = autoSoAction;
 	}
 
 	public TwitchClient getClient() {
@@ -84,11 +88,28 @@ public class TwitchBotClient {
 				goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
 					isStreamRunning = true;
 					resultsExporter.start();
+					autoSoAction.startStream();
 				});
 
 				goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
 					isStreamRunning = false;
 					resultsExporter.stop();
+					autoSoAction.endStream();
+				});
+
+				client.getEventManager().onEvent(RaidEvent.class, raidEvent -> {
+					ActionArgs args = new ActionArgs();
+
+					args.setReason(TriggerReason.Raid);
+					args.setUser(raidEvent.getRaider().getName());
+					args.setUserId(raidEvent.getRaider().getId());
+
+					args.getArguments().put(ArgumentKey.Event, raidEvent);
+
+					args.getArguments().put(ArgumentKey.ChannelId, raidEvent.getChannel().getId());
+					args.getArguments().put(ArgumentKey.ChannelName, raidEvent.getChannel().getName());
+
+					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.Raid)).forEach(action -> action.run(args));
 				});
 
 				client.getEventManager().onEvent(ChannelMessageEvent.class, event -> {

@@ -1341,6 +1341,38 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "12",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "twitch_so_account",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "username",
+                    "type": "varchar(150)"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }
