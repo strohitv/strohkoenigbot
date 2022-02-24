@@ -177,32 +177,7 @@ public class DiscordBot {
 
 			for (TextChannel channel : allChannels) {
 				if (channel != null) {
-					MessageCreateMono createMono = channel.createMessage(message);
-
-					try {
-						List<Tuple<String, InputStream>> streams = new ArrayList<>();
-
-
-						for (String imageUrl : imageUrls) {
-							URL url = new URL(imageUrl);
-
-							String[] segments = url.getPath().split("/");
-							String idStr = segments[segments.length - 1];
-
-							streams.add(new Tuple<>(idStr, url.openStream()));
-						}
-
-						createMono = createMono.withFiles(
-								streams.stream()
-										.map(s -> MessageCreateFields.File.of(s.x, s.y))
-										.collect(Collectors.toList())
-						);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-
-					Message msg = createMono.block();
-					result = msg != null;
+					result = sendMessage(channel, message, imageUrls);
 				}
 			}
 		}
@@ -210,7 +185,7 @@ public class DiscordBot {
 		return result;
 	}
 
-	public boolean sendPrivateMessageWithImage(Long userId, String message, String gearUrl, String mainAbilityUrl, String favoredAbilityUrl) {
+	public boolean sendPrivateMessageWithImage(Long userId, String message, String... imageUrls) {
 		if (userId == null || getGateway() == null) {
 			return false;
 		}
@@ -222,27 +197,39 @@ public class DiscordBot {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 
 			if (channel != null) {
-				MessageCreateMono createMono = channel.createMessage(message);
-
-				try {
-					InputStream gearOffer = new URL(gearUrl).openStream();
-					InputStream mainAbility = new URL(mainAbilityUrl).openStream();
-					InputStream favoredAbility = new URL(favoredAbilityUrl).openStream();
-					createMono = createMono.withFiles(
-							MessageCreateFields.File.of("gear_offer.png", gearOffer),
-							MessageCreateFields.File.of("main_ability.png", mainAbility),
-							MessageCreateFields.File.of("favored_ability.png", favoredAbility)
-					);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-
-				Message msg = createMono.block();
-				result = msg != null;
+				result = sendMessage(channel, message, imageUrls);
 			}
 		}
 
 		return result;
+	}
+
+	private boolean sendMessage(MessageChannel channel, String message, String... imageUrls) {
+		MessageCreateMono createMono = channel.createMessage(message);
+
+		try {
+			List<Tuple<String, InputStream>> streams = new ArrayList<>();
+
+			for (String imageUrl : imageUrls) {
+				URL url = new URL(imageUrl);
+
+				String[] segments = url.getPath().split("/");
+				String idStr = segments[segments.length - 1];
+
+				streams.add(new Tuple<>(idStr, url.openStream()));
+			}
+
+			createMono = createMono.withFiles(
+					streams.stream()
+							.map(s -> MessageCreateFields.File.of(s.x, s.y))
+							.collect(Collectors.toList())
+			);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		Message msg = createMono.block();
+		return msg != null;
 	}
 
 	private PrivateChannel getPrivateChannelForUserInGuild(Long userId, List<Guild> guilds) {

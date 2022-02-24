@@ -84,13 +84,18 @@ public class SplatNetStoreWatcher {
 				logger.info("Sending last hour notification for gear:");
 				logger.info(gear);
 
+				String frequentSkill = "None";
+				if (gear.getGear().getBrand().getFrequent_skill() != null) {
+					frequentSkill = gear.getGear().getBrand().getFrequent_skill().getName();
+				}
+
 				String message = String.format("%d MINUTES LEFT FOR THIS GEAR IN SPLATNET GEAR SHOP: %s - brand: %s - \"%s\" - price: %d coins - main ability: %s - favored ability: %s - unlocked sub slots: %d",
 						Duration.between(Instant.now(), gear.getEndTime()).abs().toMinutes() + 1,
 						gear.getKind(), gear.getGear().getBrand().getName(),
 						gear.getGear().getName(),
 						gear.getPrice(),
 						gear.getSkill().getName(),
-						gear.getGear().getBrand().getFrequent_skill().getName(),
+						frequentSkill,
 						gear.getGear().getRarity() + 1);
 
 				channelMessageSender.send("strohkoenig", message);
@@ -101,7 +106,7 @@ public class SplatNetStoreWatcher {
 						gear.getGear().getName(),
 						gear.getPrice(),
 						gear.getSkill().getName(),
-						gear.getGear().getBrand().getFrequent_skill().getName(),
+						frequentSkill,
 						gear.getGear().getRarity() + 1);
 
 				sendDiscordNotification(gear, discordMessage);
@@ -113,13 +118,18 @@ public class SplatNetStoreWatcher {
 				logger.info("Sending new in store notification for gear:");
 				logger.info(gear);
 
+				String frequentSkill = "None";
+				if (gear.getGear().getBrand().getFrequent_skill() != null) {
+					frequentSkill = gear.getGear().getBrand().getFrequent_skill().getName();
+				}
+
 				String message = String.format("NEW GEAR ARRIVED IN SPLATNET GEAR SHOP: %s - brand: %s - \"%s\" - price: %d coins - main ability: %s - favored ability: %s - unlocked sub slots: %d. Available for %d hours.",
 						gear.getKind(),
 						gear.getGear().getBrand().getName(),
 						gear.getGear().getName(),
 						gear.getPrice(),
 						gear.getSkill().getName(),
-						gear.getGear().getBrand().getFrequent_skill().getName(),
+						frequentSkill,
 						gear.getGear().getRarity() + 1, Duration.between(Instant.now(),
 								gear.getEndTime()).abs().toHours() + 1);
 
@@ -131,7 +141,7 @@ public class SplatNetStoreWatcher {
 						gear.getGear().getName(),
 						gear.getPrice(),
 						gear.getSkill().getName(),
-						gear.getGear().getBrand().getFrequent_skill().getName(),
+						frequentSkill,
 						gear.getGear().getRarity() + 1, Duration.between(Instant.now(),
 								gear.getEndTime()).abs().toHours() + 1);
 
@@ -141,12 +151,19 @@ public class SplatNetStoreWatcher {
 	}
 
 	private void sendDiscordNotification(SplatNetMerchandises.SplatNetMerchandise gear, String discordMessage) {
+		List<String> images = new ArrayList<>(Arrays.asList(
+				String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getImage()),
+				String.format("https://app.splatoon2.nintendo.net%s", gear.getSkill().getImage())
+		));
+
+		if (gear.getGear().getBrand().getFrequent_skill() != null) {
+			images.add(String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getBrand().getFrequent_skill().getImage()));
+		}
+
 		logger.debug("Sending out discord notifications to server channel");
 		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getSplatNetGearChannel(),
 				discordMessage,
-				String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getImage()),
-				String.format("https://app.splatoon2.nintendo.net%s", gear.getSkill().getImage()),
-				String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getBrand().getFrequent_skill().getImage()));
+				images.toArray(String[]::new));
 		logger.debug("Finished sending out discord notifications to server channel");
 
 		logger.info("Sending out discord notifications to users");
@@ -154,14 +171,14 @@ public class SplatNetStoreWatcher {
 		List<Long> sentNotifications = new ArrayList<>();
 		for (AbilityNotification notification : notifications) {
 			if (!sentNotifications.contains(notification.getDiscordId())) {
+
+
 				discordAccountRepository.findById(notification.getDiscordId())
 						.ifPresent(discordAccount -> {
 									logger.info("Sending notification to discord account: {}", discordAccount.getDiscordId());
 									discordBot.sendPrivateMessageWithImage(discordAccount.getDiscordId(),
 											discordMessage,
-											String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getImage()),
-											String.format("https://app.splatoon2.nintendo.net%s", gear.getSkill().getImage()),
-											String.format("https://app.splatoon2.nintendo.net%s", gear.getGear().getBrand().getFrequent_skill().getImage()));
+											images.toArray(String[]::new));
 								}
 						);
 
@@ -176,7 +193,11 @@ public class SplatNetStoreWatcher {
 				.filter(an ->
 						(an.getGear() == GearType.Any || an.getGear() == Arrays.stream(GearType.values()).filter(gt -> gt.getName().equals(gear.getGear().getKind())).findFirst().orElse(GearType.Any))
 								&& (an.getMain() == AbilityType.Any || an.getMain() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getSkill().getName())).findFirst().orElse(AbilityType.Any))
-								&& (an.getFavored() == AbilityType.Any || an.getFavored() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getGear().getBrand().getFrequent_skill().getName())).findFirst().orElse(AbilityType.Any)))
+								&&
+								(
+										an.getFavored() == AbilityType.Any || (gear.getGear().getBrand().getFrequent_skill() != null && an.getFavored() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getGear().getBrand().getFrequent_skill().getName())).findFirst().orElse(AbilityType.Any))
+								)
+				)
 				.collect(Collectors.toList());
 	}
 }
