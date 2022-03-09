@@ -158,7 +158,7 @@ public class TwitchBotClient {
 
 			client.getChat().joinChannel(channelName);
 			if (client.getChat().isChannelJoined(channelName)) {
-				client.getChat().sendMessage(channelName, "Hi! strohk2PogFree");
+				client.getChat().sendMessage(channelName, "Bot started. Hi! strohk2PogFree");
 			}
 		} catch (Exception ignored) {
 
@@ -255,7 +255,7 @@ public class TwitchBotClient {
 
 		if (client != null) {
 			if (client.getChat().isChannelJoined(channelName)) {
-				client.getChat().sendMessage(channelName, "Bye! strohk2UwuFree");
+				client.getChat().sendMessage(channelName, "Stopping Bot. Bye! strohk2UwuFree");
 				client.getChat().leaveChannel(channelName);
 			}
 
