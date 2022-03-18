@@ -43,17 +43,17 @@ public class AutoSoAction implements IChatAction {
 	public void run(ActionArgs args) {
 		if (args.getReason() == TriggerReason.Raid) {
 			accountsToShoutOut.put(args.getUser().toLowerCase(), false);
-			new Thread(() -> sendTwitchSoMessage(args.getUser(), true)).start();
+			new Thread(() -> sendTwitchSoMessage(args.getUser(), 10_000)).start();
 		} else if (accountsToShoutOut.getOrDefault(args.getUser().toLowerCase(), false)) {
 			accountsToShoutOut.put(args.getUser().toLowerCase(), false);
-			sendTwitchSoMessage(args.getUser(), false);
+			new Thread(() -> sendTwitchSoMessage(args.getUser(), 3_000)).start();
 		}
 	}
 
-	private void sendTwitchSoMessage(String user, boolean wait) {
-		if (wait) {
+	private void sendTwitchSoMessage(String user, int waitTime) {
+		if (waitTime > 0) {
 			try {
-				Thread.sleep(10000);
+				Thread.sleep(waitTime);
 			} catch (InterruptedException e) {
 				logger.error(e);
 			}
