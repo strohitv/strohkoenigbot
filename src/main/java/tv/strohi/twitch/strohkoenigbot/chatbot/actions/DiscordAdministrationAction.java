@@ -205,7 +205,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			String filepath = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!file".length()).trim();
 
 //			Path path = Paths.get(Paths.get(String.format("%s\\src\\main\\resources\\html\\template-example.html", Paths.get(".").toAbsolutePath().normalize().toString())).getParent().toString(), String.format("%s/win.txt", "/../../shared/woomydx-powers"));
-			Path path = Paths.get(String.format("%s/countdown.txt", filepath));
+			Path path = Paths.get(filepath);
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("resolved path: %s", path.toString()));
 
 			if (Files.exists(path)) {
