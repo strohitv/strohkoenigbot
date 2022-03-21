@@ -122,26 +122,32 @@ public class Statistics {
 			Path htmlFilePath = Paths.get(path).getParent();
 
 			Configuration woomyDxDir = configurationRepository.findByConfigName("woomyDxDir").stream().findFirst().orElse(null);
-			logger.info("woomyDxDir: {}", woomyDxDir != null ? woomyDxDir.getConfigValue() : "NULL");
-			if (woomyDxDir != null && Files.exists(Paths.get(woomyDxDir.getConfigValue()))) {
-				try {
-					InputStream isPowerGain = new FileInputStream(Paths.get(htmlFilePath.toString(), String.format("%s/win.txt", woomyDxDir.getConfigValue())).toString());
-					InputStream isPowerLoss = new FileInputStream(Paths.get(htmlFilePath.toString(), String.format("%s/lose.txt", woomyDxDir.getConfigValue())).toString());
+			if (woomyDxDir != null) {
+				logger.info("woomyDxDir: {}", woomyDxDir.getConfigValue());
+				logger.info("woomyDxDir via paths.get: {}", Paths.get(woomyDxDir.getConfigValue()).toString());
 
-					String possiblePowerGainRead = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
-					String possiblePowerLossRead = new String(isPowerLoss.readAllBytes(), StandardCharsets.UTF_8);
+				if (Files.exists(Paths.get(woomyDxDir.getConfigValue()))) {
+					try {
+						InputStream isPowerGain = new FileInputStream(Paths.get(htmlFilePath.toString(), String.format("%s/win.txt", woomyDxDir.getConfigValue())).toString());
+						InputStream isPowerLoss = new FileInputStream(Paths.get(htmlFilePath.toString(), String.format("%s/lose.txt", woomyDxDir.getConfigValue())).toString());
 
-					if (!possiblePowerGainRead.isBlank() && !possiblePowerLossRead.isBlank()) {
-						logger.info("Setting gain to {} and loss to {}", possiblePowerGainRead.trim(), possiblePowerLossRead.trim());
-						possiblePowerGain = possiblePowerGainRead.trim();
-						possiblePowerLoss = possiblePowerLossRead.trim();
+						String possiblePowerGainRead = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
+						String possiblePowerLossRead = new String(isPowerLoss.readAllBytes(), StandardCharsets.UTF_8);
 
-						possiblePowerHidden = "";
-					} else {
-						logger.info("possible power gain and loss are both blank, not setting any powers");
+						if (!possiblePowerGainRead.isBlank() && !possiblePowerLossRead.isBlank()) {
+							logger.info("Setting gain to {} and loss to {}", possiblePowerGainRead.trim(), possiblePowerLossRead.trim());
+							possiblePowerGain = possiblePowerGainRead.trim();
+							possiblePowerLoss = possiblePowerLossRead.trim();
+
+							possiblePowerHidden = "";
+						} else {
+							logger.info("possible power gain and loss are both blank, not setting any powers");
+						}
+					} catch (IOException e) {
+						logger.error(e);
 					}
-				} catch (IOException e) {
-					logger.error(e);
+				} else {
+					logger.error("could not open woomy dx files");
 				}
 			}
 
