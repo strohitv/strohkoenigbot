@@ -119,17 +119,20 @@ public class Statistics {
 			String possiblePowerGain = "";
 			String possiblePowerLoss = "";
 
-			Path htmlFilePath = Paths.get(path).getParent();
-
 			Configuration woomyDxDir = configurationRepository.findByConfigName("woomyDxDir").stream().findFirst().orElse(null);
 			if (woomyDxDir != null) {
-				logger.info("woomyDxDir: {}", woomyDxDir.getConfigValue());
-				logger.info("woomyDxDir via paths.get: {}", Paths.get(woomyDxDir.getConfigValue()).toString());
+				Path path = Paths.get(woomyDxDir.getConfigValue());
 
-				if (Files.exists(Paths.get(woomyDxDir.getConfigValue()))) {
+				logger.info("woomyDxDir: {}", woomyDxDir.getConfigValue());
+				logger.info("woomyDxDir via paths.get: {}", path.toString());
+
+				if (Files.exists(path)) {
 					try {
-						InputStream isPowerGain = new FileInputStream(Paths.get(htmlFilePath.toString(), String.format("%s/win.txt", woomyDxDir.getConfigValue())).toString());
-						InputStream isPowerLoss = new FileInputStream(Paths.get(htmlFilePath.toString(), String.format("%s/lose.txt", woomyDxDir.getConfigValue())).toString());
+						logger.info("win path: {}", path.resolve("win.txt").toString());
+						logger.info("lose path: {}", path.resolve("lose.txt").toString());
+
+						InputStream isPowerGain = new FileInputStream(path.resolve("win.txt").toString());
+						InputStream isPowerLoss = new FileInputStream(path.resolve("lose.txt").toString());
 
 						String possiblePowerGainRead = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
 						String possiblePowerLossRead = new String(isPowerLoss.readAllBytes(), StandardCharsets.UTF_8);
@@ -149,6 +152,8 @@ public class Statistics {
 				} else {
 					logger.error("could not open woomy dx files");
 				}
+			} else {
+				logger.error("woomy dx configuration property does not exist");
 			}
 
 			InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/template.html");
