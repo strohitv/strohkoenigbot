@@ -16,6 +16,13 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -113,7 +120,22 @@ public class DiscordAdministrationAction extends ChatAction {
 			config = configurationRepository.save(config);
 
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was stored into database.", config.getId()));
-		} else if (message.startsWith("!config remove")) {
+		} else if (message.startsWith("!config get") && !message.toLowerCase().contains("pass")) {
+		String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config get".length()).trim();
+
+		Configuration config = null;
+		List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
+		if (configs.size() > 0) {
+			config = configs.get(0);
+		}
+
+		if (config != null) {
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d: %s", config.getId(), config.getConfigValue()));
+		} else {
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Such a configuration does not exist.");
+		}
+
+	} else if (message.startsWith("!config remove")) {
 			String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config remove".length()).trim();
 
 			List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
@@ -179,6 +201,26 @@ public class DiscordAdministrationAction extends ChatAction {
 			}
 
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will not trigger an **!so** message anymore whenever **" + account + "** raids or writes the first message in stream.");
+		} else if (message.startsWith("!file")) {
+			String filepath = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!file".length()).trim();
+
+//			Path path = Paths.get(Paths.get(String.format("%s\\src\\main\\resources\\html\\template-example.html", Paths.get(".").toAbsolutePath().normalize().toString())).getParent().toString(), String.format("%s/win.txt", "/../../shared/woomydx-powers"));
+			Path path = Paths.get(Paths.get(String.format("%s\\src\\main\\resources\\html\\template-example.html", Paths.get(".").toAbsolutePath().normalize().toString())).getParent().toString(), String.format("%s/win.txt", filepath));
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("resolved path: %s", path.toString()));
+
+			if (Files.exists(path)) {
+				try {
+					InputStream isPowerGain = new FileInputStream(path.toString());
+					String result = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
+
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "File contents:");
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), result);
+				} catch (IOException e) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), e.getMessage());
+				}
+			} else {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "This file does not exist.");
+			}
 		}
 	}
 }
