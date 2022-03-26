@@ -7,7 +7,10 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.channel.*;
+import discord4j.core.object.entity.channel.GuildChannel;
+import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.core.object.entity.channel.PrivateChannel;
+import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
 import discord4j.core.spec.MessageCreateMono;
@@ -261,6 +264,25 @@ public class DiscordBot {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
 				Message msg = channel.createMessage(message).block();
+				result = msg != null;
+			}
+		}
+
+		return result;
+	}
+
+	public boolean sendPrivateMessageWithAttachment(Long userId, String message, String fileName, InputStream content) {
+		if (userId == null || getGateway() == null) {
+			return false;
+		}
+
+		boolean result = false;
+
+		List<Guild> guilds = getGateway().getGuilds().collectList().block();
+		if (guilds != null && guilds.size() > 0) {
+			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
+			if (channel != null) {
+				Message msg = channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).block();
 				result = msg != null;
 			}
 		}

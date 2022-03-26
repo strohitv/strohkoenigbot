@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
@@ -12,9 +13,10 @@ public interface SplatoonWeaponRepository extends CrudRepository<SplatoonWeapon,
 
 	SplatoonWeapon findByName(String name);
 
-	List<SplatoonWeapon> findByTurf(long turf);
-	List<SplatoonWeapon> findByTurfGreaterThan(long turf);
-	List<SplatoonWeapon> findByTurfGreaterThanEqual(long turf);
-	List<SplatoonWeapon> findByTurfLessThan(long turf);
-	List<SplatoonWeapon> findByTurfLessThanEqual(long turf);
+	@NotNull List<SplatoonWeapon> findAll();
+	@NotNull List<SplatoonWeapon> findByTurf(long turf);
+	@NotNull List<SplatoonWeapon> findByTurfGreaterThan(long turf);
+	@NotNull List<SplatoonWeapon> findByTurfGreaterThanEqual(long turf);
+	@NotNull List<SplatoonWeapon> findByTurfLessThan(long turf);
+	@NotNull List<SplatoonWeapon> findByTurfLessThanEqual(long turf);
 }

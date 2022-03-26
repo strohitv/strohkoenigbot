@@ -9,10 +9,11 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonMatchRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRepository;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Objects;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -38,7 +39,7 @@ public class DailyStatsSender {
 		this.matchRepository = matchRepository;
 	}
 
-	@Scheduled(cron = "0 25 0 * * *")
+	@Scheduled(cron = "0 10 0 * * *")
 	public void sendDailyStatsToDiscord() {
 		Calendar c = new GregorianCalendar();
 		c.set(Calendar.HOUR_OF_DAY, 0); //anything 0 - 23
@@ -76,6 +77,40 @@ public class DailyStatsSender {
 			message = builder.toString();
 		}
 
-		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), message);
+		String weaponStats = createWeaponStatsCsv(matches);
+
+		Date yesterday = c.getTime();
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		String strDate = dateFormat.format(yesterday);
+
+		discordBot.sendPrivateMessageWithAttachment(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
+				message,
+				String.format("%s.csv", strDate),
+				new ByteArrayInputStream(weaponStats.getBytes(StandardCharsets.UTF_8)));
+	}
+
+	private String createWeaponStatsCsv(List<SplatoonMatch> yesterdayMatches) {
+		StringBuilder builder = new StringBuilder("Name;Sub;Special;Total Paint;Paint Left;Painted Yesterday");
+
+		List<SplatoonWeapon> allWeapons = weaponRepository.findAll().stream()
+				.sorted((x, y) -> y.getTurf().compareTo(x.getTurf()))
+				.collect(Collectors.toList());
+
+		for (SplatoonWeapon weapon : allWeapons) {
+		    long yesterdayPaint = yesterdayMatches.stream()
+					.filter(w -> w.getWeaponId() == weapon.getId())
+					.map(m -> (long)m.getTurfGain())
+					.reduce(0L, Long::sum);
+
+		    builder.append("\n")
+					.append(weapon.getName()).append(";")
+					.append(weapon.getSubName()).append(";")
+					.append(weapon.getSpecialName()).append(";")
+					.append(weapon.getTurf()).append(";")
+					.append(100_000 - weapon.getTurf() > 0 ? 100_000 - weapon.getTurf() : 0).append(";")
+					.append(yesterdayPaint);
+		}
+
+		return builder.toString();
 	}
 }
