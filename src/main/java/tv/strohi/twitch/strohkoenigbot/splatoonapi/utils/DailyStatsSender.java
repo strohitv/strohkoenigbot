@@ -55,6 +55,6 @@ public class DailyStatsSender {
 		long leftToPaint = weapons.stream().map(w -> 100_000 - w.getTurf()).reduce(0L, Long::sum);
 		double daysUntilGoalReached = leftToPaint / 40_000.0;
 
-		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), String.format("Yesterday, I painted a total sum of **%d** points on **%d** different weapons.\nI still need to paint a total of **%d** points on **%d** different weapons. That's **%.2f days** if I paint **40k points** every day.", yesterdayPaint, weaponCount, leftToPaint, weapons.size(), daysUntilGoalReached));
+		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), String.format("Yesterday, I painted a total sum of **%d** points on **%d** different weapons.\n\nI still need to paint a total of **%d** points on **%d** different weapons.\nThat's **%.2f days** if I paint **40k points** every day.", yesterdayPaint, weaponCount, leftToPaint, weapons.size(), daysUntilGoalReached));
 	}
 }
