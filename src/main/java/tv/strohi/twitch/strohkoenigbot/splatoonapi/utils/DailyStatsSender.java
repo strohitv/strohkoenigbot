@@ -12,6 +12,8 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeap
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component
 public class DailyStatsSender {
@@ -52,9 +54,28 @@ public class DailyStatsSender {
 		long yesterdayPaint = matches.stream().map(m -> (long)m.getTurfGain()).reduce(0L, Long::sum);
 		long weaponCount = matches.stream().map(SplatoonMatch::getWeaponId).distinct().count();
 
+		List<SplatoonWeapon> newRedBadgeWeapons = matches.stream()
+				.filter(m -> m.getTurfTotal() >= 100_000 && m.getTurfTotal() - m.getTurfGain() < 100_000)
+				.map(m -> weaponRepository.findById(m.getWeaponId()).orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+
 		long leftToPaint = weapons.stream().map(w -> 100_000 - w.getTurf()).reduce(0L, Long::sum);
 		double daysUntilGoalReached = leftToPaint / 40_000.0;
 
-		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), String.format("Yesterday, I painted a total sum of **%d** points on **%d** different weapons.\n\nI still need to paint a total of **%d** points on **%d** different weapons.\nThat's **%.2f days** if I paint **40k points** every day.", yesterdayPaint, weaponCount, leftToPaint, weapons.size(), daysUntilGoalReached));
+		String message = String.format("Yesterday, I painted a total sum of **%d** points on **%d** different weapons.\n\nI still need to paint a total of **%d** points on **%d** different weapons.\nThat's **%.2f days** if I paint **40k points** every day.", yesterdayPaint, weaponCount, leftToPaint, weapons.size(), daysUntilGoalReached);
+
+		if (newRedBadgeWeapons.size() > 0) {
+			StringBuilder builder = new StringBuilder(message);
+			builder.append("\n\nThese **").append(newRedBadgeWeapons.size()).append("** weapons got their red badge yesterday:");
+
+			for (SplatoonWeapon weapon : newRedBadgeWeapons) {
+			    builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
+			}
+
+			message = builder.toString();
+		}
+
+		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), message);
 	}
 }

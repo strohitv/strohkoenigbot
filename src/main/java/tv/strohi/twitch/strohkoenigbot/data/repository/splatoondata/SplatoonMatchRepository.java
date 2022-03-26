@@ -21,6 +21,7 @@ public interface SplatoonMatchRepository extends CrudRepository<SplatoonMatch, L
 	@NotNull List<SplatoonMatch> findByStartTimeGreaterThanEqualAndMode(long startTime, SplatoonMode mode);
 	SplatoonMatch findTop1ByModeAndRuleOrderByStartTimeDesc(SplatoonMode mode, SplatoonRule rule);
 
+	@NotNull List<SplatoonMatch> findByStartTimeGreaterThanEqual(long startTime);
 	@NotNull List<SplatoonMatch> findByStartTimeGreaterThanEqualAndEndTimeLessThanEqual(long startTime, long endTime);
 
 	@Query("select max(splatnetBattleNumber) from SplatoonMatch")
