@@ -77,16 +77,20 @@ public class DailyStatsSender {
 			message = builder.toString();
 		}
 
-		String weaponStats = createWeaponStatsCsv(matches);
+		if (matches.size() > 0) {
+			String weaponStats = createWeaponStatsCsv(matches);
 
-		Date yesterday = c.getTime();
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		String strDate = dateFormat.format(yesterday);
+			Date yesterday = c.getTime();
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			String strDate = dateFormat.format(yesterday);
 
-		discordBot.sendPrivateMessageWithAttachment(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
-				message,
-				String.format("%s.csv", strDate),
-				new ByteArrayInputStream(weaponStats.getBytes(StandardCharsets.UTF_8)));
+			discordBot.sendPrivateMessageWithAttachment(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
+					message,
+					String.format("%s.csv", strDate),
+					new ByteArrayInputStream(weaponStats.getBytes(StandardCharsets.UTF_8)));
+		} else {
+			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), message);
+		}
 	}
 
 	private String createWeaponStatsCsv(List<SplatoonMatch> yesterdayMatches) {
