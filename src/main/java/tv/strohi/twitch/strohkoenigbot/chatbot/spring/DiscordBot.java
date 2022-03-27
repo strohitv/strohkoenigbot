@@ -17,6 +17,7 @@ import discord4j.core.spec.MessageCreateMono;
 import discord4j.core.spec.MessageCreateSpec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ConnectionAccepted;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
@@ -139,7 +140,7 @@ public class DiscordBot {
 
 		Long result = null;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<Member> allMembersOfAllServers = guilds.stream()
 					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).collectList().block()).orElse(new ArrayList<>()).stream())
@@ -166,7 +167,7 @@ public class DiscordBot {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 					.flatMap(g -> Optional.ofNullable(g.getChannels().collectList().block()).orElse(new ArrayList<>()).stream())
@@ -195,7 +196,7 @@ public class DiscordBot {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 
@@ -245,8 +246,9 @@ public class DiscordBot {
 				.findFirst()
 				.flatMap(member -> getGateway()
 						.getUserById(member.getId())
+						.onErrorResume(e -> Mono.empty())
 						.blockOptional()
-						.flatMap(u -> u.getPrivateChannel().blockOptional()))
+						.flatMap(u -> u.getPrivateChannel().onErrorResume(e -> Mono.empty()).blockOptional()))
 				.stream()
 				.findFirst()
 				.orElse(null);
@@ -259,11 +261,11 @@ public class DiscordBot {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
-				Message msg = channel.createMessage(message).block();
+				Message msg = channel.createMessage(message).onErrorResume(e -> Mono.empty()).block();
 				result = msg != null;
 			}
 		}
@@ -282,7 +284,7 @@ public class DiscordBot {
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
-				Message msg = channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).block();
+				Message msg = channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).onErrorResume(e -> Mono.empty()).block();
 				result = msg != null;
 			}
 		}
@@ -291,7 +293,7 @@ public class DiscordBot {
 	}
 
 	public void reply(String message, TextChannel channel, Snowflake reference) {
-		channel.createMessage(MessageCreateSpec.create().withMessageReference(reference).withContent(message)).block();
+		channel.createMessage(MessageCreateSpec.create().withMessageReference(reference).withContent(message)).onErrorResume(e -> Mono.empty()).block();
 	}
 
 	private static class Tuple<X, Y> {
