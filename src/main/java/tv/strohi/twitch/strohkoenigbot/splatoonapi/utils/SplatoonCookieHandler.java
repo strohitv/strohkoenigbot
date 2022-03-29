@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.SplatoonLogin;
 import tv.strohi.twitch.strohkoenigbot.data.repository.SplatoonLoginRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.AuthLinkCreator;
@@ -36,6 +37,13 @@ public class SplatoonCookieHandler extends CookieHandler {
 		this.splatoonLoginRepository = splatoonLoginRepository;
 	}
 
+	private DiscordBot discordBot;
+
+	@Autowired
+	public void setDiscordBot(DiscordBot discordBot) {
+		this.discordBot = discordBot;
+	}
+
 	@Override
 	public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
 		logger.debug("putting authentication information into request");
@@ -48,11 +56,15 @@ public class SplatoonCookieHandler extends CookieHandler {
 
 		if (login == null) {
 			login = splatoonLoginRepository.save(new SplatoonLogin());
+
 			logger.debug("creating new login");
+			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "creating new login");
 		}
 
 		if (login.getSessionToken() == null || login.getSessionToken().isBlank()) {
 			logger.warn("session token was null or blank: '{}'", login.getSessionToken());
+			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), String.format("session token was null or blank: '%s'", login.getSessionToken()));
+
 			AuthLinkCreator.AuthParams params = authLinkCreator.generateAuthenticationParams();
 			String authUrl = authLinkCreator.buildAuthUrl(params).toString();
 
@@ -63,7 +75,9 @@ public class SplatoonCookieHandler extends CookieHandler {
 
 		if (login.getExpiresAt() == null || Instant.now().isAfter(login.getExpiresAt())) {
 			logger.debug("refreshing auth data");
+			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "refreshing auth data");
 			AuthenticationData authData = authenticator.refreshAccess(login.getSessionToken());
+
 			logger.debug("new auth data:");
 			logger.debug(authData);
 
