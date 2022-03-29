@@ -76,6 +76,7 @@ public class SplatoonCookieHandler extends CookieHandler {
 		if (login.getExpiresAt() == null || Instant.now().isAfter(login.getExpiresAt())) {
 			logger.debug("refreshing auth data");
 			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "refreshing auth data");
+
 			AuthenticationData authData = authenticator.refreshAccess(login.getSessionToken());
 
 			logger.debug("new auth data:");
