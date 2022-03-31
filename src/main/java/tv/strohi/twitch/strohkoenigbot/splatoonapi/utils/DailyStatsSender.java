@@ -8,6 +8,8 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMatch;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonMatchRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponKit;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -94,7 +96,7 @@ public class DailyStatsSender {
 	}
 
 	private String createWeaponStatsCsv(List<SplatoonMatch> yesterdayMatches) {
-		StringBuilder builder = new StringBuilder("Name;Sub;Special;Total Paint;Paint Left;Painted Yesterday");
+		StringBuilder builder = new StringBuilder("Name;Class;Sub;Special;Total Paint;Paint Left;Painted Yesterday");
 
 		List<SplatoonWeapon> allWeapons = weaponRepository.findAll().stream()
 				.sorted((x, y) -> y.getTurf().compareTo(x.getTurf()))
@@ -106,8 +108,15 @@ public class DailyStatsSender {
 					.map(m -> (long)m.getTurfGain())
 					.reduce(0L, Long::sum);
 
+		    WeaponKit weaponKit = WeaponKit.All.stream().filter(wk -> wk.getName().equalsIgnoreCase(weapon.getName())).findFirst().orElse(null);
+			WeaponClass weaponClass = WeaponClass.Shooter;
+			if (weaponKit != null) {
+				weaponClass = weaponKit.getWeaponClass();
+			}
+
 		    builder.append("\n")
 					.append(weapon.getName()).append(";")
+					.append(weaponClass.getName()).append(";")
 					.append(weapon.getSubName()).append(";")
 					.append(weapon.getSpecialName()).append(";")
 					.append(weapon.getTurf()).append(";")
