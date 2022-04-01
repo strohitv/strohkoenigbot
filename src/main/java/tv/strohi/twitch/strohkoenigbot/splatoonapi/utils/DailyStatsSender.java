@@ -96,7 +96,7 @@ public class DailyStatsSender {
 	}
 
 	private String createWeaponStatsCsv(List<SplatoonMatch> yesterdayMatches) {
-		StringBuilder builder = new StringBuilder("Name;Class;Sub;Special;Total Paint;Paint Left;Painted Yesterday;Wins;Defeats");
+		StringBuilder builder = new StringBuilder("Name;Class;Sub;Special;Total Paint;Paint Left;Painted Yesterday;Matches;Wins;Defeats");
 
 		List<SplatoonWeapon> allWeapons = weaponRepository.findAll().stream()
 				.sorted((x, y) -> y.getTurf().compareTo(x.getTurf()))
@@ -122,10 +122,15 @@ public class DailyStatsSender {
 					.append(weapon.getTurf()).append(";")
 					.append(100_000 - weapon.getTurf() > 0 ? 100_000 - weapon.getTurf() : 0).append(";")
 					.append(yesterdayPaint).append(";")
-					.append(weapon.getWins()).append(";")
-					.append(weapon.getDefeats());
+					.append(getNumber(weapon.getWins()) + getNumber(weapon.getDefeats())).append(";")
+					.append(getNumber(weapon.getWins())).append(";")
+					.append(getNumber(weapon.getDefeats()));
 		}
 
 		return builder.toString();
+	}
+
+	private int getNumber(Integer number) {
+		return number != null ? number : 0;
 	}
 }
