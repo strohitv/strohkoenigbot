@@ -37,7 +37,7 @@ public class FTokenRetriever extends AuthenticatorBase {
 		HttpRequest request = HttpRequest.newBuilder()
 				.POST(HttpRequest.BodyPublishers.ofString(String.format("naIdToken=%s&timestamp=%s", accessToken, timestamp)))
 				.uri(uri)
-				.setHeader("User-Agent", "splatnet2statink/1.7.0")
+				.setHeader("User-Agent", "splatnet2statink/1.7.1")
 				.build();
 
 		NaIdTokenResponse response = sendRequestAndParseGzippedJson(request, NaIdTokenResponse.class);

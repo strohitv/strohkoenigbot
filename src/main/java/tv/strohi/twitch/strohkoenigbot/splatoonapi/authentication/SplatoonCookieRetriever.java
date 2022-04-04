@@ -22,7 +22,7 @@ public class SplatoonCookieRetriever extends AuthenticatorBase {
 				.setHeader("Accept-Language", "en-US")
 				.setHeader("X-IsAnalyticsOptedIn", "false")
 				.setHeader("DNT", "0")
-				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 7.1.2; Pixel Build/NJH47D; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/59.0.3071.125 Mobile Safari/537.36")
+				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
 				.setHeader("X-Requested-With", "com.nintendo.znca")
 				.build();
 
