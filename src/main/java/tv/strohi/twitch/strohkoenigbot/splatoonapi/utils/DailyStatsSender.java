@@ -123,7 +123,7 @@ public class DailyStatsSender {
 					.count();
 
 
-		    WeaponKit weaponKit = WeaponKit.All.stream().filter(wk -> wk.getName().equalsIgnoreCase(weapon.getName())).findFirst().orElse(null);
+		    WeaponKit weaponKit = WeaponKit.All.stream().filter(wk -> wk.getName().equalsIgnoreCase(weapon.getName().trim())).findFirst().orElse(null);
 			WeaponClass weaponClass = WeaponClass.Shooter;
 			if (weaponKit != null) {
 				weaponClass = weaponKit.getWeaponClass();
