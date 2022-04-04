@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMatch;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMatchResult;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonMatchRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
@@ -73,7 +74,7 @@ public class DailyStatsSender {
 			builder.append("\n\nThese **").append(newRedBadgeWeapons.size()).append("** weapons got their red badge yesterday:");
 
 			for (SplatoonWeapon weapon : newRedBadgeWeapons) {
-			    builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
+				builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
 			}
 
 			message = builder.toString();
@@ -96,25 +97,31 @@ public class DailyStatsSender {
 	}
 
 	private String createWeaponStatsCsv(List<SplatoonMatch> yesterdayMatches) {
-		StringBuilder builder = new StringBuilder("Name;Class;Sub;Special;Total Paint;Paint Left;Painted Yesterday;Matches;Wins;Defeats;Win rate;Paint per Match");
+		StringBuilder builder = new StringBuilder("Name;Class;Sub;Special;Total Paint;Paint Left;Painted Yesterday;Matches;Wins;Defeats;Win rate;Wins delta;Defeats delta;Paint per Match");
 
 		List<SplatoonWeapon> allWeapons = weaponRepository.findAll().stream()
 				.sorted((x, y) -> y.getTurf().compareTo(x.getTurf()))
 				.collect(Collectors.toList());
 
 		for (SplatoonWeapon weapon : allWeapons) {
-		    long yesterdayPaint = yesterdayMatches.stream()
+			long yesterdayPaint = yesterdayMatches.stream()
 					.filter(w -> w.getWeaponId() == weapon.getId())
 					.map(m -> (long)m.getTurfGain())
 					.reduce(0L, Long::sum);
+			long yesterdayWins = yesterdayMatches.stream()
+					.filter(w -> w.getWeaponId() == weapon.getId() && w.getMatchResult() == SplatoonMatchResult.Win)
+					.count();
+			long yesterdayDefeats = yesterdayMatches.stream()
+					.filter(w -> w.getWeaponId() == weapon.getId() && w.getMatchResult() != SplatoonMatchResult.Win)
+					.count();
 
-		    WeaponKit weaponKit = WeaponKit.All.stream().filter(wk -> wk.getName().equalsIgnoreCase(weapon.getName())).findFirst().orElse(null);
+			WeaponKit weaponKit = WeaponKit.All.stream().filter(wk -> wk.getName().equalsIgnoreCase(weapon.getName())).findFirst().orElse(null);
 			WeaponClass weaponClass = WeaponClass.Shooter;
 			if (weaponKit != null) {
 				weaponClass = weaponKit.getWeaponClass();
 			}
 
-		    builder.append("\n")
+			builder.append("\n")
 					.append(weapon.getName()).append(";")
 					.append(weaponClass.getName()).append(";")
 					.append(weapon.getSubName()).append(";")
@@ -126,6 +133,8 @@ public class DailyStatsSender {
 					.append(getNumber(weapon.getWins())).append(";")
 					.append(getNumber(weapon.getDefeats())).append(";")
 					.append(String.format("%.2f", getNumber(weapon.getWins()) * 100 / ((double)(getNumber(weapon.getWins()) + getNumber(weapon.getDefeats()))))).append(";")
+					.append(yesterdayWins).append(";")
+					.append(yesterdayDefeats).append(";")
 					.append(String.format("%.2f", calculateAvgPaint(weapon.getTurf(), getNumber(weapon.getWins()) + getNumber(weapon.getDefeats()))));
 		}
 
