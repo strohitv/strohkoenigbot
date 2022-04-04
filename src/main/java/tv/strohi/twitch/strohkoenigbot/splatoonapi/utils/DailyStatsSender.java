@@ -151,7 +151,7 @@ public class DailyStatsSender {
 					.append(getNumber(weapon.getWins()) + getNumber(weapon.getDefeats())).append(";")
 					.append(getNumber(weapon.getWins())).append(";")
 					.append(getNumber(weapon.getDefeats())).append(";")
-					.append(String.format("%.2f", getNumber(weapon.getWins()) * 100 / ((double)(getNumber(weapon.getWins()) + getNumber(weapon.getDefeats()))))).append(";")
+					.append(String.format("%d%%", getNumber(weapon.getWins()) * 100 / (getNumber(weapon.getWins()) + getNumber(weapon.getDefeats())))).append(";")
 					.append(yesterdayWins).append(";")
 					.append(yesterdayDefeats).append(";")
 					.append(String.format("%.2f", calculateAvgPaint(weapon.getTurf(), getNumber(weapon.getWins()) + getNumber(weapon.getDefeats()))));
