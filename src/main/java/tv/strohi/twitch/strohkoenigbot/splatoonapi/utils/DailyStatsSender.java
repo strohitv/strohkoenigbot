@@ -1,5 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -21,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class DailyStatsSender {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
 	private DiscordBot discordBot;
 
 	@Autowired
@@ -74,7 +79,7 @@ public class DailyStatsSender {
 			builder.append("\n\nThese **").append(newRedBadgeWeapons.size()).append("** weapons got their red badge yesterday:");
 
 			for (SplatoonWeapon weapon : newRedBadgeWeapons) {
-				builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
+			    builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
 			}
 
 			message = builder.toString();
@@ -103,8 +108,10 @@ public class DailyStatsSender {
 				.sorted((x, y) -> y.getTurf().compareTo(x.getTurf()))
 				.collect(Collectors.toList());
 
+		boolean sendAllWeapons = false;
+
 		for (SplatoonWeapon weapon : allWeapons) {
-			long yesterdayPaint = yesterdayMatches.stream()
+		    long yesterdayPaint = yesterdayMatches.stream()
 					.filter(w -> w.getWeaponId() == weapon.getId())
 					.map(m -> (long)m.getTurfGain())
 					.reduce(0L, Long::sum);
@@ -115,13 +122,25 @@ public class DailyStatsSender {
 					.filter(w -> w.getWeaponId() == weapon.getId() && w.getMatchResult() != SplatoonMatchResult.Win)
 					.count();
 
-			WeaponKit weaponKit = WeaponKit.All.stream().filter(wk -> wk.getName().equalsIgnoreCase(weapon.getName())).findFirst().orElse(null);
+
+		    WeaponKit weaponKit = WeaponKit.All.stream().filter(wk -> wk.getName().equalsIgnoreCase(weapon.getName())).findFirst().orElse(null);
 			WeaponClass weaponClass = WeaponClass.Shooter;
 			if (weaponKit != null) {
 				weaponClass = weaponKit.getWeaponClass();
+			} else {
+				sendAllWeapons = true;
+				ObjectMapper mapper = new ObjectMapper();
+
+				try {
+					discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
+							String.format("weapon.getName(): %s, weapon: %s",
+									weapon.getName(), mapper.writeValueAsString(weapon)));
+				} catch (Exception ex) {
+					logger.error(ex);
+				}
 			}
 
-			builder.append("\n")
+		    builder.append("\n")
 					.append(weapon.getName()).append(";")
 					.append(weaponClass.getName()).append(";")
 					.append(weapon.getSubName()).append(";")
@@ -136,6 +155,22 @@ public class DailyStatsSender {
 					.append(yesterdayWins).append(";")
 					.append(yesterdayDefeats).append(";")
 					.append(String.format("%.2f", calculateAvgPaint(weapon.getTurf(), getNumber(weapon.getWins()) + getNumber(weapon.getDefeats()))));
+		}
+
+		if (sendAllWeapons) {
+			StringBuilder weaponNameBuilder = new StringBuilder();
+			for (WeaponKit kit : WeaponKit.All) {
+				if (weaponNameBuilder.length() + kit.getName().length() + 1 >= 2000) {
+					discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), weaponNameBuilder.toString().trim());
+					weaponNameBuilder = new StringBuilder();
+				}
+
+				weaponNameBuilder.append(kit.getName()).append("\n");
+			}
+
+			if (weaponNameBuilder.length() > 0) {
+				discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), weaponNameBuilder.toString().trim());
+			}
 		}
 
 		return builder.toString();
