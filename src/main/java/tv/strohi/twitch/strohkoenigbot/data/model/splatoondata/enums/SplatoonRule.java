@@ -33,4 +33,30 @@ public enum SplatoonRule {
 
 		return mode;
 	}
+
+	public String getAsString() {
+		String name = "Splatfest Turf War";
+
+		switch (this) {
+			case TurfWar:
+				name = "Turf War";
+				break;
+			case SplatZones:
+				name = "Splat Zones";
+				break;
+			case Rainmaker:
+				name = "Rainmaker";
+				break;
+			case TowerControl:
+				name = "Tower Control";
+				break;
+			case ClamBlitz:
+				name = "Clam Blitz";
+				break;
+			default:
+				break;
+		}
+
+		return name;
+	}
 }

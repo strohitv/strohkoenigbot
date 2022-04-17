@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonGearType;
@@ -103,6 +104,13 @@ public class ResultsExporter {
 	@Autowired
 	public void setDiscordBot(DiscordBot discordBot) {
 		this.discordBot = discordBot;
+	}
+
+	private TwitchMessageSender twitchMessageSender;
+
+	@Autowired
+	public void setTwitchMessageSender(TwitchMessageSender twitchMessageSender) {
+		this.twitchMessageSender = twitchMessageSender;
 	}
 
 	private StagesExporter stagesExporter;
@@ -299,6 +307,18 @@ public class ResultsExporter {
 										match.getMode(),
 										match.getRule(),
 										match.getMatchResult()));
+
+						twitchMessageSender.send("strohkoenig",
+								String.format("Last match: %s (%s : %s %s) - own stats: %dp ink, %d kills, %d assists, %d specials, %d deaths",
+										match.getRule().getAsString(),
+										match.getOwnScore() != null ? String.format("%d", match.getOwnScore()) : String.format("%.1f%%", match.getOwnPercentage()),
+										match.getEnemyScore() != null ? String.format("%d", match.getEnemyScore()) : String.format("%.1f%%", match.getEnemyPercentage()),
+										match.getMatchResult() == SplatoonMatchResult.Win ? "win" : "defeat",
+										match.getTurfGain(),
+										match.getKills(),
+										match.getAssists(),
+										match.getSpecials(),
+										match.getDeaths()));
 
 						List<SplatoonAbilityMatch> abilitiesUsedInMatch = new ArrayList<>();
 
