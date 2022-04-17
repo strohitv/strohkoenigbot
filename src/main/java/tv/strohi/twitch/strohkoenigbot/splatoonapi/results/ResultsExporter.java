@@ -352,7 +352,8 @@ public class ResultsExporter {
 										"- Splats: **%d**\n" +
 										"- Assists: **%d**\n" +
 										"- Deaths: **%d**\n" +
-										"- Paint: + **%d** points\n",
+										"- Paint: + **%d** points\n\n" +
+										"---------------------------------",
 								match.getMode(),
 								match.getRule(),
 								match.getMatchResult(),
