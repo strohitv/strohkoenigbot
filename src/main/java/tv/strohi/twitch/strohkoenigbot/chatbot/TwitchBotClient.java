@@ -38,18 +38,21 @@ public class TwitchBotClient {
 	private static Instant lastClipCreatedTime = Instant.now();
 
 	private TwitchClient client;
-	private final ResultsExporter resultsExporter;
+	private static ResultsExporter resultsExporter;
 	private final List<IChatAction> botActions;
 	private final String channelName;
-	private AutoSoAction autoSoAction;
+	private final AutoSoAction autoSoAction;
 
 	private String accessToken;
 
-	public TwitchBotClient(ResultsExporter resultsExporter, List<IChatAction> botActions, String channelName, AutoSoAction autoSoAction) {
-		this.resultsExporter = resultsExporter;
+	public TwitchBotClient(List<IChatAction> botActions, String channelName, AutoSoAction autoSoAction) {
 		this.botActions = botActions;
 		this.channelName = channelName;
 		this.autoSoAction = autoSoAction;
+	}
+
+	public static void setResultsExporter(ResultsExporter resultsExporter) {
+		TwitchBotClient.resultsExporter = resultsExporter;
 	}
 
 	public TwitchClient getClient() {
@@ -87,13 +90,21 @@ public class TwitchBotClient {
 
 				goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
 					isStreamRunning = true;
-					resultsExporter.start();
+
+					if (resultsExporter != null) {
+						resultsExporter.start();
+					}
+
 					autoSoAction.startStream();
 				});
 
 				goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
 					isStreamRunning = false;
-					resultsExporter.stop();
+
+					if (resultsExporter != null) {
+						resultsExporter.stop();
+					}
+
 					autoSoAction.endStream();
 				});
 

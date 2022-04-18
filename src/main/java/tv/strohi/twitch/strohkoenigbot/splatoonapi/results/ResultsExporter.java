@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
@@ -37,6 +38,12 @@ public class ResultsExporter {
 
 	private boolean alreadyRunning = false;
 	private boolean isStreamRunning = false;
+
+	@Autowired
+	public ResultsExporter() {
+		TwitchBotClient.setResultsExporter(this);
+	}
+
 	private boolean isRankedRunning = false;
 
 	public void setRankedRunning(boolean rankedRunning) {
