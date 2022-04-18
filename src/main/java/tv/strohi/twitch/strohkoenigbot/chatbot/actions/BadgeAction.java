@@ -2,10 +2,7 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.*;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMatch;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonMatchRepository;
@@ -17,7 +14,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 @Component
-public class BadgeAction implements IChatAction {
+public class BadgeAction extends ChatAction {
 	private SplatoonWeaponRepository weaponRepository;
 
 	@Autowired
@@ -38,7 +35,7 @@ public class BadgeAction implements IChatAction {
 	}
 
 	@Override
-	public void run(ActionArgs args) {
+	public void execute(ActionArgs args) {
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
 		if (message == null) {
 			return;
