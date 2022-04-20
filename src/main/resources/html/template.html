@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="UTF-8">
-	<!--	<meta http-equiv="refresh" content="5">-->
+	<meta http-equiv="refresh" content="5">
 
 	<title>Splatoon 2 statistics</title>
 
@@ -32,7 +32,8 @@
 			background-color: rgba(0, 0, 0, 0);
 
 			position: absolute;
-			bottom: 0;
+			top: 2vw;
+			left: 2vw;
 
 			width: 98vw;
 		}
@@ -64,6 +65,10 @@
 			height: 5vw;
 		}
 
+		.vertical-space-mini {
+			height: 2vw;
+		}
+
 		.flex-column {
 			display: flex;
 			flex-direction: column;
@@ -86,7 +91,7 @@
 		}
 
 		.rounded-corners-bright {
-			background-color: #BBB;
+			background-color: rgba(187, 187, 187, 0.65);
 			border-radius: 8vw;
 			padding: 2vw;
 		}
@@ -148,7 +153,7 @@
 <body>
 <div class="rounded-corners-transparent fill">
 	<div class="flex-column">
-		<div class="vertical-space-big"></div>
+<!--		<div class="vertical-space-big"></div>-->
 
 		<!-- wins, defeats -->
 		<div class="flex-column">
@@ -163,8 +168,8 @@
 		<div class="vertical-space-big"></div>
 
 		<!-- weapon-->
-		<div class="flex-column">
-			<img class="image-max rounded-corners-bright" src="{main-weapon}" />
+		<div class="flex-column rounded-corners-bright">
+			<img class="image-max" src="{main-weapon}" />
 			<div class="vertical-space-small"></div>
 			<div class="flex-row">
 				<img class="image-medium rounded-corners-black" src="{sub-weapon}" />
@@ -191,10 +196,6 @@
 			<div>
 				<div class="flex-column">
 					<div class="flex-row rounded-corners-bright">
-						<img class="image-big" src="{head}" />
-
-						<div class="horizontal-space-small"></div>
-
 						<div class="flex-column">
 							<img class="image-medium black-circle" src="{head-main}" />
 
@@ -208,15 +209,15 @@
 								<img class="image-small black-circle {head-sub3-hidden}" src="{head-sub-3}" />
 							</div>
 						</div>
+
+						<div class="horizontal-space-small"></div>
+
+						<img class="image-big" src="{head}" />
 					</div>
 
 					<div class="vertical-space-small"></div>
 
 					<div class="flex-row rounded-corners-bright">
-						<img class="image-big" src="{clothing}" />
-
-						<div class="horizontal-space-small"></div>
-
 						<div class="flex-column">
 							<img class="image-medium black-circle" src="{clothing-main}" />
 
@@ -230,15 +231,15 @@
 								<img class="image-small black-circle {clothing-sub3-hidden}" src="{clothing-sub-3}" />
 							</div>
 						</div>
+
+						<div class="horizontal-space-small"></div>
+
+						<img class="image-big" src="{clothing}" />
 					</div>
 
 					<div class="vertical-space-small"></div>
 
 					<div class="flex-row rounded-corners-bright">
-						<img class="image-big" src="{shoes}" />
-
-						<div class="horizontal-space-small"></div>
-
 						<div class="flex-column">
 							<img class="image-medium black-circle" src="{shoes-main}" />
 
@@ -252,11 +253,16 @@
 								<img class="image-small black-circle {shoes-sub3-hidden}" src="{shoes-sub-3}" />
 							</div>
 						</div>
+
+						<div class="horizontal-space-small"></div>
+
+						<img class="image-big" src="{shoes}" />
 					</div>
 				</div>
 			</div>
 		</div>
 
+		<div class="vertical-space-mini"></div>
 		<div class="vertical-space-big {possible-power-change-hidden}"></div>
 
 		<!-- woomy dx powers -->
@@ -269,7 +275,7 @@
 			</p>
 		</div>
 
-		<div class="vertical-space-big"></div>
+<!--		<div class="vertical-space-big"></div>-->
 	</div>
 </div>
 </body>
