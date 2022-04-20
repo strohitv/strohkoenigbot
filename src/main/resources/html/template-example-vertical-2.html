@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="UTF-8">
-	<meta http-equiv="refresh" content="5">
+	<!--	<meta http-equiv="refresh" content="5">-->
 
 	<title>Splatoon 2 statistics</title>
 
@@ -54,7 +54,7 @@
 		}
 
 		.horizontal-space-medium {
-			width: 15vw;
+			width: 10vw;
 		}
 
 		.vertical-space-big {
@@ -91,7 +91,7 @@
 		}
 
 		.rounded-corners-bright {
-			background-color: rgba(187, 187, 187, 0.65);
+			background-color: rgba(255, 127, 35, 0.65);
 			border-radius: 8vw;
 			padding: 2vw;
 		}
@@ -136,11 +136,11 @@
 		}
 
 		.green {
-			color: #8f8;
+			color: rgb(255, 127, 35);
 		}
 
 		.red {
-			color: #f88;
+			color: rgb(46, 215, 153);
 		}
 
 		.hidden {
@@ -158,10 +158,10 @@
 		<!-- wins, defeats -->
 		<div class="flex-column">
 			<p class="green">
-				{wins} w
+				18 w
 			</p>
 			<p class="red">
-				{defeats} d
+				32 d
 			</p>
 		</div>
 
@@ -169,12 +169,12 @@
 
 		<!-- weapon-->
 		<div class="flex-column rounded-corners-bright">
-			<img class="image-max" src="{main-weapon}" />
+			<img class="image-max" src="https://app.splatoon2.nintendo.net/images/weapon/b07a826039bc01ed637c4820dfd2318810cecac7.png" />
 			<div class="vertical-space-small"></div>
 			<div class="flex-row">
-				<img class="image-medium rounded-corners-black" src="{sub-weapon}" />
+				<img class="image-medium rounded-corners-black" src="https://app.splatoon2.nintendo.net/images/sub/14b4d4ef62e915e87bd7caa8b99fb4e986caea26.png" />
 				<div class="horizontal-space-medium"></div>
-				<img class="image-medium rounded-corners-black" src="{special-weapon}" />
+				<img class="image-medium rounded-corners-black" src="https://app.splatoon2.nintendo.net/images/special/18990f646c551ee77c5b283ec814e371f692a553.png" />
 			</div>
 		</div>
 
@@ -183,10 +183,10 @@
 <!--		&lt;!&ndash; inked turf &ndash;&gt;-->
 <!--		<div class="flex-column">-->
 <!--			<p>-->
-<!--				{main-weapon-points}p-->
+<!--				40 193p-->
 <!--			</p>-->
 <!--			<p>-->
-<!--				(+ {main-weapon-points-gain})-->
+<!--				(+ 5 889)-->
 <!--			</p>-->
 <!--		</div>-->
 
@@ -197,81 +197,80 @@
 				<div class="flex-column">
 					<div class="flex-row rounded-corners-bright">
 						<div class="flex-column">
-							<img class="image-medium black-circle" src="{head-main}" />
+							<img class="image-medium black-circle" src="https://app.splatoon2.nintendo.net/images/skill/bdc5135874439cf3169d9a54b3f1fbdba3731b34.png" />
 
 							<div class="vertical-space-small"></div>
 
 							<div class="flex-column rounded-corners-border">
-								<img class="image-small black-circle" src="{head-sub-1}" />
-								<div class="vertical-space-small {head-sub2-hidden}"></div>
-								<img class="image-small black-circle {head-sub2-hidden}" src="{head-sub-2}" />
-								<div class="vertical-space-small {head-sub3-hidden}"></div>
-								<img class="image-small black-circle {head-sub3-hidden}" src="{head-sub-3}" />
+								<img class="image-small black-circle" src="https://app.splatoon2.nintendo.net/images/skill/84ab4ba1188849dff63a4314955a53ab103b47df.png" />
+								<div class="vertical-space-small "></div>
+								<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />
+								<div class="vertical-space-small "></div>
+								<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />
 							</div>
 						</div>
 
 						<div class="horizontal-space-small"></div>
 
-						<img class="image-big" src="{head}" />
+						<img class="image-big" src="https://app.splatoon2.nintendo.net/images/head/b67216e76d09ae4cc306ca3f5e761c78630c64fd.png" />
+					</div>
+
+					<div class="vertical-space-small"></div>
+
+					<div class="flex-row rounded-corners-bright"><div class="flex-column">
+							<img class="image-medium black-circle" src="https://app.splatoon2.nintendo.net/images/skill/d83b962b84fcea9d02c591c296234f5de77f9682.png" />
+
+							<div class="vertical-space-small"></div>
+
+							<div class="flex-column rounded-corners-border">
+								<img class="image-small black-circle" src="https://app.splatoon2.nintendo.net/images/skill/daf6883039afa62da91eb93eb2a40b673f10b715.png" />
+								<div class="vertical-space-small "></div>
+								<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/33087a476135074af856151a89a6fe4d1d3a996e.png" />
+								<div class="vertical-space-small "></div>
+								<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />
+							</div>
+						</div>
+
+						<div class="horizontal-space-small"></div>
+
+						<img class="image-big" src="https://app.splatoon2.nintendo.net/images/clothes/a7c210558872c5373e5d2a20fdc463d14d7f9d63.png" />
 					</div>
 
 					<div class="vertical-space-small"></div>
 
 					<div class="flex-row rounded-corners-bright">
 						<div class="flex-column">
-							<img class="image-medium black-circle" src="{clothing-main}" />
+							<img class="image-medium black-circle" src="https://app.splatoon2.nintendo.net/images/skill/8a3f06a972689b094f762626ff36b3db8ee545b5.png" />
 
 							<div class="vertical-space-small"></div>
 
 							<div class="flex-column rounded-corners-border">
-								<img class="image-small black-circle" src="{clothing-sub-1}" />
-								<div class="vertical-space-small {clothing-sub2-hidden}"></div>
-								<img class="image-small black-circle {clothing-sub2-hidden}" src="{clothing-sub-2}" />
-								<div class="vertical-space-small {clothing-sub3-hidden}"></div>
-								<img class="image-small black-circle {clothing-sub3-hidden}" src="{clothing-sub-3}" />
+								<img class="image-small black-circle" src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />
+								<div class="vertical-space-small "></div>
+								<img class="image-small black-circle " src="https://app.splatoon2.nintendo.net/images/skill/46f9b6fc3a2aafdc0c688dec8cadb54aa6f8ace6.png" />
+								<div class="vertical-space-small hidden"></div>
+								<img class="image-small black-circle hidden" src="" />
 							</div>
 						</div>
 
 						<div class="horizontal-space-small"></div>
 
-						<img class="image-big" src="{clothing}" />
-					</div>
-
-					<div class="vertical-space-small"></div>
-
-					<div class="flex-row rounded-corners-bright">
-						<div class="flex-column">
-							<img class="image-medium black-circle" src="{shoes-main}" />
-
-							<div class="vertical-space-small"></div>
-
-							<div class="flex-column rounded-corners-border">
-								<img class="image-small black-circle" src="{shoes-sub-1}" />
-								<div class="vertical-space-small {shoes-sub2-hidden}"></div>
-								<img class="image-small black-circle {shoes-sub2-hidden}" src="{shoes-sub-2}" />
-								<div class="vertical-space-small {shoes-sub3-hidden}"></div>
-								<img class="image-small black-circle {shoes-sub3-hidden}" src="{shoes-sub-3}" />
-							</div>
-						</div>
-
-						<div class="horizontal-space-small"></div>
-
-						<img class="image-big" src="{shoes}" />
+						<img class="image-big" src="https://app.splatoon2.nintendo.net/images/shoes/a690f23c43ebdd48d413ac4dd907b0bf6b83f408.png" />
 					</div>
 				</div>
 			</div>
 		</div>
 
 		<div class="vertical-space-mini"></div>
-		<div class="vertical-space-big {possible-power-change-hidden}"></div>
+		<div class="vertical-space-big hidden"></div>
 
 		<!-- woomy dx powers -->
-		<div class="flex-column {possible-power-change-hidden}">
+		<div class="flex-column hidden">
 			<p class="green">
-				{possible-x-power-gain}
+				
 			</p>
 			<p class="red">
-				{possible-x-power-loss}
+				
 			</p>
 		</div>
 
