@@ -7,8 +7,13 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
+import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 
-import java.io.*;
+import java.awt.*;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,6 +55,13 @@ public class Statistics {
 	@Autowired
 	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
 		this.configurationRepository = configurationRepository;
+	}
+
+	private SplatoonMatchColorComponent splatoonMatchColorComponent;
+
+	@Autowired
+	public void setSplatoonMatchColorComponent(SplatoonMatchColorComponent splatoonMatchColorComponent) {
+		this.splatoonMatchColorComponent = splatoonMatchColorComponent;
 	}
 
 	public void reset() {
@@ -158,6 +170,10 @@ public class Statistics {
 
 			InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/template.html");
 
+			Color bgColor = splatoonMatchColorComponent.getBackgroundColor();
+			Color greenColor = splatoonMatchColorComponent.getGreenColor();
+			Color redColor = splatoonMatchColorComponent.getRedColor();
+
 			try {
 				assert is != null;
 				currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
@@ -181,7 +197,16 @@ public class Statistics {
 						.replace("{shoes-sub-1}", shoesGearSub1)
 						.replace("{possible-power-change-hidden}", possiblePowerHidden)
 						.replace("{possible-x-power-gain}", possiblePowerGain)
-						.replace("{possible-x-power-loss}", possiblePowerLoss);
+						.replace("{possible-x-power-loss}", possiblePowerLoss)
+						.replace("bgRed", String.format("%d", bgColor.getRed()))
+						.replace("bgGreen", String.format("%d", bgColor.getGreen()))
+						.replace("bgBlue", String.format("%d", bgColor.getBlue()))
+						.replace("greenRed", String.format("%d", greenColor.getRed()))
+						.replace("greenGreen", String.format("%d", greenColor.getGreen()))
+						.replace("greenBlue", String.format("%d", greenColor.getBlue()))
+						.replace("redRed", String.format("%d", redColor.getRed()))
+						.replace("redGreen", String.format("%d", redColor.getGreen()))
+						.replace("redBlue", String.format("%d", redColor.getBlue()));
 
 				if (headGearSub2 != null) {
 					currentHtml = currentHtml.replace("{head-sub-2}", headGearSub2)

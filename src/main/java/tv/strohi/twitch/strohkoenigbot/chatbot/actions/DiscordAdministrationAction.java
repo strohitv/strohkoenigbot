@@ -15,6 +15,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
+import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -75,6 +76,13 @@ public class DiscordAdministrationAction extends ChatAction {
 		this.resultsExporter = resultsExporter;
 	}
 
+	private SplatoonMatchColorComponent splatoonMatchColorComponent;
+
+	@Autowired
+	public void setSplatoonMatchColorComponent(SplatoonMatchColorComponent splatoonMatchColorComponent) {
+		this.splatoonMatchColorComponent = splatoonMatchColorComponent;
+	}
+
 	@Override
 	protected void execute(ActionArgs args) {
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
@@ -121,21 +129,21 @@ public class DiscordAdministrationAction extends ChatAction {
 
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was stored into database.", config.getId()));
 		} else if (message.startsWith("!config get") && !message.toLowerCase().contains("pass")) {
-		String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config get".length()).trim();
+			String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config get".length()).trim();
 
-		Configuration config = null;
-		List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
-		if (configs.size() > 0) {
-			config = configs.get(0);
-		}
+			Configuration config = null;
+			List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
+			if (configs.size() > 0) {
+				config = configs.get(0);
+			}
 
-		if (config != null) {
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d: %s", config.getId(), config.getConfigValue()));
-		} else {
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Such a configuration does not exist.");
-		}
+			if (config != null) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d: %s", config.getId(), config.getConfigValue()));
+			} else {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Such a configuration does not exist.");
+			}
 
-	} else if (message.startsWith("!config remove")) {
+		} else if (message.startsWith("!config remove")) {
 			String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config remove".length()).trim();
 
 			List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
@@ -221,6 +229,9 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "This file does not exist.");
 			}
+		} else if (message.startsWith("!colors reset")) {
+			splatoonMatchColorComponent.reset();
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Color reset done.");
 		}
 	}
 }
