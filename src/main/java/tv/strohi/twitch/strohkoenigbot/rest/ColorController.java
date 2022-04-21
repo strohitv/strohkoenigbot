@@ -39,4 +39,9 @@ public class ColorController {
 		splatoonMatchColorComponent.setGreenColor(ownTeamColor);
 		splatoonMatchColorComponent.setRedColor(otherTeamColor);
 	}
+
+	@PostMapping("reset")
+	public void resetColors() {
+		splatoonMatchColorComponent.reset();
+	}
 }
