@@ -23,6 +23,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.*;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
+import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -162,6 +163,13 @@ public class ResultsExporter {
 		this.statistics = statistics;
 	}
 
+	private SplatoonMatchColorComponent splatoonMatchColorComponent;
+
+	@Autowired
+	public void setSplatoonMatchColorComponent(SplatoonMatchColorComponent splatoonMatchColorComponent) {
+		this.splatoonMatchColorComponent = splatoonMatchColorComponent;
+	}
+
 	private ExtendedStatisticsExporter extendedStatisticsExporter;
 
 	@Autowired
@@ -230,6 +238,10 @@ public class ResultsExporter {
 					results = results.stream()
 							.filter(r -> r.getBattleNumberAsInteger() > maxSavedBattleNumber) // matchRepository.findBySplatnetBattleNumber(r.getBattleNumberAsInteger()) == null)
 							.collect(Collectors.toList());
+
+					if (results.size() > 0) {
+						splatoonMatchColorComponent.reset();
+					}
 
 					for (SplatNetMatchResult singleResult : results) {
 						SplatNetMatchResult loadedMatch
