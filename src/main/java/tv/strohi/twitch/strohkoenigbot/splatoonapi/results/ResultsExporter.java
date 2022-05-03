@@ -432,7 +432,7 @@ public class ResultsExporter {
 				// TODO if != : switch to game scene
 				// TODO if == : switch to results overview scene
 				if (isStreamRunning && isRankedRunning) {
-					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "controlling obs!");
+//					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "controlling obs!");
 					controlOBS();
 				}
 			} catch (Exception ex) {
