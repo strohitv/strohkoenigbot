@@ -17,11 +17,7 @@ public class SplatoonLogin {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
-	private String nickname;
-
 	private String cookie;
 
 	private Instant expiresAt;
-
-	private String sessionToken;
 }

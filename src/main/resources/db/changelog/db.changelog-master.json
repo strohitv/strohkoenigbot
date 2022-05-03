@@ -1373,6 +1373,31 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "13",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "dropColumn": {
+              "tableName": "splatoon_login",
+              "columns": [
+                {
+                  "column": {
+                    "name": "nickname"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "session_token"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }

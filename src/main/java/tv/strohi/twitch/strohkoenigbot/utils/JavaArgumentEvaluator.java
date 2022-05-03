@@ -20,21 +20,16 @@ import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.SplatoonLoginRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.AuthLinkCreator;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.SplatoonCookieHandler;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URI;
 import java.util.*;
 
 @Component
 public class JavaArgumentEvaluator {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-
-	private boolean stop = false;
 
 	private List<String> arguments = new ArrayList<>();
 
@@ -64,13 +59,6 @@ public class JavaArgumentEvaluator {
 		this.configurationRepository = configurationRepository;
 	}
 
-	private SplatoonCookieHandler cookieHandler;
-
-	@Autowired
-	public void setCookieHandler(SplatoonCookieHandler cookieHandler) {
-		this.cookieHandler = cookieHandler;
-	}
-
 	private TwitchChatBot twitchChatBot;
 
 	@Autowired
@@ -89,8 +77,7 @@ public class JavaArgumentEvaluator {
 	public void evaluateArguments() {
 		arguments.forEach(logger::info);
 
-		stop = arguments.stream().anyMatch(a -> a.trim().toLowerCase().startsWith("stop"));
-		Map<String, String> extractedParams = new HashMap<>();
+		boolean stop = arguments.stream().anyMatch(a -> a.trim().toLowerCase().startsWith("stop"));
 
 		arguments.forEach(argument -> {
 			String arg = argument.trim().toLowerCase();
@@ -143,36 +130,8 @@ public class JavaArgumentEvaluator {
 				} catch (IOException e) {
 					logger.error(e);
 				}
-			} else if (arg.startsWith("show_splatoon_url")) {
-				// show splatoon 2 link
-				AuthLinkCreator creator = new AuthLinkCreator();
-				AuthLinkCreator.AuthParams params = creator.generateAuthenticationParams();
-				URI authUri = creator.buildAuthUrl(params);
-
-				logger.info("Auth url: \"{}\"", authUri.toString());
-				logger.info("Please use parameter \"splatoon_link=LINK_FROM_SELECT_ACCOUNT_BUTTON\" on restart");
-				logger.info("Verifier: \"{}\"", params.getCodeVerifier());
-				logger.info("Please use parameter \"splatoon_verifier=THIS_VERIFIER\" on restart");
-
-				extractedParams.put("stop", "true");
-			} else if (arg.startsWith("splatoon_link=")) {
-				// store splatoon link
-				extractedParams.put("splatoon_link", argument.trim().substring("splatoon_link=".length()));
-			} else if (arg.startsWith("splatoon_verifier=")) {
-				// store splatoon verifier
-				extractedParams.put("splatoon_verifier", argument.trim().substring("splatoon_verifier=".length()));
 			}
 		});
-
-		if (extractedParams.containsKey("splatoon_link") && extractedParams.containsKey("splatoon_verifier")) {
-			splatoonLoginRepository.deleteAll();
-			SplatoonLogin login = splatoonLoginRepository.save(new SplatoonLogin());
-			cookieHandler.generateAndStoreSessionToken(login,
-					new AuthLinkCreator.AuthParams("", extractedParams.get("splatoon_verifier"), ""),
-					extractedParams.get("splatoon_link"));
-		}
-
-		stop |= extractedParams.containsKey("stop");
 
 		if (app != null && stop) {
 			app.shutdown();
