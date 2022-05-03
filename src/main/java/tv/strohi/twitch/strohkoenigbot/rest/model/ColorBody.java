@@ -7,6 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @Getter
 @Setter
+@ToString
 public class ColorBody {
 	private int[] ownTeamColor;
 	private int[] otherTeamColor;

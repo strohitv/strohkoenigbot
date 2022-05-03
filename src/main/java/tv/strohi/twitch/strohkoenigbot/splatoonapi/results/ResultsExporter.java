@@ -189,6 +189,8 @@ public class ResultsExporter {
 	}
 
 	public void start() {
+		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "starting the stream!");
+
 		isStreamRunning = true;
 		statistics.reset();
 
@@ -207,6 +209,8 @@ public class ResultsExporter {
 	}
 
 	public void stop() {
+		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "stopping the stream!");
+
 		isStreamRunning = false;
 		isRankedRunning = false;
 		statistics.stop();
@@ -428,6 +432,7 @@ public class ResultsExporter {
 				// TODO if != : switch to game scene
 				// TODO if == : switch to results overview scene
 				if (isStreamRunning && isRankedRunning) {
+					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "controlling obs!");
 					controlOBS();
 				}
 			} catch (Exception ex) {
@@ -463,7 +468,7 @@ public class ResultsExporter {
 				logger.error(t);
 			}
 
-			logger.info("results refresh successful");
+//			logger.info("results refresh successful");
 			alreadyRunning = false;
 		}
 	}
