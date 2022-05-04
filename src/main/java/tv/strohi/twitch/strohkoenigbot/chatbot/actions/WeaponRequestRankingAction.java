@@ -29,7 +29,7 @@ public class WeaponRequestRankingAction implements IChatAction {
 		} else if (message.startsWith("!wr list")) {
 			args.getReplySender().send("Ranking hasn't started yet and is still todo, sorry...");
 		} else if (message.startsWith("!wr rules")) {
-			args.getReplySender().send("1. No requests while I'm playing with my Comp team. 2. No requests while I'm doing placements. 3. I'll play your weapon until I lose with it. 4. Banned weapons: Neo Sploosh & Custom Eliter 4k Scope.");
+			args.getReplySender().send("1. No requests while I'm playing with my Comp team. 2. No requests while I'm doing placements. 3. I'll play your weapon until I lose with it. 4. Banned weapons: Neo Sploosh & Custom Eliter 4k Scope. 5. One request per hour, one user can only do one request per stream.");
 		}
 	}
 }
