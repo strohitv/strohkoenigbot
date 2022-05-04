@@ -31,6 +31,9 @@ public class TwitchDiscordMessageSender {
 						(String) args.getArguments().get(ArgumentKey.ReplyMessageId)
 				);
 				break;
+			case ChannelPointReward:
+				messageSender.send((String) args.getArguments().get(ArgumentKey.ChannelName), message);
+				break;
 			case PrivateMessage:
 				messageSender.replyPrivate((String) args.getArguments().get(ArgumentKey.ChannelName), message);
 				break;

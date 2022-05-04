@@ -9,6 +9,7 @@ import com.github.twitch4j.chat.events.channel.RaidEvent;
 import com.github.twitch4j.common.events.user.PrivateMessageEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.github.twitch4j.events.ChannelGoOfflineEvent;
+import com.github.twitch4j.eventsub.events.ChannelPointsCustomRewardRedemptionEvent;
 import com.github.twitch4j.helix.domain.Clip;
 import com.github.twitch4j.helix.domain.ClipList;
 import com.github.twitch4j.helix.domain.CreateClipList;
@@ -119,6 +120,27 @@ public class TwitchBotClient {
 
 					args.getArguments().put(ArgumentKey.ChannelId, raidEvent.getChannel().getId());
 					args.getArguments().put(ArgumentKey.ChannelName, raidEvent.getChannel().getName());
+
+					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.Raid)).forEach(action -> action.run(args));
+				});
+
+				client.getEventManager().onEvent(ChannelPointsCustomRewardRedemptionEvent.class, pointEvent -> {
+					ActionArgs args = new ActionArgs();
+
+					args.setReason(TriggerReason.ChannelPointReward);
+					args.setUser(pointEvent.getUserName());
+					args.setUserId(pointEvent.getUserId());
+
+					args.getArguments().put(ArgumentKey.Event, pointEvent);
+					args.getArguments().put(ArgumentKey.RewardName, pointEvent.getReward().getTitle());
+					args.getArguments().put(ArgumentKey.Message, pointEvent.getUserInput());
+
+					args.getArguments().put(ArgumentKey.ChannelId, pointEvent.getBroadcasterUserId());
+					args.getArguments().put(ArgumentKey.ChannelName, pointEvent.getBroadcasterUserName());
+
+					args.setReplySender(
+							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
+					);
 
 					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.Raid)).forEach(action -> action.run(args));
 				});

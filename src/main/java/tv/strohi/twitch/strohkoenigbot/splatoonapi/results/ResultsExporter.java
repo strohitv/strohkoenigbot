@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.WeaponRequestRankingAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
@@ -184,6 +185,13 @@ public class ResultsExporter {
 		this.obsSceneSwitcher = obsSceneSwitcher;
 	}
 
+	private WeaponRequestRankingAction weaponRequestRankingAction;
+
+	@Autowired
+	public void setWeaponRequestRankingAction(WeaponRequestRankingAction weaponRequestRankingAction) {
+		this.weaponRequestRankingAction = weaponRequestRankingAction;
+	}
+
 	public String getHtml() {
 		return statistics.getCurrentHtml();
 	}
@@ -314,6 +322,8 @@ public class ResultsExporter {
 						match.setMatchResultDetails(loadedMatch);
 
 						matchRepository.save(match);
+
+						weaponRequestRankingAction.addMatch(match);
 
 						weapon.setTurf(loadedMatch.getWeapon_paint_point());
 						if (match.getMatchResult() == SplatoonMatchResult.Win) {
