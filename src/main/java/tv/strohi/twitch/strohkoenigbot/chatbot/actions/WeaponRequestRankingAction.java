@@ -79,13 +79,13 @@ public class WeaponRequestRankingAction implements IChatAction {
 				args.getReplySender().send("1. No requests while I'm playing with my Comp team. 2. No requests while I'm doing placements. 3. I'll play your weapon until I lose with it. 4. Banned weapons: Neo Sploosh & Custom Eliter 4k Scope. 5. One request per hour, one user can only do one request per stream.");
 			} else if (message.startsWith("!wr")) {
 				TwitchAuth mainAccount = twitchAuthRepository.findByIsMain(true).stream().findFirst().orElse(null);
-				if (mainAccount != null && args.getUser().equalsIgnoreCase(mainAccount.getChannelId())) {
+				if (mainAccount != null && args.getUserId().equalsIgnoreCase(mainAccount.getChannelId())) {
 					// Admin actions
 					if (message.contains("start")) {
-						twitchMessageSender.send(mainAccount.getUsername(), String.format("The weapon request for %s now active. Let's see how far we can go! :0", args.getUser()));
+						twitchMessageSender.send(mainAccount.getUsername(), String.format("The weapon request for %s is now active. Let's see how far we can go! :0", configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse("Unknown User")));
 						start();
 					} else if (message.contains("stop")) {
-						twitchMessageSender.send(mainAccount.getUsername(), String.format("The weapon request for %s was stopped.", args.getUser()));
+						twitchMessageSender.send(mainAccount.getUsername(), String.format("The weapon request for %s was stopped.", configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().findFirst().map(Configuration::getConfigValue).orElse("Unknown User")));
 						stop();
 					}
 				}
@@ -134,7 +134,7 @@ public class WeaponRequestRankingAction implements IChatAction {
 		}
 	}
 
-	private void stop() {
+	public void stop() {
 		// TODO persistence of the rank list
 
 		userId = null;

@@ -223,6 +223,8 @@ public class ResultsExporter {
 		isRankedRunning = false;
 		statistics.stop();
 		extendedStatisticsExporter.end();
+
+		weaponRequestRankingAction.stop();
 	}
 
 	public boolean isStreamRunning() {
