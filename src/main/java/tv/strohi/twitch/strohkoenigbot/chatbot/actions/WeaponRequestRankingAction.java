@@ -10,12 +10,17 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMatch;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeaponRequestRanking;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMatchResult;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRequestRankingRepository;
 
+import java.time.Instant;
 import java.util.EnumSet;
+import java.util.List;
 
 @Component
 public class WeaponRequestRankingAction implements IChatAction {
@@ -24,6 +29,7 @@ public class WeaponRequestRankingAction implements IChatAction {
 
 	private String userId = null;
 	private String userName = null;
+	private Instant challengedAt = null;
 	private boolean isStarted = false;
 	private int winStreak = 0;
 	private SplatoonMatch lastMatch = null;
@@ -38,6 +44,13 @@ public class WeaponRequestRankingAction implements IChatAction {
 	@Autowired
 	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
 		this.configurationRepository = configurationRepository;
+	}
+
+	private SplatoonWeaponRequestRankingRepository splatoonWeaponRequestRankingRepository;
+
+	@Autowired
+	public void setSplatoonWeaponRequestRankingRepository(SplatoonWeaponRequestRankingRepository splatoonWeaponRequestRankingRepository) {
+		this.splatoonWeaponRequestRankingRepository = splatoonWeaponRequestRankingRepository;
 	}
 
 	private TwitchAuthRepository twitchAuthRepository;
@@ -72,9 +85,11 @@ public class WeaponRequestRankingAction implements IChatAction {
 
 		if (args.getReason() == TriggerReason.ChatMessage) {
 			if (message.startsWith("!wr info")) {
-				args.getReplySender().send("To make weapon requests more interesting, there's a ranking of which request made me get the biggest win streak! Try giving me a weapon which makes me win many games to reach first place! Type \"!wr list\" in chat to see the ranking.");
+				args.getReplySender().send("To make weapon requests more interesting, there's a ranking of which request made me get the biggest win streak! Try giving me a weapon which makes me win many games to reach first place! Type \"!wr list\" in chat to see the global ranking, type \"!wr me\" in chat to see your own ranking.");
 			} else if (message.startsWith("!wr list")) {
-				args.getReplySender().send("Ranking hasn't started yet and is still todo, sorry...");
+				sendLeaderBoardToTwitch(args);
+			} else if (message.startsWith("!wr me")) {
+				sendAccountPlacementsToTwitch(args);
 			} else if (message.startsWith("!wr rules")) {
 				args.getReplySender().send("1. No requests while I'm playing with my Comp team. 2. No requests while I'm doing placements. 3. I'll play your weapon until I lose with it. 4. Banned weapons: Neo Sploosh & Custom Eliter 4k Scope. 5. One request per hour, one user can only do one request per stream.");
 			} else if (message.startsWith("!wr")) {
@@ -98,6 +113,8 @@ public class WeaponRequestRankingAction implements IChatAction {
 						|| configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().findFirst().orElse(null) == null) {
 					configurationRepository.save(new Configuration(0, LAST_REQUESTER_ID, args.getUserId()));
 					configurationRepository.save(new Configuration(0, LAST_REQUESTER_NAME, args.getUser()));
+
+					challengedAt = Instant.now();
 					args.getReplySender().send(String.format("%s has redeemed a weapon request! It'll start soon as long as it doesn't break the rules.", args.getUser()));
 				} else {
 					args.getReplySender().send(String.format("Weapon request for %s cannot be redeemed - there's another request pending... You will get your points back soon.", args.getUser()));
@@ -124,28 +141,113 @@ public class WeaponRequestRankingAction implements IChatAction {
 
 			twitchMessageSender.send("strohkoenig", String.format("Current win streak for the %s %s requested: %d matches", weaponName, userName, winStreak));
 		} else {
-			if (winStreak == 0) {
-				twitchMessageSender.send("strohkoenig", String.format("Oh no! I couldn't win a single game with the %s %s requested! strohk2HuhFree", weaponName, userName));
-			} else {
-				twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d games with the %s %s requested!", winStreak, weaponName, userName));
-			}
-
 			stop();
 		}
 	}
 
 	public void stop() {
-		// TODO persistence of the rank list
+		SplatoonWeaponRequestRanking ranking = new SplatoonWeaponRequestRanking();
+		ranking.setChallengedAt(challengedAt);
+		ranking.setTwitchId(userId);
+		ranking.setTwitchName(userName);
+		ranking.setWeaponId(lastMatch.getWeaponId());
+		ranking.setWinStreak(winStreak);
+
+		ranking = splatoonWeaponRequestRankingRepository.save(ranking);
+		final long rankingId = ranking.getId();
+
+		List<SplatoonWeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+		int position = allRankings.indexOf(allRankings.stream().filter(r -> r.getId() == rankingId).findFirst().orElse(null));
+
+		String weaponName = splatoonWeaponRepository.getById(lastMatch.getWeaponId()).getName();
+
+		if (winStreak == 0) {
+			twitchMessageSender.send("strohkoenig", String.format("Oh no! I couldn't win a single game with the %s %s requested! strohk2HuhFree Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", weaponName, userName, position, allRankings.size()));
+		} else if (winStreak == 1) {
+			twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d game with the %s %s requested! Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", winStreak, weaponName, userName, position, allRankings.size()));
+		} else {
+			twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d games with the %s %s requested! Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", winStreak, weaponName, userName, position, allRankings.size()));
+		}
 
 		userId = null;
 		userName = null;
 
 		winStreak = 0;
 		isStarted = false;
+		challengedAt = null;
 
 		lastMatch = null;
 
 		configurationRepository.findByConfigName(LAST_REQUESTER_ID).forEach(configurationRepository::delete);
 		configurationRepository.findByConfigName(LAST_REQUESTER_NAME).forEach(configurationRepository::delete);
+	}
+
+	private void sendLeaderBoardToTwitch(ActionArgs args) {
+		List<SplatoonWeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+		List<SplatoonWeapon> allWeapons = splatoonWeaponRepository.findAll();
+
+		if (allRankings.size() > 0) {
+			StringBuilder firstFewPlaces = new StringBuilder();
+			int current = 1;
+
+			for (SplatoonWeaponRequestRanking ranking : allRankings) {
+			    String message = String.format("%d: %s from %s (%d wins)",
+						current,
+						allWeapons.stream().filter(w -> w.getId() == ranking.getWeaponId()).map(SplatoonWeapon::getName).findFirst().orElse("Unknown Weapon"),
+						ranking.getTwitchName(),
+						ranking.getWinStreak());
+
+			    current++;
+
+			    if (firstFewPlaces.length() + 3 + message.length() > 500) {
+			    	break;
+				}
+
+			    if (firstFewPlaces.length() > 0) {
+			    	firstFewPlaces.append(" - ");
+				} else {
+					firstFewPlaces.append("Top positions on the leaderboard: ");
+				}
+
+			    firstFewPlaces.append(message);
+			}
+
+			args.getReplySender().send(firstFewPlaces.toString());
+		} else {
+			args.getReplySender().send("There's no one on the leaderboard yet. Be the first to request a weapon!");
+		}
+	}
+
+	private void sendAccountPlacementsToTwitch(ActionArgs args) {
+		List<SplatoonWeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+		List<SplatoonWeaponRequestRanking> accountRankings = splatoonWeaponRequestRankingRepository.findAllByTwitchIdOrderByWinStreakDescChallengedAtAsc(args.getUserId());
+		List<SplatoonWeapon> allWeapons = splatoonWeaponRepository.findAll();
+
+		if (accountRankings.size() > 0) {
+			StringBuilder accountPlacements = new StringBuilder();
+
+			for (SplatoonWeaponRequestRanking ranking : accountRankings) {
+				String message = String.format("%d: %s (%d wins)",
+						allRankings.indexOf(allRankings.stream().filter(ar -> ar.getId() == ranking.getId()).findFirst().orElse(null)) + 1,
+						allWeapons.stream().filter(w -> w.getId() == ranking.getWeaponId()).map(SplatoonWeapon::getName).findFirst().orElse("Unknown Weapon"),
+						ranking.getWinStreak());
+
+				if (accountPlacements.length() + 3 + message.length() > 500) {
+					break;
+				}
+
+				if (accountPlacements.length() > 0) {
+					accountPlacements.append(" - ");
+				} else {
+					accountPlacements.append("Your positions on the leaderboard: ");
+				}
+
+				accountPlacements.append(message);
+			}
+
+			args.getReplySender().send(accountPlacements.toString());
+		} else {
+			args.getReplySender().send("You're not on the leaderboard yet. Try requesting a weapon first by using your channel points!");
+		}
 	}
 }

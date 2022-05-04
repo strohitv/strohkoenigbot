@@ -1398,6 +1398,62 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "14",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_weapon_request_ranking",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "twitch_id",
+                    "type": "varchar(150)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "twitch_name",
+                    "type": "varchar(150)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "win_streak",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "challenged_at",
+                    "type": "timestamp"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }
