@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
+import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
@@ -121,10 +122,11 @@ public class WeaponRequestRankingAction implements IChatAction {
 					configurationRepository.save(new Configuration(0, LAST_REQUESTER_ID, args.getUserId()));
 					configurationRepository.save(new Configuration(0, LAST_REQUESTER_NAME, args.getUser()));
 
-					challengedAt = Instant.now();
-					args.getReplySender().send(String.format("%s has redeemed a weapon request! It'll start soon as long as it doesn't break the rules.", args.getUser()));
+					RewardRedeemedEvent event = (RewardRedeemedEvent)args.getArguments().getOrDefault(ArgumentKey.Event, null);
+					challengedAt = event != null ? event.getFiredAtInstant() : Instant.now();
+					args.getReplySender().send(String.format("%s has redeemed a weapon request! Stroh will start soon if it doesn't break the rules.", args.getUser()));
 				} else {
-					args.getReplySender().send(String.format("Weapon request for %s cannot be redeemed - there's another request pending... You will get your points back soon.", args.getUser()));
+					args.getReplySender().send(String.format("Weapon request for %s can not be redeemed - there is another request pending... You will get your points back soon.", args.getUser()));
 				}
 			}
 		}

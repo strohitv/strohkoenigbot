@@ -9,10 +9,10 @@ import com.github.twitch4j.chat.events.channel.RaidEvent;
 import com.github.twitch4j.common.events.user.PrivateMessageEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.github.twitch4j.events.ChannelGoOfflineEvent;
-import com.github.twitch4j.eventsub.events.ChannelPointsCustomRewardRedemptionEvent;
 import com.github.twitch4j.helix.domain.Clip;
 import com.github.twitch4j.helix.domain.ClipList;
 import com.github.twitch4j.helix.domain.CreateClipList;
+import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.AutoSoAction;
@@ -88,6 +88,7 @@ public class TwitchBotClient {
 			if (!auth.getIsMain()) {
 				client.getClientHelper().enableStreamEventListener(channelName);
 				client.getClientHelper().enableFollowEventListener(channelName);
+				client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, "38502044");
 
 				goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
 					isStreamRunning = true;
@@ -124,25 +125,24 @@ public class TwitchBotClient {
 					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.Raid)).forEach(action -> action.run(args));
 				});
 
-				client.getEventManager().onEvent(ChannelPointsCustomRewardRedemptionEvent.class, pointEvent -> {
+				client.getEventManager().onEvent(RewardRedeemedEvent.class, pointEvent -> {
 					ActionArgs args = new ActionArgs();
 
 					args.setReason(TriggerReason.ChannelPointReward);
-					args.setUser(pointEvent.getUserName());
-					args.setUserId(pointEvent.getUserId());
+					args.setUser(pointEvent.getRedemption().getUser().getDisplayName());
+					args.setUserId(pointEvent.getRedemption().getUser().getId());
 
 					args.getArguments().put(ArgumentKey.Event, pointEvent);
-					args.getArguments().put(ArgumentKey.RewardName, pointEvent.getReward().getTitle());
-					args.getArguments().put(ArgumentKey.Message, pointEvent.getUserInput());
+					args.getArguments().put(ArgumentKey.RewardName, pointEvent.getRedemption().getReward().getTitle());
+					args.getArguments().put(ArgumentKey.Message, pointEvent.getRedemption().getUserInput());
 
-					args.getArguments().put(ArgumentKey.ChannelId, pointEvent.getBroadcasterUserId());
-					args.getArguments().put(ArgumentKey.ChannelName, pointEvent.getBroadcasterUserName());
+					args.getArguments().put(ArgumentKey.ChannelId, pointEvent.getRedemption().getChannelId());
 
 					args.setReplySender(
 							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
 					);
 
-					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.Raid)).forEach(action -> action.run(args));
+					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChannelPointReward)).forEach(action -> action.run(args));
 				});
 
 				client.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
