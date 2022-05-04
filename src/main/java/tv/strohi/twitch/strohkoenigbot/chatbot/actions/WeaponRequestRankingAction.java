@@ -26,6 +26,8 @@ public class WeaponRequestRankingAction implements IChatAction {
 
 		if (message.startsWith("!wr intro")) {
 			args.getReplySender().send("To make weapon requests more interesting, there's a ranking of which request made me get the biggest win streak! Try giving me a weapon which makes me win many games to reach first place! Type \"!wr list\" in chat to see the ranking.");
+		} else if (message.startsWith("!wr list")) {
+			args.getReplySender().send("Ranking hasn't started yet and is still todo, sorry...");
 		} else if (message.startsWith("!wr rules")) {
 			args.getReplySender().send("1. No requests while I'm playing with my Comp team. 2. No requests while I'm doing placements. 3. I'll play your weapon until I lose with it. 4. Banned weapons: Neo Sploosh & Custom Eliter 4k Scope.");
 		}
