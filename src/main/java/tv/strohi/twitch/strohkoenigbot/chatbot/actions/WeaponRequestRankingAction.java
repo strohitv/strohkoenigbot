@@ -91,17 +91,24 @@ public class WeaponRequestRankingAction implements IChatAction {
 			} else if (message.startsWith("!wr me")) {
 				sendAccountPlacementsToTwitch(args);
 			} else if (message.startsWith("!wr rules")) {
-				args.getReplySender().send("1. No requests while I'm playing with my Comp team. 2. No requests while I'm doing placements. 3. I'll play your weapon until I lose with it. 4. Banned weapons: Neo Sploosh & Custom Eliter 4k Scope. 5. One request per hour, one user can only do one request per stream.");
+				args.getReplySender().send("1. No requests while I'm playing with my Comp team. 2. No requests while I'm doing placements. 3. I'll play your weapon until I lose with it. 4. Banned weapons: Neo Sploosh & Custom Eliter 4k Scope. 5. One request per hour, one user can only do one request per stream. 6. You can request the same weapon as often as you want to.");
 			} else if (message.startsWith("!wr")) {
 				TwitchAuth mainAccount = twitchAuthRepository.findByIsMain(true).stream().findFirst().orElse(null);
+
 				if (mainAccount != null && args.getUserId().equalsIgnoreCase(mainAccount.getChannelId())) {
 					// Admin actions
-					if (message.contains("start")) {
+					if (message.contains("start")
+							&& !isStarted
+							&& configurationRepository.findByConfigName(LAST_REQUESTER_ID).stream().map(Configuration::getConfigValue).findFirst().orElse(null) != null
+							&& configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse(null) != null) {
 						twitchMessageSender.send(mainAccount.getUsername(), String.format("The weapon request for %s is now active. Let's see how far we can go! :0", configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse("Unknown User")));
 						start();
 					} else if (message.contains("stop")) {
-						twitchMessageSender.send(mainAccount.getUsername(), String.format("The weapon request for %s was stopped.", configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().findFirst().map(Configuration::getConfigValue).orElse("Unknown User")));
+						twitchMessageSender.send(mainAccount.getUsername(), "A possibly running weapon request has been stopped.");
 						stop();
+					} else if (message.contains("reset force")) {
+						reset();
+						twitchMessageSender.send(mainAccount.getUsername(), "Leaderboard got reset.");
 					}
 				}
 			}
@@ -146,27 +153,29 @@ public class WeaponRequestRankingAction implements IChatAction {
 	}
 
 	public void stop() {
-		SplatoonWeaponRequestRanking ranking = new SplatoonWeaponRequestRanking();
-		ranking.setChallengedAt(challengedAt);
-		ranking.setTwitchId(userId);
-		ranking.setTwitchName(userName);
-		ranking.setWeaponId(lastMatch.getWeaponId());
-		ranking.setWinStreak(winStreak);
+		if (isStarted) {
+			SplatoonWeaponRequestRanking ranking = new SplatoonWeaponRequestRanking();
+			ranking.setChallengedAt(challengedAt);
+			ranking.setTwitchId(userId);
+			ranking.setTwitchName(userName);
+			ranking.setWeaponId(lastMatch.getWeaponId());
+			ranking.setWinStreak(winStreak);
 
-		ranking = splatoonWeaponRequestRankingRepository.save(ranking);
-		final long rankingId = ranking.getId();
+			ranking = splatoonWeaponRequestRankingRepository.save(ranking);
+			final long rankingId = ranking.getId();
 
-		List<SplatoonWeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
-		int position = allRankings.indexOf(allRankings.stream().filter(r -> r.getId() == rankingId).findFirst().orElse(null));
+			List<SplatoonWeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+			int position = allRankings.indexOf(allRankings.stream().filter(r -> r.getId() == rankingId).findFirst().orElse(null));
 
-		String weaponName = splatoonWeaponRepository.getById(lastMatch.getWeaponId()).getName();
+			String weaponName = splatoonWeaponRepository.getById(lastMatch.getWeaponId()).getName();
 
-		if (winStreak == 0) {
-			twitchMessageSender.send("strohkoenig", String.format("Oh no! I couldn't win a single game with the %s %s requested! strohk2HuhFree Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", weaponName, userName, position, allRankings.size()));
-		} else if (winStreak == 1) {
-			twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d game with the %s %s requested! Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", winStreak, weaponName, userName, position, allRankings.size()));
-		} else {
-			twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d games with the %s %s requested! Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", winStreak, weaponName, userName, position, allRankings.size()));
+			if (winStreak == 0) {
+				twitchMessageSender.send("strohkoenig", String.format("Oh no! I couldn't win a single game with the %s %s requested! strohk2HuhFree Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", weaponName, userName, position, allRankings.size()));
+			} else if (winStreak == 1) {
+				twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d game with the %s %s requested! Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", winStreak, weaponName, userName, position, allRankings.size()));
+			} else {
+				twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d games with the %s %s requested! Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", winStreak, weaponName, userName, position, allRankings.size()));
+			}
 		}
 
 		userId = null;
@@ -180,6 +189,10 @@ public class WeaponRequestRankingAction implements IChatAction {
 
 		configurationRepository.findByConfigName(LAST_REQUESTER_ID).forEach(configurationRepository::delete);
 		configurationRepository.findByConfigName(LAST_REQUESTER_NAME).forEach(configurationRepository::delete);
+	}
+
+	private void reset() {
+		splatoonWeaponRequestRankingRepository.deleteAll();
 	}
 
 	private void sendLeaderBoardToTwitch(ActionArgs args) {
