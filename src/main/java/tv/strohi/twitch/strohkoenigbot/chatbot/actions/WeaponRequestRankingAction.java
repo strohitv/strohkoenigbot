@@ -108,6 +108,7 @@ public class WeaponRequestRankingAction implements IChatAction {
 						twitchMessageSender.send(mainAccount.getUsername(), "A possibly running weapon request has been stopped.");
 						stop();
 					} else if (message.contains("reset force")) {
+						stop();
 						reset();
 						twitchMessageSender.send(mainAccount.getUsername(), "Leaderboard got reset.");
 					}
