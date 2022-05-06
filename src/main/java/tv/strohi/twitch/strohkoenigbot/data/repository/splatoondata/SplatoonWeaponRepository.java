@@ -9,8 +9,6 @@ import java.util.List;
 
 @Repository
 public interface SplatoonWeaponRepository extends CrudRepository<SplatoonWeapon, Long> {
-	SplatoonWeapon getById(Long id);
-
 	SplatoonWeapon findBySplatoonApiId(String splatoonApiId);
 
 	SplatoonWeapon findByName(String name);

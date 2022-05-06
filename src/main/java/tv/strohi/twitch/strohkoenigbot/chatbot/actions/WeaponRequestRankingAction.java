@@ -145,13 +145,18 @@ public class WeaponRequestRankingAction implements IChatAction {
 		if (!isStarted) return;
 
 		lastMatch = match;
-		String weaponName = splatoonWeaponRepository.getById(lastMatch.getWeaponId()).getName();
-		if (match.getMatchResult() == SplatoonMatchResult.Win) {
-			winStreak += 1;
+		SplatoonWeapon weapon = splatoonWeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
+		if (weapon != null) {
+			String weaponName = weapon.getName();
+			if (match.getMatchResult() == SplatoonMatchResult.Win) {
+				winStreak += 1;
 
-			twitchMessageSender.send("strohkoenig", String.format("Current win streak for the %s %s requested: %d matches", weaponName, userName, winStreak));
+				twitchMessageSender.send("strohkoenig", String.format("Current win streak for the %s %s requested: %d matches", weaponName, userName, winStreak));
+			} else {
+				stop();
+			}
 		} else {
-			stop();
+			twitchMessageSender.send("strohkoenig", "wtf didn't find weapon HUH??? This makes no sense wtf?");
 		}
 	}
 
@@ -170,14 +175,18 @@ public class WeaponRequestRankingAction implements IChatAction {
 			List<SplatoonWeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
 			int position = allRankings.indexOf(allRankings.stream().filter(r -> r.getId() == rankingId).findFirst().orElse(null));
 
-			String weaponName = splatoonWeaponRepository.getById(lastMatch.getWeaponId()).getName();
-
-			if (winStreak == 0) {
-				twitchMessageSender.send("strohkoenig", String.format("Oh no! I couldn't win a single game with the %s %s requested! strohk2HuhFree Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", weaponName, userName, position, allRankings.size()));
-			} else if (winStreak == 1) {
-				twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d game with the %s %s requested! Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", winStreak, weaponName, userName, position, allRankings.size()));
+			SplatoonWeapon weapon = splatoonWeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
+			if (weapon != null) {
+				String weaponName = weapon.getName();
+				if (winStreak == 0) {
+					twitchMessageSender.send("strohkoenig", String.format("Oh no! I couldn't win a single game with the %s %s requested! strohk2HuhFree Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", weaponName, userName, position, allRankings.size()));
+				} else if (winStreak == 1) {
+					twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d game with the %s %s requested! Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", winStreak, weaponName, userName, position, allRankings.size()));
+				} else {
+					twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d games with the %s %s requested! Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", winStreak, weaponName, userName, position, allRankings.size()));
+				}
 			} else {
-				twitchMessageSender.send("strohkoenig", String.format("I reached a win streak of %d games with the %s %s requested! Your request reached position %d out of %d registered attempts. Use \"!wr me\" to see your positions so far.", winStreak, weaponName, userName, position, allRankings.size()));
+				twitchMessageSender.send("strohkoenig", "wtf didn't find weapon HUH???");
 			}
 		}
 
