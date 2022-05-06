@@ -15,6 +15,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 
 import java.io.FileInputStream;
@@ -74,6 +75,13 @@ public class DiscordAdministrationAction extends ChatAction {
 	@Autowired
 	public void setResultsExporter(ResultsExporter resultsExporter) {
 		this.resultsExporter = resultsExporter;
+	}
+
+	private StatsExporter statsExporter;
+
+	@Autowired
+	public void setStatsExporter(StatsExporter statsExporter) {
+		this.statsExporter = statsExporter;
 	}
 
 	private SplatoonMatchColorComponent splatoonMatchColorComponent;
@@ -232,6 +240,12 @@ public class DiscordAdministrationAction extends ChatAction {
 		} else if (message.startsWith("!colors reset")) {
 			splatoonMatchColorComponent.reset();
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Color reset done.");
+		} else if (message.startsWith("!reload matches")) {
+			resultsExporter.forceReload();
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Alright, I will force reload the last 50 matches soon.");
+		} else if (message.startsWith("!reload stats")) {
+			statsExporter.refreshStageAndWeaponStats();
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reloading weapon and stage stats successfully.");
 		}
 	}
 }

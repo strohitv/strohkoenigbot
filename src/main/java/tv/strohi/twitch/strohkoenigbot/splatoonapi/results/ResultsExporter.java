@@ -192,6 +192,20 @@ public class ResultsExporter {
 		this.weaponRequestRankingAction = weaponRequestRankingAction;
 	}
 
+	private StatsExporter statsExporter;
+
+	@Autowired
+	public void setStatsExporter(StatsExporter statsExporter) {
+		this.statsExporter = statsExporter;
+	}
+
+	private boolean forceReload = false;
+	private boolean loadSilently = false;
+
+	public void forceReload() {
+		forceReload = true;
+	}
+
 	public String getHtml() {
 		return statistics.getCurrentHtml();
 	}
@@ -246,6 +260,39 @@ public class ResultsExporter {
 					List<SplatNetMatchResult> results = new ArrayList<>();
 					for (int i = collection.getResults().length - 1; i >= 0; i--) {
 						results.add(collection.getResults()[i]);
+					}
+
+					if (forceReload) {
+						for (SplatNetMatchResult singleResult : results) {
+							SplatoonMatch match = matchRepository.findByBattleNumber(singleResult.getBattle_number());
+
+							if (match != null) {
+								long id = match.getId();
+
+								clipRepository.getAllByMatchId(id).forEach(clip -> {
+									clip.setMatchId(null);
+									clipRepository.save(clip);
+								});
+
+								SplatoonWeapon weapon = weaponRepository.findById(match.getWeaponId()).orElse(null);
+								if (weapon != null) {
+									if (match.getMatchResult() == SplatoonMatchResult.Win) {
+										weapon.setWins(weapon.getWins() - 1);
+									} else {
+										weapon.setDefeats(weapon.getDefeats() - 1);
+									}
+
+									weaponRepository.save(weapon);
+								}
+
+								abilityMatchRepository.findAllByMatchId(id).forEach(abilityMatchRepository::delete);
+								matchRepository.delete(match);
+							}
+						}
+
+						forceReload = false;
+						loadSilently = true;
+						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), "removed last 50 matches successfully");
 					}
 
 					int maxSavedBattleNumber = matchRepository.findMaxBattleNumber();
@@ -336,24 +383,26 @@ public class ResultsExporter {
 
 						weaponRepository.save(weapon);
 
-						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
-								String.format("Put new Match with id **%d** for mode **%s** and rule **%s** into database. It was a **%s**.",
-										match.getId(),
-										match.getMode(),
-										match.getRule(),
-										match.getMatchResult()));
+						if (!loadSilently) {
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
+									String.format("Put new Match with id **%d** for mode **%s** and rule **%s** into database. It was a **%s**.",
+											match.getId(),
+											match.getMode(),
+											match.getRule(),
+											match.getMatchResult()));
 
-						twitchMessageSender.send("strohkoenig",
-								String.format("Last match: %s (%s : %s %s) - own stats: %dp ink, %d kills, %d assists, %d specials, %d deaths",
-										match.getRule().getAsString(),
-										match.getOwnScore() != null ? String.format("%d", match.getOwnScore()) : String.format("%.1f%%", match.getOwnPercentage()),
-										match.getEnemyScore() != null ? String.format("%d", match.getEnemyScore()) : String.format("%.1f%%", match.getEnemyPercentage()),
-										match.getMatchResult() == SplatoonMatchResult.Win ? "win" : "defeat",
-										match.getTurfGain(),
-										match.getKills(),
-										match.getAssists(),
-										match.getSpecials(),
-										match.getDeaths()));
+							twitchMessageSender.send("strohkoenig",
+									String.format("Last match: %s (%s : %s %s) - own stats: %dp ink, %d kills, %d assists, %d specials, %d deaths",
+											match.getRule().getAsString(),
+											match.getOwnScore() != null ? String.format("%d", match.getOwnScore()) : String.format("%.1f%%", match.getOwnPercentage()),
+											match.getEnemyScore() != null ? String.format("%d", match.getEnemyScore()) : String.format("%.1f%%", match.getEnemyPercentage()),
+											match.getMatchResult() == SplatoonMatchResult.Win ? "win" : "defeat",
+											match.getTurfGain(),
+											match.getKills(),
+											match.getAssists(),
+											match.getSpecials(),
+											match.getDeaths()));
+						}
 
 						List<SplatoonAbilityMatch> abilitiesUsedInMatch = new ArrayList<>();
 
@@ -372,36 +421,42 @@ public class ResultsExporter {
 
 						abilityMatchRepository.saveAll(abilitiesUsedInMatch);
 
-						String discordResultMessage = String.format(
-								"**I finished a Splatoon 2 match!**\n" +
-										"\n" +
-										"**General results**:\n" +
-										"- Mode: **%s**\n" +
-										"- Rule: **%s**\n" +
-										"- It was a **%s**\n" +
-										"- My weapon: **%s**\n" +
-										"- Our score: **%s**\n" +
-										"- Enemy score: **%s**\n" +
-										"\n" +
-										"**Personal results**:\n" +
-										"- Splats: **%d**\n" +
-										"- Assists: **%d**\n" +
-										"- Deaths: **%d**\n" +
-										"- Paint: + **%d** points\n\n" +
-										"---------------------------------",
-								match.getMode(),
-								match.getRule(),
-								match.getMatchResult(),
-								loadedMatch.getPlayer_result().getPlayer().getWeapon().getName(),
-								match.getOwnPercentage() != null ? match.getOwnPercentage() : match.getOwnScore(),
-								match.getEnemyPercentage() != null ? match.getEnemyPercentage() : match.getEnemyScore(),
+						if (!loadSilently) {
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), String.format("Added used abilities to Match with id **%d**", match.getId()));
+						}
 
-								match.getKills(),
-								match.getAssists(),
-								match.getDeaths(),
-								match.getTurfGain());
+						if (!loadSilently) {
+							String discordResultMessage = String.format(
+									"**I finished a Splatoon 2 match!**\n" +
+											"\n" +
+											"**General results**:\n" +
+											"- Mode: **%s**\n" +
+											"- Rule: **%s**\n" +
+											"- It was a **%s**\n" +
+											"- My weapon: **%s**\n" +
+											"- Our score: **%s**\n" +
+											"- Enemy score: **%s**\n" +
+											"\n" +
+											"**Personal results**:\n" +
+											"- Splats: **%d**\n" +
+											"- Assists: **%d**\n" +
+											"- Deaths: **%d**\n" +
+											"- Paint: + **%d** points\n\n" +
+											"---------------------------------",
+									match.getMode(),
+									match.getRule(),
+									match.getMatchResult(),
+									loadedMatch.getPlayer_result().getPlayer().getWeapon().getName(),
+									match.getOwnPercentage() != null ? match.getOwnPercentage() : match.getOwnScore(),
+									match.getEnemyPercentage() != null ? match.getEnemyPercentage() : match.getEnemyScore(),
 
-						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), discordResultMessage);
+									match.getKills(),
+									match.getAssists(),
+									match.getDeaths(),
+									match.getTurfGain());
+
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), discordResultMessage);
+						}
 
 						// refresh clips and send them to discord
 						List<SplatoonClip> clips = clipRepository.getAllByStartTimeIsGreaterThanAndEndTimeIsLessThan(match.getStartTime(), match.getEndTime());
@@ -417,11 +472,18 @@ public class ResultsExporter {
 								clip.setMatchId(match.getId());
 							}
 
-							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), ratingsMessageBuilder.toString());
+							if (!loadSilently) {
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), ratingsMessageBuilder.toString());
+							}
+
 							clipRepository.saveAll(clips);
 						}
+					}
 
-						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), String.format("Added used abilities to Match with id **%d**", match.getId()));
+					if (loadSilently) {
+						statsExporter.refreshStageAndWeaponStats();
+						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), "reload of all 50 matches completed successfully");
+						loadSilently = false;
 					}
 
 					// TODO prüfen, ob hier dann auch definitv alle Matches des Streams ankommen!!
@@ -571,7 +633,7 @@ public class ResultsExporter {
 			if (skills.getSubs()[i] != null) {
 				abilitiesUsed.add(createAbilityMatch(i + 1, skills.getSubs()[i], gearKind, matchId));
 			} else {
-				System.out.println("nix");
+				System.out.println("this gear does not have 3 sub slots");
 			}
 		}
 

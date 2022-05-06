@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface SplatoonAbilityMatchRepository extends CrudRepository<SplatoonAbilityMatch, Long> {
 	@NotNull List<SplatoonAbilityMatch> findAll();
+	@NotNull List<SplatoonAbilityMatch> findAllByMatchId(long matchId);
 }
