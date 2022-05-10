@@ -486,7 +486,6 @@ public class ResultsExporter {
 						loadSilently = false;
 					}
 
-					// TODO prüfen, ob hier dann auch definitv alle Matches des Streams ankommen!!
 					if (isStreamRunning) {
 						statistics.addMatches(results);
 						statistics.exportHtml();
@@ -499,14 +498,7 @@ public class ResultsExporter {
 					}
 				}
 
-				// TODO automatic scene switch in obs
-				// TODO load current ranked results from splatnet
-				// TODO check if current mode != null
-				// TODO in that case, check if current mode != last match power (refreshMonthlyRankedResults)
-				// TODO if != : switch to game scene
-				// TODO if == : switch to results overview scene
 				if (isStreamRunning && isRankedRunning) {
-//					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "controlling obs!");
 					controlOBS();
 				}
 			} catch (Exception ex) {
