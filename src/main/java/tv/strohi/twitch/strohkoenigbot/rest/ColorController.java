@@ -33,7 +33,7 @@ public class ColorController {
 	}
 
 	@PostMapping
-	public Instant setColors(@RequestBody ColorBody colors) {
+	public Long setColors(@RequestBody ColorBody colors) {
 		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), String.format("attempting to set colors to: %s", colors));
 		if (colors.getOwnTeamColor() == null
 				|| colors.getOwnTeamColor().length < 3
@@ -42,7 +42,7 @@ public class ColorController {
 				|| colors.getOtherTeamColor().length < 3
 				|| Arrays.stream(colors.getOtherTeamColor()).filter(c -> c < 0 || c > 255).count() > 0) {
 			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "received invalid color arrays");
-			return Instant.now().minus(1, ChronoUnit.MINUTES);
+			return Instant.now().minus(1, ChronoUnit.MINUTES).getEpochSecond();
 		}
 
 
@@ -55,7 +55,7 @@ public class ColorController {
 
 		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "successfully updated colors");
 
-		return splatoonMatchColorComponent.getBlockedUntil();
+		return splatoonMatchColorComponent.getBlockedUntil().getEpochSecond();
 	}
 
 	@PostMapping("reset")
