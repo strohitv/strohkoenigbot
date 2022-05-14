@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.utils;
 
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
@@ -7,6 +8,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 @Component
+@Getter
 public class SplatoonMatchColorComponent {
 	private Instant blockedUntil = Instant.now();
 
@@ -23,7 +25,7 @@ public class SplatoonMatchColorComponent {
 	}
 
 	public void reset() {
-		blockedUntil = Instant.now().plus(30, ChronoUnit.SECONDS);
+		blockedUntil = Instant.now().plus(60, ChronoUnit.SECONDS);
 
 		backgroundColor = backgroundStandardColor;
 		greenColor = greenStandardColor;

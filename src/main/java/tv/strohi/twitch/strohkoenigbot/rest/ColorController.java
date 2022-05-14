@@ -11,6 +11,8 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 
 import java.awt.*;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 
 @RestController
@@ -31,7 +33,7 @@ public class ColorController {
 	}
 
 	@PostMapping
-	public void setColors(@RequestBody ColorBody colors) {
+	public Instant setColors(@RequestBody ColorBody colors) {
 		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), String.format("attempting to set colors to: %s", colors));
 		if (colors.getOwnTeamColor() == null
 				|| colors.getOwnTeamColor().length < 3
@@ -40,7 +42,7 @@ public class ColorController {
 				|| colors.getOtherTeamColor().length < 3
 				|| Arrays.stream(colors.getOtherTeamColor()).filter(c -> c < 0 || c > 255).count() > 0) {
 			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "received invalid color arrays");
-			return;
+			return Instant.now().minus(1, ChronoUnit.MINUTES);
 		}
 
 
@@ -52,6 +54,8 @@ public class ColorController {
 		splatoonMatchColorComponent.setRedColor(otherTeamColor);
 
 		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "successfully updated colors");
+
+		return splatoonMatchColorComponent.getBlockedUntil();
 	}
 
 	@PostMapping("reset")
