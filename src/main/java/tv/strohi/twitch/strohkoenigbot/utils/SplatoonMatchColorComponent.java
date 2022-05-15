@@ -1,14 +1,15 @@
 package tv.strohi.twitch.strohkoenigbot.utils;
 
-import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Component
-@Getter
 public class SplatoonMatchColorComponent {
 	private boolean isAvailable = true;
+	private Instant isAvailableBlocker = Instant.now();
 
 	private final Color backgroundStandardColor = new Color(187, 187, 187);
 	private final Color greenStandardColor = new Color(136, 255, 136);
@@ -22,8 +23,16 @@ public class SplatoonMatchColorComponent {
 		reset();
 	}
 
+	public boolean isAvailable() {
+		if (!isAvailable && Instant.now().isAfter(isAvailableBlocker)) {
+			isAvailable = true;
+		}
+
+		return isAvailable;
+	}
+
 	public void reset() {
-		isAvailable = true;
+		isAvailableBlocker = Instant.now().plus(30, ChronoUnit.SECONDS);
 
 		backgroundColor = backgroundStandardColor;
 		greenColor = greenStandardColor;
@@ -36,6 +45,7 @@ public class SplatoonMatchColorComponent {
 			this.greenColor = greenColor;
 			this.redColor = redColor;
 
+			isAvailableBlocker = Instant.now().plus(10, ChronoUnit.DAYS);
 			isAvailable = false;
 		}
 	}
