@@ -68,7 +68,7 @@ public class ObsSceneSwitcher {
 	}
 
 	@PreDestroy
-	public void onExit() {
+	public void disconnect() {
 		if (controller != null) {
 			try {
 				controller.disconnect();

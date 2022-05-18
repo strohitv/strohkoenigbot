@@ -239,6 +239,8 @@ public class ResultsExporter {
 		extendedStatisticsExporter.end();
 
 		weaponRequestRankingAction.stop();
+
+		obsSceneSwitcher.disconnect();
 	}
 
 	public boolean isStreamRunning() {
