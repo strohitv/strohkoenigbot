@@ -256,7 +256,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reloading weapon and stage stats successfully.");
 		} else if (message.startsWith("!obs disconnect")) {
 			obsSceneSwitcher.disconnect();
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Disconnected from obs"));
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Disconnected from obs");
 		} else if (message.startsWith("!obs")) {
 			String scene = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!obs".length()).trim();
 			obsSceneSwitcher.switchScene(scene);
