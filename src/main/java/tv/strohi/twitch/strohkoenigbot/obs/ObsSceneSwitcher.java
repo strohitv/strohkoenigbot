@@ -41,6 +41,13 @@ public class ObsSceneSwitcher {
 				controller = null;
 				return;
 			}
+
+			try {
+				controller.await();
+			} catch (InterruptedException e) {
+				logger.error("Await failed. No idea if that's bad or not oof...");
+				logger.error(e);
+			}
 		}
 
 		try {
