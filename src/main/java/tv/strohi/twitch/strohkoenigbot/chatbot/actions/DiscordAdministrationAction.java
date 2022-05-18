@@ -14,6 +14,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.TwitchSoAccount;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
+import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
@@ -89,6 +90,13 @@ public class DiscordAdministrationAction extends ChatAction {
 	@Autowired
 	public void setSplatoonMatchColorComponent(SplatoonMatchColorComponent splatoonMatchColorComponent) {
 		this.splatoonMatchColorComponent = splatoonMatchColorComponent;
+	}
+
+	private ObsSceneSwitcher obsSceneSwitcher;
+
+	@Autowired
+	public void setObsSceneSwitcher(ObsSceneSwitcher obsSceneSwitcher) {
+		this.obsSceneSwitcher = obsSceneSwitcher;
 	}
 
 	@Override
@@ -246,6 +254,10 @@ public class DiscordAdministrationAction extends ChatAction {
 		} else if (message.startsWith("!reload stats")) {
 			statsExporter.refreshStageAndWeaponStats();
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reloading weapon and stage stats successfully.");
+		} else if (message.startsWith("!obs")) {
+			String scene = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!obs".length()).trim();
+			obsSceneSwitcher.switchScene(scene);
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Switched to obs scene '%s'", scene));
 		}
 	}
 }
