@@ -46,20 +46,22 @@ public class ObsSceneSwitcher {
 		try {
 			// Now you can start making requests
 			logger.info("Trying to switch scene");
-			controller.getScenes((getSceneListResponse -> {
-				if ("ok".equals(getSceneListResponse.getStatus()) && getSceneListResponse.getScenes().stream().anyMatch(sc -> sc.getName().equals(newSceneName))) {
-					logger.info("scene found, trying to switch");
-					controller.setCurrentScene(newSceneName, System.out::println);
-				} else {
-					logger.warn("scene NOT found");
-					logger.warn("status: {}", getSceneListResponse.getStatus());
-					logger.warn("error: {}", getSceneListResponse.getError());
-					logger.warn("message id: {}", getSceneListResponse.getMessageId());
-					if (getSceneListResponse.getScenes() != null) {
-						getSceneListResponse.getScenes().forEach(sc -> logger.warn("scene: {}", sc.getName()));
-					}
-				}
-			}));
+			controller.setCurrentScene(newSceneName, logger::info);
+			logger.info("Scene switched to {}", newSceneName);
+//			controller.getScenes((getSceneListResponse -> {
+//				if ("ok".equals(getSceneListResponse.getStatus()) && getSceneListResponse.getScenes().stream().anyMatch(sc -> sc.getName().equals(newSceneName))) {
+//					logger.info("scene found, trying to switch");
+//					controller.setCurrentScene(newSceneName, System.out::println);
+//				} else {
+//					logger.warn("scene NOT found");
+//					logger.warn("status: {}", getSceneListResponse.getStatus());
+//					logger.warn("error: {}", getSceneListResponse.getError());
+//					logger.warn("message id: {}", getSceneListResponse.getMessageId());
+//					if (getSceneListResponse.getScenes() != null) {
+//						getSceneListResponse.getScenes().forEach(sc -> logger.warn("scene: {}", sc.getName()));
+//					}
+//				}
+//			}));
 		} catch (Exception ex) {
 			logger.error("Setting scene failed");
 			logger.error(ex);
