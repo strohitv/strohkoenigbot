@@ -19,8 +19,11 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Component
 public class DailyStatsSender {
@@ -72,7 +75,9 @@ public class DailyStatsSender {
 		long leftToPaint = weapons.stream().map(w -> 100_000 - w.getTurf()).reduce(0L, Long::sum);
 		double daysUntilGoalReached = leftToPaint / 40_000.0;
 
-		String message = String.format("Yesterday, I painted a total sum of **%d** points on **%d** different weapons.\n\nI still need to paint a total of **%d** points on **%d** different weapons.\nThat's **%.2f days** if I paint **40k points** every day.", yesterdayPaint, weaponCount, leftToPaint, weapons.size(), daysUntilGoalReached);
+		double dailyPaintUntilS3 = getDailyPaintUntilSplatoon3(leftToPaint);
+
+		String message = String.format("Yesterday, I painted a total sum of **%d** points on **%d** different weapons.\n\nI still need to paint a total of **%d** points on **%d** different weapons.\nThat's **%.2f days** if I paint **40k points** every day (or **%.2f** paint per day until 9/9).", yesterdayPaint, weaponCount, leftToPaint, weapons.size(), daysUntilGoalReached, dailyPaintUntilS3);
 
 		if (newRedBadgeWeapons.size() > 0) {
 			StringBuilder builder = new StringBuilder(message);
@@ -99,6 +104,15 @@ public class DailyStatsSender {
 		} else {
 			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), message);
 		}
+	}
+
+	public static double getDailyPaintUntilSplatoon3(long leftToPaint) {
+		long daysUntilS3 = Instant.now().until(Instant.parse("2022-09-09T00:00:00.00Z"), DAYS);
+		if (daysUntilS3 < 1) {
+			daysUntilS3 = 1;
+		}
+
+		return leftToPaint / (double) daysUntilS3;
 	}
 
 	private String createWeaponStatsCsv(List<SplatoonMatch> yesterdayMatches) {

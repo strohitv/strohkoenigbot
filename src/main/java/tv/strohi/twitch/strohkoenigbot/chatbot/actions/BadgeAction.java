@@ -10,6 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMatch;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonMatchRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
 
 import java.util.Calendar;
 import java.util.EnumSet;
@@ -51,13 +52,14 @@ public class BadgeAction implements IChatAction {
 
 			long leftToPaint = weapons.stream().map(w -> 100_000 - w.getTurf()).reduce(0L, Long::sum);
 			double daysUntilGoalReached = leftToPaint / 40_000.0;
+			double dailyPaintUntilS3 = DailyStatsSender.getDailyPaintUntilSplatoon3(leftToPaint);
 
-			String reply = "I still need to paint a total of **%d** points on **%d** different weapons. That's **%.2f days** if I paint **40k points** every day.";
+			String reply = "I still need to paint a total of **%d** points on **%d** different weapons. That's **%.2f days** if I paint **40k points** every day (or **%.2f** paint per day until 9/9).";
 			if (args.getReason() == TriggerReason.ChatMessage) {
 				reply = reply.replace("**", "");
 			}
 
-			args.getReplySender().send(String.format(reply, leftToPaint, weapons.size(), daysUntilGoalReached));
+			args.getReplySender().send(String.format(reply, leftToPaint, weapons.size(), daysUntilGoalReached, dailyPaintUntilS3));
 		} else if (message.startsWith("!paint")) {
 			Calendar c = new GregorianCalendar();
 			c.set(Calendar.HOUR_OF_DAY, 0); //anything 0 - 23
