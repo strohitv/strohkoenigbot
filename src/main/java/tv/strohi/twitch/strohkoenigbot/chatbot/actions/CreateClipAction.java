@@ -71,7 +71,7 @@ public class CreateClipAction extends ChatAction {
 						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			} else {
 				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-						"I could not create the clip, probably because another one has been created in the last 20 seconds. Please try again in some seconds. strohk2OhFree",
+						"I could not create the clip, probably because another one has been created in the last 20 seconds. Please try again in some seconds. strohk2HuhFree",
 						(String) args.getArguments().get(ArgumentKey.MessageNonce),
 						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			}

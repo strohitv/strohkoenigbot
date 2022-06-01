@@ -82,7 +82,7 @@ public class RateGamePlayAction extends ChatAction {
 						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			} else {
 				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-						"I could not save your rating, either because there haven't been 20 seconds passed since the last rating or the stream is not live at the moment. Please try again in some seconds. strohk2OhFree",
+						"I could not save your rating, either because there haven't been 20 seconds passed since the last rating or the stream is not live at the moment. Please try again in some seconds. strohk2HuhFree",
 						(String) args.getArguments().get(ArgumentKey.MessageNonce),
 						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			}
