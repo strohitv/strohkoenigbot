@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
@@ -35,7 +34,7 @@ public class RateGamePlayAction extends ChatAction {
 	private TwitchBotClient botClient;
 
 	@Autowired
-	public void setBotClient(@Qualifier("botClient") TwitchBotClient botClient) {
+	public void setBotClient(TwitchBotClient botClient) {
 		this.botClient = botClient;
 	}
 
@@ -65,7 +64,10 @@ public class RateGamePlayAction extends ChatAction {
 		} else if (message.startsWith("!good") || message.startsWith("!bad")) {
 			logger.info("Rate gameplay action was called");
 			logger.info(message);
-			SplatoonClip clip = botClient.createClip(message.substring("!rate".length()).trim(), message.startsWith("!good"));
+
+			String channelId = (String) args.getArguments().getOrDefault(ArgumentKey.ChannelId, null);
+			SplatoonClip clip = botClient.createClip(message.substring("!rate".length()).trim(), channelId, message.startsWith("!good"));
+
 			logger.info(clip);
 
 			if (clip != null) {

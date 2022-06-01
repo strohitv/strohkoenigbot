@@ -13,7 +13,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.SplatoonLogin;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
@@ -59,11 +59,11 @@ public class JavaArgumentEvaluator {
 		this.configurationRepository = configurationRepository;
 	}
 
-	private TwitchChatBot twitchChatBot;
+	private TwitchBotClient twitchBotClient;
 
 	@Autowired
-	public void setTwitchChatBot(TwitchChatBot twitchChatBot) {
-		this.twitchChatBot = twitchChatBot;
+	public void setTwitchBotClient(TwitchBotClient twitchBotClient) {
+		this.twitchBotClient = twitchBotClient;
 	}
 
 	private StrohkoenigbotApplication app;
@@ -120,12 +120,12 @@ public class JavaArgumentEvaluator {
 					}
 
 					if (config.getTwitch() != null) {
-						twitchChatBot.stop();
+						twitchBotClient.stop();
 
 						twitchAuthRepository.deleteAll();
 						twitchAuthRepository.saveAll(Arrays.asList(config.getTwitch()));
 
-						twitchChatBot.initializeClients();
+						twitchBotClient.initializeClient();
 					}
 				} catch (IOException e) {
 					logger.error(e);

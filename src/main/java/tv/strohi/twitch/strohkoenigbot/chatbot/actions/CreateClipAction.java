@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
@@ -35,7 +34,7 @@ public class CreateClipAction extends ChatAction {
 	private TwitchBotClient botClient;
 
 	@Autowired
-	public void setBotClient(@Qualifier("botClient") TwitchBotClient botClient) {
+	public void setBotClient(TwitchBotClient botClient) {
 		this.botClient = botClient;
 	}
 
@@ -58,7 +57,9 @@ public class CreateClipAction extends ChatAction {
 		if (message.startsWith("!clip")) {
 			logger.info("create clip action was called");
 			logger.info(message);
-			SplatoonClip clip = botClient.createClip("This was a regular clip without rating", true);
+
+			String channelId = (String) args.getArguments().getOrDefault(ArgumentKey.ChannelId, null);
+			SplatoonClip clip = botClient.createClip("This was a regular clip without rating", channelId, true);
 			logger.info(clip);
 
 			if (clip != null) {

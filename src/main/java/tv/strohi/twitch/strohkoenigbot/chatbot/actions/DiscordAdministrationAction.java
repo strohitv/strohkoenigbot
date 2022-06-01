@@ -2,7 +2,7 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
@@ -57,11 +57,11 @@ public class DiscordAdministrationAction extends ChatAction {
 		this.configurationRepository = configurationRepository;
 	}
 
-	private TwitchChatBot twitchChatBot;
+	private TwitchBotClient twitchBotClient;
 
 	@Autowired
-	public void setTwitchChatBot(TwitchChatBot twitchChatBot) {
-		this.twitchChatBot = twitchChatBot;
+	public void setTwitchBotClient(TwitchBotClient twitchBotClient) {
+		this.twitchBotClient = twitchBotClient;
 	}
 
 	private DiscordBot discordBot;
@@ -116,7 +116,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				auth.setToken(newBotToken);
 				authRepository.save(auth);
 
-				twitchChatBot.initializeClients();
+				twitchBotClient.initializeClient();
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Token was set successfully.");
 			}

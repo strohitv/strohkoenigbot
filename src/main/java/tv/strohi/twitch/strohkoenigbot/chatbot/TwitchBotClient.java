@@ -15,6 +15,8 @@ import com.github.twitch4j.helix.domain.CreateClipList;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.AutoSoAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
@@ -24,31 +26,41 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessage
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonClip;
+import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 
+import javax.annotation.PreDestroy;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class TwitchBotClient {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private static String mainAccountId;
 	private static boolean isStreamRunning = false;
 	private static Instant lastClipCreatedTime = Instant.now();
 
 	private TwitchClient client;
 	private static ResultsExporter resultsExporter;
-	private final List<IChatAction> botActions;
-	private final String channelName;
-	private final AutoSoAction autoSoAction;
 
 	private String accessToken;
 
-	public TwitchBotClient(List<IChatAction> botActions, String channelName, AutoSoAction autoSoAction) {
-		this.botActions = botActions;
-		this.channelName = channelName;
+	private final String channelName = "strohkoenig";
+
+	private final List<IChatAction> botActions = new ArrayList<>();
+
+	@Autowired
+	public void setBotActions(List<IChatAction> actions) {
+		botActions.clear();
+		botActions.addAll(actions);
+	}
+
+	private AutoSoAction autoSoAction;
+
+	@Autowired
+	public void setAutoSoAction(AutoSoAction autoSoAction) {
 		this.autoSoAction = autoSoAction;
 	}
 
@@ -64,144 +76,154 @@ public class TwitchBotClient {
 		this.client = client;
 	}
 
+	private final TwitchAuthRepository twitchAuthRepository;
+
+	@Autowired
+	public TwitchBotClient(TwitchAuthRepository twitchAuthRepository) {
+		this.twitchAuthRepository = twitchAuthRepository;
+		initializeClient();
+	}
+
 	IDisposable goLiveListener;
 	IDisposable goOfflineListener;
 
-	public void initializeClient(TwitchAuth auth) {
-//		if (client == null) {
+	public void initializeClient() {
+		TwitchAuth twitchAuth = this.twitchAuthRepository.findByIsMain(false).stream().findFirst().orElse(null);
+
+		if (twitchAuth == null) {
+			return;
+		}
+
 		try {
-			accessToken = auth.getToken();
+			accessToken = twitchAuth.getToken();
 			OAuth2Credential botCredential = new OAuth2Credential("twitch", accessToken);
 
 			TwitchClientBuilder builder = TwitchClientBuilder.builder()
 					.withDefaultAuthToken(botCredential)
 					.withEnableChat(true)
 					.withChatAccount(botCredential)
-					.withEnableHelix(true);
-
-			if (!auth.getIsMain()) {
-				builder = builder.withEnablePubSub(true);
-			}
+					.withEnableHelix(true)
+					.withEnablePubSub(true);
 
 			client = builder.build();
 
-			if (!auth.getIsMain()) {
-				client.getClientHelper().enableStreamEventListener(channelName);
-				client.getClientHelper().enableFollowEventListener(channelName);
-				client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, "38502044");
-
-				goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
-					isStreamRunning = true;
-
-					if (resultsExporter != null) {
-						resultsExporter.start();
-					}
-
-					autoSoAction.startStream();
-				});
-
-				goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
-					isStreamRunning = false;
-
-					if (resultsExporter != null) {
-						resultsExporter.stop();
-					}
-
-					autoSoAction.endStream();
-				});
-
-				client.getEventManager().onEvent(RaidEvent.class, raidEvent -> {
-					ActionArgs args = new ActionArgs();
-
-					args.setReason(TriggerReason.Raid);
-					args.setUser(raidEvent.getRaider().getName());
-					args.setUserId(raidEvent.getRaider().getId());
-
-					args.getArguments().put(ArgumentKey.Event, raidEvent);
-
-					args.getArguments().put(ArgumentKey.ChannelId, raidEvent.getChannel().getId());
-					args.getArguments().put(ArgumentKey.ChannelName, raidEvent.getChannel().getName());
-
-					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.Raid)).forEach(action -> action.run(args));
-				});
-
-				client.getEventManager().onEvent(RewardRedeemedEvent.class, pointEvent -> {
-					ActionArgs args = new ActionArgs();
-
-					args.setReason(TriggerReason.ChannelPointReward);
-					args.setUser(pointEvent.getRedemption().getUser().getDisplayName());
-					args.setUserId(pointEvent.getRedemption().getUser().getId());
-
-					args.getArguments().put(ArgumentKey.Event, pointEvent);
-					args.getArguments().put(ArgumentKey.RewardName, pointEvent.getRedemption().getReward().getTitle());
-					args.getArguments().put(ArgumentKey.Message, pointEvent.getRedemption().getUserInput());
-
-					args.getArguments().put(ArgumentKey.ChannelId, pointEvent.getRedemption().getChannelId());
-
-					args.setReplySender(
-							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
-					);
-
-					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChannelPointReward)).forEach(action -> action.run(args));
-				});
-
-				client.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
-					ActionArgs args = new ActionArgs();
-
-					args.setReason(TriggerReason.ChatMessage);
-					args.setUser(event.getUser().getName());
-					args.setUserId(event.getUser().getId());
-
-					args.getArguments().put(ArgumentKey.Event, event);
-
-					args.getArguments().put(ArgumentKey.ChannelId, event.getMessageEvent().getChannelId());
-					args.getArguments().put(ArgumentKey.ChannelName, event.getMessageEvent().getChannelName().orElse(null));
-					args.getArguments().put(ArgumentKey.Message, event.getMessage());
-					args.getArguments().put(ArgumentKey.MessageNonce, event.getNonce());
-					args.getArguments().put(ArgumentKey.ReplyMessageId, event.getMessageEvent().getMessageId().orElse(event.getEventId()));
-
-					args.setReplySender(
-							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
-					);
-
-					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
-				});
-
-				client.getEventManager().onEvent(PrivateMessageEvent.class, event -> {
-					ActionArgs args = new ActionArgs();
-
-					args.setReason(TriggerReason.PrivateMessage);
-					args.setUser(event.getUser().getName());
-					args.setUserId(event.getUser().getId());
-
-					args.getArguments().put(ArgumentKey.Event, event);
-					args.getArguments().put(ArgumentKey.Message, event.getMessage());
-					args.getArguments().put(ArgumentKey.ChannelName, event.getUser().getName());
-
-					args.setReplySender(
-							new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
-					);
-
-					botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
-				});
-			} else {
-				// main account => save id
-				mainAccountId = auth.getChannelId();
-			}
+			client.getClientHelper().enableStreamEventListener(channelName);
+			client.getClientHelper().enableFollowEventListener(channelName);
 
 			client.getChat().joinChannel(channelName);
 			if (client.getChat().isChannelJoined(channelName)) {
 				client.getChat().sendMessage(channelName, "Bot started. Hi! strohk2PogFree");
 			}
-		} catch (Exception ignored) {
 
+			client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, "38502044");
+
+			goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
+				isStreamRunning = true;
+
+				if (resultsExporter != null) {
+					resultsExporter.start();
+				}
+
+				autoSoAction.startStream();
+			});
+
+			goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
+				isStreamRunning = false;
+
+				if (resultsExporter != null) {
+					resultsExporter.stop();
+				}
+
+				autoSoAction.endStream();
+			});
+
+			client.getEventManager().onEvent(RaidEvent.class, raidEvent -> {
+				ActionArgs args = new ActionArgs();
+
+				args.setReason(TriggerReason.Raid);
+				args.setUser(raidEvent.getRaider().getName());
+				args.setUserId(raidEvent.getRaider().getId());
+
+				args.getArguments().put(ArgumentKey.Event, raidEvent);
+
+				args.getArguments().put(ArgumentKey.ChannelId, raidEvent.getChannel().getId());
+				args.getArguments().put(ArgumentKey.ChannelName, raidEvent.getChannel().getName());
+
+				botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.Raid)).forEach(action -> action.run(args));
+			});
+
+			client.getEventManager().onEvent(RewardRedeemedEvent.class, pointEvent -> {
+				ActionArgs args = new ActionArgs();
+
+				args.setReason(TriggerReason.ChannelPointReward);
+				args.setUser(pointEvent.getRedemption().getUser().getDisplayName());
+				args.setUserId(pointEvent.getRedemption().getUser().getId());
+
+				args.getArguments().put(ArgumentKey.Event, pointEvent);
+				args.getArguments().put(ArgumentKey.RewardName, pointEvent.getRedemption().getReward().getTitle());
+				args.getArguments().put(ArgumentKey.Message, pointEvent.getRedemption().getUserInput());
+
+				args.getArguments().put(ArgumentKey.ChannelId, pointEvent.getRedemption().getChannelId());
+
+				args.setReplySender(
+						new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
+				);
+
+				botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChannelPointReward)).forEach(action -> action.run(args));
+			});
+
+			client.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
+				ActionArgs args = new ActionArgs();
+
+				args.setReason(TriggerReason.ChatMessage);
+				args.setUser(event.getUser().getName());
+				args.setUserId(event.getUser().getId());
+
+				args.getArguments().put(ArgumentKey.Event, event);
+
+				args.getArguments().put(ArgumentKey.ChannelId, event.getMessageEvent().getChannelId());
+				args.getArguments().put(ArgumentKey.ChannelName, event.getMessageEvent().getChannelName().orElse(null));
+
+				args.getArguments().put(ArgumentKey.Message, event.getMessage());
+				args.getArguments().put(ArgumentKey.MessageNonce, event.getNonce());
+				args.getArguments().put(ArgumentKey.ReplyMessageId, event.getMessageEvent().getMessageId().orElse(event.getEventId()));
+
+				args.setReplySender(
+						new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
+				);
+
+				botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
+			});
+
+			client.getEventManager().onEvent(PrivateMessageEvent.class, event -> {
+				ActionArgs args = new ActionArgs();
+
+				args.setReason(TriggerReason.PrivateMessage);
+				args.setUser(event.getUser().getName());
+				args.setUserId(event.getUser().getId());
+
+				args.getArguments().put(ArgumentKey.Event, event);
+				args.getArguments().put(ArgumentKey.Message, event.getMessage());
+				args.getArguments().put(ArgumentKey.ChannelName, event.getUser().getName());
+
+				args.setReplySender(
+						new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
+				);
+
+				botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));
+			});
+		} catch (Exception ignored) {
 		}
-//		}
 	}
 
-	public SplatoonClip createClip(String message, boolean isGoodPlay) {
+	public SplatoonClip createClip(String message, String channelId, boolean isGoodPlay) {
 		if (!isStreamRunning) {
 			logger.warn("Can't create clip -> stream not running");
+			return null;
+		}
+
+		if (channelId == null || channelId.isBlank()) {
+			logger.warn("Can't create clip -> channel not found");
 			return null;
 		}
 
@@ -217,7 +239,7 @@ public class TwitchBotClient {
 		SplatoonClip clip = null;
 
 		try {
-			CreateClipList newClip = client.getHelix().createClip(accessToken, mainAccountId, false).execute();
+			CreateClipList newClip = client.getHelix().createClip(accessToken, channelId, false).execute();
 
 			List<String> ids = new ArrayList<>();
 			newClip.getData().forEach(c -> ids.add(c.getId()));
@@ -265,6 +287,7 @@ public class TwitchBotClient {
 		return clip;
 	}
 
+	@PreDestroy
 	public void stop() {
 		if (resultsExporter != null) {
 			resultsExporter.stop();
