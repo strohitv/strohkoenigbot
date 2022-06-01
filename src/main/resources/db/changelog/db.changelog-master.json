@@ -1232,7 +1232,7 @@
       "changeSet": {
         "id": "8",
         "author": "strohkoenig",
-        "changes":[
+        "changes": [
           {
             "columns": [
               {
@@ -1243,7 +1243,7 @@
               }
             ],
             "tableName": "ability_notification",
-            "where":"main='Last Ditch Effort'"
+            "where": "main='Last Ditch Effort'"
           },
           {
             "columns": [
@@ -1255,7 +1255,7 @@
               }
             ],
             "tableName": "ability_notification",
-            "where":"main='Bomb Defense Up Dx'"
+            "where": "main='Bomb Defense Up Dx'"
           },
           {
             "columns": [
@@ -1267,7 +1267,7 @@
               }
             ],
             "tableName": "ability_notification",
-            "where":"favored='Bomb Defense Up Dx'"
+            "where": "favored='Bomb Defense Up Dx'"
           }
         ]
       }
@@ -1276,7 +1276,7 @@
       "changeSet": {
         "id": "9",
         "author": "strohkoenig",
-        "changes":[
+        "changes": [
           {
             "addColumn": {
               "columns": [
@@ -1298,21 +1298,21 @@
       "changeSet": {
         "id": "10",
         "author": "strohkoenig",
-        "changes":[
+        "changes": [
           {
-            "createIndex":{
-              "clustered":true,
-              "columns":[
+            "createIndex": {
+              "clustered": true,
+              "columns": [
                 {
-                  "column":{
-                    "descending":true,
-                    "name":"battle_number"
+                  "column": {
+                    "descending": true,
+                    "name": "battle_number"
                   }
                 }
               ],
-              "indexName":"splatnet_battle_number",
-              "tableName":"splatoon_match",
-              "unique":true
+              "indexName": "splatnet_battle_number",
+              "tableName": "splatoon_match",
+              "unique": true
             }
           }
         ]
@@ -1322,21 +1322,21 @@
       "changeSet": {
         "id": "11",
         "author": "strohkoenig",
-        "changes":[
+        "changes": [
           {
-            "createIndex":{
-              "clustered":false,
-              "columns":[
+            "createIndex": {
+              "clustered": false,
+              "columns": [
                 {
-                  "column":{
-                    "descending":true,
-                    "name":"battle_number"
+                  "column": {
+                    "descending": true,
+                    "name": "battle_number"
                   }
                 }
               ],
-              "indexName":"splatnet_battle_number",
-              "tableName":"splatoon_match",
-              "unique":true
+              "indexName": "splatnet_battle_number",
+              "tableName": "splatoon_match",
+              "unique": true
             }
           }
         ]
@@ -1447,6 +1447,42 @@
                   "column": {
                     "name": "challenged_at",
                     "type": "timestamp"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "15",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "delete": {
+              "tableName": "twitch_auth",
+              "where": "is_main='true'"
+            }
+          },
+          {
+            "dropColumn": {
+              "tableName": "twitch_auth",
+              "columns": [
+                {
+                  "column": {
+                    "name": "channel_id"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "username"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_main"
                   }
                 }
               ]

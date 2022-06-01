@@ -92,7 +92,7 @@ public class TwitchBotClient {
 	IDisposable goOfflineListener;
 
 	public void initializeClient() {
-		TwitchAuth twitchAuth = this.twitchAuthRepository.findByIsMain(false).stream().findFirst().orElse(null);
+		TwitchAuth twitchAuth = this.twitchAuthRepository.findAll().stream().findFirst().orElse(null);
 
 		if (twitchAuth == null) {
 			return;

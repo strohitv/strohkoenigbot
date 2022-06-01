@@ -12,6 +12,4 @@ public interface TwitchAuthRepository extends CrudRepository<TwitchAuth, Long> {
 	@NotNull List<TwitchAuth> findAll();
 
 	TwitchAuth findById(long id);
-
-	List<TwitchAuth> findByIsMain(boolean isMain);
 }

@@ -9,13 +9,11 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMatch;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeaponRequestRanking;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMatchResult;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRequestRankingRepository;
 
@@ -54,13 +52,6 @@ public class WeaponRequestRankingAction implements IChatAction {
 		this.splatoonWeaponRequestRankingRepository = splatoonWeaponRequestRankingRepository;
 	}
 
-	private TwitchAuthRepository twitchAuthRepository;
-
-	@Autowired
-	public void setTwitchAuthRepository(TwitchAuthRepository twitchAuthRepository) {
-		this.twitchAuthRepository = twitchAuthRepository;
-	}
-
 	private TwitchMessageSender twitchMessageSender;
 
 	@Autowired
@@ -94,23 +85,23 @@ public class WeaponRequestRankingAction implements IChatAction {
 			} else if (message.startsWith("!wr rules")) {
 				args.getReplySender().send("1. No requests while I'm playing with my Comp team. 2. No requests while I'm doing placements. 3. I'll play your weapon until I lose with it. 4. Banned weapons: Neo Sploosh & Custom Eliter 4k Scope. 5. One request per hour, one user can only do one request per stream. 6. You can request the same weapon as often as you want to.");
 			} else if (message.startsWith("!wr")) {
-				TwitchAuth mainAccount = twitchAuthRepository.findByIsMain(true).stream().findFirst().orElse(null);
-
-				if (mainAccount != null && args.getUserId().equalsIgnoreCase(mainAccount.getChannelId())) {
+				String channelName = (String) args.getArguments().getOrDefault(ArgumentKey.ChannelName, null);
+				String channelId = (String) args.getArguments().getOrDefault(ArgumentKey.ChannelId, null);
+				if (args.getUserId().equalsIgnoreCase(channelId)) {
 					// Admin actions
 					if (message.contains("start")
 							&& !isStarted
 							&& configurationRepository.findByConfigName(LAST_REQUESTER_ID).stream().map(Configuration::getConfigValue).findFirst().orElse(null) != null
 							&& configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse(null) != null) {
-						twitchMessageSender.send(mainAccount.getUsername(), String.format("The weapon request for %s is now active. Let's see how far we can go! :0", configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse("Unknown User")));
+						twitchMessageSender.send(channelName, String.format("The weapon request for %s is now active. Let's see how far we can go! :0", configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse("Unknown User")));
 						start();
 					} else if (message.contains("stop")) {
-						twitchMessageSender.send(mainAccount.getUsername(), "A possibly running weapon request has been stopped.");
+						twitchMessageSender.send(channelName, "A possibly running weapon request has been stopped.");
 						stop();
 					} else if (message.contains("reset force")) {
 						stop();
 						reset();
-						twitchMessageSender.send(mainAccount.getUsername(), "Leaderboard got reset.");
+						twitchMessageSender.send(channelName, "Leaderboard got reset.");
 					}
 				}
 			}
@@ -123,7 +114,7 @@ public class WeaponRequestRankingAction implements IChatAction {
 					configurationRepository.save(new Configuration(0, LAST_REQUESTER_ID, args.getUserId()));
 					configurationRepository.save(new Configuration(0, LAST_REQUESTER_NAME, args.getUser()));
 
-					RewardRedeemedEvent event = (RewardRedeemedEvent)args.getArguments().getOrDefault(ArgumentKey.Event, null);
+					RewardRedeemedEvent event = (RewardRedeemedEvent) args.getArguments().getOrDefault(ArgumentKey.Event, null);
 					challengedAt = event != null ? event.getFiredAtInstant() : Instant.now();
 					args.getReplySender().send(String.format("%s has redeemed a weapon request! Stroh will start soon if it doesn't break the rules.", args.getUser()));
 				} else {
@@ -216,25 +207,25 @@ public class WeaponRequestRankingAction implements IChatAction {
 			int current = 1;
 
 			for (SplatoonWeaponRequestRanking ranking : allRankings) {
-			    String message = String.format("%d: %s from %s (%d wins)",
+				String message = String.format("%d: %s from %s (%d wins)",
 						current,
 						allWeapons.stream().filter(w -> w.getId() == ranking.getWeaponId()).map(SplatoonWeapon::getName).findFirst().orElse("Unknown Weapon"),
 						ranking.getTwitchName(),
 						ranking.getWinStreak());
 
-			    current++;
+				current++;
 
-			    if (firstFewPlaces.length() + 3 + message.length() > 500) {
-			    	break;
+				if (firstFewPlaces.length() + 3 + message.length() > 500) {
+					break;
 				}
 
-			    if (firstFewPlaces.length() > 0) {
-			    	firstFewPlaces.append(" - ");
+				if (firstFewPlaces.length() > 0) {
+					firstFewPlaces.append(" - ");
 				} else {
 					firstFewPlaces.append("Top positions on the leaderboard: ");
 				}
 
-			    firstFewPlaces.append(message);
+				firstFewPlaces.append(message);
 			}
 
 			args.getReplySender().send(firstFewPlaces.toString());

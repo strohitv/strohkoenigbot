@@ -111,7 +111,7 @@ public class DiscordAdministrationAction extends ChatAction {
 		if (message.startsWith("!setbottoken")) {
 			String newBotToken = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!setbottoken".length()).trim();
 
-			TwitchAuth auth = authRepository.findByIsMain(false).stream().findFirst().orElse(null);
+			TwitchAuth auth = authRepository.findAll().stream().findFirst().orElse(null);
 			if (auth != null) {
 				auth.setToken(newBotToken);
 				authRepository.save(auth);
