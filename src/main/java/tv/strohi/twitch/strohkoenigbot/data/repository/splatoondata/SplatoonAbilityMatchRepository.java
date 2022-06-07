@@ -3,7 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonAbilityMatch;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonAbilityMatch;
 
 import java.util.List;
 

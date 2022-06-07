@@ -12,11 +12,11 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.WeaponRequestRankingActio
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.*;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonGearType;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMatchResult;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.*;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonGearType;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMatchResult;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonRule;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;

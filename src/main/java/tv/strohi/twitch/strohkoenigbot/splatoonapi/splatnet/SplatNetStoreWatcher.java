@@ -9,7 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMerchandises;

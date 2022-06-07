@@ -26,7 +26,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.PrivateMessageConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.RaidEventConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.RewardRedeemedConsumer;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonClip;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonClip;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 

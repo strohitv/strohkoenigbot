@@ -1,38 +1,44 @@
-package tv.strohi.twitch.strohkoenigbot.data.model.splatoondata;
+package tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonRule;
 
 import javax.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Cacheable(false)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonClip {
+public class SplatoonRotation {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
+
+	private Long splatoonApiId;
 
 	private Long startTime;
 
 	private Long endTime;
 
-	private Boolean isGoodPlay;
+	private Long stageAId;
 
-	private String clipUrl;
+	private Long stageBId;
 
-	private String description;
+	private SplatoonMode mode;
 
-	private Long matchId;
+	private SplatoonRule rule;
 
+	@JsonIgnore
 	public Instant getStartTimeAsInstant() {
 		return Instant.ofEpochSecond(startTime);
 	}
 
+	@JsonIgnore
 	public Instant getEndTimeAsInstant() {
 		return Instant.ofEpochSecond(endTime);
 	}

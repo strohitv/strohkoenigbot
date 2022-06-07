@@ -3,7 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonAbility;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonAbility;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonAbilityRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;

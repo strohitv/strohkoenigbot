@@ -11,7 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;

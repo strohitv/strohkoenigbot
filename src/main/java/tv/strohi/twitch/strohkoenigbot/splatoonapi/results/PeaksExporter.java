@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMonthlyResult;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonMonthlyResult;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonMonthlyResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetXRankLeaderBoard;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;

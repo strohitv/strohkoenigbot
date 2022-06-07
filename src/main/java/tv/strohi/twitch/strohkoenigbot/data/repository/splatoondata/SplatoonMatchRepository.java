@@ -4,9 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonMatch;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonMatch;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonRule;
 
 import java.util.List;
 

@@ -10,7 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonClip;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonClip;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonClipRepository;
 
 import java.util.EnumSet;

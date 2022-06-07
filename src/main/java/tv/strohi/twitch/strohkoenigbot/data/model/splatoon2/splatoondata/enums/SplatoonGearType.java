@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums;
+package tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums;
 
 public enum SplatoonGearType {
 	Head,

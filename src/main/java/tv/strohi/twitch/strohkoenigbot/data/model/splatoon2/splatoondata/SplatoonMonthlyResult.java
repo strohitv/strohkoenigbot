@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.data.model.splatoondata;
+package tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

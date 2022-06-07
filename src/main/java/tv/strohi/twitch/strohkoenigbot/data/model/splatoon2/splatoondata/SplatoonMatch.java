@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.data.model.splatoondata;
+package tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,9 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Nullable;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMatchResult;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMatchResult;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonRule;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 
 import javax.persistence.Entity;
