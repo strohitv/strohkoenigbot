@@ -4,16 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Ability;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonAbilityRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2AbilityRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 @Component
 public class AbilityExporter {
-	private SplatoonAbilityRepository abilityRepository;
+	private Splatoon2AbilityRepository abilityRepository;
 
 	@Autowired
-	public void setAbilityRepository(SplatoonAbilityRepository abilityRepository) {
+	public void setAbilityRepository(Splatoon2AbilityRepository abilityRepository) {
 		this.abilityRepository = abilityRepository;
 	}
 

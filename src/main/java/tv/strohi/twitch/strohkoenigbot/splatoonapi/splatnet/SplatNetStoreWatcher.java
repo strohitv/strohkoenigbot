@@ -10,7 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.AbilityNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMerchandises;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
@@ -49,11 +49,11 @@ public class SplatNetStoreWatcher {
 		this.discordBot = discordBot;
 	}
 
-	private AbilityNotificationRepository abilityNotificationRepository;
+	private Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository;
 
 	@Autowired
-	public void setAbilityNotificationRepository(AbilityNotificationRepository abilityNotificationRepository) {
-		this.abilityNotificationRepository = abilityNotificationRepository;
+	public void setAbilityNotificationRepository(Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository) {
+		this.splatoon2AbilityNotificationRepository = splatoon2AbilityNotificationRepository;
 	}
 
 	private DiscordAccountRepository discordAccountRepository;
@@ -75,7 +75,7 @@ public class SplatNetStoreWatcher {
 		logger.debug(gearOffers);
 
 		logger.debug("filters in database: ");
-		logger.debug(abilityNotificationRepository.findAll());
+		logger.debug(splatoon2AbilityNotificationRepository.findAll());
 
 		if (gearOffers != null && gearOffers.getMerchandises() != null) {
 			if (gearOffers.getMerchandises().length >= 1 && gearOffers.getMerchandises()[0].getEndTime().isBefore(Instant.now().plus(1, ChronoUnit.HOURS))) {
@@ -189,7 +189,7 @@ public class SplatNetStoreWatcher {
 	}
 
 	private List<Splatoon2AbilityNotification> findNotifications(SplatNetMerchandises.SplatNetMerchandise gear) {
-		return abilityNotificationRepository.findAll().stream()
+		return splatoon2AbilityNotificationRepository.findAll().stream()
 				.filter(an ->
 						(an.getGear() == GearType.Any || an.getGear() == Arrays.stream(GearType.values()).filter(gt -> gt.getName().equals(gear.getGear().getKind())).findFirst().orElse(GearType.Any))
 								&& (an.getMain() == AbilityType.Any || an.getMain() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getSkill().getName())).findFirst().orElse(AbilityType.Any))

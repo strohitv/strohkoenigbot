@@ -8,7 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoo
 import java.util.List;
 
 @Repository
-public interface SplatoonMonthlyResultRepository extends CrudRepository<Splatoon2MonthlyResult, Long> {
+public interface Splatoon2MonthlyResultRepository extends CrudRepository<Splatoon2MonthlyResult, Long> {
 	@NotNull List<Splatoon2MonthlyResult> findAll();
 
 	Splatoon2MonthlyResult findByPeriodYearAndPeriodMonth(int year, int month);

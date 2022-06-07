@@ -11,7 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import java.util.List;
 
 @Repository
-public interface SplatoonMatchRepository extends CrudRepository<Splatoon2Match, Long> {
+public interface Splatoon2MatchRepository extends CrudRepository<Splatoon2Match, Long> {
 	@NotNull List<Splatoon2Match> findAll();
 
 	Splatoon2Match findByBattleNumber(String battleNumber);

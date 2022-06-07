@@ -4,16 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonStageRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2StageRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStage;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 @Component
 public class StagesExporter {
-	private SplatoonStageRepository stageRepository;
+	private Splatoon2StageRepository stageRepository;
 
 	@Autowired
-	public void setStageRepository(SplatoonStageRepository stageRepository) {
+	public void setStageRepository(Splatoon2StageRepository stageRepository) {
 		this.stageRepository = stageRepository;
 	}
 

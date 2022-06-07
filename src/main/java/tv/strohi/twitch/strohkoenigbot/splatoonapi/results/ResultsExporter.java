@@ -59,45 +59,45 @@ public class ResultsExporter {
 		this.splatoonResultsLoader = splatoonResultsLoader;
 	}
 
-	private SplatoonMatchRepository matchRepository;
+	private Splatoon2MatchRepository matchRepository;
 
 	@Autowired
-	public void setMatchRepository(SplatoonMatchRepository matchRepository) {
+	public void setMatchRepository(Splatoon2MatchRepository matchRepository) {
 		this.matchRepository = matchRepository;
 	}
 
-	private SplatoonRotationRepository rotationRepository;
+	private Splatoon2RotationRepository rotationRepository;
 
 	@Autowired
-	public void setRotationRepository(SplatoonRotationRepository rotationRepository) {
+	public void setRotationRepository(Splatoon2RotationRepository rotationRepository) {
 		this.rotationRepository = rotationRepository;
 	}
 
-	private SplatoonAbilityMatchRepository abilityMatchRepository;
+	private Splatoon2AbilityMatchRepository abilityMatchRepository;
 
 	@Autowired
-	public void setAbilityMatchRepository(SplatoonAbilityMatchRepository abilityMatchRepository) {
+	public void setAbilityMatchRepository(Splatoon2AbilityMatchRepository abilityMatchRepository) {
 		this.abilityMatchRepository = abilityMatchRepository;
 	}
 
-	private SplatoonMonthlyResultRepository monthlyResultRepository;
+	private Splatoon2MonthlyResultRepository monthlyResultRepository;
 
 	@Autowired
-	public void setMonthlyResultRepository(SplatoonMonthlyResultRepository monthlyResultRepository) {
+	public void setMonthlyResultRepository(Splatoon2MonthlyResultRepository monthlyResultRepository) {
 		this.monthlyResultRepository = monthlyResultRepository;
 	}
 
-	private SplatoonClipRepository clipRepository;
+	private Splatoon2ClipRepository clipRepository;
 
 	@Autowired
-	public void setClipRepository(SplatoonClipRepository clipRepository) {
+	public void setClipRepository(Splatoon2ClipRepository clipRepository) {
 		this.clipRepository = clipRepository;
 	}
 
-	private SplatoonWeaponRepository weaponRepository;
+	private Splatoon2WeaponRepository weaponRepository;
 
 	@Autowired
-	public void setWeaponRepository(SplatoonWeaponRepository weaponRepository) {
+	public void setWeaponRepository(Splatoon2WeaponRepository weaponRepository) {
 		this.weaponRepository = weaponRepository;
 	}
 

@@ -7,8 +7,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonStageRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2StageRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStatPage;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
@@ -22,17 +22,17 @@ import java.util.stream.Collectors;
 public class StatsExporter {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private SplatoonWeaponRepository weaponRepository;
+	private Splatoon2WeaponRepository weaponRepository;
 
 	@Autowired
-	public void setWeaponRepository(SplatoonWeaponRepository weaponRepository) {
+	public void setWeaponRepository(Splatoon2WeaponRepository weaponRepository) {
 		this.weaponRepository = weaponRepository;
 	}
 
-	private SplatoonStageRepository stageRepository;
+	private Splatoon2StageRepository stageRepository;
 
 	@Autowired
-	public void setStageRepository(SplatoonStageRepository stageRepository) {
+	public void setStageRepository(Splatoon2StageRepository stageRepository) {
 		this.stageRepository = stageRepository;
 	}
 

@@ -14,8 +14,8 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoo
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2WeaponRequestRanking;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2MatchResult;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRequestRankingRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRequestRankingRepository;
 
 import java.time.Instant;
 import java.util.EnumSet;
@@ -45,11 +45,11 @@ public class WeaponRequestRankingAction implements IChatAction {
 		this.configurationRepository = configurationRepository;
 	}
 
-	private SplatoonWeaponRequestRankingRepository splatoonWeaponRequestRankingRepository;
+	private Splatoon2WeaponRequestRankingRepository splatoon2WeaponRequestRankingRepository;
 
 	@Autowired
-	public void setSplatoonWeaponRequestRankingRepository(SplatoonWeaponRequestRankingRepository splatoonWeaponRequestRankingRepository) {
-		this.splatoonWeaponRequestRankingRepository = splatoonWeaponRequestRankingRepository;
+	public void setSplatoonWeaponRequestRankingRepository(Splatoon2WeaponRequestRankingRepository splatoon2WeaponRequestRankingRepository) {
+		this.splatoon2WeaponRequestRankingRepository = splatoon2WeaponRequestRankingRepository;
 	}
 
 	private TwitchMessageSender twitchMessageSender;
@@ -59,11 +59,11 @@ public class WeaponRequestRankingAction implements IChatAction {
 		this.twitchMessageSender = twitchMessageSender;
 	}
 
-	private SplatoonWeaponRepository splatoonWeaponRepository;
+	private Splatoon2WeaponRepository splatoon2WeaponRepository;
 
 	@Autowired
-	public void setSplatoonWeaponRepository(SplatoonWeaponRepository splatoonWeaponRepository) {
-		this.splatoonWeaponRepository = splatoonWeaponRepository;
+	public void setSplatoonWeaponRepository(Splatoon2WeaponRepository splatoon2WeaponRepository) {
+		this.splatoon2WeaponRepository = splatoon2WeaponRepository;
 	}
 
 	@Override
@@ -136,7 +136,7 @@ public class WeaponRequestRankingAction implements IChatAction {
 		if (!isStarted) return;
 
 		lastMatch = match;
-		Splatoon2Weapon weapon = splatoonWeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
+		Splatoon2Weapon weapon = splatoon2WeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
 		if (weapon != null) {
 			String weaponName = weapon.getName();
 			if (match.getMatchResult() == Splatoon2MatchResult.Win) {
@@ -160,13 +160,13 @@ public class WeaponRequestRankingAction implements IChatAction {
 			ranking.setWeaponId(lastMatch.getWeaponId());
 			ranking.setWinStreak(winStreak);
 
-			ranking = splatoonWeaponRequestRankingRepository.save(ranking);
+			ranking = splatoon2WeaponRequestRankingRepository.save(ranking);
 			final long rankingId = ranking.getId();
 
-			List<Splatoon2WeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+			List<Splatoon2WeaponRequestRanking> allRankings = splatoon2WeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
 			int position = allRankings.indexOf(allRankings.stream().filter(r -> r.getId() == rankingId).findFirst().orElse(null));
 
-			Splatoon2Weapon weapon = splatoonWeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
+			Splatoon2Weapon weapon = splatoon2WeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
 			if (weapon != null) {
 				String weaponName = weapon.getName();
 				if (winStreak == 0) {
@@ -195,12 +195,12 @@ public class WeaponRequestRankingAction implements IChatAction {
 	}
 
 	private void reset() {
-		splatoonWeaponRequestRankingRepository.deleteAll();
+		splatoon2WeaponRequestRankingRepository.deleteAll();
 	}
 
 	private void sendLeaderBoardToTwitch(ActionArgs args) {
-		List<Splatoon2WeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
-		List<Splatoon2Weapon> allWeapons = splatoonWeaponRepository.findAll();
+		List<Splatoon2WeaponRequestRanking> allRankings = splatoon2WeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+		List<Splatoon2Weapon> allWeapons = splatoon2WeaponRepository.findAll();
 
 		if (allRankings.size() > 0) {
 			StringBuilder firstFewPlaces = new StringBuilder();
@@ -235,9 +235,9 @@ public class WeaponRequestRankingAction implements IChatAction {
 	}
 
 	private void sendAccountPlacementsToTwitch(ActionArgs args) {
-		List<Splatoon2WeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
-		List<Splatoon2WeaponRequestRanking> accountRankings = splatoonWeaponRequestRankingRepository.findAllByTwitchIdOrderByWinStreakDescChallengedAtAsc(args.getUserId());
-		List<Splatoon2Weapon> allWeapons = splatoonWeaponRepository.findAll();
+		List<Splatoon2WeaponRequestRanking> allRankings = splatoon2WeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+		List<Splatoon2WeaponRequestRanking> accountRankings = splatoon2WeaponRequestRankingRepository.findAllByTwitchIdOrderByWinStreakDescChallengedAtAsc(args.getUserId());
+		List<Splatoon2Weapon> allWeapons = splatoon2WeaponRepository.findAll();
 
 		if (accountRankings.size() > 0) {
 			StringBuilder accountPlacements = new StringBuilder();

@@ -13,7 +13,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessage
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.AbilityNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 
 import java.util.Arrays;
@@ -25,7 +25,7 @@ import static tv.strohi.twitch.strohkoenigbot.utils.ParseUtils.parseLongSafe;
 @Component
 public class ManageDiscordConnectionAction extends ChatAction {
 	private final DiscordAccountRepository discordAccountRepository;
-	private final AbilityNotificationRepository abilityNotificationRepository;
+	private final Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository;
 
 	private DiscordBot discordBot;
 
@@ -39,9 +39,9 @@ public class ManageDiscordConnectionAction extends ChatAction {
 	}
 
 	@Autowired
-	public ManageDiscordConnectionAction(DiscordAccountRepository discordAccountRepository, AbilityNotificationRepository abilityNotificationRepository) {
+	public ManageDiscordConnectionAction(DiscordAccountRepository discordAccountRepository, Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository) {
 		this.discordAccountRepository = discordAccountRepository;
-		this.abilityNotificationRepository = abilityNotificationRepository;
+		this.splatoon2AbilityNotificationRepository = splatoon2AbilityNotificationRepository;
 
 		accepted = discordId -> {
 			DiscordAccount account = discordAccountRepository.findByDiscordIdOrderById(discordId).stream().findFirst().orElse(null);
@@ -90,9 +90,9 @@ public class ManageDiscordConnectionAction extends ChatAction {
 					.orElse(null);
 
 			if (account != null) {
-				List<Splatoon2AbilityNotification> notifications = abilityNotificationRepository.findByDiscordIdOrderById(account.getId());
+				List<Splatoon2AbilityNotification> notifications = splatoon2AbilityNotificationRepository.findByDiscordIdOrderById(account.getId());
 				if (notifications.size() > 0) {
-					abilityNotificationRepository.deleteAll(notifications);
+					splatoon2AbilityNotificationRepository.deleteAll(notifications);
 				}
 
 				discordAccountRepository.delete(account);

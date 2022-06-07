@@ -7,7 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.SpecialWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.SubWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
@@ -22,11 +22,11 @@ import java.util.stream.Collectors;
 public class RandomWeaponAction extends ChatAction {
 	private final Random random = new Random();
 
-	private SplatoonWeaponRepository splatoonWeaponRepository;
+	private Splatoon2WeaponRepository splatoon2WeaponRepository;
 
 	@Autowired
-	public void setSplatoonWeaponRepository(SplatoonWeaponRepository splatoonWeaponRepository) {
-		this.splatoonWeaponRepository = splatoonWeaponRepository;
+	public void setSplatoonWeaponRepository(Splatoon2WeaponRepository splatoon2WeaponRepository) {
+		this.splatoon2WeaponRepository = splatoon2WeaponRepository;
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class RandomWeaponAction extends ChatAction {
 
 			if (message.contains("100k")) {
 				filteredByPoints = true;
-				List<Splatoon2Weapon> redBadgeWeapons = splatoonWeaponRepository.findByTurfGreaterThanEqual(100_000);
+				List<Splatoon2Weapon> redBadgeWeapons = splatoon2WeaponRepository.findByTurfGreaterThanEqual(100_000);
 				kits = kits.stream()
 						.filter(k -> redBadgeWeapons.stream().noneMatch(rbw -> k.getName().toLowerCase(Locale.ROOT).equals(rbw.getName().toLowerCase(Locale.ROOT))))
 						.collect(Collectors.toList());
@@ -74,20 +74,20 @@ public class RandomWeaponAction extends ChatAction {
 
 				switch (prefix) {
 					case "=":
-						filteredWeapons = splatoonWeaponRepository.findByTurf(number);
+						filteredWeapons = splatoon2WeaponRepository.findByTurf(number);
 						break;
 					case ">":
-						filteredWeapons = splatoonWeaponRepository.findByTurfGreaterThan(number);
+						filteredWeapons = splatoon2WeaponRepository.findByTurfGreaterThan(number);
 						break;
 					case ">=":
-						filteredWeapons = splatoonWeaponRepository.findByTurfGreaterThanEqual(number);
+						filteredWeapons = splatoon2WeaponRepository.findByTurfGreaterThanEqual(number);
 						break;
 					case "<":
-						filteredWeapons = splatoonWeaponRepository.findByTurfLessThan(number);
+						filteredWeapons = splatoon2WeaponRepository.findByTurfLessThan(number);
 						break;
 					case "<=":
 					default:
-						filteredWeapons = splatoonWeaponRepository.findByTurfLessThanEqual(number);
+						filteredWeapons = splatoon2WeaponRepository.findByTurfLessThanEqual(number);
 						break;
 				}
 
@@ -135,7 +135,7 @@ public class RandomWeaponAction extends ChatAction {
 				String weaponPoints = "";
 				if (filteredByPoints) {
 					weaponPoints = " -> 0 points";
-					Splatoon2Weapon weapon = splatoonWeaponRepository.findByName(chosenWeapon.getName());
+					Splatoon2Weapon weapon = splatoon2WeaponRepository.findByName(chosenWeapon.getName());
 					if (weapon != null) {
 						DecimalFormat df = new DecimalFormat("#,###");
 						weaponPoints = String.format(" -> %s points", df.format(weapon.getTurf()).replace(',', ' ').replace('.', ' '));

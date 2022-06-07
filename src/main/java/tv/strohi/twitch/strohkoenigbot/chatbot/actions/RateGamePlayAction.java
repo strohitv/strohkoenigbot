@@ -11,7 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonClipRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2ClipRepository;
 
 import java.util.EnumSet;
 
@@ -38,10 +38,10 @@ public class RateGamePlayAction extends ChatAction {
 		this.botClient = botClient;
 	}
 
-	private SplatoonClipRepository clipRepository;
+	private Splatoon2ClipRepository clipRepository;
 
 	@Autowired
-	public void setClipRepository(SplatoonClipRepository clipRepository) {
+	public void setClipRepository(Splatoon2ClipRepository clipRepository) {
 		this.clipRepository = clipRepository;
 	}
 

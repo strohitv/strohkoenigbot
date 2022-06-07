@@ -5,16 +5,16 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Gear;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2GearType;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonGearRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2GearRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGear;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 @Component
 public class GearExporter {
-	private SplatoonGearRepository gearRepository;
+	private Splatoon2GearRepository gearRepository;
 
 	@Autowired
-	public void setGearRepository(SplatoonGearRepository gearRepository) {
+	public void setGearRepository(Splatoon2GearRepository gearRepository) {
 		this.gearRepository = gearRepository;
 	}
 

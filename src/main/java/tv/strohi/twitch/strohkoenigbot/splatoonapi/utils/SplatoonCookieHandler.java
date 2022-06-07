@@ -9,7 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2Login;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.SplatoonLoginRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2LoginRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.SplatNet2StatInkConfig;
 
 import java.io.File;
@@ -28,11 +28,11 @@ import java.util.Map;
 public class SplatoonCookieHandler extends CookieHandler {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private SplatoonLoginRepository splatoonLoginRepository;
+	private Splatoon2LoginRepository splatoon2LoginRepository;
 
 	@Autowired
-	public void setSplatoonLoginRepository(SplatoonLoginRepository splatoonLoginRepository) {
-		this.splatoonLoginRepository = splatoonLoginRepository;
+	public void setSplatoonLoginRepository(Splatoon2LoginRepository splatoon2LoginRepository) {
+		this.splatoon2LoginRepository = splatoon2LoginRepository;
 	}
 
 	private ConfigurationRepository configurationRepository;
@@ -53,14 +53,14 @@ public class SplatoonCookieHandler extends CookieHandler {
 	public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
 		logger.debug("putting authentication information into request");
 
-		List<Splatoon2Login> splatoon2Logins = splatoonLoginRepository.findAll();
+		List<Splatoon2Login> splatoon2Logins = splatoon2LoginRepository.findAll();
 		Splatoon2Login login = splatoon2Logins.stream().findFirst().orElse(null);
 		logger.debug("found {} splatoon logins", splatoon2Logins.size());
 		logger.debug("using login:");
 		logger.debug(login);
 
 		if (login == null) {
-			login = splatoonLoginRepository.save(new Splatoon2Login());
+			login = splatoon2LoginRepository.save(new Splatoon2Login());
 
 			sendLogs("creating new login");
 		}
@@ -96,7 +96,7 @@ public class SplatoonCookieHandler extends CookieHandler {
 				login.setCookie(splatNet2StatInkConfig.getCookie());
 				login.setExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
 
-				login = splatoonLoginRepository.save(login);
+				login = splatoon2LoginRepository.save(login);
 				configurationRepository.deleteAll(configurationRepository.findByConfigName("refreshSplatNetCookie"));
 				sendLogs("done");
 			} else {
@@ -123,13 +123,13 @@ public class SplatoonCookieHandler extends CookieHandler {
 				if (iksmSessionCookie != null) {
 					String value = iksmSessionCookie.getValue();
 
-					Splatoon2Login login = splatoonLoginRepository.findByCookie(value).stream().findFirst().orElse(null);
+					Splatoon2Login login = splatoon2LoginRepository.findByCookie(value).stream().findFirst().orElse(null);
 					long cookieLifeDuration = iksmSessionCookie.getMaxAge() >= 0 ? iksmSessionCookie.getMaxAge() : 31536000L;
 					Instant expiresAt = Instant.now().plus(cookieLifeDuration, ChronoUnit.SECONDS);
 
 					if (login != null && login.getExpiresAt() != null && login.getExpiresAt().isBefore(expiresAt)) {
 						login.setExpiresAt(expiresAt);
-						splatoonLoginRepository.save(login);
+						splatoon2LoginRepository.save(login);
 					}
 				}
 			}

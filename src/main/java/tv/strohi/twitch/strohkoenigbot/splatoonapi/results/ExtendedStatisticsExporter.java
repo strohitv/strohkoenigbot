@@ -58,45 +58,45 @@ public class ExtendedStatisticsExporter {
 		this.path = path;
 	}
 
-	private SplatoonRotationRepository rotationRepository;
+	private Splatoon2RotationRepository rotationRepository;
 
 	@Autowired
-	public void setRotationRepository(SplatoonRotationRepository rotationRepository) {
+	public void setRotationRepository(Splatoon2RotationRepository rotationRepository) {
 		this.rotationRepository = rotationRepository;
 	}
 
-	private SplatoonMatchRepository matchRepository;
+	private Splatoon2MatchRepository matchRepository;
 
 	@Autowired
-	public void setMatchRepository(SplatoonMatchRepository matchRepository) {
+	public void setMatchRepository(Splatoon2MatchRepository matchRepository) {
 		this.matchRepository = matchRepository;
 	}
 
-	private SplatoonMonthlyResultRepository monthlyResultRepository;
+	private Splatoon2MonthlyResultRepository monthlyResultRepository;
 
 	@Autowired
-	public void setMonthlyResultRepository(SplatoonMonthlyResultRepository monthlyResultRepository) {
+	public void setMonthlyResultRepository(Splatoon2MonthlyResultRepository monthlyResultRepository) {
 		this.monthlyResultRepository = monthlyResultRepository;
 	}
 
-	private SplatoonStageRepository stageRepository;
+	private Splatoon2StageRepository stageRepository;
 
 	@Autowired
-	public void setStageRepository(SplatoonStageRepository stageRepository) {
+	public void setStageRepository(Splatoon2StageRepository stageRepository) {
 		this.stageRepository = stageRepository;
 	}
 
-	private SplatoonWeaponRepository weaponRepository;
+	private Splatoon2WeaponRepository weaponRepository;
 
 	@Autowired
-	public void setWeaponRepository(SplatoonWeaponRepository weaponRepository) {
+	public void setWeaponRepository(Splatoon2WeaponRepository weaponRepository) {
 		this.weaponRepository = weaponRepository;
 	}
 
-	private SplatoonGearRepository gearRepository;
+	private Splatoon2GearRepository gearRepository;
 
 	@Autowired
-	public void setGearRepository(SplatoonGearRepository gearRepository) {
+	public void setGearRepository(Splatoon2GearRepository gearRepository) {
 		this.gearRepository = gearRepository;
 	}
 

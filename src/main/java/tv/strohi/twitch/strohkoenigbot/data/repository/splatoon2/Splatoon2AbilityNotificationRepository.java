@@ -8,7 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNoti
 import java.util.List;
 
 @Repository
-public interface AbilityNotificationRepository extends CrudRepository<Splatoon2AbilityNotification, Long> {
+public interface Splatoon2AbilityNotificationRepository extends CrudRepository<Splatoon2AbilityNotification, Long> {
 	@NotNull List<Splatoon2AbilityNotification> findAll();
 
 	Splatoon2AbilityNotification findById(long id);

@@ -8,8 +8,8 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Match;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonMatchRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2MatchRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
 
 import java.util.Calendar;
@@ -19,17 +19,17 @@ import java.util.List;
 
 @Component
 public class BadgeAction implements IChatAction {
-	private SplatoonWeaponRepository weaponRepository;
+	private Splatoon2WeaponRepository weaponRepository;
 
 	@Autowired
-	public void setWeaponRepository(SplatoonWeaponRepository weaponRepository) {
+	public void setWeaponRepository(Splatoon2WeaponRepository weaponRepository) {
 		this.weaponRepository = weaponRepository;
 	}
 
-	private SplatoonMatchRepository matchRepository;
+	private Splatoon2MatchRepository matchRepository;
 
 	@Autowired
-	public void setMatchRepository(SplatoonMatchRepository matchRepository) {
+	public void setMatchRepository(Splatoon2MatchRepository matchRepository) {
 		this.matchRepository = matchRepository;
 	}
 

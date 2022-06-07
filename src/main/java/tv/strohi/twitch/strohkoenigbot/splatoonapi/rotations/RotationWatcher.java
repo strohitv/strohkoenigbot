@@ -11,7 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoo
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonRotationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2RotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -35,10 +35,10 @@ public class RotationWatcher {
 		this.stagesExporter = stagesExporter;
 	}
 
-	private SplatoonRotationRepository rotationRepository;
+	private Splatoon2RotationRepository rotationRepository;
 
 	@Autowired
-	public void setRotationRepository(SplatoonRotationRepository rotationRepository) {
+	public void setRotationRepository(Splatoon2RotationRepository rotationRepository) {
 		this.rotationRepository = rotationRepository;
 	}
 

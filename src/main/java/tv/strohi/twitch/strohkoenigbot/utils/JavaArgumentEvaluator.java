@@ -18,7 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2Login;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.SplatoonLoginRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2LoginRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 
 import java.io.BufferedWriter;
@@ -38,11 +38,11 @@ public class JavaArgumentEvaluator {
 		arguments = args;
 	}
 
-	private SplatoonLoginRepository splatoonLoginRepository;
+	private Splatoon2LoginRepository splatoon2LoginRepository;
 
 	@Autowired
-	public void setSplatoonLoginRepository(SplatoonLoginRepository splatoonLoginRepository) {
-		this.splatoonLoginRepository = splatoonLoginRepository;
+	public void setSplatoonLoginRepository(Splatoon2LoginRepository splatoon2LoginRepository) {
+		this.splatoon2LoginRepository = splatoon2LoginRepository;
 	}
 
 	private TwitchAuthRepository twitchAuthRepository;
@@ -90,7 +90,7 @@ public class JavaArgumentEvaluator {
 				Map<String, Object> struct = new HashMap<>();
 				struct.put("config", configurationRepository.findAll());
 				struct.put("twitch", twitchAuthRepository.findAll());
-				struct.put("splatoon", splatoonLoginRepository.findAll());
+				struct.put("splatoon", splatoon2LoginRepository.findAll());
 
 				try {
 					String json = mapper.writeValueAsString(struct);
@@ -115,8 +115,8 @@ public class JavaArgumentEvaluator {
 					}
 
 					if (config.getSplatoon() != null) {
-						splatoonLoginRepository.deleteAll();
-						splatoonLoginRepository.saveAll(Arrays.asList(config.getSplatoon().clone()));
+						splatoon2LoginRepository.deleteAll();
+						splatoon2LoginRepository.saveAll(Arrays.asList(config.getSplatoon().clone()));
 					}
 
 					if (config.getTwitch() != null) {

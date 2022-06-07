@@ -9,7 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import java.util.List;
 
 @Repository
-public interface SplatoonGearRepository extends CrudRepository<Splatoon2Gear, Long> {
+public interface Splatoon2GearRepository extends CrudRepository<Splatoon2Gear, Long> {
 	@NotNull List<Splatoon2Gear> findAll();
 
 	Splatoon2Gear findBySplatoonApiIdAndKind(String splatoonApiId, Splatoon2GearType kind);

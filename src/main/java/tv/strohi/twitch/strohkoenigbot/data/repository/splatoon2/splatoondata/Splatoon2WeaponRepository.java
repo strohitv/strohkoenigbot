@@ -8,7 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoo
 import java.util.List;
 
 @Repository
-public interface SplatoonWeaponRepository extends CrudRepository<Splatoon2Weapon, Long> {
+public interface Splatoon2WeaponRepository extends CrudRepository<Splatoon2Weapon, Long> {
 	Splatoon2Weapon findBySplatoonApiId(String splatoonApiId);
 
 	Splatoon2Weapon findByName(String name);
