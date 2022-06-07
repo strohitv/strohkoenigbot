@@ -1,12 +1,12 @@
 package tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums;
 
-public enum SplatoonGearType {
+public enum Splatoon2GearType {
 	Head,
 	Clothes,
 	Shoes;
 
-	public static SplatoonGearType getGearTypeByKey(String key) {
-		SplatoonGearType type;
+	public static Splatoon2GearType getGearTypeByKey(String key) {
+		Splatoon2GearType type;
 
 		switch (key){
 			case "head":

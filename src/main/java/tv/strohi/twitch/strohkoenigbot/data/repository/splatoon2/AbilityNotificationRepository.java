@@ -3,15 +3,15 @@ package tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.AbilityNotification;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
 
 import java.util.List;
 
 @Repository
-public interface AbilityNotificationRepository extends CrudRepository<AbilityNotification, Long> {
-	@NotNull List<AbilityNotification> findAll();
+public interface AbilityNotificationRepository extends CrudRepository<Splatoon2AbilityNotification, Long> {
+	@NotNull List<Splatoon2AbilityNotification> findAll();
 
-	AbilityNotification findById(long id);
+	Splatoon2AbilityNotification findById(long id);
 
-	List<AbilityNotification> findByDiscordIdOrderById(long discordId);
+	List<Splatoon2AbilityNotification> findByDiscordIdOrderById(long discordId);
 }

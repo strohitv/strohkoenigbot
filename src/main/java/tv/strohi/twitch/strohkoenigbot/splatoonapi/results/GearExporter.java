@@ -3,8 +3,8 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonGear;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonGearType;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Gear;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2GearType;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonGearRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGear;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -25,15 +25,15 @@ public class GearExporter {
 		this.discordBot = discordBot;
 	}
 
-	public SplatoonGear loadGear(SplatNetGear splatNetGear) {
-		SplatoonGear gear = gearRepository.findBySplatoonApiIdAndKind(splatNetGear.getId(), SplatoonGearType.getGearTypeByKey(splatNetGear.getKind()));
+	public Splatoon2Gear loadGear(SplatNetGear splatNetGear) {
+		Splatoon2Gear gear = gearRepository.findBySplatoonApiIdAndKind(splatNetGear.getId(), Splatoon2GearType.getGearTypeByKey(splatNetGear.getKind()));
 
 		if (gear == null) {
-			gear = new SplatoonGear();
+			gear = new Splatoon2Gear();
 
 			gear.setSplatoonApiId(splatNetGear.getId());
 			gear.setName(splatNetGear.getName());
-			gear.setKind(SplatoonGearType.getGearTypeByKey(splatNetGear.getKind()));
+			gear.setKind(Splatoon2GearType.getGearTypeByKey(splatNetGear.getKind()));
 			gear.setImage(splatNetGear.getImage());
 
 			gear = gearRepository.save(gear);

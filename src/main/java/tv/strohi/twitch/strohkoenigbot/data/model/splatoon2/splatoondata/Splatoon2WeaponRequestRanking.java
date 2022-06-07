@@ -8,29 +8,24 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.time.Instant;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonWeapon {
+public class Splatoon2WeaponRequestRanking {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
-	private String splatoonApiId;
-	private String name;
-	private String image;
+	private String twitchId;
 
-	private String subSplatoonApiId;
-	private String subName;
-	private String subImage;
+	private String twitchName;
 
-	private String specialSplatoonApiId;
-	private String specialName;
-	private String specialImage;
+	private Integer winStreak;
 
-	private Long turf;
-	private Integer wins;
-	private Integer defeats;
+	private Long weaponId;
+
+	private Instant challengedAt;
 }

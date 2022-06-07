@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.SplatoonLogin;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2Login;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.SplatoonLoginRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.SplatNet2StatInkConfig;
@@ -53,14 +53,14 @@ public class SplatoonCookieHandler extends CookieHandler {
 	public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
 		logger.debug("putting authentication information into request");
 
-		List<SplatoonLogin> splatoonLogins = splatoonLoginRepository.findAll();
-		SplatoonLogin login = splatoonLogins.stream().findFirst().orElse(null);
-		logger.debug("found {} splatoon logins", splatoonLogins.size());
+		List<Splatoon2Login> splatoon2Logins = splatoonLoginRepository.findAll();
+		Splatoon2Login login = splatoon2Logins.stream().findFirst().orElse(null);
+		logger.debug("found {} splatoon logins", splatoon2Logins.size());
 		logger.debug("using login:");
 		logger.debug(login);
 
 		if (login == null) {
-			login = splatoonLoginRepository.save(new SplatoonLogin());
+			login = splatoonLoginRepository.save(new Splatoon2Login());
 
 			sendLogs("creating new login");
 		}
@@ -123,7 +123,7 @@ public class SplatoonCookieHandler extends CookieHandler {
 				if (iksmSessionCookie != null) {
 					String value = iksmSessionCookie.getValue();
 
-					SplatoonLogin login = splatoonLoginRepository.findByCookie(value).stream().findFirst().orElse(null);
+					Splatoon2Login login = splatoonLoginRepository.findByCookie(value).stream().findFirst().orElse(null);
 					long cookieLifeDuration = iksmSessionCookie.getMaxAge() >= 0 ? iksmSessionCookie.getMaxAge() : 31536000L;
 					Instant expiresAt = Instant.now().plus(cookieLifeDuration, ChronoUnit.SECONDS);
 

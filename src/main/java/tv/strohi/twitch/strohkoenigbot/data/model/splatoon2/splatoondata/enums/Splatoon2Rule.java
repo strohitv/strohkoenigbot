@@ -1,6 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums;
 
-public enum SplatoonRule {
+public enum Splatoon2Rule {
 	TurfWar,
 	SplatFestTurfWar,
 	SplatZones,
@@ -8,8 +8,8 @@ public enum SplatoonRule {
 	TowerControl,
 	ClamBlitz;
 
-	public static SplatoonRule getRuleByName(String key) {
-		SplatoonRule mode = SplatFestTurfWar;
+	public static Splatoon2Rule getRuleByName(String key) {
+		Splatoon2Rule mode = SplatFestTurfWar;
 
 		switch (key) {
 			case "turf_war":

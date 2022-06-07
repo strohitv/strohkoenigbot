@@ -9,7 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.AbilityNotification;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMerchandises;
@@ -167,9 +167,9 @@ public class SplatNetStoreWatcher {
 		logger.debug("Finished sending out discord notifications to server channel");
 
 		logger.info("Sending out discord notifications to users");
-		List<AbilityNotification> notifications = findNotifications(gear);
+		List<Splatoon2AbilityNotification> notifications = findNotifications(gear);
 		List<Long> sentNotifications = new ArrayList<>();
-		for (AbilityNotification notification : notifications) {
+		for (Splatoon2AbilityNotification notification : notifications) {
 			if (!sentNotifications.contains(notification.getDiscordId())) {
 
 
@@ -188,7 +188,7 @@ public class SplatNetStoreWatcher {
 		logger.info("Finished sending out discord notifications to users");
 	}
 
-	private List<AbilityNotification> findNotifications(SplatNetMerchandises.SplatNetMerchandise gear) {
+	private List<Splatoon2AbilityNotification> findNotifications(SplatNetMerchandises.SplatNetMerchandise gear) {
 		return abilityNotificationRepository.findAll().stream()
 				.filter(an ->
 						(an.getGear() == GearType.Any || an.getGear() == Arrays.stream(GearType.values()).filter(gt -> gt.getName().equals(gear.getGear().getKind())).findFirst().orElse(GearType.Any))

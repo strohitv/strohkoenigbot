@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonGearType;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,14 +13,12 @@ import javax.persistence.Id;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonGear {
+public class Splatoon2Ability {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
 	private String splatoonApiId;
-
-	private SplatoonGearType kind;
 
 	private String name;
 

@@ -12,7 +12,7 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonClip {
+public class Splatoon2Clip {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;

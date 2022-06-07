@@ -3,21 +3,26 @@ package tv.strohi.twitch.strohkoenigbot.data.model.splatoon2;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 
 import javax.persistence.*;
-import java.time.Instant;
 
 @Entity
 @Cacheable(false)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonLogin {
+public class Splatoon2AbilityNotification {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
-	private String cookie;
+	private long discordId;
 
-	private Instant expiresAt;
+	private AbilityType main;
+
+	private AbilityType favored;
+
+	private GearType gear;
 }

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.SplatoonLogin;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2Login;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.SplatoonLoginRepository;
@@ -144,6 +144,6 @@ public class JavaArgumentEvaluator {
 	private static class Config {
 		private Configuration[] config;
 		private TwitchAuth[] twitch;
-		private SplatoonLogin[] splatoon;
+		private Splatoon2Login[] splatoon;
 	}
 }

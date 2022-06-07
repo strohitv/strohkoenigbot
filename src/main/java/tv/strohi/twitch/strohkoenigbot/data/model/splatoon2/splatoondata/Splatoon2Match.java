@@ -7,9 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Nullable;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMatchResult;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMode;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonRule;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2MatchResult;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 
 import javax.persistence.Entity;
@@ -21,7 +21,7 @@ import javax.persistence.Id;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonMatch {
+public class Splatoon2Match {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
@@ -36,8 +36,8 @@ public class SplatoonMatch {
 	private Long rotationId;
 
 	private Long stageId;
-	private SplatoonMode mode;
-	private SplatoonRule rule;
+	private Splatoon2Mode mode;
+	private Splatoon2Rule rule;
 
 	private String rank;
 	private Double xPower;
@@ -64,7 +64,7 @@ public class SplatoonMatch {
 	private Integer enemyScore;
 	private Double enemyPercentage;
 
-	private SplatoonMatchResult matchResult;
+	private Splatoon2MatchResult matchResult;
 	private Boolean isKo;
 
 	private Long headgearId;

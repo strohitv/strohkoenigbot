@@ -6,8 +6,8 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonMatch;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonWeapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Match;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonMatchRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
@@ -48,7 +48,7 @@ public class BadgeAction implements IChatAction {
 		message = message.toLowerCase().trim();
 
 		if (message.startsWith("!badges")) {
-			List<SplatoonWeapon> weapons = weaponRepository.findByTurfLessThan(100_000);
+			List<Splatoon2Weapon> weapons = weaponRepository.findByTurfLessThan(100_000);
 
 			long leftToPaint = weapons.stream().map(w -> 100_000 - w.getTurf()).reduce(0L, Long::sum);
 			double daysUntilGoalReached = leftToPaint / 40_000.0;
@@ -67,10 +67,10 @@ public class BadgeAction implements IChatAction {
 			c.set(Calendar.SECOND, 0);
 			long startTime = c.toInstant().getEpochSecond(); //the midnight, that's the first second of the day.
 
-			List<SplatoonMatch> matches = matchRepository.findByStartTimeGreaterThanEqual(startTime);
+			List<Splatoon2Match> matches = matchRepository.findByStartTimeGreaterThanEqual(startTime);
 
 			long todayPaint = matches.stream().map(m -> (long)m.getTurfGain()).reduce(0L, Long::sum);
-			long weaponCount = matches.stream().map(SplatoonMatch::getWeaponId).distinct().count();
+			long weaponCount = matches.stream().map(Splatoon2Match::getWeaponId).distinct().count();
 
 			String reply = "Today, I painted a total of **%d points** on **%d** different weapons.";
 			if (args.getReason() == TriggerReason.ChatMessage) {

@@ -10,7 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.AbilityNotification;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
@@ -308,10 +308,10 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				return;
 			}
 
-			List<AbilityNotification> notifications = abilityNotificationRepository.findByDiscordIdOrderById(account.getId());
+			List<Splatoon2AbilityNotification> notifications = abilityNotificationRepository.findByDiscordIdOrderById(account.getId());
 			if (notifications.size() > 0) {
 				StringBuilder builder = new StringBuilder("**The following notifications are registered for your channel**:");
-				for (AbilityNotification notification : notifications) {
+				for (Splatoon2AbilityNotification notification : notifications) {
 					builder.append(String.format("\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored())));
 				}
 
@@ -431,7 +431,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 //				abilityNotificationRepository.deleteAll(notifications);
 //			}
 
-			AbilityNotification notification = new AbilityNotification();
+			Splatoon2AbilityNotification notification = new Splatoon2AbilityNotification();
 			notification.setDiscordId(discordId);
 			notification.setGear(type);
 			notification.setMain(main);
@@ -451,7 +451,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 					.findFirst()
 					.ifPresent(discordAccountId -> discordBot.sendPrivateMessage(discordAccountId, String.format("**The following notification has been added due to your request**:\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored()))));
 		} else {
-			List<AbilityNotification> notifications = abilityNotificationRepository.findByDiscordIdOrderById(discordId);
+			List<Splatoon2AbilityNotification> notifications = abilityNotificationRepository.findByDiscordIdOrderById(discordId);
 
 			ArrayList<Long> idList = Arrays.stream(message.split(" "))
 					.map(String::trim)
@@ -467,7 +467,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 					sender.send("Alright! I'm not going to notify you anymore when I find any gear in SplatNet shop.");
 				} else {
 					StringBuilder builder = new StringBuilder("**The following notifications have been removed due to your request**:");
-					for (AbilityNotification notification : notifications.stream().filter(notif -> idList.contains(notif.getId())).collect(Collectors.toList())) {
+					for (Splatoon2AbilityNotification notification : notifications.stream().filter(notif -> idList.contains(notif.getId())).collect(Collectors.toList())) {
 						builder.append(String.format("\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored())));
 					}
 

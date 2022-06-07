@@ -11,7 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.AbilityNotification;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
@@ -90,7 +90,7 @@ public class ManageDiscordConnectionAction extends ChatAction {
 					.orElse(null);
 
 			if (account != null) {
-				List<AbilityNotification> notifications = abilityNotificationRepository.findByDiscordIdOrderById(account.getId());
+				List<Splatoon2AbilityNotification> notifications = abilityNotificationRepository.findByDiscordIdOrderById(account.getId());
 				if (notifications.size() > 0) {
 					abilityNotificationRepository.deleteAll(notifications);
 				}

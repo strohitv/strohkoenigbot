@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMode;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonRule;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -14,7 +14,7 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonRotation {
+public class Splatoon2Rotation {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
@@ -29,9 +29,9 @@ public class SplatoonRotation {
 
 	private Long stageBId;
 
-	private SplatoonMode mode;
+	private Splatoon2Mode mode;
 
-	private SplatoonRule rule;
+	private Splatoon2Rule rule;
 
 	@JsonIgnore
 	public Instant getStartTimeAsInstant() {

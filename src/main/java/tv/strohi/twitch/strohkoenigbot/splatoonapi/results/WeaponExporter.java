@@ -3,7 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonWeapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetWeapon;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -24,11 +24,11 @@ public class WeaponExporter {
 		this.discordBot = discordBot;
 	}
 
-	public SplatoonWeapon loadWeapon(SplatNetWeapon splatNetWeapon) {
-		SplatoonWeapon weapon = weaponRepository.findBySplatoonApiId(splatNetWeapon.getId());
+	public Splatoon2Weapon loadWeapon(SplatNetWeapon splatNetWeapon) {
+		Splatoon2Weapon weapon = weaponRepository.findBySplatoonApiId(splatNetWeapon.getId());
 
 		if (weapon == null) {
-			weapon = new SplatoonWeapon();
+			weapon = new Splatoon2Weapon();
 			
 			weapon.setSplatoonApiId(splatNetWeapon.getId());
 			weapon.setName(splatNetWeapon.getName());

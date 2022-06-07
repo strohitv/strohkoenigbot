@@ -9,10 +9,10 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonMatch;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonWeapon;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonWeaponRequestRanking;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMatchResult;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Match;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2WeaponRequestRanking;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2MatchResult;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRequestRankingRepository;
@@ -31,7 +31,7 @@ public class WeaponRequestRankingAction implements IChatAction {
 	private Instant challengedAt = null;
 	private boolean isStarted = false;
 	private int winStreak = 0;
-	private SplatoonMatch lastMatch = null;
+	private Splatoon2Match lastMatch = null;
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
@@ -132,14 +132,14 @@ public class WeaponRequestRankingAction implements IChatAction {
 		isStarted = true;
 	}
 
-	public void addMatch(SplatoonMatch match) {
+	public void addMatch(Splatoon2Match match) {
 		if (!isStarted) return;
 
 		lastMatch = match;
-		SplatoonWeapon weapon = splatoonWeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
+		Splatoon2Weapon weapon = splatoonWeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
 		if (weapon != null) {
 			String weaponName = weapon.getName();
-			if (match.getMatchResult() == SplatoonMatchResult.Win) {
+			if (match.getMatchResult() == Splatoon2MatchResult.Win) {
 				winStreak += 1;
 
 				twitchMessageSender.send("strohkoenig", String.format("Current win streak for the %s %s requested: %d matches", weaponName, userName, winStreak));
@@ -153,7 +153,7 @@ public class WeaponRequestRankingAction implements IChatAction {
 
 	public void stop() {
 		if (isStarted) {
-			SplatoonWeaponRequestRanking ranking = new SplatoonWeaponRequestRanking();
+			Splatoon2WeaponRequestRanking ranking = new Splatoon2WeaponRequestRanking();
 			ranking.setChallengedAt(challengedAt);
 			ranking.setTwitchId(userId);
 			ranking.setTwitchName(userName);
@@ -163,10 +163,10 @@ public class WeaponRequestRankingAction implements IChatAction {
 			ranking = splatoonWeaponRequestRankingRepository.save(ranking);
 			final long rankingId = ranking.getId();
 
-			List<SplatoonWeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+			List<Splatoon2WeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
 			int position = allRankings.indexOf(allRankings.stream().filter(r -> r.getId() == rankingId).findFirst().orElse(null));
 
-			SplatoonWeapon weapon = splatoonWeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
+			Splatoon2Weapon weapon = splatoonWeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
 			if (weapon != null) {
 				String weaponName = weapon.getName();
 				if (winStreak == 0) {
@@ -199,17 +199,17 @@ public class WeaponRequestRankingAction implements IChatAction {
 	}
 
 	private void sendLeaderBoardToTwitch(ActionArgs args) {
-		List<SplatoonWeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
-		List<SplatoonWeapon> allWeapons = splatoonWeaponRepository.findAll();
+		List<Splatoon2WeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+		List<Splatoon2Weapon> allWeapons = splatoonWeaponRepository.findAll();
 
 		if (allRankings.size() > 0) {
 			StringBuilder firstFewPlaces = new StringBuilder();
 			int current = 1;
 
-			for (SplatoonWeaponRequestRanking ranking : allRankings) {
+			for (Splatoon2WeaponRequestRanking ranking : allRankings) {
 				String message = String.format("%d: %s from %s (%d wins)",
 						current,
-						allWeapons.stream().filter(w -> w.getId() == ranking.getWeaponId()).map(SplatoonWeapon::getName).findFirst().orElse("Unknown Weapon"),
+						allWeapons.stream().filter(w -> w.getId() == ranking.getWeaponId()).map(Splatoon2Weapon::getName).findFirst().orElse("Unknown Weapon"),
 						ranking.getTwitchName(),
 						ranking.getWinStreak());
 
@@ -235,17 +235,17 @@ public class WeaponRequestRankingAction implements IChatAction {
 	}
 
 	private void sendAccountPlacementsToTwitch(ActionArgs args) {
-		List<SplatoonWeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
-		List<SplatoonWeaponRequestRanking> accountRankings = splatoonWeaponRequestRankingRepository.findAllByTwitchIdOrderByWinStreakDescChallengedAtAsc(args.getUserId());
-		List<SplatoonWeapon> allWeapons = splatoonWeaponRepository.findAll();
+		List<Splatoon2WeaponRequestRanking> allRankings = splatoonWeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+		List<Splatoon2WeaponRequestRanking> accountRankings = splatoonWeaponRequestRankingRepository.findAllByTwitchIdOrderByWinStreakDescChallengedAtAsc(args.getUserId());
+		List<Splatoon2Weapon> allWeapons = splatoonWeaponRepository.findAll();
 
 		if (accountRankings.size() > 0) {
 			StringBuilder accountPlacements = new StringBuilder();
 
-			for (SplatoonWeaponRequestRanking ranking : accountRankings) {
+			for (Splatoon2WeaponRequestRanking ranking : accountRankings) {
 				String message = String.format("%d: %s (%d wins)",
 						allRankings.indexOf(allRankings.stream().filter(ar -> ar.getId() == ranking.getId()).findFirst().orElse(null)) + 1,
-						allWeapons.stream().filter(w -> w.getId() == ranking.getWeaponId()).map(SplatoonWeapon::getName).findFirst().orElse("Unknown Weapon"),
+						allWeapons.stream().filter(w -> w.getId() == ranking.getWeaponId()).map(Splatoon2Weapon::getName).findFirst().orElse("Unknown Weapon"),
 						ranking.getWinStreak());
 
 				if (accountPlacements.length() + 3 + message.length() > 500) {

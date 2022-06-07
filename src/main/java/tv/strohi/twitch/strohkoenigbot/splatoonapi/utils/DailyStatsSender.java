@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonMatch;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonWeapon;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMatchResult;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Match;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2MatchResult;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonMatchRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
@@ -60,13 +60,13 @@ public class DailyStatsSender {
 		c.add(Calendar.DAY_OF_YEAR, -1);
 		long startTime = c.toInstant().getEpochSecond(); //the midnight, that's the first second of the day.
 
-		List<SplatoonMatch> matches = matchRepository.findByStartTimeGreaterThanEqualAndEndTimeLessThanEqual(startTime, endTime);
-		List<SplatoonWeapon> weapons = weaponRepository.findByTurfLessThan(100_000);
+		List<Splatoon2Match> matches = matchRepository.findByStartTimeGreaterThanEqualAndEndTimeLessThanEqual(startTime, endTime);
+		List<Splatoon2Weapon> weapons = weaponRepository.findByTurfLessThan(100_000);
 
 		long yesterdayPaint = matches.stream().map(m -> (long)m.getTurfGain()).reduce(0L, Long::sum);
-		long weaponCount = matches.stream().map(SplatoonMatch::getWeaponId).distinct().count();
+		long weaponCount = matches.stream().map(Splatoon2Match::getWeaponId).distinct().count();
 
-		List<SplatoonWeapon> newRedBadgeWeapons = matches.stream()
+		List<Splatoon2Weapon> newRedBadgeWeapons = matches.stream()
 				.filter(m -> m.getTurfTotal() >= 100_000 && m.getTurfTotal() - m.getTurfGain() < 100_000)
 				.map(m -> weaponRepository.findById(m.getWeaponId()).orElse(null))
 				.filter(Objects::nonNull)
@@ -83,7 +83,7 @@ public class DailyStatsSender {
 			StringBuilder builder = new StringBuilder(message);
 			builder.append("\n\nThese **").append(newRedBadgeWeapons.size()).append("** weapons got their red badge yesterday:");
 
-			for (SplatoonWeapon weapon : newRedBadgeWeapons) {
+			for (Splatoon2Weapon weapon : newRedBadgeWeapons) {
 			    builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
 			}
 
@@ -115,25 +115,25 @@ public class DailyStatsSender {
 		return leftToPaint / (double) daysUntilS3;
 	}
 
-	private String createWeaponStatsCsv(List<SplatoonMatch> yesterdayMatches) {
+	private String createWeaponStatsCsv(List<Splatoon2Match> yesterdayMatches) {
 		StringBuilder builder = new StringBuilder("Name;Class;Sub;Special;Total Paint;Paint Left;Painted Yesterday;Matches;Wins;Defeats;Win rate;Wins delta;Defeats delta;Paint per Match");
 
-		List<SplatoonWeapon> allWeapons = weaponRepository.findAll().stream()
+		List<Splatoon2Weapon> allWeapons = weaponRepository.findAll().stream()
 				.sorted((x, y) -> y.getTurf().compareTo(x.getTurf()))
 				.collect(Collectors.toList());
 
 		boolean sendAllWeapons = false;
 
-		for (SplatoonWeapon weapon : allWeapons) {
+		for (Splatoon2Weapon weapon : allWeapons) {
 		    long yesterdayPaint = yesterdayMatches.stream()
 					.filter(w -> w.getWeaponId() == weapon.getId())
 					.map(m -> (long)m.getTurfGain())
 					.reduce(0L, Long::sum);
 			long yesterdayWins = yesterdayMatches.stream()
-					.filter(w -> w.getWeaponId() == weapon.getId() && w.getMatchResult() == SplatoonMatchResult.Win)
+					.filter(w -> w.getWeaponId() == weapon.getId() && w.getMatchResult() == Splatoon2MatchResult.Win)
 					.count();
 			long yesterdayDefeats = yesterdayMatches.stream()
-					.filter(w -> w.getWeaponId() == weapon.getId() && w.getMatchResult() != SplatoonMatchResult.Win)
+					.filter(w -> w.getWeaponId() == weapon.getId() && w.getMatchResult() != Splatoon2MatchResult.Win)
 					.count();
 
 

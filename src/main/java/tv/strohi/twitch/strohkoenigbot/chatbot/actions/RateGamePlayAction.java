@@ -10,7 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonClip;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonClipRepository;
 
 import java.util.EnumSet;
@@ -66,7 +66,7 @@ public class RateGamePlayAction extends ChatAction {
 			logger.info(message);
 
 			String channelId = (String) args.getArguments().getOrDefault(ArgumentKey.ChannelId, null);
-			SplatoonClip clip = botClient.createClip(message.substring("!rate".length()).trim(), channelId, message.startsWith("!good"));
+			Splatoon2Clip clip = botClient.createClip(message.substring("!rate".length()).trim(), channelId, message.startsWith("!good"));
 
 			logger.info(clip);
 

@@ -6,7 +6,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonWeapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.SpecialWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.SubWeapon;
@@ -49,7 +49,7 @@ public class RandomWeaponAction extends ChatAction {
 
 			if (message.contains("100k")) {
 				filteredByPoints = true;
-				List<SplatoonWeapon> redBadgeWeapons = splatoonWeaponRepository.findByTurfGreaterThanEqual(100_000);
+				List<Splatoon2Weapon> redBadgeWeapons = splatoonWeaponRepository.findByTurfGreaterThanEqual(100_000);
 				kits = kits.stream()
 						.filter(k -> redBadgeWeapons.stream().noneMatch(rbw -> k.getName().toLowerCase(Locale.ROOT).equals(rbw.getName().toLowerCase(Locale.ROOT))))
 						.collect(Collectors.toList());
@@ -70,7 +70,7 @@ public class RandomWeaponAction extends ChatAction {
 				long number = Integer.parseInt(foundFilter.replace("<", "").replace(">", "").replace("=", ""));
 				String prefix = foundFilter.replaceAll("[0-9]*", "");
 
-				List<SplatoonWeapon> filteredWeapons;
+				List<Splatoon2Weapon> filteredWeapons;
 
 				switch (prefix) {
 					case "=":
@@ -135,7 +135,7 @@ public class RandomWeaponAction extends ChatAction {
 				String weaponPoints = "";
 				if (filteredByPoints) {
 					weaponPoints = " -> 0 points";
-					SplatoonWeapon weapon = splatoonWeaponRepository.findByName(chosenWeapon.getName());
+					Splatoon2Weapon weapon = splatoonWeaponRepository.findByName(chosenWeapon.getName());
 					if (weapon != null) {
 						DecimalFormat df = new DecimalFormat("#,###");
 						weaponPoints = String.format(" -> %s points", df.format(weapon.getTurf()).replace(',', ' ').replace('.', ' '));

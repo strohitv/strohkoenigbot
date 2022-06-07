@@ -26,7 +26,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.PrivateMessageConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.RaidEventConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.RewardRedeemedConsumer;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonClip;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 
@@ -184,7 +184,7 @@ public class TwitchBotClient {
 		return client.getChat().isChannelJoined(channelName);
 	}
 
-	public SplatoonClip createClip(String message, String channelId, boolean isGoodPlay) {
+	public Splatoon2Clip createClip(String message, String channelId, boolean isGoodPlay) {
 		if (!isStreamRunning) {
 			logger.warn("Can't create clip -> stream not running");
 			return null;
@@ -204,7 +204,7 @@ public class TwitchBotClient {
 		lastClipCreatedTime = Instant.now();
 		logger.info("Creating clip at time: {}", lastClipCreatedTime);
 
-		SplatoonClip clip = null;
+		Splatoon2Clip clip = null;
 
 		try {
 			CreateClipList newClip = client.getHelix().createClip(accessToken, channelId, false).execute();
@@ -232,7 +232,7 @@ public class TwitchBotClient {
 				if (list.getData().size() > 0) {
 					Clip loadedClip = list.getData().get(0);
 
-					clip = new SplatoonClip();
+					clip = new Splatoon2Clip();
 					clip.setStartTime(loadedClip.getCreatedAtInstant().getEpochSecond() - 30);
 					clip.setEndTime(loadedClip.getCreatedAtInstant().getEpochSecond());
 					clip.setDescription(message);

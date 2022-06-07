@@ -7,10 +7,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonRotation;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonStage;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMode;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonRule;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Rotation;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
@@ -146,22 +146,22 @@ public class RotationWatcher {
 
 	private void saveStagesInDatabase(SplatNetStages.SplatNetRotation[] rotations) {
 		for (SplatNetStages.SplatNetRotation rotation : rotations) {
-			boolean storeRotationIntoDatabase = rotationRepository.findBySplatoonApiIdAndMode(rotation.getId(), SplatoonMode.getModeByName(rotation.getGame_mode().getKey())) == null;
+			boolean storeRotationIntoDatabase = rotationRepository.findBySplatoonApiIdAndMode(rotation.getId(), Splatoon2Mode.getModeByName(rotation.getGame_mode().getKey())) == null;
 
 			if (storeRotationIntoDatabase) {
-				SplatoonRotation newRotation = new SplatoonRotation();
+				Splatoon2Rotation newRotation = new Splatoon2Rotation();
 				newRotation.setSplatoonApiId(rotation.getId());
 
 				newRotation.setStartTime(rotation.getStart_time());
 				newRotation.setEndTime(rotation.getEnd_time());
 
-				newRotation.setMode(SplatoonMode.getModeByName(rotation.getGame_mode().getKey()));
-				newRotation.setRule(SplatoonRule.getRuleByName(rotation.getRule().getKey()));
+				newRotation.setMode(Splatoon2Mode.getModeByName(rotation.getGame_mode().getKey()));
+				newRotation.setRule(Splatoon2Rule.getRuleByName(rotation.getRule().getKey()));
 
-				SplatoonStage stageA = stagesExporter.loadStage(rotation.getStage_a());
+				Splatoon2Stage stageA = stagesExporter.loadStage(rotation.getStage_a());
 				newRotation.setStageAId(stageA.getId());
 
-				SplatoonStage stageB = stagesExporter.loadStage(rotation.getStage_b());
+				Splatoon2Stage stageB = stagesExporter.loadStage(rotation.getStage_b());
 				newRotation.setStageBId(stageB.getId());
 
 				rotationRepository.save(newRotation);

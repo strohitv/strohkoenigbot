@@ -4,26 +4,26 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonMatch;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMode;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonRule;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Match;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
 
 import java.util.List;
 
 @Repository
-public interface SplatoonMatchRepository extends CrudRepository<SplatoonMatch, Long> {
-	@NotNull List<SplatoonMatch> findAll();
+public interface SplatoonMatchRepository extends CrudRepository<Splatoon2Match, Long> {
+	@NotNull List<Splatoon2Match> findAll();
 
-	SplatoonMatch findByBattleNumber(String battleNumber);
-	SplatoonMatch findBySplatnetBattleNumber(Integer splatnetBattleNumber);
-	@NotNull List<SplatoonMatch> findByBattleNumberIsNotNullAndSplatnetBattleNumberIsNull();
+	Splatoon2Match findByBattleNumber(String battleNumber);
+	Splatoon2Match findBySplatnetBattleNumber(Integer splatnetBattleNumber);
+	@NotNull List<Splatoon2Match> findByBattleNumberIsNotNullAndSplatnetBattleNumberIsNull();
 
-	@NotNull List<SplatoonMatch> findByStartTimeGreaterThanEqualAndMode(long startTime, SplatoonMode mode);
-	SplatoonMatch findTop1ByModeAndRuleOrderByStartTimeDesc(SplatoonMode mode, SplatoonRule rule);
+	@NotNull List<Splatoon2Match> findByStartTimeGreaterThanEqualAndMode(long startTime, Splatoon2Mode mode);
+	Splatoon2Match findTop1ByModeAndRuleOrderByStartTimeDesc(Splatoon2Mode mode, Splatoon2Rule rule);
 
-	@NotNull List<SplatoonMatch> findByStartTimeGreaterThanEqual(long startTime);
-	@NotNull List<SplatoonMatch> findByStartTimeGreaterThanEqualAndEndTimeLessThanEqual(long startTime, long endTime);
+	@NotNull List<Splatoon2Match> findByStartTimeGreaterThanEqual(long startTime);
+	@NotNull List<Splatoon2Match> findByStartTimeGreaterThanEqualAndEndTimeLessThanEqual(long startTime, long endTime);
 
-	@Query("select max(splatnetBattleNumber) from SplatoonMatch")
+	@Query("select max(splatnetBattleNumber) from Splatoon2Match")
 	int findMaxBattleNumber();
 }

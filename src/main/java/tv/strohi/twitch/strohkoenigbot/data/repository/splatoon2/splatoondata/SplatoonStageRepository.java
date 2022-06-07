@@ -2,11 +2,11 @@ package tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonStage;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
 
 @Repository
-public interface SplatoonStageRepository extends CrudRepository<SplatoonStage, Long> {
-	SplatoonStage findById(long id);
+public interface SplatoonStageRepository extends CrudRepository<Splatoon2Stage, Long> {
+	Splatoon2Stage findById(long id);
 
-	SplatoonStage findBySplatoonApiId(String splatoonApiId);
+	Splatoon2Stage findBySplatoonApiId(String splatoonApiId);
 }

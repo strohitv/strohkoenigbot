@@ -3,7 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonAbility;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Ability;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonAbilityRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -24,11 +24,11 @@ public class AbilityExporter {
 		this.discordBot = discordBot;
 	}
 
-	public SplatoonAbility loadGear(SplatNetGearSkill splatNetAbility) {
-		SplatoonAbility ability = abilityRepository.findBySplatoonApiId(splatNetAbility.getId());
+	public Splatoon2Ability loadGear(SplatNetGearSkill splatNetAbility) {
+		Splatoon2Ability ability = abilityRepository.findBySplatoonApiId(splatNetAbility.getId());
 
 		if (ability == null) {
-			ability = new SplatoonAbility();
+			ability = new Splatoon2Ability();
 
 			ability.setSplatoonApiId(splatNetAbility.getId());
 			ability.setName(splatNetAbility.getName());

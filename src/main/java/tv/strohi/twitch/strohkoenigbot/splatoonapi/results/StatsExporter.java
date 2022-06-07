@@ -5,8 +5,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonStage;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonWeapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonStageRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStatPage;
@@ -74,7 +74,7 @@ public class StatsExporter {
 
 	private void refreshWeaponStats(List<SplatNetStatPage.SplatNetRecords.SplatNetWeaponStats> weaponStats) {
 		for (SplatNetStatPage.SplatNetRecords.SplatNetWeaponStats singleWeaponStats : weaponStats) {
-			SplatoonWeapon weapon = weaponExporter.loadWeapon(singleWeaponStats.getWeapon());
+			Splatoon2Weapon weapon = weaponExporter.loadWeapon(singleWeaponStats.getWeapon());
 
 			boolean isDirty = false;
 
@@ -101,7 +101,7 @@ public class StatsExporter {
 
 	private void refreshStageStats(List<SplatNetStatPage.SplatNetRecords.SplatNetStageStats> stageStats) {
 		for (SplatNetStatPage.SplatNetRecords.SplatNetStageStats singleStageStats : stageStats) {
-			SplatoonStage stage = stagesExporter.loadStage(singleStageStats.getStage());
+			Splatoon2Stage stage = stagesExporter.loadStage(singleStageStats.getStage());
 
 			boolean isDirty = false;
 

@@ -2,12 +2,12 @@ package tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonClip;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
 
 import java.util.List;
 
 @Repository
-public interface SplatoonClipRepository extends CrudRepository<SplatoonClip, Long> {
-	List<SplatoonClip> getAllByStartTimeIsGreaterThanAndEndTimeIsLessThan(long startTime, long endTime);
-	List<SplatoonClip> getAllByMatchId(long matchId);
+public interface SplatoonClipRepository extends CrudRepository<Splatoon2Clip, Long> {
+	List<Splatoon2Clip> getAllByStartTimeIsGreaterThanAndEndTimeIsLessThan(long startTime, long endTime);
+	List<Splatoon2Clip> getAllByMatchId(long matchId);
 }

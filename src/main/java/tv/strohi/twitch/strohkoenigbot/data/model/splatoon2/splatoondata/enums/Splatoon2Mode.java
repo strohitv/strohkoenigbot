@@ -1,14 +1,14 @@
 package tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums;
 
-public enum SplatoonMode {
+public enum Splatoon2Mode {
 	TurfWar,
 	SplatFestTurfWar,
 	Ranked,
 	League,
 	PrivateBattle;
 
-	public static SplatoonMode getModeByName(String key) {
-		SplatoonMode mode = SplatFestTurfWar;
+	public static Splatoon2Mode getModeByName(String key) {
+		Splatoon2Mode mode = SplatFestTurfWar;
 
 		switch (key) {
 			case "regular":

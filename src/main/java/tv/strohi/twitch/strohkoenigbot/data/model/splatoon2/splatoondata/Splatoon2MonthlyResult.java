@@ -13,7 +13,7 @@ import javax.persistence.Id;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SplatoonMonthlyResult {
+public class Splatoon2MonthlyResult {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;

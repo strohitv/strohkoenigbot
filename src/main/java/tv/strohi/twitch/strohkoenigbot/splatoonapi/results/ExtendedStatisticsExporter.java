@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.*;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonGearType;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMatchResult;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMode;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonRule;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2GearType;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2MatchResult;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
@@ -50,7 +50,7 @@ public class ExtendedStatisticsExporter {
 		return started;
 	}
 
-	private Map<SplatoonRule, Double> powersBeforeStream;
+	private Map<Splatoon2Rule, Double> powersBeforeStream;
 
 	private String path;
 
@@ -105,7 +105,7 @@ public class ExtendedStatisticsExporter {
 		path = String.format("%s\\src\\main\\resources\\html\\template-fullscreen-overlay-example.html", homePath);
 	}
 
-	public void start(Instant startTime, Map<SplatoonRule, Double> streamStartPowers) {
+	public void start(Instant startTime, Map<Splatoon2Rule, Double> streamStartPowers) {
 		started = startTime;
 		powersBeforeStream = streamStartPowers;
 	}
@@ -115,67 +115,67 @@ public class ExtendedStatisticsExporter {
 	}
 
 	public void export() {
-		SplatoonRotation currentRanked = rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(
+		Splatoon2Rotation currentRanked = rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(
 				Instant.now().getEpochSecond(),
 				Instant.now().getEpochSecond(),
-				SplatoonMode.Ranked
+				Splatoon2Mode.Ranked
 		);
 
-		SplatoonRotation nextRanked = rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(
+		Splatoon2Rotation nextRanked = rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(
 				currentRanked.getEndTime() + 100,
 				currentRanked.getEndTime() + 100,
-				SplatoonMode.Ranked
+				Splatoon2Mode.Ranked
 		);
 
 		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault());
 
 		int currentYear = date.getYear();
 		int currentMonth = date.getMonthValue();
-		SplatoonMonthlyResult currentMonthResult = monthlyResultRepository.findByPeriodYearAndPeriodMonth(currentYear, currentMonth);
+		Splatoon2MonthlyResult currentMonthResult = monthlyResultRepository.findByPeriodYearAndPeriodMonth(currentYear, currentMonth);
 
 		int previousPeriodYear = date.minusDays(date.getDayOfMonth() + 5).getYear();
 		int previousPeriodMonth = date.minusDays(date.getDayOfMonth() + 5).getMonthValue();
-		SplatoonMonthlyResult lastMonthResult = monthlyResultRepository.findByPeriodYearAndPeriodMonth(previousPeriodYear, previousPeriodMonth);
+		Splatoon2MonthlyResult lastMonthResult = monthlyResultRepository.findByPeriodYearAndPeriodMonth(previousPeriodYear, previousPeriodMonth);
 
-		List<SplatoonMatch> allStreamMatches = matchRepository.findByStartTimeGreaterThanEqualAndMode(started.getEpochSecond(), SplatoonMode.Ranked);
-		List<SplatoonMatch> allMonthMatches = matchRepository.findByStartTimeGreaterThanEqualAndMode(currentMonthResult.getStartTime(), SplatoonMode.Ranked);
+		List<Splatoon2Match> allStreamMatches = matchRepository.findByStartTimeGreaterThanEqualAndMode(started.getEpochSecond(), Splatoon2Mode.Ranked);
+		List<Splatoon2Match> allMonthMatches = matchRepository.findByStartTimeGreaterThanEqualAndMode(currentMonthResult.getStartTime(), Splatoon2Mode.Ranked);
 
-		SplatoonMatch lastMatch = allStreamMatches.stream()
-				.max(Comparator.comparing(SplatoonMatch::getStartTime))
-				.orElse(new SplatoonMatch());
-		SplatoonStage stageA = StreamSupport.stream(stageRepository.findAllById(Collections.singletonList(currentRanked.getStageAId())).spliterator(), false)
+		Splatoon2Match lastMatch = allStreamMatches.stream()
+				.max(Comparator.comparing(Splatoon2Match::getStartTime))
+				.orElse(new Splatoon2Match());
+		Splatoon2Stage stageA = StreamSupport.stream(stageRepository.findAllById(Collections.singletonList(currentRanked.getStageAId())).spliterator(), false)
 				.findFirst()
-				.orElse(new SplatoonStage());
-		SplatoonStage stageB = StreamSupport.stream(stageRepository.findAllById(Collections.singletonList(currentRanked.getStageBId())).spliterator(), false)
+				.orElse(new Splatoon2Stage());
+		Splatoon2Stage stageB = StreamSupport.stream(stageRepository.findAllById(Collections.singletonList(currentRanked.getStageBId())).spliterator(), false)
 				.findFirst()
-				.orElse(new SplatoonStage());
+				.orElse(new Splatoon2Stage());
 
-		SplatoonStage nextStageA = StreamSupport.stream(stageRepository.findAllById(Collections.singletonList(nextRanked.getStageAId())).spliterator(), false)
+		Splatoon2Stage nextStageA = StreamSupport.stream(stageRepository.findAllById(Collections.singletonList(nextRanked.getStageAId())).spliterator(), false)
 				.findFirst()
-				.orElse(new SplatoonStage());
-		SplatoonStage nextStageB = StreamSupport.stream(stageRepository.findAllById(Collections.singletonList(nextRanked.getStageBId())).spliterator(), false)
+				.orElse(new Splatoon2Stage());
+		Splatoon2Stage nextStageB = StreamSupport.stream(stageRepository.findAllById(Collections.singletonList(nextRanked.getStageBId())).spliterator(), false)
 				.findFirst()
-				.orElse(new SplatoonStage());
+				.orElse(new Splatoon2Stage());
 
-		SplatoonWeapon lastMatchWeapon = StreamSupport.stream(weaponRepository.findAllById(Collections.singletonList(lastMatch.getWeaponId())).spliterator(), false)
+		Splatoon2Weapon lastMatchWeapon = StreamSupport.stream(weaponRepository.findAllById(Collections.singletonList(lastMatch.getWeaponId())).spliterator(), false)
 				.findFirst()
-				.orElse(new SplatoonWeapon());
+				.orElse(new Splatoon2Weapon());
 
-		SplatoonGear lastMatchHead = StreamSupport.stream(gearRepository.findAllById(Collections.singletonList(lastMatch.getHeadgearId())).spliterator(), false)
+		Splatoon2Gear lastMatchHead = StreamSupport.stream(gearRepository.findAllById(Collections.singletonList(lastMatch.getHeadgearId())).spliterator(), false)
 				.findFirst()
-				.orElse(new SplatoonGear());
-		SplatoonGear lastMatchClothes = StreamSupport.stream(gearRepository.findAllById(Collections.singletonList(lastMatch.getClothesId())).spliterator(), false)
+				.orElse(new Splatoon2Gear());
+		Splatoon2Gear lastMatchClothes = StreamSupport.stream(gearRepository.findAllById(Collections.singletonList(lastMatch.getClothesId())).spliterator(), false)
 				.findFirst()
-				.orElse(new SplatoonGear());
-		SplatoonGear lastMatchShoes = StreamSupport.stream(gearRepository.findAllById(Collections.singletonList(lastMatch.getShoesId())).spliterator(), false)
+				.orElse(new Splatoon2Gear());
+		Splatoon2Gear lastMatchShoes = StreamSupport.stream(gearRepository.findAllById(Collections.singletonList(lastMatch.getShoesId())).spliterator(), false)
 				.findFirst()
-				.orElse(new SplatoonGear());
+				.orElse(new Splatoon2Gear());
 
-		Map<SplatoonGearType, List<String>> perkImages = new HashMap<>() {
+		Map<Splatoon2GearType, List<String>> perkImages = new HashMap<>() {
 			{
-				put(SplatoonGearType.Head, new ArrayList<>());
-				put(SplatoonGearType.Clothes, new ArrayList<>());
-				put(SplatoonGearType.Shoes, new ArrayList<>());
+				put(Splatoon2GearType.Head, new ArrayList<>());
+				put(Splatoon2GearType.Clothes, new ArrayList<>());
+				put(Splatoon2GearType.Shoes, new ArrayList<>());
 			}
 		};
 
@@ -189,101 +189,101 @@ public class ExtendedStatisticsExporter {
 		}
 
 		if (result != null) {
-			perkImages.get(SplatoonGearType.Head).add(result.getPlayer_result().getPlayer().getHead_skills().getMain().getImage());
-			perkImages.get(SplatoonGearType.Head).addAll(Arrays.stream(result.getPlayer_result().getPlayer().getHead_skills().getSubs())
+			perkImages.get(Splatoon2GearType.Head).add(result.getPlayer_result().getPlayer().getHead_skills().getMain().getImage());
+			perkImages.get(Splatoon2GearType.Head).addAll(Arrays.stream(result.getPlayer_result().getPlayer().getHead_skills().getSubs())
 					.filter(Objects::nonNull)
 					.map(SplatNetGearSkill::getImage)
 					.collect(Collectors.toList()));
 
-			perkImages.get(SplatoonGearType.Clothes).add(result.getPlayer_result().getPlayer().getClothes_skills().getMain().getImage());
-			perkImages.get(SplatoonGearType.Clothes).addAll(Arrays.stream(result.getPlayer_result().getPlayer().getClothes_skills().getSubs())
+			perkImages.get(Splatoon2GearType.Clothes).add(result.getPlayer_result().getPlayer().getClothes_skills().getMain().getImage());
+			perkImages.get(Splatoon2GearType.Clothes).addAll(Arrays.stream(result.getPlayer_result().getPlayer().getClothes_skills().getSubs())
 					.filter(Objects::nonNull)
 					.map(SplatNetGearSkill::getImage)
 					.collect(Collectors.toList()));
 
-			perkImages.get(SplatoonGearType.Shoes).add(result.getPlayer_result().getPlayer().getShoes_skills().getMain().getImage());
-			perkImages.get(SplatoonGearType.Shoes).addAll(Arrays.stream(result.getPlayer_result().getPlayer().getShoes_skills().getSubs())
+			perkImages.get(Splatoon2GearType.Shoes).add(result.getPlayer_result().getPlayer().getShoes_skills().getMain().getImage());
+			perkImages.get(Splatoon2GearType.Shoes).addAll(Arrays.stream(result.getPlayer_result().getPlayer().getShoes_skills().getSubs())
 					.filter(Objects::nonNull)
 					.map(SplatNetGearSkill::getImage)
 					.collect(Collectors.toList()));
 		} else {
-			perkImages.get(SplatoonGearType.Head).addAll(Arrays.asList("", ""));
-			perkImages.get(SplatoonGearType.Clothes).addAll(Arrays.asList("", ""));
-			perkImages.get(SplatoonGearType.Shoes).addAll(Arrays.asList("", ""));
+			perkImages.get(Splatoon2GearType.Head).addAll(Arrays.asList("", ""));
+			perkImages.get(Splatoon2GearType.Clothes).addAll(Arrays.asList("", ""));
+			perkImages.get(Splatoon2GearType.Shoes).addAll(Arrays.asList("", ""));
 		}
 
 		long stageAWins = allStreamMatches.stream()
 				.filter(m -> m.getStageId() == stageA.getId())
-				.filter(m -> m.getMatchResult() == SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() == Splatoon2MatchResult.Win)
 				.count();
 		long stageADefeats = allStreamMatches.stream()
 				.filter(m -> m.getStageId() == stageA.getId())
-				.filter(m -> m.getMatchResult() != SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() != Splatoon2MatchResult.Win)
 				.count();
 
 		long stageBWins = allStreamMatches.stream()
 				.filter(m -> m.getStageId() == stageB.getId())
-				.filter(m -> m.getMatchResult() == SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() == Splatoon2MatchResult.Win)
 				.count();
 		long stageBDefeats = allStreamMatches.stream()
 				.filter(m -> m.getStageId() == stageB.getId())
-				.filter(m -> m.getMatchResult() != SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() != Splatoon2MatchResult.Win)
 				.count();
 
 		long allMonthRuleWins = allMonthMatches.stream()
 				.filter(m -> m.getRule() == lastMatch.getRule())
-				.filter(m -> m.getMatchResult() == SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() == Splatoon2MatchResult.Win)
 				.count();
 		long allMonthRuleDefeats = allMonthMatches.stream()
 				.filter(m -> m.getRule() == lastMatch.getRule())
-				.filter(m -> m.getMatchResult() != SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() != Splatoon2MatchResult.Win)
 				.count();
 
 		long allMonthWins = allMonthMatches.stream()
-				.filter(m -> m.getMatchResult() == SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() == Splatoon2MatchResult.Win)
 				.count();
 		long allMonthDefeats = allMonthMatches.stream()
-				.filter(m -> m.getMatchResult() != SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() != Splatoon2MatchResult.Win)
 				.count();
 
 		long weaponPointsGain = allStreamMatches.stream()
-				.filter(m -> m.getMode() == SplatoonMode.Ranked)
+				.filter(m -> m.getMode() == Splatoon2Mode.Ranked)
 				.filter(m -> m.getWeaponId() == lastMatchWeapon.getId())
-				.mapToInt(SplatoonMatch::getTurfGain)
+				.mapToInt(Splatoon2Match::getTurfGain)
 				.sum();
 		long weaponWins = allStreamMatches.stream()
-				.filter(m -> m.getMode() == SplatoonMode.Ranked)
+				.filter(m -> m.getMode() == Splatoon2Mode.Ranked)
 				.filter(m -> m.getWeaponId() == lastMatchWeapon.getId())
-				.filter(m -> m.getMatchResult() == SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() == Splatoon2MatchResult.Win)
 				.count();
 		long weaponDefeats = allStreamMatches.stream()
-				.filter(m -> m.getMode() == SplatoonMode.Ranked)
+				.filter(m -> m.getMode() == Splatoon2Mode.Ranked)
 				.filter(m -> m.getWeaponId() == lastMatchWeapon.getId())
-				.filter(m -> m.getMatchResult() != SplatoonMatchResult.Win)
+				.filter(m -> m.getMatchResult() != Splatoon2MatchResult.Win)
 				.count();
 
-		List<SplatoonMonthlyResult> allPeaks = monthlyResultRepository.findAll().stream()
+		List<Splatoon2MonthlyResult> allPeaks = monthlyResultRepository.findAll().stream()
 				.filter(mr -> mr.getZonesPeak() != null || mr.getRainmakerPeak() != null || mr.getTowerPeak() != null || mr.getClamsPeak() != null)
 				.collect(Collectors.toList());
 
 		double zonesPeak = allPeaks.stream()
 				.filter(mr -> mr.getZonesPeak() != null)
-				.mapToDouble(SplatoonMonthlyResult::getZonesPeak)
+				.mapToDouble(Splatoon2MonthlyResult::getZonesPeak)
 				.max()
 				.orElse(0.0);
 		double rainmakerPeak = allPeaks.stream()
 				.filter(mr -> mr.getRainmakerPeak() != null)
-				.mapToDouble(SplatoonMonthlyResult::getRainmakerPeak)
+				.mapToDouble(Splatoon2MonthlyResult::getRainmakerPeak)
 				.max()
 				.orElse(0.0);
 		double towerPeak = allPeaks.stream()
 				.filter(mr -> mr.getTowerPeak() != null)
-				.mapToDouble(SplatoonMonthlyResult::getTowerPeak)
+				.mapToDouble(Splatoon2MonthlyResult::getTowerPeak)
 				.max()
 				.orElse(0.0);
 		double clamsPeak = allPeaks.stream()
 				.filter(mr -> mr.getClamsPeak() != null)
-				.mapToDouble(SplatoonMonthlyResult::getClamsPeak)
+				.mapToDouble(Splatoon2MonthlyResult::getClamsPeak)
 				.max()
 				.orElse(0.0);
 
@@ -322,16 +322,16 @@ public class ExtendedStatisticsExporter {
 					.replace("{special-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getSpecialImage()))
 
 					.replace("{head-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchHead.getImage()))
-					.replace("{head-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Head).get(0)))
-					.replace("{head-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Head).get(1)))
+					.replace("{head-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Head).get(0)))
+					.replace("{head-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Head).get(1)))
 
 					.replace("{clothing-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchClothes.getImage()))
-					.replace("{clothing-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Clothes).get(0)))
-					.replace("{clothing-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Clothes).get(1)))
+					.replace("{clothing-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Clothes).get(0)))
+					.replace("{clothing-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Clothes).get(1)))
 
 					.replace("{shoes-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchShoes.getImage()))
-					.replace("{shoes-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Shoes).get(0)))
-					.replace("{shoes-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Shoes).get(1)))
+					.replace("{shoes-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Shoes).get(0)))
+					.replace("{shoes-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Shoes).get(1)))
 
 					.replace("{zones-power-current}", currentMonthResult.getZonesCurrent() != null ? String.format("%4.1f", currentMonthResult.getZonesCurrent()) : "")
 					.replace("{rainmaker-power-current}", currentMonthResult.getRainmakerCurrent() != null ? String.format("%4.1f", currentMonthResult.getRainmakerCurrent()) : "")
@@ -347,22 +347,22 @@ public class ExtendedStatisticsExporter {
 					.replace("{game-mode-power-difference-current}", currentPowerDifference)
 
 					.replace("{game-rule-wins-current}", String.format("%d", allStreamMatches.stream()
-							.filter(sm -> sm.getMode() == SplatoonMode.Ranked)
+							.filter(sm -> sm.getMode() == Splatoon2Mode.Ranked)
 							.filter(sm -> sm.getRule() == lastMatch.getRule())
-							.filter(sm -> sm.getMatchResult() == SplatoonMatchResult.Win)
+							.filter(sm -> sm.getMatchResult() == Splatoon2MatchResult.Win)
 							.count()))
 					.replace("{game-rule-defeats-current}", String.format("%d", allStreamMatches.stream()
-							.filter(sm -> sm.getMode() == SplatoonMode.Ranked)
+							.filter(sm -> sm.getMode() == Splatoon2Mode.Ranked)
 							.filter(sm -> sm.getRule() == lastMatch.getRule())
-							.filter(sm -> sm.getMatchResult() != SplatoonMatchResult.Win)
+							.filter(sm -> sm.getMatchResult() != Splatoon2MatchResult.Win)
 							.count()))
 					.replace("{ranked-wins-current}", String.format("%d", allStreamMatches.stream()
-							.filter(sm -> sm.getMode() == SplatoonMode.Ranked)
-							.filter(sm -> sm.getMatchResult() == SplatoonMatchResult.Win)
+							.filter(sm -> sm.getMode() == Splatoon2Mode.Ranked)
+							.filter(sm -> sm.getMatchResult() == Splatoon2MatchResult.Win)
 							.count()))
 					.replace("{ranked-defeats-current}", String.format("%d", allStreamMatches.stream()
-							.filter(sm -> sm.getMode() == SplatoonMode.Ranked)
-							.filter(sm -> sm.getMatchResult() != SplatoonMatchResult.Win)
+							.filter(sm -> sm.getMode() == Splatoon2Mode.Ranked)
+							.filter(sm -> sm.getMatchResult() != Splatoon2MatchResult.Win)
 							.count()))
 
 					// Todo eventuell nachliefern
@@ -393,48 +393,48 @@ public class ExtendedStatisticsExporter {
 					.replace("{next-rotation-stage-a-image}", String.format("https://app.splatoon2.nintendo.net%s", nextStageA.getImage()))
 					.replace("{next-rotation-stage-b-image}", String.format("https://app.splatoon2.nintendo.net%s", nextStageB.getImage()));
 
-			if (perkImages.get(SplatoonGearType.Head).size() > 2) {
-				currentHtml = currentHtml.replace("{head-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Head).get(2)))
+			if (perkImages.get(Splatoon2GearType.Head).size() > 2) {
+				currentHtml = currentHtml.replace("{head-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Head).get(2)))
 						.replace("{head-sub-2-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{head-sub-2-image}", "")
 						.replace("{head-sub-2-hidden}", "hidden");
 			}
 
-			if (perkImages.get(SplatoonGearType.Head).size() > 3) {
-				currentHtml = currentHtml.replace("{head-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Head).get(3)))
+			if (perkImages.get(Splatoon2GearType.Head).size() > 3) {
+				currentHtml = currentHtml.replace("{head-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Head).get(3)))
 						.replace("{head-sub-3-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{head-sub-3-image}", "")
 						.replace("{head-sub-3-hidden}", "hidden");
 			}
 
-			if (perkImages.get(SplatoonGearType.Clothes).size() > 2) {
-				currentHtml = currentHtml.replace("{clothing-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Clothes).get(2)))
+			if (perkImages.get(Splatoon2GearType.Clothes).size() > 2) {
+				currentHtml = currentHtml.replace("{clothing-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Clothes).get(2)))
 						.replace("{clothing-sub-2-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{clothing-sub-2-image}", "")
 						.replace("{clothing-sub-2-hidden}", "hidden");
 			}
 
-			if (perkImages.get(SplatoonGearType.Clothes).size() > 3) {
-				currentHtml = currentHtml.replace("{clothing-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Clothes).get(3)))
+			if (perkImages.get(Splatoon2GearType.Clothes).size() > 3) {
+				currentHtml = currentHtml.replace("{clothing-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Clothes).get(3)))
 						.replace("{clothing-sub-3-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{clothing-sub-3-image}", "")
 						.replace("{clothing-sub-3-hidden}", "hidden");
 			}
 
-			if (perkImages.get(SplatoonGearType.Shoes).size() > 2) {
-				currentHtml = currentHtml.replace("{shoes-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Shoes).get(2)))
+			if (perkImages.get(Splatoon2GearType.Shoes).size() > 2) {
+				currentHtml = currentHtml.replace("{shoes-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Shoes).get(2)))
 						.replace("{shoes-sub-2-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{shoes-sub-2-image}", "")
 						.replace("{shoes-sub-2-hidden}", "hidden");
 			}
 
-			if (perkImages.get(SplatoonGearType.Shoes).size() > 3) {
-				currentHtml = currentHtml.replace("{shoes-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(SplatoonGearType.Shoes).get(3)))
+			if (perkImages.get(Splatoon2GearType.Shoes).size() > 3) {
+				currentHtml = currentHtml.replace("{shoes-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Shoes).get(3)))
 						.replace("{shoes-sub-3-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{shoes-sub-3-image}", "")
@@ -450,7 +450,7 @@ public class ExtendedStatisticsExporter {
 		}
 	}
 
-	private Double getPowerForRule(SplatoonMonthlyResult result, SplatoonRule rule) {
+	private Double getPowerForRule(Splatoon2MonthlyResult result, Splatoon2Rule rule) {
 		Double power;
 
 		if (rule != null) {
@@ -476,7 +476,7 @@ public class ExtendedStatisticsExporter {
 		return power;
 	}
 
-	private String getGameRuleString(SplatoonRule rule) {
+	private String getGameRuleString(Splatoon2Rule rule) {
 		String result;
 
 		switch (rule) {
