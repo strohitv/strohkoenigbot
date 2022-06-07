@@ -8,7 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 
 import javax.persistence.*;
 
-@Entity
+@Entity(name = "splatoon2_ability_notification")
 @Cacheable(false)
 @Data
 @NoArgsConstructor

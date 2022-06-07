@@ -1562,6 +1562,86 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "17",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_ability",
+              "newTableName":  "splatoon2_ability"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_ability_match",
+              "newTableName":  "splatoon2_ability_match"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "ability_notification",
+              "newTableName":  "splatoon2_ability_notification"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_clip",
+              "newTableName":  "splatoon2_clip"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_gear",
+              "newTableName":  "splatoon2_gear"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_login",
+              "newTableName":  "splatoon2_login"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_match",
+              "newTableName":  "splatoon2_match"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_monthly_result",
+              "newTableName":  "splatoon2_monthly_result"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_rotation",
+              "newTableName":  "splatoon2_rotation"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_stage",
+              "newTableName":  "splatoon2_stage"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_weapon",
+              "newTableName":  "splatoon2_weapon"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName":  "splatoon_weapon_request_ranking",
+              "newTableName":  "splatoon2_weapon_request_ranking"
+            }
+          }
+        ]
+      }
     }
   ]
 }

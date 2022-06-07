@@ -10,7 +10,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.time.Instant;
 
-@Entity
+@Entity(name = "splatoon2_weapon_request_ranking")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

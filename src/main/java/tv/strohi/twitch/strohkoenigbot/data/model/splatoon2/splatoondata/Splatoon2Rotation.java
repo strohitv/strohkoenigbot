@@ -10,7 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import javax.persistence.*;
 import java.time.Instant;
 
-@Entity
+@Entity(name = "splatoon2_rotation")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
