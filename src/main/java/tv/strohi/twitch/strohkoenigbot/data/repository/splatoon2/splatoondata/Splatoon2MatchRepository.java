@@ -16,7 +16,6 @@ public interface Splatoon2MatchRepository extends CrudRepository<Splatoon2Match,
 
 	Splatoon2Match findByBattleNumber(String battleNumber);
 	Splatoon2Match findBySplatnetBattleNumber(Integer splatnetBattleNumber);
-	@NotNull List<Splatoon2Match> findByBattleNumberIsNotNullAndSplatnetBattleNumberIsNull();
 
 	@NotNull List<Splatoon2Match> findByStartTimeGreaterThanEqualAndMode(long startTime, Splatoon2Mode mode);
 	Splatoon2Match findTop1ByModeAndRuleOrderByStartTimeDesc(Splatoon2Mode mode, Splatoon2Rule rule);
