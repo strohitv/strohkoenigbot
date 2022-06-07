@@ -12,9 +12,11 @@ import com.github.twitch4j.events.ChannelGoOfflineEvent;
 import com.github.twitch4j.helix.domain.Clip;
 import com.github.twitch4j.helix.domain.ClipList;
 import com.github.twitch4j.helix.domain.CreateClipList;
+import com.github.twitch4j.helix.domain.User;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.AutoSoAction;
@@ -32,6 +34,7 @@ import javax.annotation.PreDestroy;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -92,16 +95,10 @@ public class TwitchBotClient {
 	IDisposable goOfflineListener;
 
 	public void initializeClient() {
-		TwitchAuth twitchAuth = this.twitchAuthRepository.findAll().stream().findFirst().orElse(null);
-
-		if (twitchAuth == null) {
-			return;
-		}
+		OAuth2Credential botCredential = getBotCredential();
+		if (botCredential == null) return;
 
 		try {
-			accessToken = twitchAuth.getToken();
-			OAuth2Credential botCredential = new OAuth2Credential("twitch", accessToken);
-
 			TwitchClientBuilder builder = TwitchClientBuilder.builder()
 					.withDefaultAuthToken(botCredential)
 					.withEnableChat(true)
@@ -147,6 +144,44 @@ public class TwitchBotClient {
 			client.getEventManager().onEvent(PrivateMessageEvent.class, new PrivateMessageConsumer(botActions));
 		} catch (Exception ignored) {
 		}
+	}
+
+	@Nullable
+	private OAuth2Credential getBotCredential() {
+		TwitchAuth twitchAuth = this.twitchAuthRepository.findAll().stream().findFirst().orElse(null);
+
+		if (twitchAuth == null) {
+			return null;
+		}
+
+		accessToken = twitchAuth.getToken();
+		return new OAuth2Credential("twitch", accessToken);
+	}
+
+	public void joinChannel(String channelName) {
+		if (!client.getChat().isChannelJoined(channelName)) {
+			client.getChat().joinChannel(channelName);
+			client.getChat().sendMessage(channelName, "I'm here now, hi! :D");
+
+			User user = client.getHelix().getUsers(null, null, Collections.singletonList(channelName)).execute().getUsers().stream().findFirst().orElse(null);
+			if (user != null) {
+				OAuth2Credential botCredential = getBotCredential();
+				if (botCredential == null) return;
+
+				client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, user.getId());
+			}
+		}
+	}
+
+	public void leaveChannel(String channelName) {
+		if (client.getChat().isChannelJoined(channelName)) {
+			client.getChat().sendMessage(channelName, "I'm leaving now, bye! :D");
+			client.getChat().leaveChannel(channelName);
+		}
+	}
+
+	public boolean isChannelJoined(String channelName) {
+		return client.getChat().isChannelJoined(channelName);
 	}
 
 	public SplatoonClip createClip(String message, String channelId, boolean isGoodPlay) {

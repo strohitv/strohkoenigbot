@@ -8,6 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchSoAccount;
@@ -45,16 +46,23 @@ public class DiscordAdministrationAction extends ChatAction {
 
 	private ConfigurationRepository configurationRepository;
 
-	private TwitchSoAccountRepository twitchSoAccountRepository;
-
 	@Autowired
 	public void setTwitchSoAccountRepository(TwitchSoAccountRepository twitchSoAccountRepository) {
 		this.twitchSoAccountRepository = twitchSoAccountRepository;
 	}
 
+	private TwitchSoAccountRepository twitchSoAccountRepository;
+
 	@Autowired
 	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
 		this.configurationRepository = configurationRepository;
+	}
+
+	private TwitchMessageSender twitchMessageSender;
+
+	@Autowired
+	public void setTwitchMessageSender(TwitchMessageSender twitchMessageSender) {
+		this.twitchMessageSender = twitchMessageSender;
 	}
 
 	private TwitchBotClient twitchBotClient;
@@ -261,6 +269,39 @@ public class DiscordAdministrationAction extends ChatAction {
 			String scene = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!obs".length()).trim();
 			obsSceneSwitcher.switchScene(scene);
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Switched to obs scene '%s'", scene));
+		} else if (message.startsWith("!twitch")) {
+			String command = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!twitch".length()).trim();
+			if (command.toLowerCase().startsWith("join")) {
+				String user = command.substring("join".length()).trim();
+				twitchBotClient.joinChannel(user);
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Joined the channel");
+			} else if (command.toLowerCase().startsWith("leave")) {
+				String user = command.substring("leave".length()).trim();
+				twitchBotClient.leaveChannel(user);
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Left the channel");
+			} else if (command.toLowerCase().startsWith("send")) {
+				String content = command.substring("send".length()).trim();
+				String[] contentArray = content.split(" ");
+
+				if (contentArray.length > 1) {
+					String user = contentArray[0];
+					String messageToSend = content.substring(user.length()).trim();
+
+					if (twitchBotClient.isChannelJoined(user)) {
+						twitchMessageSender.send(user, messageToSend.length() > 500 ? messageToSend.substring(0, 500) : messageToSend);
+
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Message sent");
+					} else {
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Bot has not joined the chat of that channel, please join it first");
+					}
+				} else {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Please provide a user and a message");
+				}
+			} else {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "you need to either use !twitch join or !twitch leave or !twitch send - wrong command, I did nothing");
+			}
 		}
 	}
 }
