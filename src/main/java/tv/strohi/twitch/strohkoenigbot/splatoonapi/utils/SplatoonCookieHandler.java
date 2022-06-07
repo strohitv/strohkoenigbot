@@ -9,7 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.SplatoonLogin;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.SplatoonLoginRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.SplatoonLoginRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.SplatNet2StatInkConfig;
 
 import java.io.File;

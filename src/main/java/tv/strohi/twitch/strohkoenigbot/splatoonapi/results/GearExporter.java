@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonGear;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonGearType;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonGearRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonGearRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGear;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 

@@ -11,7 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonClip;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonClipRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonClipRepository;
 
 import java.util.EnumSet;
 

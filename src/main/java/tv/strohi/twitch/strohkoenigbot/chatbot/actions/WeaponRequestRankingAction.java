@@ -14,8 +14,8 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoo
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.SplatoonWeaponRequestRanking;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.SplatoonMatchResult;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRequestRankingRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.SplatoonWeaponRequestRankingRepository;
 
 import java.time.Instant;
 import java.util.EnumSet;

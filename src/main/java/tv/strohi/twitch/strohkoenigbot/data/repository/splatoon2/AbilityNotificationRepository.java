@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.data.repository;
+package tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.repository.CrudRepository;

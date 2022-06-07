@@ -12,7 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessage
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
-import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 
 import java.util.*;

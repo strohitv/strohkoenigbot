@@ -18,7 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.SplatoonLogin;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.SplatoonLoginRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.SplatoonLoginRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 
 import java.io.BufferedWriter;

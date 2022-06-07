@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata;
+package tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
