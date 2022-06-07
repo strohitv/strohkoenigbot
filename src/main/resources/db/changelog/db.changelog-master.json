@@ -1524,13 +1524,13 @@
                 {
                   "column": {
                     "name": "start_time",
-                    "type": "timestamp"
+                    "type": "bigint"
                   }
                 },
                 {
                   "column": {
                     "name": "end_time",
-                    "type": "timestamp"
+                    "type": "bigint"
                   }
                 },
                 {
