@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface DiscordAccountRepository extends CrudRepository<Account, Long> {
+public interface AccountRepository extends CrudRepository<Account, Long> {
 	@NotNull List<Account> findAll();
 
 	Optional<Account> findById(long id);

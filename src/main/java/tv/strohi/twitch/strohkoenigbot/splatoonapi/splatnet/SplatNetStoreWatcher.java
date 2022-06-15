@@ -12,7 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2AbilityNotificationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMerchandises;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -57,11 +57,11 @@ public class SplatNetStoreWatcher {
 		this.splatoon2AbilityNotificationRepository = splatoon2AbilityNotificationRepository;
 	}
 
-	private DiscordAccountRepository discordAccountRepository;
+	private AccountRepository accountRepository;
 
 	@Autowired
-	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
-		this.discordAccountRepository = discordAccountRepository;
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
 	// 10 seconds after each full hour
@@ -71,7 +71,7 @@ public class SplatNetStoreWatcher {
 	public void refreshSplatNetShop() {
 		logger.info("checking for new splatnet store offers");
 
-		Account account = discordAccountRepository.findAll().stream()
+		Account account = accountRepository.findAll().stream()
 				.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
 				.findFirst()
 				.orElse(new Account());
@@ -180,7 +180,7 @@ public class SplatNetStoreWatcher {
 			if (!sentNotifications.contains(notification.getDiscordId())) {
 
 
-				discordAccountRepository.findById(notification.getDiscordId())
+				accountRepository.findById(notification.getDiscordId())
 						.ifPresent(discordAccount -> {
 									logger.info("Sending notification to discord account: {}", discordAccount.getDiscordId());
 									discordBot.sendPrivateMessageWithImage(discordAccount.getDiscordId(),

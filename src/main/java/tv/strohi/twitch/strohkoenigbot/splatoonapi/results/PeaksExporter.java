@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2MonthlyResult;
-import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2MonthlyResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetXRankLeaderBoard;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
@@ -20,11 +20,11 @@ import java.util.List;
 
 @Component
 public class PeaksExporter {
-	private DiscordAccountRepository discordAccountRepository;
+	private AccountRepository accountRepository;
 
 	@Autowired
-	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
-		this.discordAccountRepository = discordAccountRepository;
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
 	private Splatoon2MonthlyResultRepository monthlyResultRepository;
@@ -57,7 +57,7 @@ public class PeaksExporter {
 
 	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void reloadMonthlyResults() {
-		Account account = discordAccountRepository.findAll().stream()
+		Account account = accountRepository.findAll().stream()
 				.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
 				.findFirst()
 				.orElse(new Account());
@@ -152,7 +152,7 @@ public class PeaksExporter {
 	@Scheduled(cron = "0 0 5 1 * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void refreshPreviousMonth() {
-		Account account = discordAccountRepository.findAll().stream()
+		Account account = accountRepository.findAll().stream()
 				.filter(Account::getIsMainAccount)
 				.findFirst()
 				.orElse(new Account());

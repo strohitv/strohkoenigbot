@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
-import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetSalmonRunSchedules;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -24,11 +24,11 @@ public class SalmonWatcher {
 
 	private SplatNetSalmonRunSchedules schedules;
 
-	private DiscordAccountRepository discordAccountRepository;
+	private AccountRepository accountRepository;
 
 	@Autowired
-	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
-		this.discordAccountRepository = discordAccountRepository;
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
 	private RequestSender rotationLoader;
@@ -81,7 +81,7 @@ public class SalmonWatcher {
 		if (schedules == null || Arrays.stream(schedules.getDetails()).anyMatch(s -> s.getEndTimeAsInstant().isBefore(Instant.now()))) {
 			logger.info("checking for new salmon run rotations");
 
-			Account account = discordAccountRepository.findAll().stream()
+			Account account = accountRepository.findAll().stream()
 					.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
 					.findFirst()
 					.orElse(new Account());

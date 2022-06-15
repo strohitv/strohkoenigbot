@@ -7,7 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.SplatNet2StatInkConfig;
 
 import java.io.File;
@@ -27,19 +27,19 @@ public class SplatoonCookieHandler extends CookieHandler {
 
 	private Account account;
 
-	private final DiscordAccountRepository discordAccountRepository;
+	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 	private final DiscordBot discordBot;
 
-	private SplatoonCookieHandler(Account account, DiscordAccountRepository discordAccountRepository, ConfigurationRepository configurationRepository, DiscordBot discordBot) {
+	private SplatoonCookieHandler(Account account, AccountRepository accountRepository, ConfigurationRepository configurationRepository, DiscordBot discordBot) {
 		this.account = account;
-		this.discordAccountRepository = discordAccountRepository;
+		this.accountRepository = accountRepository;
 		this.configurationRepository = configurationRepository;
 		this.discordBot = discordBot;
 	}
 
-	public static SplatoonCookieHandler of(Account account, DiscordAccountRepository discordAccountRepository, ConfigurationRepository configurationRepository, DiscordBot discordBot) {
-		return new SplatoonCookieHandler(account, discordAccountRepository, configurationRepository, discordBot);
+	public static SplatoonCookieHandler of(Account account, AccountRepository accountRepository, ConfigurationRepository configurationRepository, DiscordBot discordBot) {
+		return new SplatoonCookieHandler(account, accountRepository, configurationRepository, discordBot);
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class SplatoonCookieHandler extends CookieHandler {
 				account.setSplatoonCookie(splatNet2StatInkConfig.getCookie());
 				account.setSplatoonCookieExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
 
-				account = discordAccountRepository.save(account);
+				account = accountRepository.save(account);
 				configurationRepository.deleteAll(configurationRepository.findByConfigName("refreshSplatNetCookie"));
 				sendLogs("done");
 			} else {
@@ -108,7 +108,7 @@ public class SplatoonCookieHandler extends CookieHandler {
 					Instant expiresAt = Instant.now().plus(cookieLifeDuration, ChronoUnit.SECONDS);
 					account.setSplatoonCookieExpiresAt(expiresAt);
 
-					account = discordAccountRepository.save(account);
+					account = accountRepository.save(account);
 				}
 			}
 		}

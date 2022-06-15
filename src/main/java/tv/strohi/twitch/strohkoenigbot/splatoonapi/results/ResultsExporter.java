@@ -19,7 +19,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.*;
@@ -61,11 +61,11 @@ public class ResultsExporter {
 		this.splatoonResultsLoader = splatoonResultsLoader;
 	}
 
-	private DiscordAccountRepository discordAccountRepository;
+	private AccountRepository accountRepository;
 
 	@Autowired
-	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
-		this.discordAccountRepository = discordAccountRepository;
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
 	private Splatoon2MatchRepository matchRepository;
@@ -264,7 +264,7 @@ public class ResultsExporter {
 			alreadyRunning = true;
 			logger.info("loading results");
 
-			List<Account> accounts = discordAccountRepository.findAll().stream()
+			List<Account> accounts = accountRepository.findAll().stream()
 					.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
 					.collect(Collectors.toList());
 

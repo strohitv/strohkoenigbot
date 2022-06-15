@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
-import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2StageRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStatPage;
@@ -24,11 +24,11 @@ import java.util.stream.Collectors;
 public class StatsExporter {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private DiscordAccountRepository discordAccountRepository;
+	private AccountRepository accountRepository;
 
 	@Autowired
-	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
-		this.discordAccountRepository = discordAccountRepository;
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
 	private Splatoon2WeaponRepository weaponRepository;
@@ -70,7 +70,7 @@ public class StatsExporter {
 	public void refreshStageAndWeaponStats() {
 		logger.info("loading stage and weapon stats");
 
-		Account account = discordAccountRepository.findAll().stream()
+		Account account = accountRepository.findAll().stream()
 				.filter(Account::getIsMainAccount)
 				.findFirst()
 				.orElse(new Account());
