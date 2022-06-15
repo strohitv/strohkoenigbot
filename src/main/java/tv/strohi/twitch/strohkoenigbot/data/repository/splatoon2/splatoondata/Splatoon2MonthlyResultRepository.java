@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface Splatoon2MonthlyResultRepository extends CrudRepository<Splatoon2MonthlyResult, Long> {
-	@NotNull List<Splatoon2MonthlyResult> findAll();
+	@NotNull List<Splatoon2MonthlyResult> findAllByAccountId(long accountId);
 
-	Splatoon2MonthlyResult findByPeriodYearAndPeriodMonth(int year, int month);
+	Splatoon2MonthlyResult findByAccountIdAndPeriodYearAndPeriodMonth(long accountId, int year, int month);
 }

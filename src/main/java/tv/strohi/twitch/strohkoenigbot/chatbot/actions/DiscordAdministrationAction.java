@@ -9,9 +9,11 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchSoAccount;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
@@ -42,6 +44,13 @@ public class DiscordAdministrationAction extends ChatAction {
 	@Autowired
 	public void setAuthRepository(TwitchAuthRepository authRepository) {
 		this.authRepository = authRepository;
+	}
+
+	private AccountRepository accountRepository;
+
+	@Autowired
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
 	private ConfigurationRepository configurationRepository;
@@ -129,7 +138,12 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Token was set successfully.");
 			}
 		} else if (message.startsWith("!start") && !resultsExporter.isStreamRunning()) {
-			resultsExporter.start();
+			Account account = accountRepository.findAll().stream()
+					.filter(Account::getIsMainAccount)
+					.findFirst()
+					.orElse(new Account());
+
+			resultsExporter.start(account.getId());
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export started successfully.");
 		} else if (message.startsWith("!stop") && resultsExporter.isStreamRunning()) {
 			resultsExporter.stop();
@@ -200,20 +214,24 @@ public class DiscordAdministrationAction extends ChatAction {
 
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Ranked running was set to " + "start".equals(startOrStop));
 		} else if (message.startsWith("!so add")) {
-			String account = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
+			String accountToAdd = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
 					.substring("!so add".length()).toLowerCase().trim();
 
-			if (twitchSoAccountRepository.findByUsername(account) == null) {
+			Account account = accountRepository.findByDiscordIdOrderById(Long.parseLong(args.getUserId())).stream().findFirst().orElse(new Account());
+
+			if (twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToAdd) == null) {
 				TwitchSoAccount soAccount = new TwitchSoAccount();
-				soAccount.setUsername(account);
+				soAccount.setUsername(accountToAdd);
 				twitchSoAccountRepository.save(soAccount);
 			}
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will trigger an **!so** message whenever **" + account + "** raids or writes the first message in stream.");
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will trigger an **!so** message whenever **" + accountToAdd + "** raids or writes the first message in stream.");
 		} else if (message.startsWith("!so list")) {
 			String answer = "You didn't tell me who to !so yet.";
 
-			List<TwitchSoAccount> accounts = twitchSoAccountRepository.findAll();
+			Account account = accountRepository.findByDiscordIdOrderById(Long.parseLong(args.getUserId())).stream().findFirst().orElse(new Account());
+
+			List<TwitchSoAccount> accounts = twitchSoAccountRepository.findAllByAccountId(account.getId());
 
 			if (accounts.size() > 0) {
 				StringBuilder builder = new StringBuilder("**I send an !so command whenever one of the following accounts raids or writes their first message**:\n");
@@ -224,15 +242,17 @@ public class DiscordAdministrationAction extends ChatAction {
 
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), answer);
 		} else if (message.startsWith("!so remove")) {
-			String account = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
+			String accountToRemove = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
 					.substring("!so remove".length()).toLowerCase().trim();
 
-			TwitchSoAccount soAccount = twitchSoAccountRepository.findByUsername(account);
+			Account account = accountRepository.findByDiscordIdOrderById(Long.parseLong(args.getUserId())).stream().findFirst().orElse(new Account());
+
+			TwitchSoAccount soAccount = twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToRemove);
 			if (soAccount != null) {
 				twitchSoAccountRepository.delete(soAccount);
 			}
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will not trigger an **!so** message anymore whenever **" + account + "** raids or writes the first message in stream.");
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will not trigger an **!so** message anymore whenever **" + accountToRemove + "** raids or writes the first message in stream.");
 		} else if (message.startsWith("!file")) {
 			String filepath = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!file".length()).trim();
 

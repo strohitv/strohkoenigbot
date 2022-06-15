@@ -18,6 +18,8 @@ public class Splatoon2MonthlyResult {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
+	private Long accountId;
+
 	private Integer periodYear;
 	private Integer periodMonth;
 	private Long startTime;

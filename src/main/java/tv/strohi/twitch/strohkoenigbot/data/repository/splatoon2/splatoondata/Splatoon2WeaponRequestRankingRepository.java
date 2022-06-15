@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface Splatoon2WeaponRequestRankingRepository extends CrudRepository<Splatoon2WeaponRequestRanking, Long> {
-	@NotNull List<Splatoon2WeaponRequestRanking> findAllByOrderByWinStreakDescChallengedAtAsc();
-	@NotNull List<Splatoon2WeaponRequestRanking> findAllByTwitchIdOrderByWinStreakDescChallengedAtAsc(String twitchId);
+	@NotNull List<Splatoon2WeaponRequestRanking> findAllByAccountIdOrderByWinStreakDescChallengedAtAsc(long accountId);
+	@NotNull List<Splatoon2WeaponRequestRanking> findAllByAccountIdAndTwitchIdOrderByWinStreakDescChallengedAtAsc(long accountId, String twitchId);
 }

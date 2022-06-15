@@ -83,7 +83,7 @@ public class DailyStatsSender {
 				.findFirst()
 				.orElse(new Account());
 
-		List<Splatoon2Match> matches = matchRepository.findByStartTimeGreaterThanEqualAndEndTimeLessThanEqual(startTime, endTime);
+		List<Splatoon2Match> matches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndEndTimeLessThanEqual(account.getId(), startTime, endTime);
 		List<Splatoon2WeaponStats> weaponStats = weaponStatsRepository.findByTurfLessThanAndAccountId(100_000, account.getId());
 
 		long yesterdayPaint = matches.stream().map(m -> (long)m.getTurfGain()).reduce(0L, Long::sum);

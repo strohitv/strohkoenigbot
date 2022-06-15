@@ -62,7 +62,7 @@ public class PeaksExporter {
 				.findFirst()
 				.orElse(new Account());
 
-		List<Splatoon2MonthlyResult> peaks = monthlyResultRepository.findAll();
+		List<Splatoon2MonthlyResult> peaks = monthlyResultRepository.findAllByAccountId(account.getId());
 
 		int year = 2018;
 		int month = 5;
@@ -121,7 +121,7 @@ public class PeaksExporter {
 			month = (month % 12) + 1;
 		}
 
-		peaks = monthlyResultRepository.findAll();
+		peaks = monthlyResultRepository.findAllByAccountId(account.getId());
 
 		Splatoon2MonthlyResult march21result = peaks.stream().filter(p -> p.getPeriodMonth() == 3 && p.getPeriodYear() == 2021).findFirst().orElse(null);
 		if (march21result != null && march21result.getRainmakerPeak() < 2251.5) {
@@ -161,7 +161,7 @@ public class PeaksExporter {
 		int year = date.getYear();
 		int month = date.getMonthValue();
 
-		Splatoon2MonthlyResult result = monthlyResultRepository.findByPeriodYearAndPeriodMonth(year, month);
+		Splatoon2MonthlyResult result = monthlyResultRepository.findByAccountIdAndPeriodYearAndPeriodMonth(account.getId(), year, month);
 		SplatNetXRankLeaderBoard board = getLeaderBoard(account, year, month);
 
 		boolean changed = false;

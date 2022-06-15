@@ -8,6 +8,6 @@ import java.util.List;
 
 @Repository
 public interface Splatoon2ClipRepository extends CrudRepository<Splatoon2Clip, Long> {
-	List<Splatoon2Clip> getAllByStartTimeIsGreaterThanAndEndTimeIsLessThan(long startTime, long endTime);
+	List<Splatoon2Clip> getAllByAccountIdAndStartTimeIsGreaterThanAndEndTimeIsLessThan(long accountId, long startTime, long endTime);
 	List<Splatoon2Clip> getAllByMatchId(long matchId);
 }

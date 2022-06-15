@@ -12,17 +12,17 @@ import java.util.List;
 
 @Repository
 public interface Splatoon2MatchRepository extends CrudRepository<Splatoon2Match, Long> {
-	@NotNull List<Splatoon2Match> findAll();
+	@NotNull List<Splatoon2Match> findAllByAccountId(long accountId);
 
-	Splatoon2Match findByBattleNumber(String battleNumber);
-	Splatoon2Match findBySplatnetBattleNumber(Integer splatnetBattleNumber);
+	Splatoon2Match findByAccountIdAndBattleNumber(long accountId, String battleNumber);
+	Splatoon2Match findByAccountIdAndSplatnetBattleNumber(long accountId, Integer splatnetBattleNumber);
 
-	@NotNull List<Splatoon2Match> findByStartTimeGreaterThanEqualAndMode(long startTime, Splatoon2Mode mode);
-	Splatoon2Match findTop1ByModeAndRuleOrderByStartTimeDesc(Splatoon2Mode mode, Splatoon2Rule rule);
+	@NotNull List<Splatoon2Match> findByAccountIdAndStartTimeGreaterThanEqualAndMode(long accountId, long startTime, Splatoon2Mode mode);
+	Splatoon2Match findTop1ByAccountIdAndModeAndRuleOrderByStartTimeDesc(long accountId, Splatoon2Mode mode, Splatoon2Rule rule);
 
-	@NotNull List<Splatoon2Match> findByStartTimeGreaterThanEqual(long startTime);
-	@NotNull List<Splatoon2Match> findByStartTimeGreaterThanEqualAndEndTimeLessThanEqual(long startTime, long endTime);
+	@NotNull List<Splatoon2Match> findByAccountIdAndStartTimeGreaterThanEqual(long accountId, long startTime);
+	@NotNull List<Splatoon2Match> findByAccountIdAndStartTimeGreaterThanEqualAndEndTimeLessThanEqual(long accountId, long startTime, long endTime);
 
-	@Query("select max(splatnetBattleNumber) from splatoon_2_match")
-	int findMaxBattleNumber();
+	@Query("select max(splatnetBattleNumber) from splatoon_2_match where accountId = :accountId")
+	int findMaxBattleNumber(long accountId);
 }

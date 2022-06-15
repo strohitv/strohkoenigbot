@@ -26,6 +26,8 @@ public class Splatoon2Match {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
+	private Long accountId;
+
 	private String battleNumber;
 	private Integer splatnetBattleNumber;
 

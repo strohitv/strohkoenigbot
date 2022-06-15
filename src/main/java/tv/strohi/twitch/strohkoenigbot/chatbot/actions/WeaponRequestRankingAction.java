@@ -8,11 +8,13 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Match;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2WeaponRequestRanking;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2MatchResult;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRequestRankingRepository;
@@ -26,16 +28,25 @@ public class WeaponRequestRankingAction implements IChatAction {
 	private static final String LAST_REQUESTER_NAME = "LastRequesterName";
 	private static final String LAST_REQUESTER_ID = "LastRequesterId";
 
+	// TODO needs to be reworked to be able to track several twitch accounts at once
 	private String userId = null;
 	private String userName = null;
 	private Instant challengedAt = null;
 	private boolean isStarted = false;
 	private int winStreak = 0;
 	private Splatoon2Match lastMatch = null;
+	private long accountId = 0L;
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
 		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.ChannelPointReward);
+	}
+
+	private AccountRepository accountRepository;
+
+	@Autowired
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
 	private ConfigurationRepository configurationRepository;
@@ -76,6 +87,12 @@ public class WeaponRequestRankingAction implements IChatAction {
 		message = message.toLowerCase().trim();
 
 		if (args.getReason() == TriggerReason.ChatMessage) {
+			accountId = accountRepository.findByTwitchUserId((String) args.getArguments().getOrDefault(ArgumentKey.ChannelId, null))
+					.filter(Account::getIsMainAccount)
+					.map(Account::getId)
+					.stream().findFirst()
+					.orElse(0L);
+
 			if (message.startsWith("!wr info")) {
 				args.getReplySender().send("To make weapon requests more interesting, there's a ranking of which request made me get the biggest win streak! Try giving me a weapon which makes me win many games to reach first place! Type \"!wr list\" in chat to see the global ranking, type \"!wr me\" in chat to see your own ranking.");
 			} else if (message.startsWith("!wr list")) {
@@ -159,11 +176,12 @@ public class WeaponRequestRankingAction implements IChatAction {
 			ranking.setTwitchName(userName);
 			ranking.setWeaponId(lastMatch.getWeaponId());
 			ranking.setWinStreak(winStreak);
+			ranking.setAccountId(accountId);
 
 			ranking = splatoon2WeaponRequestRankingRepository.save(ranking);
 			final long rankingId = ranking.getId();
 
-			List<Splatoon2WeaponRequestRanking> allRankings = splatoon2WeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+			List<Splatoon2WeaponRequestRanking> allRankings = splatoon2WeaponRequestRankingRepository.findAllByAccountIdOrderByWinStreakDescChallengedAtAsc(accountId);
 			int position = allRankings.indexOf(allRankings.stream().filter(r -> r.getId() == rankingId).findFirst().orElse(null));
 
 			Splatoon2Weapon weapon = splatoon2WeaponRepository.findById(lastMatch.getWeaponId()).orElse(null);
@@ -199,7 +217,7 @@ public class WeaponRequestRankingAction implements IChatAction {
 	}
 
 	private void sendLeaderBoardToTwitch(ActionArgs args) {
-		List<Splatoon2WeaponRequestRanking> allRankings = splatoon2WeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
+		List<Splatoon2WeaponRequestRanking> allRankings = splatoon2WeaponRequestRankingRepository.findAllByAccountIdOrderByWinStreakDescChallengedAtAsc(accountId);
 		List<Splatoon2Weapon> allWeapons = splatoon2WeaponRepository.findAll();
 
 		if (allRankings.size() > 0) {
@@ -235,8 +253,8 @@ public class WeaponRequestRankingAction implements IChatAction {
 	}
 
 	private void sendAccountPlacementsToTwitch(ActionArgs args) {
-		List<Splatoon2WeaponRequestRanking> allRankings = splatoon2WeaponRequestRankingRepository.findAllByOrderByWinStreakDescChallengedAtAsc();
-		List<Splatoon2WeaponRequestRanking> accountRankings = splatoon2WeaponRequestRankingRepository.findAllByTwitchIdOrderByWinStreakDescChallengedAtAsc(args.getUserId());
+		List<Splatoon2WeaponRequestRanking> allRankings = splatoon2WeaponRequestRankingRepository.findAllByAccountIdOrderByWinStreakDescChallengedAtAsc(accountId);
+		List<Splatoon2WeaponRequestRanking> accountRankings = splatoon2WeaponRequestRankingRepository.findAllByAccountIdAndTwitchIdOrderByWinStreakDescChallengedAtAsc(accountId, args.getUserId());
 		List<Splatoon2Weapon> allWeapons = splatoon2WeaponRepository.findAll();
 
 		if (accountRankings.size() > 0) {

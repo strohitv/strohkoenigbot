@@ -138,14 +138,14 @@ public class ExtendedStatisticsExporter {
 
 		int currentYear = date.getYear();
 		int currentMonth = date.getMonthValue();
-		Splatoon2MonthlyResult currentMonthResult = monthlyResultRepository.findByPeriodYearAndPeriodMonth(currentYear, currentMonth);
+		Splatoon2MonthlyResult currentMonthResult = monthlyResultRepository.findByAccountIdAndPeriodYearAndPeriodMonth(accountId, currentYear, currentMonth);
 
 		int previousPeriodYear = date.minusDays(date.getDayOfMonth() + 5).getYear();
 		int previousPeriodMonth = date.minusDays(date.getDayOfMonth() + 5).getMonthValue();
-		Splatoon2MonthlyResult lastMonthResult = monthlyResultRepository.findByPeriodYearAndPeriodMonth(previousPeriodYear, previousPeriodMonth);
+		Splatoon2MonthlyResult lastMonthResult = monthlyResultRepository.findByAccountIdAndPeriodYearAndPeriodMonth(accountId, previousPeriodYear, previousPeriodMonth);
 
-		List<Splatoon2Match> allStreamMatches = matchRepository.findByStartTimeGreaterThanEqualAndMode(started.getEpochSecond(), Splatoon2Mode.Ranked);
-		List<Splatoon2Match> allMonthMatches = matchRepository.findByStartTimeGreaterThanEqualAndMode(currentMonthResult.getStartTime(), Splatoon2Mode.Ranked);
+		List<Splatoon2Match> allStreamMatches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndMode(accountId, started.getEpochSecond(), Splatoon2Mode.Ranked);
+		List<Splatoon2Match> allMonthMatches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndMode(accountId, currentMonthResult.getStartTime(), Splatoon2Mode.Ranked);
 
 		Splatoon2Match lastMatch = allStreamMatches.stream()
 				.max(Comparator.comparing(Splatoon2Match::getStartTime))
@@ -271,7 +271,7 @@ public class ExtendedStatisticsExporter {
 				.filter(m -> m.getMatchResult() != Splatoon2MatchResult.Win)
 				.count();
 
-		List<Splatoon2MonthlyResult> allPeaks = monthlyResultRepository.findAll().stream()
+		List<Splatoon2MonthlyResult> allPeaks = monthlyResultRepository.findAllByAccountId(accountId).stream()
 				.filter(mr -> mr.getZonesPeak() != null || mr.getRainmakerPeak() != null || mr.getTowerPeak() != null || mr.getClamsPeak() != null)
 				.collect(Collectors.toList());
 

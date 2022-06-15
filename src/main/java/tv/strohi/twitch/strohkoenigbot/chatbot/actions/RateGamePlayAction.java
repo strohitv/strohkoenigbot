@@ -11,6 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2ClipRepository;
 
 import java.util.EnumSet;
@@ -45,6 +46,13 @@ public class RateGamePlayAction extends ChatAction {
 		this.clipRepository = clipRepository;
 	}
 
+	private AccountRepository accountRepository;
+
+	@Autowired
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
+	}
+
 	@Override
 	protected void execute(ActionArgs args) {
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
@@ -61,16 +69,18 @@ public class RateGamePlayAction extends ChatAction {
 					"I want to improve my gameplay. Whenever I play well or badly, please write \"!good DESCRIPTION\" or \"!bad DESCRIPTION\" in the chat to tell me about it. For example: \"!good You saved your team mate from the flanker\" after I've done exactly that in a match. We're going to review those ratings after each match. strohk2PogFree",
 					(String) args.getArguments().get(ArgumentKey.MessageNonce),
 					(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
-		} else if (message.startsWith("!good") || message.startsWith("!bad")) {
+		} else if (message.startsWith("!good ") || message.startsWith("!bad ")) {
 			logger.info("Rate gameplay action was called");
 			logger.info(message);
 
 			String channelId = (String) args.getArguments().getOrDefault(ArgumentKey.ChannelId, null);
-			Splatoon2Clip clip = botClient.createClip(message.substring("!rate".length()).trim(), channelId, message.startsWith("!good"));
+			Splatoon2Clip clip = botClient.createClip(message.substring("00000".length()).trim(), channelId, message.startsWith("!good"));
 
 			logger.info(clip);
 
 			if (clip != null) {
+				accountRepository.findByTwitchUserId(channelId).ifPresent(account -> clip.setAccountId(account.getId()));
+
 				clipRepository.save(clip);
 
 				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),

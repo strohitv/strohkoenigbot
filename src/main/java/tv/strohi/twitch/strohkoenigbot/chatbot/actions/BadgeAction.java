@@ -81,7 +81,12 @@ public class BadgeAction implements IChatAction {
 			c.set(Calendar.SECOND, 0);
 			long startTime = c.toInstant().getEpochSecond(); //the midnight, that's the first second of the day.
 
-			List<Splatoon2Match> matches = matchRepository.findByStartTimeGreaterThanEqual(startTime);
+			Account account = accountRepository.findAll().stream()
+					.filter(Account::getIsMainAccount)
+					.findFirst()
+					.orElse(new Account());
+
+			List<Splatoon2Match> matches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqual(account.getId(), startTime);
 
 			long todayPaint = matches.stream().map(m -> (long)m.getTurfGain()).reduce(0L, Long::sum);
 			long weaponCount = matches.stream().map(Splatoon2Match::getWeaponId).distinct().count();

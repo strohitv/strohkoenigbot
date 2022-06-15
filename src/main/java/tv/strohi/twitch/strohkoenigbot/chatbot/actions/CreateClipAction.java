@@ -11,6 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2ClipRepository;
 
 import java.util.EnumSet;
@@ -45,6 +46,13 @@ public class CreateClipAction extends ChatAction {
 		this.clipRepository = clipRepository;
 	}
 
+	private AccountRepository accountRepository;
+
+	@Autowired
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
+	}
+
 	@Override
 	protected void execute(ActionArgs args) {
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
@@ -63,6 +71,8 @@ public class CreateClipAction extends ChatAction {
 			logger.info(clip);
 
 			if (clip != null) {
+				accountRepository.findByTwitchUserId(channelId).ifPresent(account -> clip.setAccountId(account.getId()));
+
 				clipRepository.save(clip);
 
 				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),

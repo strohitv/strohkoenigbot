@@ -219,7 +219,7 @@ public class ResultsExporter {
 		return statistics.getCurrentHtml();
 	}
 
-	public void start() {
+	public void start(long accountId) {
 		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "starting the stream!");
 
 		isStreamRunning = true;
@@ -229,7 +229,7 @@ public class ResultsExporter {
 		int year = date.getYear();
 		int month = date.getMonthValue();
 
-		Splatoon2MonthlyResult result = monthlyResultRepository.findByPeriodYearAndPeriodMonth(year, month);
+		Splatoon2MonthlyResult result = monthlyResultRepository.findByAccountIdAndPeriodYearAndPeriodMonth(accountId, year, month);
 		Map<Splatoon2Rule, Double> startPowers = new HashMap<>() {{
 			put(Splatoon2Rule.SplatZones, result.getZonesCurrent());
 			put(Splatoon2Rule.Rainmaker, result.getRainmakerCurrent());
@@ -265,15 +265,13 @@ public class ResultsExporter {
 			logger.info("loading results");
 
 			List<Account> accounts = accountRepository.findAll().stream()
-					.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
+					.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank())
+					.filter(da -> da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
+					// TODO rework to make it work with any other account
+					.filter(Account::getIsMainAccount)
 					.collect(Collectors.toList());
 
 			for (Account account : accounts) {
-				// TODO rework to make it work with any other account
-				if (!account.getIsMainAccount()) {
-					continue;
-				}
-
 				try {
 					SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApiForAccount(account, "/api/results", SplatNetMatchResultsCollection.class);
 
@@ -285,7 +283,7 @@ public class ResultsExporter {
 
 						if (forceReload) {
 							for (SplatNetMatchResult singleResult : results) {
-								Splatoon2Match match = matchRepository.findByBattleNumber(singleResult.getBattle_number());
+								Splatoon2Match match = matchRepository.findByAccountIdAndBattleNumber(account.getId(), singleResult.getBattle_number());
 
 								if (match != null) {
 									long id = match.getId();
@@ -316,7 +314,7 @@ public class ResultsExporter {
 							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), "removed last 50 matches successfully");
 						}
 
-						int maxSavedBattleNumber = matchRepository.findMaxBattleNumber();
+						int maxSavedBattleNumber = matchRepository.findMaxBattleNumber(account.getId());
 						results = results.stream()
 								.filter(r -> r.getBattleNumberAsInteger() > maxSavedBattleNumber) // matchRepository.findBySplatnetBattleNumber(r.getBattleNumberAsInteger()) == null)
 								.collect(Collectors.toList());
@@ -327,6 +325,8 @@ public class ResultsExporter {
 
 						for (SplatNetMatchResult singleResult : results) {
 							Splatoon2Match match = new Splatoon2Match();
+							match.setAccountId(account.getId());
+
 							match.setBattleNumber(singleResult.getBattle_number());
 							match.setSplatnetBattleNumber(singleResult.getBattleNumberAsInteger());
 
@@ -494,7 +494,7 @@ public class ResultsExporter {
 							}
 
 							// refresh clips and send them to discord
-							List<Splatoon2Clip> clips = clipRepository.getAllByStartTimeIsGreaterThanAndEndTimeIsLessThan(match.getStartTime(), match.getEndTime());
+							List<Splatoon2Clip> clips = clipRepository.getAllByAccountIdAndStartTimeIsGreaterThanAndEndTimeIsLessThan(account.getId(), match.getStartTime(), match.getEndTime());
 							if (clips.size() > 0) {
 								StringBuilder ratingsMessageBuilder = new StringBuilder("**Viewers rated my performance**:\n");
 
@@ -526,7 +526,7 @@ public class ResultsExporter {
 							statistics.exportHtml();
 						}
 
-						refreshMonthlyRankedResults(results);
+						refreshMonthlyRankedResults(account.getId(), results);
 
 						if (isStreamRunning) {
 							extendedStatisticsExporter.export(account.getId());
@@ -599,15 +599,18 @@ public class ResultsExporter {
 			Double currentPower = getCurrentPower(leaderBoard, rotation);
 			logger.info("current power: {}", currentPower);
 			if (currentPower != null) {
-				Splatoon2Match match = matchRepository.findTop1ByModeAndRuleOrderByStartTimeDesc(Splatoon2Mode.Ranked, rotation.getRule());
+				Splatoon2Match match = matchRepository.findTop1ByAccountIdAndModeAndRuleOrderByStartTimeDesc(account.getId(), Splatoon2Mode.Ranked, rotation.getRule());
 				logger.info("match != null: {}", match != null);
 				if (match != null) {
 					if (match.getXPower() == null || !match.getXPower().equals(currentPower)
-							|| matchRepository.findByStartTimeGreaterThanEqualAndMode(
-							extendedStatisticsExporter.getStarted().getEpochSecond() > rotation.getStartTime()
-									? extendedStatisticsExporter.getStarted().getEpochSecond()
-									: rotation.getStartTime()
-							, Splatoon2Mode.Ranked).size() == 0) {
+							|| matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndMode
+							(
+									account.getId(),
+									extendedStatisticsExporter.getStarted().getEpochSecond() > rotation.getStartTime()
+											? extendedStatisticsExporter.getStarted().getEpochSecond()
+											: rotation.getStartTime()
+									, Splatoon2Mode.Ranked)
+							.size() == 0) {
 						logger.info("1 trying to switch to scene: {}", gameSceneName);
 						obsSceneSwitcher.switchScene(gameSceneName);
 					} else {
@@ -678,12 +681,12 @@ public class ResultsExporter {
 		return abilityUsed;
 	}
 
-	private void refreshMonthlyRankedResults(List<SplatNetMatchResult> results) {
+	private void refreshMonthlyRankedResults(long accountId, List<SplatNetMatchResult> results) {
 		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault());
 		int year = date.getYear();
 		int month = date.getMonthValue();
 
-		Splatoon2MonthlyResult result = monthlyResultRepository.findByPeriodYearAndPeriodMonth(year, month);
+		Splatoon2MonthlyResult result = monthlyResultRepository.findByAccountIdAndPeriodYearAndPeriodMonth(accountId, year, month);
 
 		if (result != null) {
 			boolean isDirty = false;

@@ -13,6 +13,7 @@ public interface AccountRepository extends CrudRepository<Account, Long> {
 	@NotNull List<Account> findAll();
 
 	Optional<Account> findById(long id);
+	Optional<Account> findByTwitchUserId(String id);
 
 	List<Account> findByDiscordIdOrderById(Long discordId);
 }

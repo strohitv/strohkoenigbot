@@ -1992,6 +1992,141 @@
               ],
               "tableName": "splatoon_2_weapon"
             }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "position": 2,
+                    "type": "bigint"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_clip"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "position": 2,
+                    "type": "bigint"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "position": 2,
+                    "type": "bigint"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_monthly_result"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "position": 2,
+                    "type": "bigint"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_weapon_request_ranking"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "position": 2,
+                    "type": "bigint"
+                  }
+                }
+              ],
+              "tableName": "twitch_so_account"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_clip"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_monthly_result"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_weapon_request_ranking"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "twitch_so_account"
+            }
           }
         ]
       }

@@ -25,8 +25,10 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.ChannelMessageConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.PrivateMessageConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.RaidEventConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.RewardRedeemedConsumer;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 
@@ -69,6 +71,13 @@ public class TwitchBotClient {
 	@Autowired
 	public void setAutoSoAction(AutoSoAction autoSoAction) {
 		this.autoSoAction = autoSoAction;
+	}
+
+	private AccountRepository accountRepository;
+
+	@Autowired
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
 	public static void setResultsExporter(ResultsExporter resultsExporter) {
@@ -122,7 +131,8 @@ public class TwitchBotClient {
 				isStreamRunning = true;
 
 				if (resultsExporter != null) {
-					resultsExporter.start();
+					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(new Account());
+					resultsExporter.start(account.getId());
 				}
 
 				autoSoAction.startStream();

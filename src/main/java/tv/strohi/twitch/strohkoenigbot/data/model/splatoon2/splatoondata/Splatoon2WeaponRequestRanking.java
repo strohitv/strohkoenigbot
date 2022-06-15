@@ -19,6 +19,8 @@ public class Splatoon2WeaponRequestRanking {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
+	private Long accountId;
+
 	private String twitchId;
 
 	private String twitchName;

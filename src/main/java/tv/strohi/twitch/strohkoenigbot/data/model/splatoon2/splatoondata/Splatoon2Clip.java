@@ -17,6 +17,8 @@ public class Splatoon2Clip {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
+	private Long accountId;
+
 	private Long startTime;
 
 	private Long endTime;
