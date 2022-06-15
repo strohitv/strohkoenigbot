@@ -61,7 +61,7 @@ public class RequestSender {
 
 		try {
 			logger.debug("RequestSender sending new request to '{}'", request.uri().toString());
-			HttpResponse<byte[]> response = clientCreator.of(account).send(request, HttpResponse.BodyHandlers.ofByteArray());
+			HttpResponse<byte[]> response = clientCreator.createFor(account).send(request, HttpResponse.BodyHandlers.ofByteArray());
 
 			logger.debug("got response with status code {}:", response.statusCode());
 

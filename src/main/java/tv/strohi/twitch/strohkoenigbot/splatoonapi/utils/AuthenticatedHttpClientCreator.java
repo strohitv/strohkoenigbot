@@ -32,7 +32,7 @@ public class AuthenticatedHttpClientCreator {
 		this.discordBot = discordBot;
 	}
 
-	public HttpClient of(Account account) {
+	public HttpClient createFor(Account account) {
 		return HttpClient.newBuilder()
 				.version(HttpClient.Version.HTTP_2)
 				.cookieHandler(SplatoonCookieHandler.of(account, accountRepository, configurationRepository, discordBot))
