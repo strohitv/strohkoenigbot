@@ -22,241 +22,13 @@ import static tv.strohi.twitch.strohkoenigbot.utils.ParseUtils.parseLongSafe;
 
 @Component
 public class ManageSplatnetNotificationsAction extends ChatAction {
-	private final Map<String, GearType> gearNames = new HashMap<>() {
-		{
-			put("head", GearType.Head);
-			put("h", GearType.Head);
-			put("headgear", GearType.Head);
-			put("hat", GearType.Head);
-			put("cap", GearType.Head);
+	private final Map<String, GearType> gearNames = new HashMap<>();
 
-			put("clothes", GearType.Shirt);
-			put("c", GearType.Shirt);
-			put("clothing", GearType.Shirt);
-			put("shirt", GearType.Shirt);
-			put("body", GearType.Shirt);
+	private final Map<String, AbilityType> abilityNames = new HashMap<>();
 
-			put("shoes", GearType.Shoes);
-			put("s", GearType.Shoes);
-			put("foot", GearType.Shoes);
-			put("feet", GearType.Shoes);
-		}
-	};
+	private final Map<String, AbilityType> abilityNamesPlusAnyAbility = new HashMap<>();
 
-	private final Map<String, AbilityType> abilityNames = new HashMap<>() {
-		{
-			put("ability doubler", AbilityType.AbilityDoubler);
-			put("ability double", AbilityType.AbilityDoubler);
-			put("ability", AbilityType.AbilityDoubler);
-			put("doubler", AbilityType.AbilityDoubler);
-			put("ad", AbilityType.AbilityDoubler);
-
-			put("bomb defense up dx", AbilityType.BombDefenseUpDx);
-			put("bomb defense up", AbilityType.BombDefenseUpDx);
-			put("bomb defense dx", AbilityType.BombDefenseUpDx);
-			put("bomb defense", AbilityType.BombDefenseUpDx);
-			put("bombdefense", AbilityType.BombDefenseUpDx);
-			put("bomb", AbilityType.BombDefenseUpDx);
-			put("bdx", AbilityType.BombDefenseUpDx);
-			put("bd", AbilityType.BombDefenseUpDx);
-
-			put("comeback", AbilityType.Comeback);
-			put("come back", AbilityType.Comeback);
-
-			put("drop roller", AbilityType.DropRoller);
-			put("droproller", AbilityType.DropRoller);
-			put("drop", AbilityType.DropRoller);
-			put("roller", AbilityType.DropRoller);
-			put("dr", AbilityType.DropRoller);
-
-			put("haunt", AbilityType.Haunt);
-
-			put("ink recovery up", AbilityType.InkRecoveryUp);
-			put("ink recovery", AbilityType.InkRecoveryUp);
-			put("recovery", AbilityType.InkRecoveryUp);
-
-			put("ink resistance up", AbilityType.InkResistanceUp);
-			put("ink resistance", AbilityType.InkResistanceUp);
-			put("resistance", AbilityType.InkResistanceUp);
-			put("ink res", AbilityType.InkResistanceUp);
-			put("inkres", AbilityType.InkResistanceUp);
-			put("ink", AbilityType.InkResistanceUp);
-			put("iru", AbilityType.InkResistanceUp);
-			put("ir", AbilityType.InkResistanceUp);
-
-			put("ink saver (main)", AbilityType.InkSaverMain);
-			put("ink saver main", AbilityType.InkSaverMain);
-			put("inksaver (main)", AbilityType.InkSaverMain);
-			put("inksaver main", AbilityType.InkSaverMain);
-			put("main saver", AbilityType.InkSaverMain);
-			put("mainsaver", AbilityType.InkSaverMain);
-			put("ism", AbilityType.InkSaverMain);
-
-			put("ink saver (sub)", AbilityType.InkSaverSub);
-			put("ink saver sub", AbilityType.InkSaverSub);
-			put("inksaversub", AbilityType.InkSaverSub);
-			put("inksaver (sub)", AbilityType.InkSaverSub);
-			put("inksaver sub", AbilityType.InkSaverSub);
-			put("sub saver", AbilityType.InkSaverSub);
-			put("subsaver", AbilityType.InkSaverSub);
-			put("iss", AbilityType.InkSaverSub);
-
-			put("last-ditch effort", AbilityType.LastDitchEffort);
-			put("last ditch effort", AbilityType.LastDitchEffort);
-			put("lastditcheffort", AbilityType.LastDitchEffort);
-			put("last ditch", AbilityType.LastDitchEffort);
-			put("last effort", AbilityType.LastDitchEffort);
-			put("last", AbilityType.LastDitchEffort);
-			put("ditch", AbilityType.LastDitchEffort);
-			put("ditch effort", AbilityType.LastDitchEffort);
-			put("effort", AbilityType.LastDitchEffort);
-			put("lde", AbilityType.LastDitchEffort);
-
-			put("main power up", AbilityType.MainPowerUp);
-			put("mainpower up", AbilityType.MainPowerUp);
-			put("mainpowerup", AbilityType.MainPowerUp);
-			put("main powerup", AbilityType.MainPowerUp);
-			put("main power", AbilityType.MainPowerUp);
-			put("mainpower", AbilityType.MainPowerUp);
-			put("power up", AbilityType.MainPowerUp);
-			put("powerup", AbilityType.MainPowerUp);
-			put("main up", AbilityType.MainPowerUp);
-			put("mainup", AbilityType.MainPowerUp);
-			put("mpu", AbilityType.MainPowerUp);
-
-			put("ninja squid", AbilityType.NinjaSquid);
-			put("ninjasquid", AbilityType.NinjaSquid);
-			put("ninja", AbilityType.NinjaSquid);
-			put("squid", AbilityType.NinjaSquid);
-			put("ns", AbilityType.NinjaSquid);
-
-			put("object shredder", AbilityType.ObjectShredder);
-			put("objectshredder", AbilityType.ObjectShredder);
-			put("object", AbilityType.ObjectShredder);
-			put("shredder", AbilityType.ObjectShredder);
-			put("os", AbilityType.ObjectShredder);
-
-			put("opening gambit", AbilityType.OpeningGambit);
-			put("openinggambit", AbilityType.OpeningGambit);
-			put("opening", AbilityType.OpeningGambit);
-			put("gambit", AbilityType.OpeningGambit);
-			put("og", AbilityType.OpeningGambit);
-
-			put("quick respawn", AbilityType.QuickRespawn);
-			put("quickrespawn", AbilityType.QuickRespawn);
-			put("quick", AbilityType.QuickRespawn);
-			put("qr", AbilityType.QuickRespawn);
-
-			put("quick super jump", AbilityType.QuickSuperJump);
-			put("quick superjump", AbilityType.QuickSuperJump);
-			put("quicksuperjump", AbilityType.QuickSuperJump);
-			put("super jump", AbilityType.QuickSuperJump);
-			put("superjump", AbilityType.QuickSuperJump);
-			put("quickjump", AbilityType.QuickSuperJump);
-			put("qsj", AbilityType.QuickSuperJump);
-
-			put("respawn punisher", AbilityType.RespawnPunisher);
-			put("respawnpunisher", AbilityType.RespawnPunisher);
-			put("respawn", AbilityType.RespawnPunisher);
-			put("punisher", AbilityType.RespawnPunisher);
-			put("rp", AbilityType.RespawnPunisher);
-
-			put("run speed up", AbilityType.RunSpeedUp);
-			put("runspeed up", AbilityType.RunSpeedUp);
-			put("run speedup", AbilityType.RunSpeedUp);
-			put("runspeedup", AbilityType.RunSpeedUp);
-			put("run speed", AbilityType.RunSpeedUp);
-			put("runspeed", AbilityType.RunSpeedUp);
-			put("run up", AbilityType.RunSpeedUp);
-			put("runup", AbilityType.RunSpeedUp);
-			put("run", AbilityType.RunSpeedUp);
-			put("rsu", AbilityType.RunSpeedUp);
-			put("rs", AbilityType.RunSpeedUp);
-
-			put("special charge up", AbilityType.SpecialChargeUp);
-			put("specialcharge up", AbilityType.SpecialChargeUp);
-			put("special chargeup", AbilityType.SpecialChargeUp);
-			put("specialchargeup", AbilityType.SpecialChargeUp);
-			put("special charge", AbilityType.SpecialChargeUp);
-			put("specialcharge", AbilityType.SpecialChargeUp);
-			put("special up", AbilityType.SpecialChargeUp);
-			put("charge up", AbilityType.SpecialChargeUp);
-			put("scu", AbilityType.SpecialChargeUp);
-			put("sc", AbilityType.SpecialChargeUp);
-
-			put("special power up", AbilityType.SpecialPowerUp);
-			put("specialpower up", AbilityType.SpecialPowerUp);
-			put("special powerup", AbilityType.SpecialPowerUp);
-			put("specialpowerup", AbilityType.SpecialPowerUp);
-			put("special power", AbilityType.SpecialPowerUp);
-			put("specialpower", AbilityType.SpecialPowerUp);
-			put("spu", AbilityType.SpecialPowerUp);
-			put("sp", AbilityType.SpecialPowerUp);
-
-			put("special saver", AbilityType.SpecialSaver);
-			put("specialsaver", AbilityType.SpecialSaver);
-			put("saver", AbilityType.SpecialSaver);
-			put("ss", AbilityType.SpecialSaver);
-
-			put("stealth jump", AbilityType.StealthJump);
-			put("stealthjump", AbilityType.StealthJump);
-			put("stealth", AbilityType.StealthJump);
-			put("jump", AbilityType.StealthJump);
-			put("sj", AbilityType.StealthJump);
-
-			put("sub power up", AbilityType.SubPowerUp);
-			put("subpower up", AbilityType.SubPowerUp);
-			put("sub powerup", AbilityType.SubPowerUp);
-			put("subpowerup", AbilityType.SubPowerUp);
-			put("sub up", AbilityType.SubPowerUp);
-			put("sub power", AbilityType.SubPowerUp);
-			put("subpower", AbilityType.SubPowerUp);
-			put("sub", AbilityType.SubPowerUp);
-
-			put("swim speed up", AbilityType.SwimSpeedUp);
-			put("swimspeed up", AbilityType.SwimSpeedUp);
-			put("swim speedup", AbilityType.SwimSpeedUp);
-			put("swimspeedup", AbilityType.SwimSpeedUp);
-			put("swim speed", AbilityType.SwimSpeedUp);
-			put("swimspeed", AbilityType.SwimSpeedUp);
-			put("swim up", AbilityType.SwimSpeedUp);
-			put("swimup", AbilityType.SwimSpeedUp);
-			put("swim", AbilityType.SwimSpeedUp);
-			put("ssu", AbilityType.SwimSpeedUp);
-
-			put("tenacity", AbilityType.Tenacity);
-
-			put("thermal ink", AbilityType.ThermalInk);
-			put("thermalink", AbilityType.ThermalInk);
-			put("thermal", AbilityType.ThermalInk);
-			put("ti", AbilityType.ThermalInk);
-		}
-	};
-	private final Map<String, AbilityType> abilityNamesPlusAnyAbility = new HashMap<>() {
-		{
-			putAll(abilityNames);
-			put("any", AbilityType.Any);
-		}
-	};
-
-	private final Map<AbilityType, GearType> exclusiveAbilities = new HashMap<>() {
-		{
-			put(AbilityType.Comeback, GearType.Head);
-			put(AbilityType.LastDitchEffort, GearType.Head);
-			put(AbilityType.OpeningGambit, GearType.Head);
-			put(AbilityType.Tenacity, GearType.Head);
-
-			put(AbilityType.AbilityDoubler, GearType.Shirt);
-			put(AbilityType.Haunt, GearType.Shirt);
-			put(AbilityType.NinjaSquid, GearType.Shirt);
-			put(AbilityType.RespawnPunisher, GearType.Shirt);
-			put(AbilityType.ThermalInk, GearType.Shirt);
-
-			put(AbilityType.DropRoller, GearType.Shoes);
-			put(AbilityType.ObjectShredder, GearType.Shoes);
-			put(AbilityType.StealthJump, GearType.Shoes);
-		}
-	};
+	private final Map<AbilityType, GearType> exclusiveAbilities = new HashMap<>();
 
 	private final Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository;
 	private final AccountRepository accountRepository;
@@ -272,6 +44,11 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 	public ManageSplatnetNotificationsAction(Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository, AccountRepository accountRepository) {
 		this.splatoon2AbilityNotificationRepository = splatoon2AbilityNotificationRepository;
 		this.accountRepository = accountRepository;
+
+		fillGearNames();
+		fillAbilityNames();
+		fillAbilityNamesPlusAnyAbility();
+		fillExclusiveAbilities();
 	}
 
 	@Override
@@ -500,5 +277,238 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		}
 
 		return result;
+	}
+
+	private void fillGearNames() {
+		// gear names
+		gearNames.put("head", GearType.Head);
+		gearNames.put("h", GearType.Head);
+		gearNames.put("headgear", GearType.Head);
+		gearNames.put("hat", GearType.Head);
+		gearNames.put("cap", GearType.Head);
+
+		gearNames.put("clothes", GearType.Shirt);
+		gearNames.put("c", GearType.Shirt);
+		gearNames.put("clothing", GearType.Shirt);
+		gearNames.put("shirt", GearType.Shirt);
+		gearNames.put("body", GearType.Shirt);
+
+		gearNames.put("shoes", GearType.Shoes);
+		gearNames.put("s", GearType.Shoes);
+		gearNames.put("foot", GearType.Shoes);
+		gearNames.put("feet", GearType.Shoes);
+	}
+
+	private void fillAbilityNames() {
+		// ability names
+		abilityNames.put("ability doubler", AbilityType.AbilityDoubler);
+		abilityNames.put("ability double", AbilityType.AbilityDoubler);
+		abilityNames.put("ability", AbilityType.AbilityDoubler);
+		abilityNames.put("doubler", AbilityType.AbilityDoubler);
+		abilityNames.put("ad", AbilityType.AbilityDoubler);
+
+		abilityNames.put("bomb defense up dx", AbilityType.BombDefenseUpDx);
+		abilityNames.put("bomb defense up", AbilityType.BombDefenseUpDx);
+		abilityNames.put("bomb defense dx", AbilityType.BombDefenseUpDx);
+		abilityNames.put("bomb defense", AbilityType.BombDefenseUpDx);
+		abilityNames.put("bombdefense", AbilityType.BombDefenseUpDx);
+		abilityNames.put("bomb", AbilityType.BombDefenseUpDx);
+		abilityNames.put("bdx", AbilityType.BombDefenseUpDx);
+		abilityNames.put("bd", AbilityType.BombDefenseUpDx);
+
+		abilityNames.put("comeback", AbilityType.Comeback);
+		abilityNames.put("come back", AbilityType.Comeback);
+
+		abilityNames.put("drop roller", AbilityType.DropRoller);
+		abilityNames.put("droproller", AbilityType.DropRoller);
+		abilityNames.put("drop", AbilityType.DropRoller);
+		abilityNames.put("roller", AbilityType.DropRoller);
+		abilityNames.put("dr", AbilityType.DropRoller);
+
+		abilityNames.put("haunt", AbilityType.Haunt);
+
+		abilityNames.put("ink recovery up", AbilityType.InkRecoveryUp);
+		abilityNames.put("ink recovery", AbilityType.InkRecoveryUp);
+		abilityNames.put("recovery", AbilityType.InkRecoveryUp);
+
+		abilityNames.put("ink resistance up", AbilityType.InkResistanceUp);
+		abilityNames.put("ink resistance", AbilityType.InkResistanceUp);
+		abilityNames.put("resistance", AbilityType.InkResistanceUp);
+		abilityNames.put("ink res", AbilityType.InkResistanceUp);
+		abilityNames.put("inkres", AbilityType.InkResistanceUp);
+		abilityNames.put("ink", AbilityType.InkResistanceUp);
+		abilityNames.put("iru", AbilityType.InkResistanceUp);
+		abilityNames.put("ir", AbilityType.InkResistanceUp);
+
+		abilityNames.put("ink saver (main)", AbilityType.InkSaverMain);
+		abilityNames.put("ink saver main", AbilityType.InkSaverMain);
+		abilityNames.put("inksaver (main)", AbilityType.InkSaverMain);
+		abilityNames.put("inksaver main", AbilityType.InkSaverMain);
+		abilityNames.put("main saver", AbilityType.InkSaverMain);
+		abilityNames.put("mainsaver", AbilityType.InkSaverMain);
+		abilityNames.put("ism", AbilityType.InkSaverMain);
+
+		abilityNames.put("ink saver (sub)", AbilityType.InkSaverSub);
+		abilityNames.put("ink saver sub", AbilityType.InkSaverSub);
+		abilityNames.put("inksaversub", AbilityType.InkSaverSub);
+		abilityNames.put("inksaver (sub)", AbilityType.InkSaverSub);
+		abilityNames.put("inksaver sub", AbilityType.InkSaverSub);
+		abilityNames.put("sub saver", AbilityType.InkSaverSub);
+		abilityNames.put("subsaver", AbilityType.InkSaverSub);
+		abilityNames.put("iss", AbilityType.InkSaverSub);
+
+		abilityNames.put("last-ditch effort", AbilityType.LastDitchEffort);
+		abilityNames.put("last ditch effort", AbilityType.LastDitchEffort);
+		abilityNames.put("lastditcheffort", AbilityType.LastDitchEffort);
+		abilityNames.put("last ditch", AbilityType.LastDitchEffort);
+		abilityNames.put("last effort", AbilityType.LastDitchEffort);
+		abilityNames.put("last", AbilityType.LastDitchEffort);
+		abilityNames.put("ditch", AbilityType.LastDitchEffort);
+		abilityNames.put("ditch effort", AbilityType.LastDitchEffort);
+		abilityNames.put("effort", AbilityType.LastDitchEffort);
+		abilityNames.put("lde", AbilityType.LastDitchEffort);
+
+		abilityNames.put("main power up", AbilityType.MainPowerUp);
+		abilityNames.put("mainpower up", AbilityType.MainPowerUp);
+		abilityNames.put("mainpowerup", AbilityType.MainPowerUp);
+		abilityNames.put("main powerup", AbilityType.MainPowerUp);
+		abilityNames.put("main power", AbilityType.MainPowerUp);
+		abilityNames.put("mainpower", AbilityType.MainPowerUp);
+		abilityNames.put("power up", AbilityType.MainPowerUp);
+		abilityNames.put("powerup", AbilityType.MainPowerUp);
+		abilityNames.put("main up", AbilityType.MainPowerUp);
+		abilityNames.put("mainup", AbilityType.MainPowerUp);
+		abilityNames.put("mpu", AbilityType.MainPowerUp);
+
+		abilityNames.put("ninja squid", AbilityType.NinjaSquid);
+		abilityNames.put("ninjasquid", AbilityType.NinjaSquid);
+		abilityNames.put("ninja", AbilityType.NinjaSquid);
+		abilityNames.put("squid", AbilityType.NinjaSquid);
+		abilityNames.put("ns", AbilityType.NinjaSquid);
+
+		abilityNames.put("object shredder", AbilityType.ObjectShredder);
+		abilityNames.put("objectshredder", AbilityType.ObjectShredder);
+		abilityNames.put("object", AbilityType.ObjectShredder);
+		abilityNames.put("shredder", AbilityType.ObjectShredder);
+		abilityNames.put("os", AbilityType.ObjectShredder);
+
+		abilityNames.put("opening gambit", AbilityType.OpeningGambit);
+		abilityNames.put("openinggambit", AbilityType.OpeningGambit);
+		abilityNames.put("opening", AbilityType.OpeningGambit);
+		abilityNames.put("gambit", AbilityType.OpeningGambit);
+		abilityNames.put("og", AbilityType.OpeningGambit);
+
+		abilityNames.put("quick respawn", AbilityType.QuickRespawn);
+		abilityNames.put("quickrespawn", AbilityType.QuickRespawn);
+		abilityNames.put("quick", AbilityType.QuickRespawn);
+		abilityNames.put("qr", AbilityType.QuickRespawn);
+
+		abilityNames.put("quick super jump", AbilityType.QuickSuperJump);
+		abilityNames.put("quick superjump", AbilityType.QuickSuperJump);
+		abilityNames.put("quicksuperjump", AbilityType.QuickSuperJump);
+		abilityNames.put("super jump", AbilityType.QuickSuperJump);
+		abilityNames.put("superjump", AbilityType.QuickSuperJump);
+		abilityNames.put("quickjump", AbilityType.QuickSuperJump);
+		abilityNames.put("qsj", AbilityType.QuickSuperJump);
+
+		abilityNames.put("respawn punisher", AbilityType.RespawnPunisher);
+		abilityNames.put("respawnpunisher", AbilityType.RespawnPunisher);
+		abilityNames.put("respawn", AbilityType.RespawnPunisher);
+		abilityNames.put("punisher", AbilityType.RespawnPunisher);
+		abilityNames.put("rp", AbilityType.RespawnPunisher);
+
+		abilityNames.put("run speed up", AbilityType.RunSpeedUp);
+		abilityNames.put("runspeed up", AbilityType.RunSpeedUp);
+		abilityNames.put("run speedup", AbilityType.RunSpeedUp);
+		abilityNames.put("runspeedup", AbilityType.RunSpeedUp);
+		abilityNames.put("run speed", AbilityType.RunSpeedUp);
+		abilityNames.put("runspeed", AbilityType.RunSpeedUp);
+		abilityNames.put("run up", AbilityType.RunSpeedUp);
+		abilityNames.put("runup", AbilityType.RunSpeedUp);
+		abilityNames.put("run", AbilityType.RunSpeedUp);
+		abilityNames.put("rsu", AbilityType.RunSpeedUp);
+		abilityNames.put("rs", AbilityType.RunSpeedUp);
+
+		abilityNames.put("special charge up", AbilityType.SpecialChargeUp);
+		abilityNames.put("specialcharge up", AbilityType.SpecialChargeUp);
+		abilityNames.put("special chargeup", AbilityType.SpecialChargeUp);
+		abilityNames.put("specialchargeup", AbilityType.SpecialChargeUp);
+		abilityNames.put("special charge", AbilityType.SpecialChargeUp);
+		abilityNames.put("specialcharge", AbilityType.SpecialChargeUp);
+		abilityNames.put("special up", AbilityType.SpecialChargeUp);
+		abilityNames.put("charge up", AbilityType.SpecialChargeUp);
+		abilityNames.put("scu", AbilityType.SpecialChargeUp);
+		abilityNames.put("sc", AbilityType.SpecialChargeUp);
+
+		abilityNames.put("special power up", AbilityType.SpecialPowerUp);
+		abilityNames.put("specialpower up", AbilityType.SpecialPowerUp);
+		abilityNames.put("special powerup", AbilityType.SpecialPowerUp);
+		abilityNames.put("specialpowerup", AbilityType.SpecialPowerUp);
+		abilityNames.put("special power", AbilityType.SpecialPowerUp);
+		abilityNames.put("specialpower", AbilityType.SpecialPowerUp);
+		abilityNames.put("spu", AbilityType.SpecialPowerUp);
+		abilityNames.put("sp", AbilityType.SpecialPowerUp);
+
+		abilityNames.put("special saver", AbilityType.SpecialSaver);
+		abilityNames.put("specialsaver", AbilityType.SpecialSaver);
+		abilityNames.put("saver", AbilityType.SpecialSaver);
+		abilityNames.put("ss", AbilityType.SpecialSaver);
+
+		abilityNames.put("stealth jump", AbilityType.StealthJump);
+		abilityNames.put("stealthjump", AbilityType.StealthJump);
+		abilityNames.put("stealth", AbilityType.StealthJump);
+		abilityNames.put("jump", AbilityType.StealthJump);
+		abilityNames.put("sj", AbilityType.StealthJump);
+
+		abilityNames.put("sub power up", AbilityType.SubPowerUp);
+		abilityNames.put("subpower up", AbilityType.SubPowerUp);
+		abilityNames.put("sub powerup", AbilityType.SubPowerUp);
+		abilityNames.put("subpowerup", AbilityType.SubPowerUp);
+		abilityNames.put("sub up", AbilityType.SubPowerUp);
+		abilityNames.put("sub power", AbilityType.SubPowerUp);
+		abilityNames.put("subpower", AbilityType.SubPowerUp);
+		abilityNames.put("sub", AbilityType.SubPowerUp);
+
+		abilityNames.put("swim speed up", AbilityType.SwimSpeedUp);
+		abilityNames.put("swimspeed up", AbilityType.SwimSpeedUp);
+		abilityNames.put("swim speedup", AbilityType.SwimSpeedUp);
+		abilityNames.put("swimspeedup", AbilityType.SwimSpeedUp);
+		abilityNames.put("swim speed", AbilityType.SwimSpeedUp);
+		abilityNames.put("swimspeed", AbilityType.SwimSpeedUp);
+		abilityNames.put("swim up", AbilityType.SwimSpeedUp);
+		abilityNames.put("swimup", AbilityType.SwimSpeedUp);
+		abilityNames.put("swim", AbilityType.SwimSpeedUp);
+		abilityNames.put("ssu", AbilityType.SwimSpeedUp);
+
+		abilityNames.put("tenacity", AbilityType.Tenacity);
+
+		abilityNames.put("thermal ink", AbilityType.ThermalInk);
+		abilityNames.put("thermalink", AbilityType.ThermalInk);
+		abilityNames.put("thermal", AbilityType.ThermalInk);
+		abilityNames.put("ti", AbilityType.ThermalInk);
+	}
+
+	private void fillAbilityNamesPlusAnyAbility() {
+		// ability names plus 'any' ability
+		abilityNamesPlusAnyAbility.putAll(abilityNames);
+		abilityNamesPlusAnyAbility.put("any", AbilityType.Any);
+	}
+
+	private void fillExclusiveAbilities() {
+		// exclusive abilities
+		exclusiveAbilities.put(AbilityType.Comeback, GearType.Head);
+		exclusiveAbilities.put(AbilityType.LastDitchEffort, GearType.Head);
+		exclusiveAbilities.put(AbilityType.OpeningGambit, GearType.Head);
+		exclusiveAbilities.put(AbilityType.Tenacity, GearType.Head);
+
+		exclusiveAbilities.put(AbilityType.AbilityDoubler, GearType.Shirt);
+		exclusiveAbilities.put(AbilityType.Haunt, GearType.Shirt);
+		exclusiveAbilities.put(AbilityType.NinjaSquid, GearType.Shirt);
+		exclusiveAbilities.put(AbilityType.RespawnPunisher, GearType.Shirt);
+		exclusiveAbilities.put(AbilityType.ThermalInk, GearType.Shirt);
+
+		exclusiveAbilities.put(AbilityType.DropRoller, GearType.Shoes);
+		exclusiveAbilities.put(AbilityType.ObjectShredder, GearType.Shoes);
+		exclusiveAbilities.put(AbilityType.StealthJump, GearType.Shoes);
 	}
 }
