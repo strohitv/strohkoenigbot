@@ -9,7 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-@Entity(name = "splatoon2_monthly_result")
+@Entity(name = "splatoon_2_monthly_result")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

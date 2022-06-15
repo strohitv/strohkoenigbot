@@ -1571,73 +1571,73 @@
           {
             "renameTable": {
               "oldTableName":  "splatoon_ability",
-              "newTableName":  "splatoon2_ability"
+              "newTableName":  "splatoon_2_ability"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "splatoon_ability_match",
-              "newTableName":  "splatoon2_ability_match"
+              "newTableName":  "splatoon_2_ability_match"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "ability_notification",
-              "newTableName":  "splatoon2_ability_notification"
+              "newTableName":  "splatoon_2_ability_notification"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "splatoon_clip",
-              "newTableName":  "splatoon2_clip"
+              "newTableName":  "splatoon_2_clip"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "splatoon_gear",
-              "newTableName":  "splatoon2_gear"
+              "newTableName":  "splatoon_2_gear"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "splatoon_login",
-              "newTableName":  "splatoon2_login"
+              "newTableName":  "splatoon_2_login"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "splatoon_match",
-              "newTableName":  "splatoon2_match"
+              "newTableName":  "splatoon_2_match"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "splatoon_monthly_result",
-              "newTableName":  "splatoon2_monthly_result"
+              "newTableName":  "splatoon_2_monthly_result"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "splatoon_rotation",
-              "newTableName":  "splatoon2_rotation"
+              "newTableName":  "splatoon_2_rotation"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "splatoon_stage",
-              "newTableName":  "splatoon2_stage"
+              "newTableName":  "splatoon_2_stage"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "splatoon_weapon",
-              "newTableName":  "splatoon2_weapon"
+              "newTableName":  "splatoon_2_weapon"
             }
           },
           {
             "renameTable": {
               "oldTableName":  "splatoon_weapon_request_ranking",
-              "newTableName":  "splatoon2_weapon_request_ranking"
+              "newTableName":  "splatoon_2_weapon_request_ranking"
             }
           }
         ]

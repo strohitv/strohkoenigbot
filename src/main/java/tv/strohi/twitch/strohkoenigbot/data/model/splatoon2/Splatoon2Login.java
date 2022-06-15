@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.time.Instant;
 
-@Entity(name = "splatoon2_login")
+@Entity(name = "splatoon_2_login")
 @Cacheable(false)
 @Data
 @NoArgsConstructor

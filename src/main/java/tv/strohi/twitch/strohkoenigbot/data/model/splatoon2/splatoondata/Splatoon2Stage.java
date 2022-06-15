@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-@Entity(name = "splatoon2_stage")
+@Entity(name = "splatoon_2_stage")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -17,7 +17,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-@Entity(name = "splatoon2_match")
+@Entity(name = "splatoon_2_match")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

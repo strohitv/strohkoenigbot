@@ -23,6 +23,6 @@ public interface Splatoon2MatchRepository extends CrudRepository<Splatoon2Match,
 	@NotNull List<Splatoon2Match> findByStartTimeGreaterThanEqual(long startTime);
 	@NotNull List<Splatoon2Match> findByStartTimeGreaterThanEqualAndEndTimeLessThanEqual(long startTime, long endTime);
 
-	@Query("select max(splatnetBattleNumber) from splatoon2_match")
+	@Query("select max(splatnetBattleNumber) from splatoon_2_match")
 	int findMaxBattleNumber();
 }
