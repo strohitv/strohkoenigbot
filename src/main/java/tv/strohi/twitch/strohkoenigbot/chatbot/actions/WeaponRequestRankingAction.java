@@ -3,10 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.*;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
@@ -24,7 +21,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 @Component
-public class WeaponRequestRankingAction implements IChatAction {
+public class WeaponRequestRankingAction extends ChatAction {
 	private static final String LAST_REQUESTER_NAME = "LastRequesterName";
 	private static final String LAST_REQUESTER_ID = "LastRequesterId";
 
@@ -78,7 +75,7 @@ public class WeaponRequestRankingAction implements IChatAction {
 	}
 
 	@Override
-	public void run(ActionArgs args) {
+	public void execute(ActionArgs args) {
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
 		if (message == null) {
 			return;
