@@ -326,20 +326,17 @@ public class ResultsExporter {
 						}
 
 						for (SplatNetMatchResult singleResult : results) {
-							SplatNetMatchResult loadedMatch
-									= splatoonResultsLoader.querySplatoonApiForAccount(account, String.format("/api/results/%s", singleResult.getBattle_number()), SplatNetMatchResult.class);
-
 							Splatoon2Match match = new Splatoon2Match();
-							match.setBattleNumber(loadedMatch.getBattle_number());
-							match.setSplatnetBattleNumber(loadedMatch.getBattleNumberAsInteger());
+							match.setBattleNumber(singleResult.getBattle_number());
+							match.setSplatnetBattleNumber(singleResult.getBattleNumberAsInteger());
 
-							match.setStartTime(loadedMatch.getStart_time());
-							match.setElapsedTime(loadedMatch.getElapsed_time());
-							match.setEndTime(loadedMatch.getStart_time() + loadedMatch.getElapsed_time());
+							match.setStartTime(singleResult.getStart_time());
+							match.setElapsedTime(singleResult.getElapsed_time());
+							match.setEndTime(singleResult.getStart_time() + singleResult.getElapsed_time());
 
-							match.setStageId(stagesExporter.loadStage(loadedMatch.getStage()).getId());
-							match.setMode(Splatoon2Mode.getModeByName(loadedMatch.getGame_mode().getKey()));
-							match.setRule(Splatoon2Rule.getRuleByName(loadedMatch.getRule().getKey()));
+							match.setStageId(stagesExporter.loadStage(singleResult.getStage()).getId());
+							match.setMode(Splatoon2Mode.getModeByName(singleResult.getGame_mode().getKey()));
+							match.setRule(Splatoon2Rule.getRuleByName(singleResult.getRule().getKey()));
 
 							Splatoon2Rotation rotation
 									= rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(match.getStartTime(), match.getEndTime(), match.getMode());
@@ -349,53 +346,60 @@ public class ResultsExporter {
 								match.setRotationId(rotation.getId());
 							}
 
-							if (loadedMatch.getUdemae() != null) {
-								match.setRank(loadedMatch.getUdemae().getName());
+							if (singleResult.getUdemae() != null) {
+								match.setRank(singleResult.getUdemae().getName());
 							}
 
-							match.setXPower(loadedMatch.getX_power());
-							match.setXPowerEstimate(loadedMatch.getEstimate_gachi_power());
-							match.setXLobbyPower(loadedMatch.getEstimate_x_power());
+							match.setXPower(singleResult.getX_power());
+							match.setXPowerEstimate(singleResult.getEstimate_gachi_power());
+							match.setXLobbyPower(singleResult.getEstimate_x_power());
 
-							match.setLeagueTag(loadedMatch.getTag_id());
-							match.setLeaguePower(loadedMatch.getLeague_point());
-							match.setLeaguePowerMax(loadedMatch.getMax_league_point());
-							match.setLeaguePowerEstimate(loadedMatch.getMy_estimate_league_point());
-							match.setLeagueEnemyPower(loadedMatch.getOther_estimate_league_point());
+							match.setLeagueTag(singleResult.getTag_id());
+							match.setLeaguePower(singleResult.getLeague_point());
+							match.setLeaguePowerMax(singleResult.getMax_league_point());
+							match.setLeaguePowerEstimate(singleResult.getMy_estimate_league_point());
+							match.setLeagueEnemyPower(singleResult.getOther_estimate_league_point());
 
-							Splatoon2Weapon weapon = weaponExporter.loadWeapon(loadedMatch.getPlayer_result().getPlayer().getWeapon());
+							Splatoon2Weapon weapon = weaponExporter.loadWeapon(singleResult.getPlayer_result().getPlayer().getWeapon());
 
 							match.setWeaponId(weapon.getId());
-							match.setTurfGain(loadedMatch.getPlayer_result().getGame_paint_point());
-							match.setTurfTotal(loadedMatch.getWeapon_paint_point());
+							match.setTurfGain(singleResult.getPlayer_result().getGame_paint_point());
+							match.setTurfTotal(singleResult.getWeapon_paint_point());
 
-							match.setKills(loadedMatch.getPlayer_result().getKill_count());
-							match.setAssists(loadedMatch.getPlayer_result().getAssist_count());
-							match.setDeaths(loadedMatch.getPlayer_result().getDeath_count());
-							match.setSpecials(loadedMatch.getPlayer_result().getSpecial_count());
+							match.setKills(singleResult.getPlayer_result().getKill_count());
+							match.setAssists(singleResult.getPlayer_result().getAssist_count());
+							match.setDeaths(singleResult.getPlayer_result().getDeath_count());
+							match.setSpecials(singleResult.getPlayer_result().getSpecial_count());
 
-							match.setOwnScore(loadedMatch.getMy_team_count());
-							match.setEnemyScore(loadedMatch.getOther_team_count());
+							match.setOwnScore(singleResult.getMy_team_count());
+							match.setEnemyScore(singleResult.getOther_team_count());
 
-							match.setOwnPercentage(loadedMatch.getMy_team_percentage());
-							match.setEnemyPercentage(loadedMatch.getOther_team_percentage());
+							match.setOwnPercentage(singleResult.getMy_team_percentage());
+							match.setEnemyPercentage(singleResult.getOther_team_percentage());
 
-							match.setMatchResult(Splatoon2MatchResult.parseResult(loadedMatch.getMy_team_result().getKey()));
-							match.setIsKo(loadedMatch.getMy_team_count() != null && loadedMatch.getOther_team_count() != null
-									&& (loadedMatch.getMy_team_count() == 100 || loadedMatch.getOther_team_count() == 100));
+							match.setMatchResult(Splatoon2MatchResult.parseResult(singleResult.getMy_team_result().getKey()));
+							match.setIsKo(singleResult.getMy_team_count() != null && singleResult.getOther_team_count() != null
+									&& (singleResult.getMy_team_count() == 100 || singleResult.getOther_team_count() == 100));
 
-							match.setHeadgearId(gearExporter.loadGear(loadedMatch.getPlayer_result().getPlayer().getHead()).getId());
-							match.setClothesId(gearExporter.loadGear(loadedMatch.getPlayer_result().getPlayer().getClothes()).getId());
-							match.setShoesId(gearExporter.loadGear(loadedMatch.getPlayer_result().getPlayer().getShoes()).getId());
+							match.setHeadgearId(gearExporter.loadGear(singleResult.getPlayer_result().getPlayer().getHead()).getId());
+							match.setClothesId(gearExporter.loadGear(singleResult.getPlayer_result().getPlayer().getClothes()).getId());
+							match.setShoesId(gearExporter.loadGear(singleResult.getPlayer_result().getPlayer().getShoes()).getId());
 
 							match.setMatchResultOverview(singleResult);
-							match.setMatchResultDetails(loadedMatch);
+							match.setMatchResultDetails(null);
+
+							if (account.getIsMainAccount()) {
+								// difference: gear and results of other players are included
+								SplatNetMatchResult loadedMatch
+										= splatoonResultsLoader.querySplatoonApiForAccount(account, String.format("/api/results/%s", singleResult.getBattle_number()), SplatNetMatchResult.class);
+								match.setMatchResultDetails(loadedMatch);
+							}
 
 							matchRepository.save(match);
 
 							weaponRequestRankingAction.addMatch(match);
 
-							weapon.setTurf(loadedMatch.getWeapon_paint_point());
+							weapon.setTurf(singleResult.getWeapon_paint_point());
 							if (match.getMatchResult() == Splatoon2MatchResult.Win) {
 								weapon.setWins(weapon.getWins() + 1);
 							} else {
@@ -428,16 +432,16 @@ public class ResultsExporter {
 							List<Splatoon2AbilityMatch> abilitiesUsedInMatch = new ArrayList<>();
 
 							abilitiesUsedInMatch.addAll(parseAbilities(
-									loadedMatch.getPlayer_result().getPlayer().getHead_skills(),
-									loadedMatch.getPlayer_result().getPlayer().getHead().getKind(),
+									singleResult.getPlayer_result().getPlayer().getHead_skills(),
+									singleResult.getPlayer_result().getPlayer().getHead().getKind(),
 									match.getId()));
 							abilitiesUsedInMatch.addAll(parseAbilities(
-									loadedMatch.getPlayer_result().getPlayer().getClothes_skills(),
-									loadedMatch.getPlayer_result().getPlayer().getClothes().getKind(),
+									singleResult.getPlayer_result().getPlayer().getClothes_skills(),
+									singleResult.getPlayer_result().getPlayer().getClothes().getKind(),
 									match.getId()));
 							abilitiesUsedInMatch.addAll(parseAbilities(
-									loadedMatch.getPlayer_result().getPlayer().getShoes_skills(),
-									loadedMatch.getPlayer_result().getPlayer().getShoes().getKind(),
+									singleResult.getPlayer_result().getPlayer().getShoes_skills(),
+									singleResult.getPlayer_result().getPlayer().getShoes().getKind(),
 									match.getId()));
 
 							abilityMatchRepository.saveAll(abilitiesUsedInMatch);
@@ -467,7 +471,7 @@ public class ResultsExporter {
 										match.getMode(),
 										match.getRule(),
 										match.getMatchResult(),
-										loadedMatch.getPlayer_result().getPlayer().getWeapon().getName(),
+										singleResult.getPlayer_result().getPlayer().getWeapon().getName(),
 										match.getOwnPercentage() != null ? match.getOwnPercentage() : match.getOwnScore(),
 										match.getEnemyPercentage() != null ? match.getEnemyPercentage() : match.getEnemyScore(),
 
