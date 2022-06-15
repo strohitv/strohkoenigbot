@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
@@ -70,10 +70,10 @@ public class StatsExporter {
 	public void refreshStageAndWeaponStats() {
 		logger.info("loading stage and weapon stats");
 
-		DiscordAccount account = discordAccountRepository.findAll().stream()
-				.filter(DiscordAccount::getIsMainAccount)
+		Account account = discordAccountRepository.findAll().stream()
+				.filter(Account::getIsMainAccount)
 				.findFirst()
-				.orElse(new DiscordAccount());
+				.orElse(new Account());
 
 		SplatNetStatPage splatNetStatPage = splatoonStatsLoader.querySplatoonApiForAccount(account, "/api/records", SplatNetStatPage.class);
 

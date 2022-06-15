@@ -5,7 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class RequestSender {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	public <T> T querySplatoonApiForAccount(DiscordAccount account, String path, Class<T> valueType) {
+	public <T> T querySplatoonApiForAccount(Account account, String path, Class<T> valueType) {
 		TimeZone tz = TimeZone.getDefault();
 		int offset = tz.getOffset(new Date().getTime()) / 1000 / 60;
 
@@ -56,7 +56,7 @@ public class RequestSender {
 		return sendRequestAndParseGzippedJson(account, request, valueType);
 	}
 
-	private <T> T sendRequestAndParseGzippedJson(DiscordAccount account, HttpRequest request, Class<T> valueType) {
+	private <T> T sendRequestAndParseGzippedJson(Account account, HttpRequest request, Class<T> valueType) {
 		String body = "";
 
 		try {

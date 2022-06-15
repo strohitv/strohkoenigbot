@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2MonthlyResult;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2MonthlyResultRepository;
@@ -57,10 +57,10 @@ public class PeaksExporter {
 
 	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void reloadMonthlyResults() {
-		DiscordAccount account = discordAccountRepository.findAll().stream()
+		Account account = discordAccountRepository.findAll().stream()
 				.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
 				.findFirst()
-				.orElse(new DiscordAccount());
+				.orElse(new Account());
 
 		List<Splatoon2MonthlyResult> peaks = monthlyResultRepository.findAll();
 
@@ -152,10 +152,10 @@ public class PeaksExporter {
 	@Scheduled(cron = "0 0 5 1 * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void refreshPreviousMonth() {
-		DiscordAccount account = discordAccountRepository.findAll().stream()
-				.filter(DiscordAccount::getIsMainAccount)
+		Account account = discordAccountRepository.findAll().stream()
+				.filter(Account::getIsMainAccount)
 				.findFirst()
-				.orElse(new DiscordAccount());
+				.orElse(new Account());
 
 		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault()).minus(5, ChronoUnit.DAYS);
 		int year = date.getYear();
@@ -205,7 +205,7 @@ public class PeaksExporter {
 		}
 	}
 
-	public SplatNetXRankLeaderBoard getLeaderBoard(DiscordAccount account, int year, int month) {
+	public SplatNetXRankLeaderBoard getLeaderBoard(Account account, int year, int month) {
 		int endYear = month < 12 ? year : year + 1;
 		int endMonth = (month % 12) + 1;
 

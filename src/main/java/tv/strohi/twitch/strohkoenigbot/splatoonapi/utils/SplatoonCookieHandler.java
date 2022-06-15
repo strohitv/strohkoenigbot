@@ -5,7 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.SplatNet2StatInkConfig;
@@ -25,20 +25,20 @@ import java.util.Map;
 public class SplatoonCookieHandler extends CookieHandler {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private DiscordAccount account;
+	private Account account;
 
 	private final DiscordAccountRepository discordAccountRepository;
 	private final ConfigurationRepository configurationRepository;
 	private final DiscordBot discordBot;
 
-	private SplatoonCookieHandler(DiscordAccount account, DiscordAccountRepository discordAccountRepository, ConfigurationRepository configurationRepository, DiscordBot discordBot) {
+	private SplatoonCookieHandler(Account account, DiscordAccountRepository discordAccountRepository, ConfigurationRepository configurationRepository, DiscordBot discordBot) {
 		this.account = account;
 		this.discordAccountRepository = discordAccountRepository;
 		this.configurationRepository = configurationRepository;
 		this.discordBot = discordBot;
 	}
 
-	public static SplatoonCookieHandler of(DiscordAccount account, DiscordAccountRepository discordAccountRepository, ConfigurationRepository configurationRepository, DiscordBot discordBot) {
+	public static SplatoonCookieHandler of(Account account, DiscordAccountRepository discordAccountRepository, ConfigurationRepository configurationRepository, DiscordBot discordBot) {
 		return new SplatoonCookieHandler(account, discordAccountRepository, configurationRepository, discordBot);
 	}
 

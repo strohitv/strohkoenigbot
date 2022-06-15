@@ -3,16 +3,16 @@ package tv.strohi.twitch.strohkoenigbot.data.repository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface DiscordAccountRepository extends CrudRepository<DiscordAccount, Long> {
-	@NotNull List<DiscordAccount> findAll();
+public interface DiscordAccountRepository extends CrudRepository<Account, Long> {
+	@NotNull List<Account> findAll();
 
-	Optional<DiscordAccount> findById(long id);
+	Optional<Account> findById(long id);
 
-	List<DiscordAccount> findByDiscordIdOrderById(Long discordId);
+	List<Account> findByDiscordIdOrderById(Long discordId);
 }

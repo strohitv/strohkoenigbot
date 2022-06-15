@@ -12,7 +12,7 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DiscordAccount {
+public class Account {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;

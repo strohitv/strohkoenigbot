@@ -12,7 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.WeaponRequestRankingActio
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2GearType;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2MatchResult;
@@ -264,11 +264,11 @@ public class ResultsExporter {
 			alreadyRunning = true;
 			logger.info("loading results");
 
-			List<DiscordAccount> accounts = discordAccountRepository.findAll().stream()
+			List<Account> accounts = discordAccountRepository.findAll().stream()
 					.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
 					.collect(Collectors.toList());
 
-			for (DiscordAccount account : accounts) {
+			for (Account account : accounts) {
 				// TODO rework to make it work with any other account
 				if (!account.getIsMainAccount()) {
 					continue;
@@ -561,7 +561,7 @@ public class ResultsExporter {
 		}
 	}
 
-	private void controlOBS(DiscordAccount account) {
+	private void controlOBS(Account account) {
 		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault());
 		int year = date.getYear();
 		int month = date.getMonthValue();
