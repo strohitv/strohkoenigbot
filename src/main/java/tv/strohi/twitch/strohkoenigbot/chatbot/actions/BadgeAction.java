@@ -6,10 +6,12 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Match;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2WeaponStats;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2MatchRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponStatsRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
 
 import java.util.Calendar;
@@ -19,11 +21,18 @@ import java.util.List;
 
 @Component
 public class BadgeAction implements IChatAction {
-	private Splatoon2WeaponRepository weaponRepository;
+	private AccountRepository accountRepository;
 
 	@Autowired
-	public void setWeaponRepository(Splatoon2WeaponRepository weaponRepository) {
-		this.weaponRepository = weaponRepository;
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
+	}
+
+	private Splatoon2WeaponStatsRepository weaponStatsRepository;
+
+	@Autowired
+	public void setWeaponStatsRepository(Splatoon2WeaponStatsRepository weaponStatsRepository) {
+		this.weaponStatsRepository = weaponStatsRepository;
 	}
 
 	private Splatoon2MatchRepository matchRepository;
@@ -48,7 +57,12 @@ public class BadgeAction implements IChatAction {
 		message = message.toLowerCase().trim();
 
 		if (message.startsWith("!badges")) {
-			List<Splatoon2Weapon> weapons = weaponRepository.findByTurfLessThan(100_000);
+			Account account = accountRepository.findAll().stream()
+					.filter(Account::getIsMainAccount)
+					.findFirst()
+					.orElse(new Account());
+
+			List<Splatoon2WeaponStats> weapons = weaponStatsRepository.findByTurfLessThanAndAccountId(100_000, account.getId());
 
 			long leftToPaint = weapons.stream().map(w -> 100_000 - w.getTurf()).reduce(0L, Long::sum);
 			double daysUntilGoalReached = leftToPaint / 40_000.0;

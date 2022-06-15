@@ -93,6 +93,13 @@ public class ExtendedStatisticsExporter {
 		this.weaponRepository = weaponRepository;
 	}
 
+	private Splatoon2WeaponStatsRepository weaponStatsRepository;
+
+	@Autowired
+	public void setWeaponStatsRepository(Splatoon2WeaponStatsRepository weaponStatsRepository) {
+		this.weaponStatsRepository = weaponStatsRepository;
+	}
+
 	private Splatoon2GearRepository gearRepository;
 
 	@Autowired
@@ -114,7 +121,7 @@ public class ExtendedStatisticsExporter {
 		started = null;
 	}
 
-	public void export() {
+	public void export(long accountId) {
 		Splatoon2Rotation currentRanked = rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(
 				Instant.now().getEpochSecond(),
 				Instant.now().getEpochSecond(),
@@ -160,6 +167,8 @@ public class ExtendedStatisticsExporter {
 		Splatoon2Weapon lastMatchWeapon = StreamSupport.stream(weaponRepository.findAllById(Collections.singletonList(lastMatch.getWeaponId())).spliterator(), false)
 				.findFirst()
 				.orElse(new Splatoon2Weapon());
+
+		Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(lastMatchWeapon.getId(), accountId).orElse(new Splatoon2WeaponStats(0L, 0L, 0L, 0L, 0, 0));
 
 		Splatoon2Gear lastMatchHead = StreamSupport.stream(gearRepository.findAllById(Collections.singletonList(lastMatch.getHeadgearId())).spliterator(), false)
 				.findFirst()
@@ -313,8 +322,8 @@ public class ExtendedStatisticsExporter {
 					.replace("{main-weapon-defeats-gain}", String.format("%d", weaponDefeats))
 
 					.replace("{main-weapon-points}", String.format("%d", lastMatch.getTurfTotal()))
-					.replace("{main-weapon-wins}", String.format("%d", lastMatchWeapon.getWins()))
-					.replace("{main-weapon-defeats}", String.format("%d", lastMatchWeapon.getDefeats()))
+					.replace("{main-weapon-wins}", String.format("%d", weaponStats.getWins()))
+					.replace("{main-weapon-defeats}", String.format("%d", weaponStats.getDefeats()))
 
 					.replace("{main-weapon}", String.format("%s", lastMatchWeapon.getName()))
 					.replace("{main-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getImage()))

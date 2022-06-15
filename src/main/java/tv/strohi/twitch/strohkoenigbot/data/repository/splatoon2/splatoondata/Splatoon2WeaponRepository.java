@@ -14,9 +14,4 @@ public interface Splatoon2WeaponRepository extends CrudRepository<Splatoon2Weapo
 	Splatoon2Weapon findByName(String name);
 
 	@NotNull List<Splatoon2Weapon> findAll();
-	@NotNull List<Splatoon2Weapon> findByTurf(long turf);
-	@NotNull List<Splatoon2Weapon> findByTurfGreaterThan(long turf);
-	@NotNull List<Splatoon2Weapon> findByTurfGreaterThanEqual(long turf);
-	@NotNull List<Splatoon2Weapon> findByTurfLessThan(long turf);
-	@NotNull List<Splatoon2Weapon> findByTurfLessThanEqual(long turf);
 }

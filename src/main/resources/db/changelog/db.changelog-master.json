@@ -1570,74 +1570,74 @@
         "changes": [
           {
             "renameTable": {
-              "oldTableName":  "splatoon_ability",
-              "newTableName":  "splatoon_2_ability"
+              "oldTableName": "splatoon_ability",
+              "newTableName": "splatoon_2_ability"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "splatoon_ability_match",
-              "newTableName":  "splatoon_2_ability_match"
+              "oldTableName": "splatoon_ability_match",
+              "newTableName": "splatoon_2_ability_match"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "ability_notification",
-              "newTableName":  "splatoon_2_ability_notification"
+              "oldTableName": "ability_notification",
+              "newTableName": "splatoon_2_ability_notification"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "splatoon_clip",
-              "newTableName":  "splatoon_2_clip"
+              "oldTableName": "splatoon_clip",
+              "newTableName": "splatoon_2_clip"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "splatoon_gear",
-              "newTableName":  "splatoon_2_gear"
+              "oldTableName": "splatoon_gear",
+              "newTableName": "splatoon_2_gear"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "splatoon_login",
-              "newTableName":  "splatoon_2_login"
+              "oldTableName": "splatoon_login",
+              "newTableName": "splatoon_2_login"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "splatoon_match",
-              "newTableName":  "splatoon_2_match"
+              "oldTableName": "splatoon_match",
+              "newTableName": "splatoon_2_match"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "splatoon_monthly_result",
-              "newTableName":  "splatoon_2_monthly_result"
+              "oldTableName": "splatoon_monthly_result",
+              "newTableName": "splatoon_2_monthly_result"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "splatoon_rotation",
-              "newTableName":  "splatoon_2_rotation"
+              "oldTableName": "splatoon_rotation",
+              "newTableName": "splatoon_2_rotation"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "splatoon_stage",
-              "newTableName":  "splatoon_2_stage"
+              "oldTableName": "splatoon_stage",
+              "newTableName": "splatoon_2_stage"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "splatoon_weapon",
-              "newTableName":  "splatoon_2_weapon"
+              "oldTableName": "splatoon_weapon",
+              "newTableName": "splatoon_2_weapon"
             }
           },
           {
             "renameTable": {
-              "oldTableName":  "splatoon_weapon_request_ranking",
-              "newTableName":  "splatoon_2_weapon_request_ranking"
+              "oldTableName": "splatoon_weapon_request_ranking",
+              "newTableName": "splatoon_2_weapon_request_ranking"
             }
           }
         ]
@@ -1650,8 +1650,8 @@
         "changes": [
           {
             "renameTable": {
-              "oldTableName":  "discord_account",
-              "newTableName":  "account"
+              "oldTableName": "discord_account",
+              "newTableName": "account"
             }
           },
           {
@@ -1752,6 +1752,245 @@
           {
             "dropTable": {
               "tableName": "splatoon_2_login"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "19",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_2_stage_stats",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stage_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "account_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "zones_wins",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "zones_defeats",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_wins",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_defeats",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_wins",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_defeats",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_wins",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_defeats",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "sql": {
+              "sql": "INSERT INTO DBO.splatoon_2_stage_stats (stage_id, zones_wins, zones_defeats, rainmaker_wins, rainmaker_defeats, tower_wins, tower_defeats, clams_wins, clams_defeats) SELECT b.id, b.zones_wins, b.zones_defeats, b.rainmaker_wins, b.rainmaker_defeats, b.tower_wins, b.tower_defeats, b.clams_wins, b.clams_defeats FROM DBO.splatoon_2_stage b"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_stage_stats"
+            }
+          },
+          {
+            "createTable": {
+              "tableName": "splatoon_2_weapon_stats",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "account_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "turf",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "wins",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "defeats",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "sql": {
+              "sql": "INSERT INTO DBO.splatoon_2_weapon_stats (weapon_id, turf, wins, defeats) SELECT b.id, b.turf, b.wins, b.defeats FROM DBO.splatoon_2_weapon b"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_weapon_stats"
+            }
+          },
+          {
+            "dropColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "zones_wins"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "zones_defeats"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_wins"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_defeats"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_wins"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_defeats"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_wins"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_defeats"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_stage"
+            }
+          },
+          {
+            "dropColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "turf"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "wins"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "defeats"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_weapon"
             }
           }
         ]

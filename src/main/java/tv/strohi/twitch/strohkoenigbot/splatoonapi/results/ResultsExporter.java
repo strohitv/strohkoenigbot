@@ -103,11 +103,11 @@ public class ResultsExporter {
 		this.clipRepository = clipRepository;
 	}
 
-	private Splatoon2WeaponRepository weaponRepository;
+	private Splatoon2WeaponStatsRepository weaponStatsRepository;
 
 	@Autowired
-	public void setWeaponRepository(Splatoon2WeaponRepository weaponRepository) {
-		this.weaponRepository = weaponRepository;
+	public void setWeaponStatsRepository(Splatoon2WeaponStatsRepository weaponStatsRepository) {
+		this.weaponStatsRepository = weaponStatsRepository;
 	}
 
 	private ConfigurationRepository configurationRepository;
@@ -295,15 +295,15 @@ public class ResultsExporter {
 										clipRepository.save(clip);
 									});
 
-									Splatoon2Weapon weapon = weaponRepository.findById(match.getWeaponId()).orElse(null);
-									if (weapon != null) {
+									Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(match.getWeaponId(), account.getId()).orElse(null);
+									if (weaponStats != null) {
 										if (match.getMatchResult() == Splatoon2MatchResult.Win) {
-											weapon.setWins(weapon.getWins() - 1);
+											weaponStats.setWins(weaponStats.getWins() - 1);
 										} else {
-											weapon.setDefeats(weapon.getDefeats() - 1);
+											weaponStats.setDefeats(weaponStats.getDefeats() - 1);
 										}
 
-										weaponRepository.save(weapon);
+										weaponStatsRepository.save(weaponStats);
 									}
 
 									abilityMatchRepository.findAllByMatchId(id).forEach(abilityMatchRepository::delete);
@@ -399,14 +399,24 @@ public class ResultsExporter {
 
 							weaponRequestRankingAction.addMatch(match);
 
-							weapon.setTurf(singleResult.getWeapon_paint_point());
-							if (match.getMatchResult() == Splatoon2MatchResult.Win) {
-								weapon.setWins(weapon.getWins() + 1);
-							} else {
-								weapon.setDefeats(weapon.getDefeats() + 1);
+							Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(weapon.getId(), account.getId()).orElse(null);
+							if (weaponStats == null) {
+								weaponStats = new Splatoon2WeaponStats();
+								weaponStats.setWeaponId(weapon.getId());
+								weaponStats.setAccountId(account.getId());
+								weaponStats.setTurf(0L);
+								weaponStats.setWins(0);
+								weaponStats.setDefeats(0);
 							}
 
-							weaponRepository.save(weapon);
+							weaponStats.setTurf(singleResult.getWeapon_paint_point());
+							if (match.getMatchResult() == Splatoon2MatchResult.Win) {
+								weaponStats.setWins(weaponStats.getWins() + 1);
+							} else {
+								weaponStats.setDefeats(weaponStats.getDefeats() + 1);
+							}
+
+							weaponStatsRepository.save(weaponStats);
 
 							if (!loadSilently) {
 								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
@@ -519,7 +529,7 @@ public class ResultsExporter {
 						refreshMonthlyRankedResults(results);
 
 						if (isStreamRunning) {
-							extendedStatisticsExporter.export();
+							extendedStatisticsExporter.export(account.getId());
 						}
 					}
 

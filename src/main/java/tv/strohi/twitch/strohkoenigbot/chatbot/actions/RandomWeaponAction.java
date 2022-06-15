@@ -6,8 +6,12 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2WeaponStats;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponStatsRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.SpecialWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.SubWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
@@ -21,6 +25,20 @@ import java.util.stream.Collectors;
 @Component
 public class RandomWeaponAction extends ChatAction {
 	private final Random random = new Random();
+
+	private AccountRepository accountRepository;
+
+	@Autowired
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
+	}
+
+	private Splatoon2WeaponStatsRepository weaponStatsRepository;
+
+	@Autowired
+	public void setWeaponStatsRepository(Splatoon2WeaponStatsRepository weaponStatsRepository) {
+		this.weaponStatsRepository = weaponStatsRepository;
+	}
 
 	private Splatoon2WeaponRepository splatoon2WeaponRepository;
 
@@ -44,19 +62,25 @@ public class RandomWeaponAction extends ChatAction {
 		message = message.toLowerCase().trim();
 
 		if (message.startsWith("!rw")) {
+			Account account = accountRepository.findAll().stream()
+					.filter(Account::getIsMainAccount)
+					.findFirst()
+					.orElse(new Account());
+
 			List<WeaponKit> kits = new ArrayList<>(WeaponKit.All);
 			boolean filteredByPoints = false;
 
 			if (message.contains("100k")) {
 				filteredByPoints = true;
-				List<Splatoon2Weapon> redBadgeWeapons = splatoon2WeaponRepository.findByTurfGreaterThanEqual(100_000);
+				List<Splatoon2WeaponStats> redBadgeWeaponStats = weaponStatsRepository.findByTurfGreaterThanEqualAndAccountId(100_000, account.getId());
+				List<Splatoon2Weapon> redBadgeWeapons = splatoon2WeaponRepository.findAll().stream().filter(w -> redBadgeWeaponStats.stream().anyMatch(ws -> ws.getWeaponId() == w.getId())).collect(Collectors.toList());
 				kits = kits.stream()
 						.filter(k -> redBadgeWeapons.stream().noneMatch(rbw -> k.getName().toLowerCase(Locale.ROOT).equals(rbw.getName().toLowerCase(Locale.ROOT))))
 						.collect(Collectors.toList());
 			}
 
 			// exact point filters
-			String[] found = extractTurfFilterGroups(message, "((<|<=|>|>=|=) *[0-9_]+(k|K|m|M){0,1})");
+			String[] found = extractTurfFilterGroups(message);
 			for (String matchedRegex : found) {
 				filteredByPoints = true;
 				String foundFilter = matchedRegex.trim()
@@ -70,26 +94,31 @@ public class RandomWeaponAction extends ChatAction {
 				long number = Integer.parseInt(foundFilter.replace("<", "").replace(">", "").replace("=", ""));
 				String prefix = foundFilter.replaceAll("[0-9]*", "");
 
-				List<Splatoon2Weapon> filteredWeapons;
+				List<Splatoon2WeaponStats> filteredWeaponStats;
 
 				switch (prefix) {
 					case "=":
-						filteredWeapons = splatoon2WeaponRepository.findByTurf(number);
+						filteredWeaponStats = weaponStatsRepository.findByTurfAndAccountId(number, account.getId());
 						break;
 					case ">":
-						filteredWeapons = splatoon2WeaponRepository.findByTurfGreaterThan(number);
+						filteredWeaponStats = weaponStatsRepository.findByTurfGreaterThanAndAccountId(number, account.getId());
 						break;
 					case ">=":
-						filteredWeapons = splatoon2WeaponRepository.findByTurfGreaterThanEqual(number);
+						filteredWeaponStats = weaponStatsRepository.findByTurfGreaterThanEqualAndAccountId(number, account.getId());
 						break;
 					case "<":
-						filteredWeapons = splatoon2WeaponRepository.findByTurfLessThan(number);
+						filteredWeaponStats = weaponStatsRepository.findByTurfLessThanAndAccountId(number, account.getId());
 						break;
 					case "<=":
 					default:
-						filteredWeapons = splatoon2WeaponRepository.findByTurfLessThanEqual(number);
+						filteredWeaponStats = weaponStatsRepository.findByTurfLessThanEqualAndAccountId(number, account.getId());
 						break;
 				}
+
+				List<Splatoon2Weapon> filteredWeapons = splatoon2WeaponRepository.findAll()
+						.stream()
+						.filter(fw -> filteredWeaponStats.stream().anyMatch(fws -> fws.getWeaponId() == fw.getId()))
+						.collect(Collectors.toList());
 
 				kits = kits.stream()
 						.filter(k -> filteredWeapons.stream().anyMatch(rbw -> k.getName().toLowerCase(Locale.ROOT).equals(rbw.getName().toLowerCase(Locale.ROOT))))
@@ -138,7 +167,12 @@ public class RandomWeaponAction extends ChatAction {
 					Splatoon2Weapon weapon = splatoon2WeaponRepository.findByName(chosenWeapon.getName());
 					if (weapon != null) {
 						DecimalFormat df = new DecimalFormat("#,###");
-						weaponPoints = String.format(" -> %s points", df.format(weapon.getTurf()).replace(',', ' ').replace('.', ' '));
+
+						Splatoon2WeaponStats weaponStats = weaponStatsRepository
+								.findByWeaponIdAndAccountId(weapon.getId(), account.getId())
+								.orElse(new Splatoon2WeaponStats(0L, 0L, 0L, 0L, 0, 0));
+
+						weaponPoints = String.format(" -> %s points", df.format(weaponStats.getTurf()).replace(',', ' ').replace('.', ' '));
 					}
 				}
 
@@ -150,8 +184,8 @@ public class RandomWeaponAction extends ChatAction {
 		}
 	}
 
-	private String[] extractTurfFilterGroups(String message, String pattern) {
-		return Pattern.compile(pattern)
+	private String[] extractTurfFilterGroups(String message) {
+		return Pattern.compile("((<|<=|>|>=|=) *[0-9_]+([kKmM])?)")
 				.matcher(message)
 				.results()
 				.map(mr -> mr.group(1))

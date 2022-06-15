@@ -20,13 +20,4 @@ public class Splatoon2Stage {
 	private String name;
 
 	private String image;
-
-	private Integer zonesWins;
-	private Integer zonesDefeats;
-	private Integer rainmakerWins;
-	private Integer rainmakerDefeats;
-	private Integer towerWins;
-	private Integer towerDefeats;
-	private Integer clamsWins;
-	private Integer clamsDefeats;
 }

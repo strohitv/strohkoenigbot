@@ -42,10 +42,6 @@ public class WeaponExporter {
 			weapon.setSpecialName(splatNetWeapon.getSpecial().getName());
 			weapon.setSpecialImage(splatNetWeapon.getSpecial().getImage_a());
 
-			weapon.setTurf(0L);
-			weapon.setWins(0);
-			weapon.setDefeats(0);
-
 			weapon = weaponRepository.save(weapon);
 
 			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),

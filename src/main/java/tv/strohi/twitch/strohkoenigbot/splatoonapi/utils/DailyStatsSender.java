@@ -7,11 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Match;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2WeaponStats;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2MatchResult;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2MatchRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponStatsRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponKit;
 
@@ -36,11 +40,25 @@ public class DailyStatsSender {
 		this.discordBot = discordBot;
 	}
 
+	private AccountRepository accountRepository;
+
+	@Autowired
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
+	}
+
 	private Splatoon2WeaponRepository weaponRepository;
 
 	@Autowired
 	public void setWeaponRepository(Splatoon2WeaponRepository weaponRepository) {
 		this.weaponRepository = weaponRepository;
+	}
+
+	private Splatoon2WeaponStatsRepository weaponStatsRepository;
+
+	@Autowired
+	public void setWeaponStatsRepository(Splatoon2WeaponStatsRepository weaponStatsRepository) {
+		this.weaponStatsRepository = weaponStatsRepository;
 	}
 
 	private Splatoon2MatchRepository matchRepository;
@@ -60,24 +78,33 @@ public class DailyStatsSender {
 		c.add(Calendar.DAY_OF_YEAR, -1);
 		long startTime = c.toInstant().getEpochSecond(); //the midnight, that's the first second of the day.
 
+		Account account = accountRepository.findAll().stream()
+				.filter(Account::getIsMainAccount)
+				.findFirst()
+				.orElse(new Account());
+
 		List<Splatoon2Match> matches = matchRepository.findByStartTimeGreaterThanEqualAndEndTimeLessThanEqual(startTime, endTime);
-		List<Splatoon2Weapon> weapons = weaponRepository.findByTurfLessThan(100_000);
+		List<Splatoon2WeaponStats> weaponStats = weaponStatsRepository.findByTurfLessThanAndAccountId(100_000, account.getId());
 
 		long yesterdayPaint = matches.stream().map(m -> (long)m.getTurfGain()).reduce(0L, Long::sum);
 		long weaponCount = matches.stream().map(Splatoon2Match::getWeaponId).distinct().count();
 
-		List<Splatoon2Weapon> newRedBadgeWeapons = matches.stream()
+		List<Splatoon2WeaponStats> newRedBadgeWeaponStats = matches.stream()
 				.filter(m -> m.getTurfTotal() >= 100_000 && m.getTurfTotal() - m.getTurfGain() < 100_000)
-				.map(m -> weaponRepository.findById(m.getWeaponId()).orElse(null))
+				.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		List<Splatoon2Weapon> newRedBadgeWeapons = newRedBadgeWeaponStats.stream()
+				.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 
-		long leftToPaint = weapons.stream().map(w -> 100_000 - w.getTurf()).reduce(0L, Long::sum);
+		long leftToPaint = weaponStats.stream().map(w -> 100_000 - w.getTurf()).reduce(0L, Long::sum);
 		double daysUntilGoalReached = leftToPaint / 40_000.0;
 
 		double dailyPaintUntilS3 = getDailyPaintUntilSplatoon3(leftToPaint);
 
-		String message = String.format("Yesterday, I painted a total sum of **%d** points on **%d** different weapons.\n\nI still need to paint a total of **%d** points on **%d** different weapons.\nThat's **%.2f days** if I paint **40k points** every day (or **%.2f** paint per day until 9/9).", yesterdayPaint, weaponCount, leftToPaint, weapons.size(), daysUntilGoalReached, dailyPaintUntilS3);
+		String message = String.format("Yesterday, I painted a total sum of **%d** points on **%d** different weapons.\n\nI still need to paint a total of **%d** points on **%d** different weapons.\nThat's **%.2f days** if I paint **40k points** every day (or **%.2f** paint per day until 9/9).", yesterdayPaint, weaponCount, leftToPaint, weaponStats.size(), daysUntilGoalReached, dailyPaintUntilS3);
 
 		if (newRedBadgeWeapons.size() > 0) {
 			StringBuilder builder = new StringBuilder(message);
@@ -91,7 +118,7 @@ public class DailyStatsSender {
 		}
 
 		if (matches.size() > 0) {
-			String weaponStats = createWeaponStatsCsv(matches);
+			String weaponStatsCsv = createWeaponStatsCsv(account.getId(), matches);
 
 			Date yesterday = c.getTime();
 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -100,7 +127,7 @@ public class DailyStatsSender {
 			discordBot.sendPrivateMessageWithAttachment(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
 					message,
 					String.format("%s.csv", strDate),
-					new ByteArrayInputStream(weaponStats.getBytes(StandardCharsets.UTF_8)));
+					new ByteArrayInputStream(weaponStatsCsv.getBytes(StandardCharsets.UTF_8)));
 		} else {
 			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), message);
 		}
@@ -115,27 +142,30 @@ public class DailyStatsSender {
 		return leftToPaint / (double) daysUntilS3;
 	}
 
-	private String createWeaponStatsCsv(List<Splatoon2Match> yesterdayMatches) {
+	private String createWeaponStatsCsv(long accountId, List<Splatoon2Match> yesterdayMatches) {
 		StringBuilder builder = new StringBuilder("Name;Class;Sub;Special;Total Paint;Paint Left;Painted Yesterday;Matches;Wins;Defeats;Win rate;Wins delta;Defeats delta;Paint per Match");
 
-		List<Splatoon2Weapon> allWeapons = weaponRepository.findAll().stream()
+		List<Splatoon2Weapon> allWeapons = new ArrayList<>(weaponRepository.findAll());
+
+		List<Splatoon2WeaponStats> allWeaponStats = weaponStatsRepository.findByAccountId(accountId).stream()
 				.sorted((x, y) -> y.getTurf().compareTo(x.getTurf()))
 				.collect(Collectors.toList());
 
 		boolean sendAllWeapons = false;
 
-		for (Splatoon2Weapon weapon : allWeapons) {
+		for (Splatoon2WeaponStats weaponStats : allWeaponStats) {
 		    long yesterdayPaint = yesterdayMatches.stream()
-					.filter(w -> w.getWeaponId() == weapon.getId())
+					.filter(w -> w.getWeaponId() == weaponStats.getId())
 					.map(m -> (long)m.getTurfGain())
 					.reduce(0L, Long::sum);
 			long yesterdayWins = yesterdayMatches.stream()
-					.filter(w -> w.getWeaponId() == weapon.getId() && w.getMatchResult() == Splatoon2MatchResult.Win)
+					.filter(w -> w.getWeaponId() == weaponStats.getId() && w.getMatchResult() == Splatoon2MatchResult.Win)
 					.count();
 			long yesterdayDefeats = yesterdayMatches.stream()
-					.filter(w -> w.getWeaponId() == weapon.getId() && w.getMatchResult() != Splatoon2MatchResult.Win)
+					.filter(w -> w.getWeaponId() == weaponStats.getId() && w.getMatchResult() != Splatoon2MatchResult.Win)
 					.count();
 
+			Splatoon2Weapon weapon = allWeapons.stream().filter(w -> w.getId() == weaponStats.getWeaponId()).findFirst().orElse(new Splatoon2Weapon());
 
 		    WeaponKit weaponKit = WeaponKit.All.stream().filter(wk -> wk.getName().equalsIgnoreCase(weapon.getName().trim())).findFirst().orElse(null);
 			WeaponClass weaponClass = WeaponClass.Shooter;
@@ -148,7 +178,7 @@ public class DailyStatsSender {
 				try {
 					discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
 							String.format("weapon.getName(): %s, weapon: %s",
-									weapon.getName(), mapper.writeValueAsString(weapon)));
+									weapon.getName(), mapper.writeValueAsString(weaponStats)));
 				} catch (Exception ex) {
 					logger.error(ex);
 				}
@@ -159,16 +189,16 @@ public class DailyStatsSender {
 					.append(weaponClass.getName()).append(";")
 					.append(weapon.getSubName()).append(";")
 					.append(weapon.getSpecialName()).append(";")
-					.append(weapon.getTurf()).append(";")
-					.append(100_000 - weapon.getTurf() > 0 ? 100_000 - weapon.getTurf() : 0).append(";")
+					.append(weaponStats.getTurf()).append(";")
+					.append(100_000 - weaponStats.getTurf() > 0 ? 100_000 - weaponStats.getTurf() : 0).append(";")
 					.append(yesterdayPaint).append(";")
-					.append(getNumber(weapon.getWins()) + getNumber(weapon.getDefeats())).append(";")
-					.append(getNumber(weapon.getWins())).append(";")
-					.append(getNumber(weapon.getDefeats())).append(";")
-					.append(String.format("%d%%", getNumber(weapon.getWins()) * 100 / (getNumber(weapon.getWins()) + getNumber(weapon.getDefeats())))).append(";")
+					.append(getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats())).append(";")
+					.append(getNumber(weaponStats.getWins())).append(";")
+					.append(getNumber(weaponStats.getDefeats())).append(";")
+					.append(String.format("%d%%", getNumber(weaponStats.getWins()) * 100 / (getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats())))).append(";")
 					.append(yesterdayWins).append(";")
 					.append(yesterdayDefeats).append(";")
-					.append(String.format("%.2f", calculateAvgPaint(weapon.getTurf(), getNumber(weapon.getWins()) + getNumber(weapon.getDefeats()))));
+					.append(String.format("%.2f", calculateAvgPaint(weaponStats.getTurf(), getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats()))));
 		}
 
 		if (sendAllWeapons) {

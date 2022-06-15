@@ -9,24 +9,19 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-@Entity(name = "splatoon_2_weapon")
+@Entity(name = "splatoon_2_weapon_stats")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Splatoon2Weapon {
+public class Splatoon2WeaponStats {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
-	private String splatoonApiId;
-	private String name;
-	private String image;
+	private Long weaponId;
+	private Long accountId;
 
-	private String subSplatoonApiId;
-	private String subName;
-	private String subImage;
-
-	private String specialSplatoonApiId;
-	private String specialName;
-	private String specialImage;
+	private Long turf;
+	private Integer wins;
+	private Integer defeats;
 }
