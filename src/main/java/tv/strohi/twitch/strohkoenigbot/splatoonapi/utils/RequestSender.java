@@ -5,11 +5,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Date;
@@ -23,16 +23,16 @@ public class RequestSender {
 	private final String host = "https://app.splatoon2.nintendo.net";
 	private final String appUniqueId = "32449507786579989235";
 
-	private HttpClient client;
+	private AuthenticatedHttpClientCreator clientCreator;
 
 	@Autowired
-	public void setClient(HttpClient client) {
-		this.client = client;
+	public void setClientCreator(AuthenticatedHttpClientCreator clientCreator) {
+		this.clientCreator = clientCreator;
 	}
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	public <T> T querySplatoonApi(String path , Class<T> valueType) {
+	public <T> T querySplatoonApiForAccount(DiscordAccount account, String path, Class<T> valueType) {
 		TimeZone tz = TimeZone.getDefault();
 		int offset = tz.getOffset(new Date().getTime()) / 1000 / 60;
 
@@ -53,15 +53,15 @@ public class RequestSender {
 				.setHeader("Accept-Language", "en-US")
 				.build();
 
-		return sendRequestAndParseGzippedJson(request, valueType);
+		return sendRequestAndParseGzippedJson(account, request, valueType);
 	}
 
-	private <T> T sendRequestAndParseGzippedJson(HttpRequest request, Class<T> valueType) {
+	private <T> T sendRequestAndParseGzippedJson(DiscordAccount account, HttpRequest request, Class<T> valueType) {
 		String body = "";
 
 		try {
 			logger.debug("RequestSender sending new request to '{}'", request.uri().toString());
-			HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+			HttpResponse<byte[]> response = clientCreator.of(account).send(request, HttpResponse.BodyHandlers.ofByteArray());
 
 			logger.debug("got response with status code {}:", response.statusCode());
 

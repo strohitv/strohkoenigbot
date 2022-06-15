@@ -7,10 +7,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Rotation;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
+import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2RotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
@@ -33,6 +35,13 @@ public class RotationWatcher {
 	@Autowired
 	public void setStagesExporter(StagesExporter stagesExporter) {
 		this.stagesExporter = stagesExporter;
+	}
+
+	private DiscordAccountRepository discordAccountRepository;
+
+	@Autowired
+	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
+		this.discordAccountRepository = discordAccountRepository;
 	}
 
 	private Splatoon2RotationRepository rotationRepository;
@@ -133,7 +142,13 @@ public class RotationWatcher {
 	private void refreshStages() {
 		if (stages == null || Arrays.stream(stages.getGachi()).anyMatch(s -> s.getEndTimeAsInstant().isBefore(Instant.now()))) {
 			logger.info("checking for new stages");
-			stages = stagesLoader.querySplatoonApi("/api/schedules", SplatNetStages.class);
+
+			DiscordAccount account = discordAccountRepository.findAll().stream()
+					.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
+					.findFirst()
+					.orElse(new DiscordAccount());
+
+			stages = stagesLoader.querySplatoonApiForAccount(account, "/api/schedules", SplatNetStages.class);
 
 			saveStagesInDatabase(stages.getRegular());
 			saveStagesInDatabase(stages.getGachi());

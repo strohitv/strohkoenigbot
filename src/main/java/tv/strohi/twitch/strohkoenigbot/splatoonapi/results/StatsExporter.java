@@ -5,8 +5,10 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
+import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2StageRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStatPage;
@@ -21,6 +23,13 @@ import java.util.stream.Collectors;
 @Component
 public class StatsExporter {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
+	private DiscordAccountRepository discordAccountRepository;
+
+	@Autowired
+	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
+		this.discordAccountRepository = discordAccountRepository;
+	}
 
 	private Splatoon2WeaponRepository weaponRepository;
 
@@ -60,7 +69,13 @@ public class StatsExporter {
 	@Scheduled(cron = "0 47 4 * * *")
 	public void refreshStageAndWeaponStats() {
 		logger.info("loading stage and weapon stats");
-		SplatNetStatPage splatNetStatPage = splatoonStatsLoader.querySplatoonApi("/api/records", SplatNetStatPage.class);
+
+		DiscordAccount account = discordAccountRepository.findAll().stream()
+				.filter(DiscordAccount::getIsMainAccount)
+				.findFirst()
+				.orElse(new DiscordAccount());
+
+		SplatNetStatPage splatNetStatPage = splatoonStatsLoader.querySplatoonApiForAccount(account, "/api/records", SplatNetStatPage.class);
 
 		logger.info("refreshing weapon stats");
 		refreshWeaponStats(splatNetStatPage.getRecords().getWeapon_stats().values().stream()

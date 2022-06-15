@@ -1642,6 +1642,120 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "18",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "renameTable": {
+              "oldTableName":  "discord_account",
+              "newTableName":  "account"
+            }
+          },
+          {
+            "dropColumn": {
+              "tableName": "account",
+              "columns": [
+                {
+                  "column": {
+                    "name": "consent"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "splatoon_cookie",
+                    "type": "varchar(500)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatoon_cookie_expires_at",
+                    "type": "timestamp"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_main_account",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "timezone",
+                    "type": "varchar(75)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "should_send_daily_stats",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "current_step",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "account"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "splatoon_cookie",
+                    "valueComputed": "(select b.cookie from DBO.splatoon_2_login b)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatoon_cookie_expires_at",
+                    "valueComputed": "(select b.expires_at from DBO.splatoon_2_login b)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_main_account",
+                    "valueBoolean": "true"
+                  }
+                }
+              ],
+              "tableName": "account",
+              "where": "discord_id = 256536949756657664"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "is_main_account",
+                    "valueBoolean": "false"
+                  }
+                }
+              ],
+              "tableName": "account",
+              "where": "discord_id != 256536949756657664"
+            }
+          },
+          {
+            "dropTable": {
+              "tableName": "splatoon_2_login"
+            }
+          }
+        ]
+      }
     }
   ]
 }

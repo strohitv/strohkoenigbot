@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2MonthlyResult;
+import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2MonthlyResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetXRankLeaderBoard;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
@@ -18,6 +20,13 @@ import java.util.List;
 
 @Component
 public class PeaksExporter {
+	private DiscordAccountRepository discordAccountRepository;
+
+	@Autowired
+	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
+		this.discordAccountRepository = discordAccountRepository;
+	}
+
 	private Splatoon2MonthlyResultRepository monthlyResultRepository;
 
 	@Autowired
@@ -48,6 +57,11 @@ public class PeaksExporter {
 
 	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void reloadMonthlyResults() {
+		DiscordAccount account = discordAccountRepository.findAll().stream()
+				.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
+				.findFirst()
+				.orElse(new DiscordAccount());
+
 		List<Splatoon2MonthlyResult> peaks = monthlyResultRepository.findAll();
 
 		int year = 2018;
@@ -57,7 +71,7 @@ public class PeaksExporter {
 			int finalMonth = month;
 			int finalYear = year;
 			if (peaks.stream().noneMatch(p -> p.getPeriodMonth() == finalMonth && p.getPeriodYear() == finalYear)) {
-				SplatNetXRankLeaderBoard board = getLeaderBoard(year, month);
+				SplatNetXRankLeaderBoard board = getLeaderBoard(account, year, month);
 
 				Splatoon2MonthlyResult splatoon2MonthlyResult = new Splatoon2MonthlyResult();
 
@@ -138,12 +152,17 @@ public class PeaksExporter {
 	@Scheduled(cron = "0 0 5 1 * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void refreshPreviousMonth() {
+		DiscordAccount account = discordAccountRepository.findAll().stream()
+				.filter(DiscordAccount::getIsMainAccount)
+				.findFirst()
+				.orElse(new DiscordAccount());
+
 		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault()).minus(5, ChronoUnit.DAYS);
 		int year = date.getYear();
 		int month = date.getMonthValue();
 
 		Splatoon2MonthlyResult result = monthlyResultRepository.findByPeriodYearAndPeriodMonth(year, month);
-		SplatNetXRankLeaderBoard board = getLeaderBoard(year, month);
+		SplatNetXRankLeaderBoard board = getLeaderBoard(account, year, month);
 
 		boolean changed = false;
 
@@ -186,7 +205,7 @@ public class PeaksExporter {
 		}
 	}
 
-	public SplatNetXRankLeaderBoard getLeaderBoard(int year, int month) {
+	public SplatNetXRankLeaderBoard getLeaderBoard(DiscordAccount account, int year, int month) {
 		int endYear = month < 12 ? year : year + 1;
 		int endMonth = (month % 12) + 1;
 
@@ -196,6 +215,6 @@ public class PeaksExporter {
 
 		String address = String.format("/api/x_power_ranking/%02d%02d01T00_%02d%02d01T00/summary", year - 2000, month, endYear - 2000, endMonth);
 
-		return splatoonPeaksLoader.querySplatoonApi(address, SplatNetXRankLeaderBoard.class);
+		return splatoonPeaksLoader.querySplatoonApiForAccount(account, address, SplatNetXRankLeaderBoard.class);
 	}
 }

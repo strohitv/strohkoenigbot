@@ -15,10 +15,8 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2Login;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2LoginRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 
 import java.io.BufferedWriter;
@@ -36,13 +34,6 @@ public class JavaArgumentEvaluator {
 	@Autowired
 	public void setArguments(@NonNull List<String> args) {
 		arguments = args;
-	}
-
-	private Splatoon2LoginRepository splatoon2LoginRepository;
-
-	@Autowired
-	public void setSplatoonLoginRepository(Splatoon2LoginRepository splatoon2LoginRepository) {
-		this.splatoon2LoginRepository = splatoon2LoginRepository;
 	}
 
 	private TwitchAuthRepository twitchAuthRepository;
@@ -90,7 +81,6 @@ public class JavaArgumentEvaluator {
 				Map<String, Object> struct = new HashMap<>();
 				struct.put("config", configurationRepository.findAll());
 				struct.put("twitch", twitchAuthRepository.findAll());
-				struct.put("splatoon", splatoon2LoginRepository.findAll());
 
 				try {
 					String json = mapper.writeValueAsString(struct);
@@ -112,11 +102,6 @@ public class JavaArgumentEvaluator {
 					if (config.getConfig() != null) {
 						configurationRepository.deleteAll();
 						configurationRepository.saveAll(Arrays.asList(config.getConfig()));
-					}
-
-					if (config.getSplatoon() != null) {
-						splatoon2LoginRepository.deleteAll();
-						splatoon2LoginRepository.saveAll(Arrays.asList(config.getSplatoon().clone()));
 					}
 
 					if (config.getTwitch() != null) {
@@ -144,6 +129,5 @@ public class JavaArgumentEvaluator {
 	private static class Config {
 		private Configuration[] config;
 		private TwitchAuth[] twitch;
-		private Splatoon2Login[] splatoon;
 	}
 }

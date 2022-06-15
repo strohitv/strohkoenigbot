@@ -276,12 +276,11 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
-		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.PrivateMessage, TriggerReason.DiscordPrivateMessage);
+		return EnumSet.of(TriggerReason.DiscordPrivateMessage);
 	}
 
 	@Override
 	public void execute(ActionArgs args) {
-		boolean isTwitchMessage = args.getReason() == TriggerReason.ChatMessage || args.getReason() == TriggerReason.PrivateMessage;
 		TwitchDiscordMessageSender sender = args.getReplySender();
 
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
@@ -294,17 +293,13 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 		if (message.startsWith("!notifications")) {
 			// Send current notifications of the account via discord
-			DiscordAccount account = discordAccountRepository.findByDiscordIdOrTwitchUserIdOrderById
-					(
-							parseLongSafe(args.getUserId()),
-							(isTwitchMessage) ? args.getUserId() : null
-					)
+			DiscordAccount account = discordAccountRepository.findByDiscordIdOrderById(parseLongSafe(args.getUserId()))
 					.stream()
 					.findFirst()
 					.orElse(null);
 
 			if (account == null) {
-				sender.send("ERROR! You don't have a discord account connected and can't receive any notifications.");
+				sender.send("You don't have any registered notifications yet. Use the !notify command to add some!");
 				return;
 			}
 
@@ -316,12 +311,8 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				}
 
 				discordBot.sendPrivateMessage(account.getDiscordId(), builder.toString());
-
-				if (isTwitchMessage) {
-					sender.send("I've sent you a list with your active notifications on discord.");
-				}
 			} else {
-				sender.send("You didn't register any notifications.");
+				sender.send("You don't have any registered notifications yet. Use the !notify command to add some!");
 			}
 
 			return;
@@ -331,23 +322,17 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			return;
 		}
 
-		Long discordId;
-
-		if (isTwitchMessage) {
-			discordId = discordAccountRepository.findByTwitchUserIdOrderById(args.getUserId()).stream()
-					.map(DiscordAccount::getId)
-					.findFirst()
-					.orElse(null);
-		} else {
-			discordId = discordAccountRepository.findByDiscordIdOrderById(Long.parseLong(args.getUserId())).stream()
-					.map(DiscordAccount::getId)
-					.findFirst()
-					.orElse(null);
-		}
+		Long discordId = discordAccountRepository.findByDiscordIdOrderById(Long.parseLong(args.getUserId())).stream()
+				.map(DiscordAccount::getId)
+				.findFirst()
+				.orElse(null);
 
 		if (discordId == null) {
-			sender.send("ERROR! You need to first connect your discord account which can receive the notification. Please use !connect to connect one first. I don't send notifications to discord accounts which didn't connect first as a spam protection.");
-			return;
+			DiscordAccount account = new DiscordAccount();
+			account.setDiscordId(Long.parseLong(args.getUserId()));
+
+			account = discordAccountRepository.save(account);
+			discordId = account.getId();
 		}
 
 		if (remove) {
@@ -415,22 +400,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			return;
 		}
 
-		// let's look how it works with vague searches
-//		if (!remove && type == GearType.Any && main == AbilityType.Any && favored == AbilityType.Any) {
-//			// ERROR -> Too vague
-// 			sender.send("ERROR! Your search is too vague! Please specify at least gear, main OR favored ability.");
-//			return;
-//		}
-
-		// todo do create or remove operation in database
-		// todo make sure to use twitch account id so it won't fail when they change their username
 		if (!remove) {
-			// let's look how it works with no number limit for registered notifications
-//			List<AbilityNotification> notifications = abilityNotificationRepository.findByUserId((String) args.getArguments().get(ArgumentKey.ChannelId));
-//			if (notifications.size() > 0) {
-//				abilityNotificationRepository.deleteAll(notifications);
-//			}
-
 			Splatoon2AbilityNotification notification = new Splatoon2AbilityNotification();
 			notification.setDiscordId(discordId);
 			notification.setGear(type);

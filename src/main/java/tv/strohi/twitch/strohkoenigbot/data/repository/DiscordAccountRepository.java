@@ -14,8 +14,5 @@ public interface DiscordAccountRepository extends CrudRepository<DiscordAccount,
 
 	Optional<DiscordAccount> findById(long id);
 
-	List<DiscordAccount> findByTwitchUserIdOrderById(String twitchUserId);
 	List<DiscordAccount> findByDiscordIdOrderById(Long discordId);
-
-	List<DiscordAccount> findByDiscordIdOrTwitchUserIdOrderById(Long discordId, String twitchUserId);
 }

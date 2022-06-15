@@ -1,25 +1,41 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 
 import java.net.http.HttpClient;
 
 @Component
 public class AuthenticatedHttpClientCreator {
-	private SplatoonCookieHandler splatoonCookieHandler;
+	private DiscordAccountRepository discordAccountRepository;
 
 	@Autowired
-	public void setSplatoonCookieHandler(SplatoonCookieHandler splatoonCookieHandler) {
-		this.splatoonCookieHandler = splatoonCookieHandler;
+	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
+		this.discordAccountRepository = discordAccountRepository;
 	}
 
-	@Bean
-	public HttpClient getAuthenticatedHttpClient() {
+	private ConfigurationRepository configurationRepository;
+
+	@Autowired
+	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
+		this.configurationRepository = configurationRepository;
+	}
+
+	private DiscordBot discordBot;
+
+	@Autowired
+	public void setDiscordBot(DiscordBot discordBot) {
+		this.discordBot = discordBot;
+	}
+
+	public HttpClient of(DiscordAccount account) {
 		return HttpClient.newBuilder()
 				.version(HttpClient.Version.HTTP_2)
-				.cookieHandler(splatoonCookieHandler)
+				.cookieHandler(SplatoonCookieHandler.of(account, discordAccountRepository, configurationRepository, discordBot))
 				.build();
 	}
 }

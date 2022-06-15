@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
@@ -69,7 +70,13 @@ public class SplatNetStoreWatcher {
 //	@Scheduled(cron = "10 * * * * *")
 	public void refreshSplatNetShop() {
 		logger.info("checking for new splatnet store offers");
-		SplatNetMerchandises gearOffers = shopLoader.querySplatoonApi("/api/onlineshop/merchandises", SplatNetMerchandises.class);
+
+		DiscordAccount account = discordAccountRepository.findAll().stream()
+				.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
+				.findFirst()
+				.orElse(new DiscordAccount());
+
+		SplatNetMerchandises gearOffers = shopLoader.querySplatoonApiForAccount(account, "/api/onlineshop/merchandises", SplatNetMerchandises.class);
 
 		logger.info("found {} offers", gearOffers != null ? gearOffers.getMerchandises().length : 0);
 		logger.debug(gearOffers);

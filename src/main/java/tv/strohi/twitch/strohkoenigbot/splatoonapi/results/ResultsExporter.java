@@ -12,12 +12,14 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.WeaponRequestRankingActio
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.model.DiscordAccount;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2GearType;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2MatchResult;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.*;
@@ -57,6 +59,13 @@ public class ResultsExporter {
 	@Autowired
 	public void setSplatoonResultsLoader(RequestSender splatoonResultsLoader) {
 		this.splatoonResultsLoader = splatoonResultsLoader;
+	}
+
+	private DiscordAccountRepository discordAccountRepository;
+
+	@Autowired
+	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
+		this.discordAccountRepository = discordAccountRepository;
 	}
 
 	private Splatoon2MatchRepository matchRepository;
@@ -255,285 +264,296 @@ public class ResultsExporter {
 			alreadyRunning = true;
 			logger.info("loading results");
 
-			try {
-				SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApi("/api/results", SplatNetMatchResultsCollection.class);
+			List<DiscordAccount> accounts = discordAccountRepository.findAll().stream()
+					.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
+					.collect(Collectors.toList());
 
-				if (collection != null) {
-					List<SplatNetMatchResult> results = new ArrayList<>();
-					for (int i = collection.getResults().length - 1; i >= 0; i--) {
-						results.add(collection.getResults()[i]);
-					}
+			for (DiscordAccount account : accounts) {
+				// TODO rework to make it work with any other account
+				if (!account.getIsMainAccount()) {
+					continue;
+				}
 
-					if (forceReload) {
-						for (SplatNetMatchResult singleResult : results) {
-							Splatoon2Match match = matchRepository.findByBattleNumber(singleResult.getBattle_number());
+				try {
+					SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApiForAccount(account, "/api/results", SplatNetMatchResultsCollection.class);
 
-							if (match != null) {
-								long id = match.getId();
+					if (collection != null) {
+						List<SplatNetMatchResult> results = new ArrayList<>();
+						for (int i = collection.getResults().length - 1; i >= 0; i--) {
+							results.add(collection.getResults()[i]);
+						}
 
-								clipRepository.getAllByMatchId(id).forEach(clip -> {
-									clip.setMatchId(null);
-									clipRepository.save(clip);
-								});
+						if (forceReload) {
+							for (SplatNetMatchResult singleResult : results) {
+								Splatoon2Match match = matchRepository.findByBattleNumber(singleResult.getBattle_number());
 
-								Splatoon2Weapon weapon = weaponRepository.findById(match.getWeaponId()).orElse(null);
-								if (weapon != null) {
-									if (match.getMatchResult() == Splatoon2MatchResult.Win) {
-										weapon.setWins(weapon.getWins() - 1);
-									} else {
-										weapon.setDefeats(weapon.getDefeats() - 1);
+								if (match != null) {
+									long id = match.getId();
+
+									clipRepository.getAllByMatchId(id).forEach(clip -> {
+										clip.setMatchId(null);
+										clipRepository.save(clip);
+									});
+
+									Splatoon2Weapon weapon = weaponRepository.findById(match.getWeaponId()).orElse(null);
+									if (weapon != null) {
+										if (match.getMatchResult() == Splatoon2MatchResult.Win) {
+											weapon.setWins(weapon.getWins() - 1);
+										} else {
+											weapon.setDefeats(weapon.getDefeats() - 1);
+										}
+
+										weaponRepository.save(weapon);
 									}
 
-									weaponRepository.save(weapon);
+									abilityMatchRepository.findAllByMatchId(id).forEach(abilityMatchRepository::delete);
+									matchRepository.delete(match);
 								}
-
-								abilityMatchRepository.findAllByMatchId(id).forEach(abilityMatchRepository::delete);
-								matchRepository.delete(match);
 							}
+
+							forceReload = false;
+							loadSilently = true;
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), "removed last 50 matches successfully");
 						}
 
-						forceReload = false;
-						loadSilently = true;
-						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), "removed last 50 matches successfully");
-					}
+						int maxSavedBattleNumber = matchRepository.findMaxBattleNumber();
+						results = results.stream()
+								.filter(r -> r.getBattleNumberAsInteger() > maxSavedBattleNumber) // matchRepository.findBySplatnetBattleNumber(r.getBattleNumberAsInteger()) == null)
+								.collect(Collectors.toList());
 
-					int maxSavedBattleNumber = matchRepository.findMaxBattleNumber();
-					results = results.stream()
-							.filter(r -> r.getBattleNumberAsInteger() > maxSavedBattleNumber) // matchRepository.findBySplatnetBattleNumber(r.getBattleNumberAsInteger()) == null)
-							.collect(Collectors.toList());
-
-					if (results.size() > 0) {
-						splatoonMatchColorComponent.reset();
-					}
-
-					for (SplatNetMatchResult singleResult : results) {
-						SplatNetMatchResult loadedMatch
-								= splatoonResultsLoader.querySplatoonApi(String.format("/api/results/%s", singleResult.getBattle_number()), SplatNetMatchResult.class);
-
-						Splatoon2Match match = new Splatoon2Match();
-						match.setBattleNumber(loadedMatch.getBattle_number());
-						match.setSplatnetBattleNumber(loadedMatch.getBattleNumberAsInteger());
-
-						match.setStartTime(loadedMatch.getStart_time());
-						match.setElapsedTime(loadedMatch.getElapsed_time());
-						match.setEndTime(loadedMatch.getStart_time() + loadedMatch.getElapsed_time());
-
-						match.setStageId(stagesExporter.loadStage(loadedMatch.getStage()).getId());
-						match.setMode(Splatoon2Mode.getModeByName(loadedMatch.getGame_mode().getKey()));
-						match.setRule(Splatoon2Rule.getRuleByName(loadedMatch.getRule().getKey()));
-
-						Splatoon2Rotation rotation
-								= rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(match.getStartTime(), match.getEndTime(), match.getMode());
-
-						if (rotation != null
-								&& (Objects.equals(rotation.getStageAId(), match.getStageId()) || Objects.equals(rotation.getStageBId(), match.getStageId()))) {
-							match.setRotationId(rotation.getId());
+						if (results.size() > 0) {
+							splatoonMatchColorComponent.reset();
 						}
 
-						if (loadedMatch.getUdemae() != null) {
-							match.setRank(loadedMatch.getUdemae().getName());
-						}
+						for (SplatNetMatchResult singleResult : results) {
+							SplatNetMatchResult loadedMatch
+									= splatoonResultsLoader.querySplatoonApiForAccount(account, String.format("/api/results/%s", singleResult.getBattle_number()), SplatNetMatchResult.class);
 
-						match.setXPower(loadedMatch.getX_power());
-						match.setXPowerEstimate(loadedMatch.getEstimate_gachi_power());
-						match.setXLobbyPower(loadedMatch.getEstimate_x_power());
+							Splatoon2Match match = new Splatoon2Match();
+							match.setBattleNumber(loadedMatch.getBattle_number());
+							match.setSplatnetBattleNumber(loadedMatch.getBattleNumberAsInteger());
 
-						match.setLeagueTag(loadedMatch.getTag_id());
-						match.setLeaguePower(loadedMatch.getLeague_point());
-						match.setLeaguePowerMax(loadedMatch.getMax_league_point());
-						match.setLeaguePowerEstimate(loadedMatch.getMy_estimate_league_point());
-						match.setLeagueEnemyPower(loadedMatch.getOther_estimate_league_point());
+							match.setStartTime(loadedMatch.getStart_time());
+							match.setElapsedTime(loadedMatch.getElapsed_time());
+							match.setEndTime(loadedMatch.getStart_time() + loadedMatch.getElapsed_time());
 
-						Splatoon2Weapon weapon = weaponExporter.loadWeapon(loadedMatch.getPlayer_result().getPlayer().getWeapon());
+							match.setStageId(stagesExporter.loadStage(loadedMatch.getStage()).getId());
+							match.setMode(Splatoon2Mode.getModeByName(loadedMatch.getGame_mode().getKey()));
+							match.setRule(Splatoon2Rule.getRuleByName(loadedMatch.getRule().getKey()));
 
-						match.setWeaponId(weapon.getId());
-						match.setTurfGain(loadedMatch.getPlayer_result().getGame_paint_point());
-						match.setTurfTotal(loadedMatch.getWeapon_paint_point());
+							Splatoon2Rotation rotation
+									= rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(match.getStartTime(), match.getEndTime(), match.getMode());
 
-						match.setKills(loadedMatch.getPlayer_result().getKill_count());
-						match.setAssists(loadedMatch.getPlayer_result().getAssist_count());
-						match.setDeaths(loadedMatch.getPlayer_result().getDeath_count());
-						match.setSpecials(loadedMatch.getPlayer_result().getSpecial_count());
+							if (rotation != null
+									&& (Objects.equals(rotation.getStageAId(), match.getStageId()) || Objects.equals(rotation.getStageBId(), match.getStageId()))) {
+								match.setRotationId(rotation.getId());
+							}
 
-						match.setOwnScore(loadedMatch.getMy_team_count());
-						match.setEnemyScore(loadedMatch.getOther_team_count());
+							if (loadedMatch.getUdemae() != null) {
+								match.setRank(loadedMatch.getUdemae().getName());
+							}
 
-						match.setOwnPercentage(loadedMatch.getMy_team_percentage());
-						match.setEnemyPercentage(loadedMatch.getOther_team_percentage());
+							match.setXPower(loadedMatch.getX_power());
+							match.setXPowerEstimate(loadedMatch.getEstimate_gachi_power());
+							match.setXLobbyPower(loadedMatch.getEstimate_x_power());
 
-						match.setMatchResult(Splatoon2MatchResult.parseResult(loadedMatch.getMy_team_result().getKey()));
-						match.setIsKo(loadedMatch.getMy_team_count() != null && loadedMatch.getOther_team_count() != null
-								&& (loadedMatch.getMy_team_count() == 100 || loadedMatch.getOther_team_count() == 100));
+							match.setLeagueTag(loadedMatch.getTag_id());
+							match.setLeaguePower(loadedMatch.getLeague_point());
+							match.setLeaguePowerMax(loadedMatch.getMax_league_point());
+							match.setLeaguePowerEstimate(loadedMatch.getMy_estimate_league_point());
+							match.setLeagueEnemyPower(loadedMatch.getOther_estimate_league_point());
 
-						match.setHeadgearId(gearExporter.loadGear(loadedMatch.getPlayer_result().getPlayer().getHead()).getId());
-						match.setClothesId(gearExporter.loadGear(loadedMatch.getPlayer_result().getPlayer().getClothes()).getId());
-						match.setShoesId(gearExporter.loadGear(loadedMatch.getPlayer_result().getPlayer().getShoes()).getId());
+							Splatoon2Weapon weapon = weaponExporter.loadWeapon(loadedMatch.getPlayer_result().getPlayer().getWeapon());
 
-						match.setMatchResultOverview(singleResult);
-						match.setMatchResultDetails(loadedMatch);
+							match.setWeaponId(weapon.getId());
+							match.setTurfGain(loadedMatch.getPlayer_result().getGame_paint_point());
+							match.setTurfTotal(loadedMatch.getWeapon_paint_point());
 
-						matchRepository.save(match);
+							match.setKills(loadedMatch.getPlayer_result().getKill_count());
+							match.setAssists(loadedMatch.getPlayer_result().getAssist_count());
+							match.setDeaths(loadedMatch.getPlayer_result().getDeath_count());
+							match.setSpecials(loadedMatch.getPlayer_result().getSpecial_count());
 
-						weaponRequestRankingAction.addMatch(match);
+							match.setOwnScore(loadedMatch.getMy_team_count());
+							match.setEnemyScore(loadedMatch.getOther_team_count());
 
-						weapon.setTurf(loadedMatch.getWeapon_paint_point());
-						if (match.getMatchResult() == Splatoon2MatchResult.Win) {
-							weapon.setWins(weapon.getWins() + 1);
-						} else {
-							weapon.setDefeats(weapon.getDefeats() + 1);
-						}
+							match.setOwnPercentage(loadedMatch.getMy_team_percentage());
+							match.setEnemyPercentage(loadedMatch.getOther_team_percentage());
 
-						weaponRepository.save(weapon);
+							match.setMatchResult(Splatoon2MatchResult.parseResult(loadedMatch.getMy_team_result().getKey()));
+							match.setIsKo(loadedMatch.getMy_team_count() != null && loadedMatch.getOther_team_count() != null
+									&& (loadedMatch.getMy_team_count() == 100 || loadedMatch.getOther_team_count() == 100));
 
-						if (!loadSilently) {
-							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
-									String.format("Put new Match with id **%d** for mode **%s** and rule **%s** into database. It was a **%s**.",
-											match.getId(),
-											match.getMode(),
-											match.getRule(),
-											match.getMatchResult()));
+							match.setHeadgearId(gearExporter.loadGear(loadedMatch.getPlayer_result().getPlayer().getHead()).getId());
+							match.setClothesId(gearExporter.loadGear(loadedMatch.getPlayer_result().getPlayer().getClothes()).getId());
+							match.setShoesId(gearExporter.loadGear(loadedMatch.getPlayer_result().getPlayer().getShoes()).getId());
 
-							twitchMessageSender.send("strohkoenig",
-									String.format("Last match: %s (%s : %s %s) - own stats: %dp ink, %d kills, %d assists, %d specials, %d deaths",
-											match.getRule().getAsString(),
-											match.getOwnScore() != null ? String.format("%d", match.getOwnScore()) : String.format("%.1f%%", match.getOwnPercentage()),
-											match.getEnemyScore() != null ? String.format("%d", match.getEnemyScore()) : String.format("%.1f%%", match.getEnemyPercentage()),
-											match.getMatchResult() == Splatoon2MatchResult.Win ? "win" : "defeat",
-											match.getTurfGain(),
-											match.getKills(),
-											match.getAssists(),
-											match.getSpecials(),
-											match.getDeaths()));
-						}
+							match.setMatchResultOverview(singleResult);
+							match.setMatchResultDetails(loadedMatch);
 
-						List<Splatoon2AbilityMatch> abilitiesUsedInMatch = new ArrayList<>();
+							matchRepository.save(match);
 
-						abilitiesUsedInMatch.addAll(parseAbilities(
-								loadedMatch.getPlayer_result().getPlayer().getHead_skills(),
-								loadedMatch.getPlayer_result().getPlayer().getHead().getKind(),
-								match.getId()));
-						abilitiesUsedInMatch.addAll(parseAbilities(
-								loadedMatch.getPlayer_result().getPlayer().getClothes_skills(),
-								loadedMatch.getPlayer_result().getPlayer().getClothes().getKind(),
-								match.getId()));
-						abilitiesUsedInMatch.addAll(parseAbilities(
-								loadedMatch.getPlayer_result().getPlayer().getShoes_skills(),
-								loadedMatch.getPlayer_result().getPlayer().getShoes().getKind(),
-								match.getId()));
+							weaponRequestRankingAction.addMatch(match);
 
-						abilityMatchRepository.saveAll(abilitiesUsedInMatch);
+							weapon.setTurf(loadedMatch.getWeapon_paint_point());
+							if (match.getMatchResult() == Splatoon2MatchResult.Win) {
+								weapon.setWins(weapon.getWins() + 1);
+							} else {
+								weapon.setDefeats(weapon.getDefeats() + 1);
+							}
 
-						if (!loadSilently) {
-							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), String.format("Added used abilities to Match with id **%d**", match.getId()));
-						}
+							weaponRepository.save(weapon);
 
-						if (!loadSilently) {
-							String discordResultMessage = String.format(
-									"**I finished a Splatoon 2 match!**\n" +
-											"\n" +
-											"**General results**:\n" +
-											"- Mode: **%s**\n" +
-											"- Rule: **%s**\n" +
-											"- It was a **%s**\n" +
-											"- My weapon: **%s**\n" +
-											"- Our score: **%s**\n" +
-											"- Enemy score: **%s**\n" +
-											"\n" +
-											"**Personal results**:\n" +
-											"- Splats: **%d**\n" +
-											"- Assists: **%d**\n" +
-											"- Deaths: **%d**\n" +
-											"- Paint: + **%d** points\n\n" +
-											"---------------------------------",
-									match.getMode(),
-									match.getRule(),
-									match.getMatchResult(),
-									loadedMatch.getPlayer_result().getPlayer().getWeapon().getName(),
-									match.getOwnPercentage() != null ? match.getOwnPercentage() : match.getOwnScore(),
-									match.getEnemyPercentage() != null ? match.getEnemyPercentage() : match.getEnemyScore(),
+							if (!loadSilently) {
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
+										String.format("Put new Match with id **%d** for mode **%s** and rule **%s** into database. It was a **%s**.",
+												match.getId(),
+												match.getMode(),
+												match.getRule(),
+												match.getMatchResult()));
 
-									match.getKills(),
-									match.getAssists(),
-									match.getDeaths(),
-									match.getTurfGain());
+								twitchMessageSender.send("strohkoenig",
+										String.format("Last match: %s (%s : %s %s) - own stats: %dp ink, %d kills, %d assists, %d specials, %d deaths",
+												match.getRule().getAsString(),
+												match.getOwnScore() != null ? String.format("%d", match.getOwnScore()) : String.format("%.1f%%", match.getOwnPercentage()),
+												match.getEnemyScore() != null ? String.format("%d", match.getEnemyScore()) : String.format("%.1f%%", match.getEnemyPercentage()),
+												match.getMatchResult() == Splatoon2MatchResult.Win ? "win" : "defeat",
+												match.getTurfGain(),
+												match.getKills(),
+												match.getAssists(),
+												match.getSpecials(),
+												match.getDeaths()));
+							}
 
-							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), discordResultMessage);
-						}
+							List<Splatoon2AbilityMatch> abilitiesUsedInMatch = new ArrayList<>();
 
-						// refresh clips and send them to discord
-						List<Splatoon2Clip> clips = clipRepository.getAllByStartTimeIsGreaterThanAndEndTimeIsLessThan(match.getStartTime(), match.getEndTime());
-						if (clips.size() > 0) {
-							StringBuilder ratingsMessageBuilder = new StringBuilder("**Viewers rated my performance**:\n");
+							abilitiesUsedInMatch.addAll(parseAbilities(
+									loadedMatch.getPlayer_result().getPlayer().getHead_skills(),
+									loadedMatch.getPlayer_result().getPlayer().getHead().getKind(),
+									match.getId()));
+							abilitiesUsedInMatch.addAll(parseAbilities(
+									loadedMatch.getPlayer_result().getPlayer().getClothes_skills(),
+									loadedMatch.getPlayer_result().getPlayer().getClothes().getKind(),
+									match.getId()));
+							abilitiesUsedInMatch.addAll(parseAbilities(
+									loadedMatch.getPlayer_result().getPlayer().getShoes_skills(),
+									loadedMatch.getPlayer_result().getPlayer().getShoes().getKind(),
+									match.getId()));
 
-							for (Splatoon2Clip clip : clips) {
-								ratingsMessageBuilder.append(String.format("\n- **%s** play - Clip: <%s> - Description: \"%s\"",
-										clip.getIsGoodPlay() ? "GOOD" : "BAD",
-										clip.getClipUrl(),
-										clip.getDescription()));
+							abilityMatchRepository.saveAll(abilitiesUsedInMatch);
 
-								clip.setMatchId(match.getId());
+							if (!loadSilently) {
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), String.format("Added used abilities to Match with id **%d**", match.getId()));
 							}
 
 							if (!loadSilently) {
-								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), ratingsMessageBuilder.toString());
+								String discordResultMessage = String.format(
+										"**I finished a Splatoon 2 match!**\n" +
+												"\n" +
+												"**General results**:\n" +
+												"- Mode: **%s**\n" +
+												"- Rule: **%s**\n" +
+												"- It was a **%s**\n" +
+												"- My weapon: **%s**\n" +
+												"- Our score: **%s**\n" +
+												"- Enemy score: **%s**\n" +
+												"\n" +
+												"**Personal results**:\n" +
+												"- Splats: **%d**\n" +
+												"- Assists: **%d**\n" +
+												"- Deaths: **%d**\n" +
+												"- Paint: + **%d** points\n\n" +
+												"---------------------------------",
+										match.getMode(),
+										match.getRule(),
+										match.getMatchResult(),
+										loadedMatch.getPlayer_result().getPlayer().getWeapon().getName(),
+										match.getOwnPercentage() != null ? match.getOwnPercentage() : match.getOwnScore(),
+										match.getEnemyPercentage() != null ? match.getEnemyPercentage() : match.getEnemyScore(),
+
+										match.getKills(),
+										match.getAssists(),
+										match.getDeaths(),
+										match.getTurfGain());
+
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), discordResultMessage);
 							}
 
-							clipRepository.saveAll(clips);
+							// refresh clips and send them to discord
+							List<Splatoon2Clip> clips = clipRepository.getAllByStartTimeIsGreaterThanAndEndTimeIsLessThan(match.getStartTime(), match.getEndTime());
+							if (clips.size() > 0) {
+								StringBuilder ratingsMessageBuilder = new StringBuilder("**Viewers rated my performance**:\n");
+
+								for (Splatoon2Clip clip : clips) {
+									ratingsMessageBuilder.append(String.format("\n- **%s** play - Clip: <%s> - Description: \"%s\"",
+											clip.getIsGoodPlay() ? "GOOD" : "BAD",
+											clip.getClipUrl(),
+											clip.getDescription()));
+
+									clip.setMatchId(match.getId());
+								}
+
+								if (!loadSilently) {
+									discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), ratingsMessageBuilder.toString());
+								}
+
+								clipRepository.saveAll(clips);
+							}
+						}
+
+						if (loadSilently) {
+							statsExporter.refreshStageAndWeaponStats();
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), "reload of all 50 matches completed successfully");
+							loadSilently = false;
+						}
+
+						if (isStreamRunning) {
+							statistics.addMatches(results);
+							statistics.exportHtml();
+						}
+
+						refreshMonthlyRankedResults(results);
+
+						if (isStreamRunning) {
+							extendedStatisticsExporter.export();
 						}
 					}
 
-					if (loadSilently) {
-						statsExporter.refreshStageAndWeaponStats();
-						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), "reload of all 50 matches completed successfully");
-						loadSilently = false;
+					if (isStreamRunning && isRankedRunning) {
+						controlOBS(account);
 					}
+				} catch (Exception ex) {
+					logger.error(ex);
 
-					if (isStreamRunning) {
-						statistics.addMatches(results);
-						statistics.exportHtml();
-					}
-
-					refreshMonthlyRankedResults(results);
-
-					if (isStreamRunning) {
-						extendedStatisticsExporter.export();
-					}
-				}
-
-				if (isStreamRunning && isRankedRunning) {
-					controlOBS();
-				}
-			} catch (Exception ex) {
-				logger.error(ex);
-
-				try {
-					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Exception occured while refreshing results!!!");
-					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), ex.getMessage());
-
-					StringWriter sw = new StringWriter();
-					PrintWriter pw = new PrintWriter(sw);
-					ex.printStackTrace(pw);
-					String stacktrace = pw.toString();
-
-					if (stacktrace.length() < 2000) {
-						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), stacktrace);
-					}
-
-					ObjectMapper mapper = new ObjectMapper();
 					try {
-						String serializedEx = mapper.writeValueAsString(ex);
+						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Exception occured while refreshing results!!!");
+						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), ex.getMessage());
 
-						if (serializedEx.length() < 2000) {
-							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), serializedEx);
+						StringWriter sw = new StringWriter();
+						PrintWriter pw = new PrintWriter(sw);
+						ex.printStackTrace(pw);
+						String stacktrace = pw.toString();
+
+						if (stacktrace.length() < 2000) {
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), stacktrace);
 						}
-					} catch (JsonProcessingException ignored) {
-						// ignored
+
+						ObjectMapper mapper = new ObjectMapper();
+						try {
+							String serializedEx = mapper.writeValueAsString(ex);
+
+							if (serializedEx.length() < 2000) {
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), serializedEx);
+							}
+						} catch (JsonProcessingException ignored) {
+							// ignored
+						}
+					} catch (Exception ex2) {
+						logger.error(ex2);
 					}
-				} catch (Exception ex2) {
-					logger.error(ex2);
+				} catch (Throwable t) {
+					logger.error(t);
 				}
-			} catch (Throwable t) {
-				logger.error(t);
 			}
 
 //			logger.info("results refresh successful");
@@ -541,7 +561,7 @@ public class ResultsExporter {
 		}
 	}
 
-	private void controlOBS() {
+	private void controlOBS(DiscordAccount account) {
 		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault());
 		int year = date.getYear();
 		int month = date.getMonthValue();
@@ -561,7 +581,7 @@ public class ResultsExporter {
 					Instant.now().getEpochSecond(),
 					Splatoon2Mode.Ranked);
 
-			SplatNetXRankLeaderBoard leaderBoard = peaksExporter.getLeaderBoard(year, month);
+			SplatNetXRankLeaderBoard leaderBoard = peaksExporter.getLeaderBoard(account, year, month);
 			Double currentPower = getCurrentPower(leaderBoard, rotation);
 			logger.info("current power: {}", currentPower);
 			if (currentPower != null) {

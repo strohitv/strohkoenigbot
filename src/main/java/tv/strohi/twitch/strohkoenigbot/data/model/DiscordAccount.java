@@ -5,8 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.Instant;
 
-@Entity
+@Entity(name = "account")
 @Cacheable(false)
 @Data
 @NoArgsConstructor
@@ -16,9 +17,19 @@ public class DiscordAccount {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
-	private String twitchUserId;
-
 	private Long discordId;
 
-	private Boolean consent;
+	private String twitchUserId;
+
+	private String splatoonCookie;
+
+	private Instant splatoonCookieExpiresAt;
+
+	private Boolean isMainAccount = false;
+
+	private String timezone;
+
+	private Boolean sendDailyStats;
+
+	private Integer currentStep;
 }
