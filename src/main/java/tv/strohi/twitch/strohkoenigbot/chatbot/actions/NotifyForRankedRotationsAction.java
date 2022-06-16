@@ -25,6 +25,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 public class NotifyForRankedRotationsAction extends ChatAction {
@@ -79,9 +80,15 @@ public class NotifyForRankedRotationsAction extends ChatAction {
 			message = message.substring("notifications".length()).trim();
 
 			if (message.isBlank()) {
+				List<Splatoon2RotationNotification> allNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(ModeFilter.Ranked, account.getId());
+
+				if (allNotifications.size() == 0) {
+					sender.send("**ERROR**! You don't have any notifications yet");
+					return;
+				}
+
 				StringBuilder responseBuilder = new StringBuilder("Those are your current notifications:");
 
-				List<Splatoon2RotationNotification> allNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(ModeFilter.Ranked, account.getId());
 				for (Splatoon2RotationNotification notification : allNotifications) {
 					responseBuilder.append("\n    ").append("- Id: **").append(notification.getId())
 							.append("** - Mode: **").append(notification.getMode().getName())
@@ -92,8 +99,9 @@ public class NotifyForRankedRotationsAction extends ChatAction {
 				responseBuilder.append("\n\nTo receive detailed information about one of them, use **!ranked notifications <id>**.");
 
 				sender.send(responseBuilder.toString());
-			} else{
+			} else {
 				try {
+					message = message.split("\\s")[0];
 					int id = Integer.parseInt(message);
 
 					Splatoon2RotationNotification foundnotification = rotationNotificationRepository.findByIdAndAccountIdOrderById(id, account.getId());
@@ -109,6 +117,48 @@ public class NotifyForRankedRotationsAction extends ChatAction {
 				} catch (NumberFormatException ignored) {
 					sender.send(String.format("**ERROR**! Whatever you're trying to do, **%s** is not a number!", message));
 				}
+			}
+
+		} else if (message.startsWith("unnotify")) {
+			message = message.substring("unnotify".length()).trim();
+
+			if (!message.isBlank()) {
+				String[] idStrings = message.split("\\s");
+
+				List<Long> ids = new ArrayList<>();
+
+				for (String idString : idStrings) {
+					try {
+						ids.add(Long.parseLong(idString));
+					} catch (NumberFormatException ignored) {
+					}
+				}
+
+				List<Splatoon2RotationNotification> foundNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(ModeFilter.Ranked, account.getId()).stream()
+						.filter(fn -> ids.contains(fn.getId()))
+						.collect(Collectors.toList());
+
+				if (foundNotifications.size() > 0) {
+					rotationNotificationRepository.deleteAll(foundNotifications);
+
+					StringBuilder responseBuilder = new StringBuilder("I deleted the following notifications:");
+
+					for (Splatoon2RotationNotification notification : foundNotifications) {
+						responseBuilder.append("\n    ").append("- Id: **").append(notification.getId())
+								.append("** - Mode: **").append(notification.getMode().getName())
+								.append("** - Rule: **").append(notification.getRule().getName())
+								.append("**");
+					}
+
+					sender.send(responseBuilder.toString());
+				} else {
+					sender.send("**ERROR**! I could not find any notification for the numbers you gave me.");
+				}
+			} else {
+				List<Splatoon2RotationNotification> foundNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(ModeFilter.Ranked, account.getId());
+				rotationNotificationRepository.deleteAll(foundNotifications);
+
+				sender.send("I deleted all your notifications as requested.");
 			}
 		}
 	}
