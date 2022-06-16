@@ -96,6 +96,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		}
 
 		if (!message.startsWith("!splatnet notify") && !(remove = message.startsWith("!splatnet unnotify"))) {
+			sender.send("Allowed commands:\n    - !splatnet notify\n    - !splatnet notifications\n    - !splatnet notifications <id>\n    - !splatnet unnotify\n    - !splatnet unnotify <id>");
 			return;
 		}
 
