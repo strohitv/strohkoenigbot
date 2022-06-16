@@ -137,8 +137,8 @@ public class SplatNetStoreWatcher {
 						gear.getPrice(),
 						gear.getSkill().getName(),
 						frequentSkill,
-						gear.getGear().getRarity() + 1, Duration.between(Instant.now(),
-								gear.getEndTime()).abs().toHours() + 1);
+						gear.getGear().getRarity() + 1,
+						Duration.between(Instant.now(), gear.getEndTime()).abs().toHours() + 1);
 
 				channelMessageSender.send("strohkoenig", message);
 
@@ -149,8 +149,8 @@ public class SplatNetStoreWatcher {
 						gear.getPrice(),
 						gear.getSkill().getName(),
 						frequentSkill,
-						gear.getGear().getRarity() + 1, Duration.between(Instant.now(),
-								gear.getEndTime()).abs().toHours() + 1);
+						gear.getGear().getRarity() + 1,
+						Duration.between(Instant.now(), gear.getEndTime()).abs().toHours() + 1);
 
 				sendDiscordNotification(gear, discordMessage);
 			}
@@ -183,7 +183,7 @@ public class SplatNetStoreWatcher {
 				accountRepository.findById(notification.getDiscordId())
 						.ifPresent(discordAccount -> {
 									logger.info("Sending notification to discord account: {}", discordAccount.getDiscordId());
-									discordBot.sendPrivateMessageWithImage(discordAccount.getDiscordId(),
+									discordBot.sendPrivateMessageWithImages(discordAccount.getDiscordId(),
 											discordMessage,
 											images.toArray(String[]::new));
 								}

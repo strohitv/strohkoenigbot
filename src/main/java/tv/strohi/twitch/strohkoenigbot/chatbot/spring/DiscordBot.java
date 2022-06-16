@@ -189,7 +189,7 @@ public class DiscordBot {
 		return result;
 	}
 
-	public boolean sendPrivateMessageWithImage(Long userId, String message, String... imageUrls) {
+	public boolean sendPrivateMessageWithImages(Long userId, String message, String... imageUrls) {
 		if (userId == null || getGateway() == null) {
 			return false;
 		}
@@ -273,23 +273,18 @@ public class DiscordBot {
 		return result;
 	}
 
-	public boolean sendPrivateMessageWithAttachment(Long userId, String message, String fileName, InputStream content) {
+	public void sendPrivateMessageWithAttachment(Long userId, String message, String fileName, InputStream content) {
 		if (userId == null || getGateway() == null) {
-			return false;
+			return;
 		}
-
-		boolean result = false;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().block();
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
 				Message msg = channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).onErrorResume(e -> Mono.empty()).block();
-				result = msg != null;
 			}
 		}
-
-		return result;
 	}
 
 	public void reply(String message, TextChannel channel, Snowflake reference) {

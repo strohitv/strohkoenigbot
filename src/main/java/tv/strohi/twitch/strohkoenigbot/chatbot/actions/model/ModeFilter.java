@@ -21,4 +21,16 @@ public enum ModeFilter {
 	}
 
 	public static final EnumSet<ModeFilter> All = EnumSet.allOf(ModeFilter.class);
+
+	public static ModeFilter getFromSplatNetApiName(String name) {
+		ModeFilter mode = Ranked;
+
+		if ("League Battle".equals(name)) {
+			mode = League;
+		} else if ("Regular Battle".equals(name)) {
+			mode = TurfWar;
+		}
+
+		return mode;
+	}
 }

@@ -22,4 +22,20 @@ public enum RuleFilter {
 
 	public static final EnumSet<RuleFilter> All = EnumSet.allOf(RuleFilter.class);
 	public static final EnumSet<RuleFilter> RankedModes = EnumSet.of(SplatZones, Rainmaker, TowerControl, ClamBlitz);
+
+	public static RuleFilter getFromSplatNetApiName(String name) {
+		RuleFilter rule = SplatZones;
+
+		if ("Rainmaker".equals(name)) {
+			rule = Rainmaker;
+		} else if ("Tower Control".equals(name)) {
+			rule = TowerControl;
+		} else if ("Clam Blitz".equals(name)) {
+			rule = ClamBlitz;
+		} else if ("Turf War".equals(name)) {
+			rule = TurfWar;
+		}
+
+		return rule;
+	}
 }

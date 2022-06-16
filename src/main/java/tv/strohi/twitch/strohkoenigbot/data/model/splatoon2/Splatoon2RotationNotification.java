@@ -21,7 +21,7 @@ public class Splatoon2RotationNotification {
 	private long id;
 
 	@NonNull
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne
 	@JoinColumn(foreignKey = @ForeignKey(name = "fk_splatoon_2_rotation_notification_account_id"))
 	private Account account;
 
