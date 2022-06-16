@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
-public class NotifyForRankedRotationsAction extends ChatAction {
+public class NotifyForOnlineRotationsAction extends ChatAction {
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
 		return EnumSet.of(TriggerReason.DiscordPrivateMessage);
@@ -66,21 +66,31 @@ public class NotifyForRankedRotationsAction extends ChatAction {
 
 		message = message.toLowerCase().trim();
 
-		if (!message.startsWith("!ranked")) {
+		ModeFilter mode;
+
+		if (message.startsWith("!ranked")) {
+			message = message.substring("!ranked".length()).trim();
+			mode = ModeFilter.Ranked;
+		} else if (message.startsWith("!league")) {
+			message = message.substring("!league".length()).trim();
+			mode = ModeFilter.League;
+		} else if (message.startsWith("!turf")) {
+			message = message.substring("!turf".length()).trim();
+			mode = ModeFilter.TurfWar;
+		} else {
 			return;
 		}
 
-		message = message.substring("!ranked".length()).trim();
 
 		Account account = loadAccount(Long.parseLong(args.getUserId()));
 
 		if (message.startsWith("notify")) {
-			addNotification(sender, message, account);
+			addNotification(mode, sender, message, account);
 		} else if (message.startsWith("notifications")) {
 			message = message.substring("notifications".length()).trim();
 
 			if (message.isBlank()) {
-				List<Splatoon2RotationNotification> allNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(ModeFilter.Ranked, account.getId());
+				List<Splatoon2RotationNotification> allNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(mode, account.getId());
 
 				if (allNotifications.size() == 0) {
 					sender.send("**ERROR**! You don't have any notifications yet");
@@ -96,7 +106,13 @@ public class NotifyForRankedRotationsAction extends ChatAction {
 							.append("**");
 				}
 
-				responseBuilder.append("\n\nTo receive detailed information about one of them, use **!ranked notifications <id>**.");
+				String command = "ranked";
+				if (mode == ModeFilter.League) {
+					command = "league";
+				} else if (mode == ModeFilter.TurfWar) {
+					command = "turf";
+				}
+				responseBuilder.append("\n\nTo receive detailed information about one of them, use **!").append(command).append(" notifications <id>**.");
 
 				sender.send(responseBuilder.toString());
 			} else {
@@ -134,7 +150,7 @@ public class NotifyForRankedRotationsAction extends ChatAction {
 					}
 				}
 
-				List<Splatoon2RotationNotification> foundNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(ModeFilter.Ranked, account.getId()).stream()
+				List<Splatoon2RotationNotification> foundNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(mode, account.getId()).stream()
 						.filter(fn -> ids.contains(fn.getId()))
 						.collect(Collectors.toList());
 
@@ -155,17 +171,26 @@ public class NotifyForRankedRotationsAction extends ChatAction {
 					sender.send("**ERROR**! I could not find any notification for the numbers you gave me.");
 				}
 			} else {
-				List<Splatoon2RotationNotification> foundNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(ModeFilter.Ranked, account.getId());
+				List<Splatoon2RotationNotification> foundNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(mode, account.getId());
 				rotationNotificationRepository.deleteAll(foundNotifications);
 
 				sender.send("I deleted all your notifications as requested.");
 			}
+		} else {
+			// no valid commands
+			String command = "ranked";
+			if (mode == ModeFilter.League) {
+				command = "league";
+			} else if (mode == ModeFilter.TurfWar) {
+				command = "turf";
+			}
+			sender.send(String.format("Allowed commands:\n    - !%s notify\n    - !%s notifications\n    - !%s notifications <id>\n    - !%s unnotify\n    - !%s unnotify <id>", command, command, command, command, command));
 		}
 	}
 
-	private void addNotification(TwitchDiscordMessageSender sender, String message, Account account) {
-		if (rotationNotificationRepository.findByModeAndAccountIdOrderById(ModeFilter.Ranked, account.getId()).size() >= 12) {
-			sender.send("**ERROR**! You already have 12 notifications for ranked! Remove some old ones first before adding a new one!");
+	private void addNotification(ModeFilter mode, TwitchDiscordMessageSender sender, String message, Account account) {
+		if (rotationNotificationRepository.findByModeAndAccountIdOrderById(mode, account.getId()).size() >= 12) {
+			sender.send("**ERROR**! You already have 12 notifications for this game mode. Remove some old ones first before adding a new one!");
 			return;
 		}
 
@@ -181,10 +206,15 @@ public class NotifyForRankedRotationsAction extends ChatAction {
 
 		// rules
 		List<RuleFilter> includedRules = new ArrayList<>();
-		notificationParameters = fillListAndReplaceText(notificationParameters, textFilters.getRuleFilters(), includedRules);
 
-		if (includedRules.size() == 0) {
-			includedRules.addAll(RuleFilter.RankedModes);
+		if (mode == ModeFilter.TurfWar) {
+			includedRules.add(RuleFilter.TurfWar);
+		} else {
+			notificationParameters = fillListAndReplaceText(notificationParameters, textFilters.getRuleFilters(), includedRules);
+
+			if (includedRules.size() == 0) {
+				includedRules.addAll(RuleFilter.RankedModes);
+			}
 		}
 
 		// days
@@ -231,7 +261,7 @@ public class NotifyForRankedRotationsAction extends ChatAction {
 			Splatoon2RotationNotification notification = new Splatoon2RotationNotification();
 			notification.setAccount(account);
 
-			notification.setMode(ModeFilter.Ranked);
+			notification.setMode(mode);
 			notification.setRule(rule);
 
 			notification.setIncludedStages(SplatoonStage.resolveToNumber(includedStages));
@@ -401,7 +431,7 @@ public class NotifyForRankedRotationsAction extends ChatAction {
 		builder.append("\n").append("- Id: **").append(notification.getId())
 				.append("** - Mode: **").append(notification.getMode().getName())
 				.append("** - Rule: **").append(notification.getRule().getName())
-				.append("**\n    - Rotation starts between: ");
+				.append("**\n    - Only rotations which start on: ");
 
 		boolean atLeastSecond = false;
 		if (notification.isNotifyMonday()) {
