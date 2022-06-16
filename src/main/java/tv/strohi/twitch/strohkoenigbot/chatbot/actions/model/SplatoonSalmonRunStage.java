@@ -6,6 +6,11 @@ import java.util.EnumSet;
 
 @Getter
 public enum SplatoonSalmonRunStage {
+	// TODO idea for salmon run filter:
+	//  - stages
+	//  - no random weapons / some random weapons / all random weapons
+	//  - ??? I should ask people who regularly play salmon run LMAO
+
 	SpawningGrounds(1, "Spawning Grounds", "Spawning", "Grounds", "sg"),
 	MaroonersBay(2, "Marooner's Bay", "Marooners Bay", "Marooner's", "Marooners", "Bay", "mb"),
 	LostOutpost(4, "Lost Outpost", "Lost", "Outpost", "lo"),
