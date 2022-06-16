@@ -206,9 +206,9 @@ public class DiscordAdministrationAction extends ChatAction {
 			config = configurationRepository.save(config);
 
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was stored into database.", config.getId()));
-		} else if (message.startsWith("!ranked")) {
+		} else if (message.startsWith("!stream ranked")) {
 			String startOrStop = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
-					.substring("!ranked".length()).toLowerCase().trim();
+					.substring("!stream ranked".length()).toLowerCase().trim();
 
 			resultsExporter.setRankedRunning("start".equals(startOrStop));
 
