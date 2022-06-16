@@ -58,7 +58,7 @@ public class PeaksExporter {
 	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void reloadMonthlyResults() {
 		Account account = accountRepository.findAll().stream()
-				.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
+				.filter(Account::getIsMainAccount)
 				.findFirst()
 				.orElse(new Account());
 

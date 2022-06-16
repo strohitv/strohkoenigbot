@@ -144,7 +144,7 @@ public class RotationWatcher {
 			logger.info("checking for new stages");
 
 			Account account = accountRepository.findAll().stream()
-					.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
+					.filter(Account::getIsMainAccount)
 					.findFirst()
 					.orElse(new Account());
 
