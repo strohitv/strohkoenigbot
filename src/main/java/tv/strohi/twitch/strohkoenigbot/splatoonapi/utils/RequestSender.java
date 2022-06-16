@@ -20,9 +20,6 @@ import java.util.zip.GZIPInputStream;
 public class RequestSender {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private final String host = "https://app.splatoon2.nintendo.net";
-	private final String appUniqueId = "32449507786579989235";
-
 	private AuthenticatedHttpClientCreator clientCreator;
 
 	@Autowired
@@ -36,10 +33,12 @@ public class RequestSender {
 		TimeZone tz = TimeZone.getDefault();
 		int offset = tz.getOffset(new Date().getTime()) / 1000 / 60;
 
+		String host = "https://app.splatoon2.nintendo.net";
 		String address = host + path;
 
 		URI uri = URI.create(address);
 
+		String appUniqueId = "32449507786579989235";
 		HttpRequest request = HttpRequest.newBuilder()
 				.GET()
 				.uri(uri)

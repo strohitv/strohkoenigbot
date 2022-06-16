@@ -26,6 +26,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 
 import java.io.*;
 import java.net.URL;
@@ -46,6 +47,13 @@ public class DiscordBot {
 	public void setBotActions(List<IChatAction> botActions) {
 		this.botActions.clear();
 		this.botActions.addAll(botActions);
+	}
+
+	private ResourcesDownloader resourcesDownloader;
+
+	@Autowired
+	public void setResourcesDownloader(ResourcesDownloader resourcesDownloader) {
+		this.resourcesDownloader = resourcesDownloader;
 	}
 
 	@Autowired
@@ -215,40 +223,16 @@ public class DiscordBot {
 			List<Tuple<String, InputStream>> streams = new ArrayList<>();
 
 			for (String imageUrlFullPath : imageUrls) {
-				String imageUrl = imageUrlFullPath;
-				if (isValidURL(imageUrl)) {
-					imageUrl = imageUrl.replace("https://app.splatoon2.nintendo.net", "");
-				}
-
-				String path = Paths.get(System.getProperty("user.dir"), imageUrl).toString();
+				String imageLocationString = resourcesDownloader.ensureExistsLocally(imageUrlFullPath);
+				String path = Paths.get(imageLocationString).toString();
 				String idStr = Paths.get(path).getFileName().toString();
 
 				Tuple<String, InputStream> filenameWithInputStream;
-
-				File file = Paths.get(path).toFile();
-				if (!file.exists() && (file.getParentFile().exists() || file.getParentFile().mkdirs())) {
-					String downloadUrl = String.format("https://app.splatoon2.nintendo.net%s", imageUrl);
-
-					try (
-							BufferedInputStream in = new BufferedInputStream(new URL(downloadUrl).openStream());
-							FileOutputStream fileOutputStream = new FileOutputStream(file.getPath())
-					) {
-						byte[] dataBuffer = new byte[1024];
-						int bytesRead;
-						while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-							fileOutputStream.write(dataBuffer, 0, bytesRead);
-						}
-
-						filenameWithInputStream = new Tuple<>(idStr, new FileInputStream(file));
-					} catch (IOException e) {
-						URL url = new URL(downloadUrl);
-						filenameWithInputStream = new Tuple<>(idStr, url.openStream());
-
-						// handle exception
-						e.printStackTrace();
-					}
+				if (imageLocationString.startsWith("https://")) {
+					URL url = new URL(imageLocationString);
+					filenameWithInputStream = new Tuple<>(idStr, url.openStream());
 				} else {
-					filenameWithInputStream = new Tuple<>(idStr, new FileInputStream(file));
+					filenameWithInputStream = new Tuple<>(idStr, new FileInputStream(Paths.get(System.getProperty("user.dir"), path).toString()));
 				}
 
 				streams.add(filenameWithInputStream);
@@ -320,16 +304,6 @@ public class DiscordBot {
 
 	public void reply(String message, TextChannel channel, Snowflake reference) {
 		channel.createMessage(MessageCreateSpec.create().withMessageReference(reference).withContent(message)).onErrorResume(e -> Mono.empty()).block();
-	}
-
-	public static boolean isValidURL(String urlString) {
-		try {
-			URL url = new URL(urlString);
-			url.toURI();
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
 	}
 
 	private static class Tuple<X, Y> {

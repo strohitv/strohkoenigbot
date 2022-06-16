@@ -11,6 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 
 import java.io.FileWriter;
 import java.io.InputStream;
@@ -105,6 +106,13 @@ public class ExtendedStatisticsExporter {
 	@Autowired
 	public void setGearRepository(Splatoon2GearRepository gearRepository) {
 		this.gearRepository = gearRepository;
+	}
+
+	private ResourcesDownloader resourcesDownloader;
+
+	@Autowired
+	public void setResourcesDownloader(ResourcesDownloader resourcesDownloader) {
+		this.resourcesDownloader = resourcesDownloader;
 	}
 
 	public ExtendedStatisticsExporter() {
@@ -326,21 +334,21 @@ public class ExtendedStatisticsExporter {
 					.replace("{main-weapon-defeats}", String.format("%d", weaponStats.getDefeats()))
 
 					.replace("{main-weapon}", String.format("%s", lastMatchWeapon.getName()))
-					.replace("{main-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getImage()))
-					.replace("{sub-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getSubImage()))
-					.replace("{special-weapon-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchWeapon.getSpecialImage()))
+					.replace("{main-weapon-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, lastMatchWeapon.getImage())))
+					.replace("{sub-weapon-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, lastMatchWeapon.getSubImage())))
+					.replace("{special-weapon-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, lastMatchWeapon.getSpecialImage())))
 
-					.replace("{head-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchHead.getImage()))
-					.replace("{head-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Head).get(0)))
-					.replace("{head-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Head).get(1)))
+					.replace("{head-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, lastMatchHead.getImage())))
+					.replace("{head-main-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Head).get(0))))
+					.replace("{head-sub-1-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Head).get(1))))
 
-					.replace("{clothing-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchClothes.getImage()))
-					.replace("{clothing-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Clothes).get(0)))
-					.replace("{clothing-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Clothes).get(1)))
+					.replace("{clothing-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, lastMatchClothes.getImage())))
+					.replace("{clothing-main-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Clothes).get(0))))
+					.replace("{clothing-sub-1-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Clothes).get(1))))
 
-					.replace("{shoes-image}", String.format("https://app.splatoon2.nintendo.net%s", lastMatchShoes.getImage()))
-					.replace("{shoes-main-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Shoes).get(0)))
-					.replace("{shoes-sub-1-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Shoes).get(1)))
+					.replace("{shoes-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, lastMatchShoes.getImage())))
+					.replace("{shoes-main-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Shoes).get(0))))
+					.replace("{shoes-sub-1-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Shoes).get(1))))
 
 					.replace("{zones-power-current}", currentMonthResult.getZonesCurrent() != null ? String.format("%4.1f", currentMonthResult.getZonesCurrent()) : "")
 					.replace("{rainmaker-power-current}", currentMonthResult.getRainmakerCurrent() != null ? String.format("%4.1f", currentMonthResult.getRainmakerCurrent()) : "")
@@ -393,17 +401,17 @@ public class ExtendedStatisticsExporter {
 
 					.replace("{stage-a-wins}", String.format("%d", stageAWins))
 					.replace("{stage-a-defeats}", String.format("%d", stageADefeats))
-					.replace("{stage-a-image}", String.format("https://app.splatoon2.nintendo.net%s", stageA.getImage()))
+					.replace("{stage-a-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, stageA.getImage())))
 
 					.replace("{stage-b-wins}", String.format("%d", stageBWins))
 					.replace("{stage-b-defeats}", String.format("%d", stageBDefeats))
-					.replace("{stage-b-image}", String.format("https://app.splatoon2.nintendo.net%s", stageB.getImage()))
+					.replace("{stage-b-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, stageB.getImage())))
 
-					.replace("{next-rotation-stage-a-image}", String.format("https://app.splatoon2.nintendo.net%s", nextStageA.getImage()))
-					.replace("{next-rotation-stage-b-image}", String.format("https://app.splatoon2.nintendo.net%s", nextStageB.getImage()));
+					.replace("{next-rotation-stage-a-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, nextStageA.getImage())))
+					.replace("{next-rotation-stage-b-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, nextStageB.getImage())));
 
 			if (perkImages.get(Splatoon2GearType.Head).size() > 2) {
-				currentHtml = currentHtml.replace("{head-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Head).get(2)))
+				currentHtml = currentHtml.replace("{head-sub-2-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Head).get(2))))
 						.replace("{head-sub-2-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{head-sub-2-image}", "")
@@ -411,7 +419,7 @@ public class ExtendedStatisticsExporter {
 			}
 
 			if (perkImages.get(Splatoon2GearType.Head).size() > 3) {
-				currentHtml = currentHtml.replace("{head-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Head).get(3)))
+				currentHtml = currentHtml.replace("{head-sub-3-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Head).get(3))))
 						.replace("{head-sub-3-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{head-sub-3-image}", "")
@@ -419,7 +427,7 @@ public class ExtendedStatisticsExporter {
 			}
 
 			if (perkImages.get(Splatoon2GearType.Clothes).size() > 2) {
-				currentHtml = currentHtml.replace("{clothing-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Clothes).get(2)))
+				currentHtml = currentHtml.replace("{clothing-sub-2-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Clothes).get(2))))
 						.replace("{clothing-sub-2-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{clothing-sub-2-image}", "")
@@ -427,7 +435,7 @@ public class ExtendedStatisticsExporter {
 			}
 
 			if (perkImages.get(Splatoon2GearType.Clothes).size() > 3) {
-				currentHtml = currentHtml.replace("{clothing-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Clothes).get(3)))
+				currentHtml = currentHtml.replace("{clothing-sub-3-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Clothes).get(3))))
 						.replace("{clothing-sub-3-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{clothing-sub-3-image}", "")
@@ -435,7 +443,7 @@ public class ExtendedStatisticsExporter {
 			}
 
 			if (perkImages.get(Splatoon2GearType.Shoes).size() > 2) {
-				currentHtml = currentHtml.replace("{shoes-sub-2-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Shoes).get(2)))
+				currentHtml = currentHtml.replace("{shoes-sub-2-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Shoes).get(2))))
 						.replace("{shoes-sub-2-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{shoes-sub-2-image}", "")
@@ -443,7 +451,7 @@ public class ExtendedStatisticsExporter {
 			}
 
 			if (perkImages.get(Splatoon2GearType.Shoes).size() > 3) {
-				currentHtml = currentHtml.replace("{shoes-sub-3-image}", String.format("https://app.splatoon2.nintendo.net%s", perkImages.get(Splatoon2GearType.Shoes).get(3)))
+				currentHtml = currentHtml.replace("{shoes-sub-3-image}", resourcesDownloader.ensureExistsLocally(String.format("%s%s", imageHost, perkImages.get(Splatoon2GearType.Shoes).get(3))))
 						.replace("{shoes-sub-3-hidden}", "");
 			} else {
 				currentHtml = currentHtml.replace("{shoes-sub-3-image}", "")
@@ -455,7 +463,6 @@ public class ExtendedStatisticsExporter {
 			myWriter.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-			return;
 		}
 	}
 
