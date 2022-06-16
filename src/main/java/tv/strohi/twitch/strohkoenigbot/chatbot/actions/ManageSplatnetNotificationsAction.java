@@ -68,6 +68,10 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 		message = message.toLowerCase().trim();
 
+		if (!message.startsWith("!splatnet")) {
+			return;
+		}
+
 		if (message.startsWith("!splatnet notifications")) {
 			// Send current notifications of the account via discord
 			Account account = accountRepository.findByDiscordIdOrderById(parseLongSafe(args.getUserId()))
