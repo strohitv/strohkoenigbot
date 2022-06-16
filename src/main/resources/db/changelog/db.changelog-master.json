@@ -2130,6 +2130,200 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "20",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_2_rotation_notification",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "account_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "mode",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rule",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "included_stages",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "excluded_stages",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_monday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_monday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_monday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_tuesday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_tuesday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_tuesday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_wednesday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_wednesday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_wednesday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_thursday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_thursday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_thursday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_friday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_friday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_friday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_saturday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_saturday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_saturday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_sunday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_sunday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_sunday",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "account_id",
+              "baseTableName": "splatoon_2_rotation_notification",
+              "constraintName": "fk_splatoon_2_rotation_notification_account_id",
+              "onDelete": "RESTRICT",
+              "onUpdate": "RESTRICT",
+              "referencedColumnNames": "id",
+              "referencedTableName": "account",
+              "validate": true
+            }
+          }
+        ]
+      }
     }
   ]
 }
