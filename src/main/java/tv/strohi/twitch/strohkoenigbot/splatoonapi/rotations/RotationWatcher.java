@@ -116,20 +116,20 @@ public class RotationWatcher {
 					stages.getLeague()[0].getStage_a().getImage(),
 					stages.getLeague()[0].getStage_b().getImage());
 
-			if (stages.getRegular().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+//			if (stages.getRegular().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
 				sendDiscordNotificationsToUsers(stages.getRegular()[0]);
 				sendDiscordNotificationsToUsers(stages.getRegular()[stages.getRegular().length - 1]);
-			}
+//			}
 
-			if (stages.getGachi().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+//			if (stages.getGachi().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
 				sendDiscordNotificationsToUsers(stages.getGachi()[0]);
 				sendDiscordNotificationsToUsers(stages.getGachi()[stages.getGachi().length - 1]);
-			}
+//			}
 
-			if (stages.getLeague().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+//			if (stages.getLeague().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
 				sendDiscordNotificationsToUsers(stages.getLeague()[0]);
 				sendDiscordNotificationsToUsers(stages.getLeague()[stages.getLeague().length - 1]);
-			}
+//			}
 		}
 	}
 
@@ -311,14 +311,13 @@ public class RotationWatcher {
 		}
 
 		if (Instant.now().atZone(ZoneId.of(timezone)).plus(4, ChronoUnit.HOURS).isAfter(rotation.getStartTimeAsInstant().atZone(ZoneId.of(timezone)))) {
-			builder.append(String.format("**Current %s rotation**\n", rotation.getGame_mode().getName()));
+			builder.append("Current rotation\n");
 		} else {
-			builder.append(String.format("**New %s rotation** will start in **%d** hours",
-					rotation.getGame_mode().getName(),
+			builder.append(String.format("New rotation will start in **%d** hours",
 					Duration.between(Instant.now(), rotation.getStartTimeAsInstant()).abs().toHours() + 1));
 
 			if (hadTimeZone) {
-				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy HH:mm:ss");
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy HH:mm");
 				String formattedString = rotation.getStartTimeAsInstant().atZone(ZoneId.of(timezone)).format(formatter);
 
 				builder.append(String.format("\nIt will start at **%s**", formattedString));
@@ -328,6 +327,7 @@ public class RotationWatcher {
 		}
 
 		if (!isTurf) {
+			builder.append(String.format("- Mode: **%s**\n", rotation.getGame_mode().getName()));
 			builder.append(String.format("- Rule: %s**%s**\n", getEmoji(rotation.getRule().getKey()), rotation.getRule().getName()));
 		}
 		builder.append(String.format("- Stage A: **%s**\n", rotation.getStage_a().getName()));
