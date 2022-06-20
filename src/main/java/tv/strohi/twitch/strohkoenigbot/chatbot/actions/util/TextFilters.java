@@ -21,6 +21,7 @@ public class TextFilters {
 	private final Map<SplatoonSalmonRunWeapon, Pattern> salmonRunWeaponIncludeFilters = new HashMap<>();
 	private final Map<SplatoonSalmonRunStage, Pattern> salmonRunStageExcludeFilters = new HashMap<>();
 	private final Map<SplatoonSalmonRunStage, Pattern> salmonRunStageIncludeFilters = new HashMap<>();
+	private final Map<GearSlotFilter, Pattern> gearSlotFilters = new HashMap<>();
 
 	private final Pattern timeFilter;
 
@@ -83,6 +84,16 @@ public class TextFilters {
 
 			String includeRegex = String.format("((?<=\\s)|^)(%s)((?=\\s)|$)", stageNames);
 			salmonRunStageIncludeFilters.put(stage, Pattern.compile(includeRegex));
+		}
+
+		for (GearSlotFilter gearSlotFilter : GearSlotFilter.All) {
+			StringBuilder gearSlotConcatenateBuilder = new StringBuilder(gearSlotFilter.getName().toLowerCase());
+			Arrays.stream(gearSlotFilter.getAltNames()).forEach(name -> gearSlotConcatenateBuilder.append("|").append(name.toLowerCase()));
+			String gearSlotNames = gearSlotConcatenateBuilder.toString();
+
+//			String includeRegex = String.format("((?<=\\s)|^)(%s)((?=\\s)|$)", gearSlotNames);
+			String includeRegex = String.format("(%s)", gearSlotNames);
+			gearSlotFilters.put(gearSlotFilter, Pattern.compile(includeRegex));
 		}
 	}
 }

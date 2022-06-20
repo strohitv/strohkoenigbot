@@ -2324,6 +2324,28 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "21",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addColumn":{
+              "columns":[
+                {
+                  "column":{
+                    "name":"slots",
+                    "type":"int",
+                    "valueComputed": "7"
+                  }
+                }
+              ],
+              "tableName":"splatoon_2_ability_notification"
+            }
+          }
+        ]
+      }
     }
   ]
 }

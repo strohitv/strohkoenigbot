@@ -3,17 +3,20 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearSlotFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.RegexUtils;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TextFilters;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2AbilityNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2AbilityNotificationRepository;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +41,20 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 	@Autowired
 	public void setDiscordBot(DiscordBot discordBot) {
 		this.discordBot = discordBot;
+	}
+
+	private TextFilters textFilters;
+
+	@Autowired
+	public void setTextFilters(TextFilters textFilters) {
+		this.textFilters = textFilters;
+	}
+
+	private RegexUtils regexUtils;
+
+	@Autowired
+	public void setRegexUtils(RegexUtils regexUtils) {
+		this.regexUtils = regexUtils;
 	}
 
 	@Autowired
@@ -68,7 +85,9 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 		message = message.toLowerCase().trim();
 
-		if (!message.startsWith("!splatnet")) {
+		if (message.startsWith("!gear")) {
+			message = String.format("!splatnet %s", message.substring("!gear".length()).trim());
+		} else if (!message.startsWith("!splatnet")) {
 			return;
 		}
 
@@ -88,7 +107,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			if (notifications.size() > 0) {
 				StringBuilder builder = new StringBuilder("**The following notifications are registered for your channel**:");
 				for (Splatoon2AbilityNotification notification : notifications) {
-					builder.append(String.format("\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored())));
+					builder.append(String.format("\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s** - Slots: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored()), printSlots(notification.getSlots())));
 				}
 
 				discordBot.sendPrivateMessage(account.getDiscordId(), builder.toString());
@@ -123,71 +142,79 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			message = message.substring("!notify".length()).trim();
 		}
 
-		ArrayList<String> list = Arrays.stream(message.split(" ")).map(String::trim).collect(Collectors.toCollection(ArrayList::new));
-
-		for (int i = 0; i < list.size(); i++) {
-			while (i < list.size() - 1 && abilityNames.containsKey(String.format("%s %s", list.get(i), list.get(i + 1)))) {
-				list.set(i, String.format("%s %s", list.get(i), list.get(i + 1)));
-				list.remove(i + 1);
-			}
-
-			if (!abilityNamesPlusAnyAbility.containsKey(list.get(i)) && !gearNames.containsKey(list.get(i))) {
-				list.remove(i);
-				i--;
-			}
-		}
-
-		GearType type = list.stream().filter(gearNames::containsKey).map(gearNames::get).findFirst().orElse(GearType.Any);
-		if (type == GearType.Any) {
-			list.remove("any");
-		}
-
-		ArrayList<AbilityType> abilities = list.stream()
-				.filter(abilityNamesPlusAnyAbility::containsKey)
-				.map(abilityNamesPlusAnyAbility::get)
-				.collect(Collectors.toCollection(ArrayList::new));
-
-		AbilityType main = abilities.stream()
-				.filter(exclusiveAbilities::containsKey)
-				.findFirst()
-				.orElse(abilities.stream()
-						.findFirst()
-						.orElse(AbilityType.Any));
-
-		abilities.remove(main);
-
-		AbilityType favored = abilities.stream()
-				.filter(a -> !exclusiveAbilities.containsKey(a))
-				.findFirst()
-				.orElse(AbilityType.Any);
-
-		if (main == favored && main != AbilityType.Any) {
-			// ERROR -> Main and favored ability of a shirt do never equal.
-			sender.send(String.format(
-					"ERROR! Your search for %s with %s and %s is invalid because gear cannot have the same main and favored ability!",
-					getGearString(type),
-					getAbilityString(main, false),
-					getAbilityString(favored, true))
-			);
-			return;
-		}
-
-		if (type != GearType.Any && main != AbilityType.Any && exclusiveAbilities.containsKey(main) && exclusiveAbilities.get(main) != type) {
-			// ERROR -> This ability cannot be a main ability on that gear type
-			sender.send(String.format(
-					"ERROR! Your search for %s with %s is invalid because such gear does not exist!",
-					getGearString(type),
-					getAbilityString(main, false))
-			);
-			return;
-		}
-
 		if (!remove) {
+			ArrayList<String> list = Arrays.stream(message.split(" ")).map(String::trim).collect(Collectors.toCollection(ArrayList::new));
+
+			for (int i = 0; i < list.size(); i++) {
+				while (i < list.size() - 1 && abilityNames.containsKey(String.format("%s %s", list.get(i), list.get(i + 1)))) {
+					list.set(i, String.format("%s %s", list.get(i), list.get(i + 1)));
+					list.remove(i + 1);
+				}
+
+				if (!abilityNamesPlusAnyAbility.containsKey(list.get(i)) && !gearNames.containsKey(list.get(i))) {
+					list.remove(i);
+					i--;
+				}
+			}
+
+			GearType type = list.stream().filter(gearNames::containsKey).map(gearNames::get).findFirst().orElse(GearType.Any);
+			if (type == GearType.Any) {
+				list.remove("any");
+			}
+
+			ArrayList<AbilityType> abilities = list.stream()
+					.filter(abilityNamesPlusAnyAbility::containsKey)
+					.map(abilityNamesPlusAnyAbility::get)
+					.collect(Collectors.toCollection(ArrayList::new));
+
+			AbilityType main = abilities.stream()
+					.filter(exclusiveAbilities::containsKey)
+					.findFirst()
+					.orElse(abilities.stream()
+							.findFirst()
+							.orElse(AbilityType.Any));
+
+			abilities.remove(main);
+
+			AbilityType favored = abilities.stream()
+					.filter(a -> !exclusiveAbilities.containsKey(a))
+					.findFirst()
+					.orElse(AbilityType.Any);
+
+			List<GearSlotFilter> gearSlots = new ArrayList<>();
+			regexUtils.fillListAndReplaceText(message, textFilters.getGearSlotFilters(), gearSlots);
+
+			if (gearSlots.size() == 0) {
+				gearSlots.addAll(GearSlotFilter.All);
+			}
+
+			if (main == favored && main != AbilityType.Any) {
+				// ERROR -> Main and favored ability of a shirt do never equal.
+				sender.send(String.format(
+						"ERROR! Your search for %s with %s and %s is invalid because gear cannot have the same main and favored ability!",
+						getGearString(type),
+						getAbilityString(main, false),
+						getAbilityString(favored, true))
+				);
+				return;
+			}
+
+			if (type != GearType.Any && main != AbilityType.Any && exclusiveAbilities.containsKey(main) && exclusiveAbilities.get(main) != type) {
+				// ERROR -> This ability cannot be a main ability on that gear type
+				sender.send(String.format(
+						"ERROR! Your search for %s with %s is invalid because such gear does not exist!",
+						getGearString(type),
+						getAbilityString(main, false))
+				);
+				return;
+			}
+
 			Splatoon2AbilityNotification notification = new Splatoon2AbilityNotification();
 			notification.setDiscordId(discordId);
 			notification.setGear(type);
 			notification.setMain(main);
 			notification.setFavored(favored);
+			notification.setSlots(GearSlotFilter.resolveToNumber(gearSlots));
 
 			splatoon2AbilityNotificationRepository.save(notification);
 
@@ -201,13 +228,13 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			accountRepository.findById(discordId).stream()
 					.map(Account::getDiscordId)
 					.findFirst()
-					.ifPresent(discordAccountId -> discordBot.sendPrivateMessage(discordAccountId, String.format("**The following notification has been added due to your request**:\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored()))));
+					.ifPresent(discordAccountId -> discordBot.sendPrivateMessage(discordAccountId, String.format("**The following notification has been added due to your request**:\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s** - Slots: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored()), printSlots(notification.getSlots()))));
 		} else {
 			List<Splatoon2AbilityNotification> notifications = splatoon2AbilityNotificationRepository.findByDiscordIdOrderById(discordId);
 
 			ArrayList<Long> idList = Arrays.stream(message.split(" "))
 					.map(String::trim)
-					.filter(id -> id.matches("[0-9]+"))
+					.filter(id -> id.matches("\\d+"))
 					.map(Long::parseLong)
 					.filter(id -> notifications.stream().anyMatch(notif -> notif.getId() == id))
 					.collect(Collectors.toCollection(ArrayList::new));
@@ -220,7 +247,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				} else {
 					StringBuilder builder = new StringBuilder("**The following notifications have been removed due to your request**:");
 					for (Splatoon2AbilityNotification notification : notifications.stream().filter(notif -> idList.contains(notif.getId())).collect(Collectors.toList())) {
-						builder.append(String.format("\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored())));
+						builder.append(String.format("\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s** - Slots: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored()), printSlots(notification.getSlots())));
 					}
 
 					splatoon2AbilityNotificationRepository.deleteAllById(idList);
@@ -235,6 +262,29 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				sender.send("You didn't have any notifications to remove.");
 			}
 		}
+	}
+
+	private String printSlots(Integer slots) {
+		if (slots == null) {
+			slots = 0;
+		}
+
+		String[] slotNumbers = Arrays.stream(GearSlotFilter.resolveFromNumber(slots))
+				.map(GearSlotFilter::getName)
+				.sorted()
+				.toArray(String[]::new);
+
+		if (slotNumbers.length == 0) {
+			return "ERROR";
+		}
+
+		StringBuilder builder = new StringBuilder(slotNumbers[0]);
+
+		for (int i = 1; i < slotNumbers.length; i++) {
+			builder.append(", ").append(slotNumbers[i]);
+		}
+
+		return builder.toString();
 	}
 
 	private String getGearString(GearType type) {

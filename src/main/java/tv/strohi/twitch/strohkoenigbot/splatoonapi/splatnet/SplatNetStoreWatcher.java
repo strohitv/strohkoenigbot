@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearSlotFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
@@ -178,8 +179,6 @@ public class SplatNetStoreWatcher {
 		List<Long> sentNotifications = new ArrayList<>();
 		for (Splatoon2AbilityNotification notification : notifications) {
 			if (!sentNotifications.contains(notification.getDiscordId())) {
-
-
 				accountRepository.findById(notification.getDiscordId())
 						.ifPresent(discordAccount -> {
 									logger.info("Sending notification to discord account: {}", discordAccount.getDiscordId());
@@ -204,6 +203,7 @@ public class SplatNetStoreWatcher {
 								(
 										an.getFavored() == AbilityType.Any || (gear.getGear().getBrand().getFrequent_skill() != null && an.getFavored() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getGear().getBrand().getFrequent_skill().getName())).findFirst().orElse(AbilityType.Any))
 								)
+								&& Arrays.stream(GearSlotFilter.resolveFromNumber(an.getSlots())).anyMatch(sl -> sl.getSlots() == gear.getGear().getRarity() + 1)
 				)
 				.collect(Collectors.toList());
 	}

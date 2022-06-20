@@ -1,18 +1,13 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.DayFilter;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ModeFilter;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.RuleFilter;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.SplatoonStage;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.*;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.RegexUtils;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TextFilters;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
@@ -23,8 +18,6 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2Rotati
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -39,6 +32,13 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 	@Autowired
 	public void setTextFilters(TextFilters textFilters) {
 		this.textFilters = textFilters;
+	}
+
+	private RegexUtils regexUtils;
+
+	@Autowired
+	public void setRegexUtils(RegexUtils regexUtils) {
+		this.regexUtils = regexUtils;
 	}
 
 	private AccountRepository accountRepository;
@@ -198,10 +198,10 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 
 		// stages
 		List<SplatoonStage> excludedStages = new ArrayList<>();
-		notificationParameters = fillListAndReplaceText(notificationParameters, textFilters.getStageExcludeFilters(), excludedStages);
+		notificationParameters = regexUtils.fillListAndReplaceText(notificationParameters, textFilters.getStageExcludeFilters(), excludedStages);
 
 		List<SplatoonStage> includedStages = new ArrayList<>();
-		notificationParameters = fillListAndReplaceText(notificationParameters, textFilters.getStageIncludeFilters(), includedStages);
+		notificationParameters = regexUtils.fillListAndReplaceText(notificationParameters, textFilters.getStageIncludeFilters(), includedStages);
 		includedStages.removeAll(excludedStages);
 
 		// rules
@@ -210,7 +210,7 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 		if (mode == ModeFilter.TurfWar) {
 			includedRules.add(RuleFilter.TurfWar);
 		} else {
-			notificationParameters = fillListAndReplaceText(notificationParameters, textFilters.getRuleFilters(), includedRules);
+			notificationParameters = regexUtils.fillListAndReplaceText(notificationParameters, textFilters.getRuleFilters(), includedRules);
 
 			if (includedRules.size() == 0) {
 				includedRules.addAll(RuleFilter.RankedModes);
@@ -219,10 +219,10 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 
 		// days
 		List<DayFilterWithTimeString> dayFiltersWithTime = new ArrayList<>();
-		notificationParameters = fillDayFilterWithTimeList(notificationParameters, textFilters.getDayWithTimeFilters(), dayFiltersWithTime);
+		notificationParameters = regexUtils.fillDayFilterWithTimeList(notificationParameters, textFilters.getDayWithTimeFilters(), dayFiltersWithTime);
 
 		List<DayFilter> dayFilters = new ArrayList<>();
-		notificationParameters = fillListAndReplaceText(notificationParameters, textFilters.getDayWithoutTimeFilters(), dayFilters);
+		notificationParameters = regexUtils.fillListAndReplaceText(notificationParameters, textFilters.getDayWithoutTimeFilters(), dayFilters);
 
 		if (dayFiltersWithTime.isEmpty() && dayFilters.isEmpty()) {
 			dayFilters.addAll(DayFilter.All);
@@ -376,57 +376,6 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 		return account;
 	}
 
-	private <T> String fillListAndReplaceText(String text, Map<T, Pattern> map, List<T> listToFill) {
-		for (Map.Entry<T, Pattern> enumAndPattern : map.entrySet()) {
-			String[] results = enumAndPattern.getValue()
-					.matcher(text)
-					.results()
-					.map(mr -> mr.group(0))
-					.toArray(String[]::new);
-
-			if (results.length > 0) {
-				if (!listToFill.contains(enumAndPattern.getKey())) {
-					listToFill.add(enumAndPattern.getKey());
-				}
-
-				for (String result : results) {
-					text = text.replace(result, "xxx");
-				}
-			}
-		}
-
-		return text;
-	}
-
-	private String fillDayFilterWithTimeList(String text, Map<DayFilter, Pattern> map, List<DayFilterWithTimeString> listToFill) {
-		for (Map.Entry<DayFilter, Pattern> dayAndPattern : map.entrySet()) {
-			String[] results = dayAndPattern.getValue()
-					.matcher(text)
-					.results()
-					.map(mr -> mr.group(0))
-					.toArray(String[]::new);
-
-			for (String result : results) {
-				DayFilter filter = dayAndPattern.getKey();
-				String time = textFilters.getTimeFilter()
-						.matcher(result)
-						.results()
-						.map(mr -> mr.group(0))
-						.findFirst()
-						.orElse("0-23")
-						.replaceAll("\\s", "");
-
-				if (listToFill.stream().noneMatch(dayAndTime -> dayAndTime.filter == filter)) {
-					listToFill.add(new DayFilterWithTimeString(filter, time, Integer.parseInt(time.split("-")[0]), Integer.parseInt(time.split("-")[1])));
-				}
-
-				text = text.replace(result, "xxx");
-			}
-		}
-
-		return text;
-	}
-
 	private void fillNotificationIntoStringBuilder(Splatoon2RotationNotification notification, StringBuilder builder) {
 		builder.append("\n").append("- Id: **").append(notification.getId())
 				.append("** - Mode: **").append(notification.getMode().getName())
@@ -505,16 +454,5 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 				atLeastSecond = true;
 			}
 		}
-	}
-
-	@Getter
-	@Setter
-	@AllArgsConstructor
-	private static class DayFilterWithTimeString {
-		private DayFilter filter;
-		private String time;
-
-		private int start;
-		private int end;
 	}
 }

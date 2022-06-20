@@ -25,4 +25,6 @@ public class Splatoon2AbilityNotification {
 	private AbilityType favored;
 
 	private GearType gear;
+
+	private Integer slots;
 }
