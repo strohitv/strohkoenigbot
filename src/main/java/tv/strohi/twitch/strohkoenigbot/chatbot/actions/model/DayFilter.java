@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions.model;
 import lombok.Getter;
 
 import java.util.EnumSet;
+import java.util.List;
 
 @Getter
 public enum DayFilter {
@@ -25,4 +26,12 @@ public enum DayFilter {
 	}
 
 	public static final EnumSet<DayFilter> All = EnumSet.allOf(DayFilter.class);
+
+	public static DayFilter[] resolveFromNumber(int number) {
+		return All.stream().filter(gs -> (gs.flag & number) == gs.flag).toArray(DayFilter[]::new);
+	}
+
+	public static int resolveToNumber(List<DayFilter> gearSlots) {
+		return gearSlots.stream().map(s -> s.flag).reduce(0, Integer::sum);
+	}
 }

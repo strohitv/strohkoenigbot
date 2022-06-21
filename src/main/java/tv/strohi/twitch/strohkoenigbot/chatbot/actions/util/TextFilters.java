@@ -17,10 +17,11 @@ public class TextFilters {
 	private final Map<RuleFilter, Pattern> ruleFilters = new HashMap<>();
 	private final Map<DayFilter, Pattern> dayWithTimeFilters = new HashMap<>();
 	private final Map<DayFilter, Pattern> dayWithoutTimeFilters = new HashMap<>();
-	private final Map<SplatoonSalmonRunWeapon, Pattern> salmonRunWeaponExcludeFilters = new HashMap<>();
-	private final Map<SplatoonSalmonRunWeapon, Pattern> salmonRunWeaponIncludeFilters = new HashMap<>();
-	private final Map<SplatoonSalmonRunStage, Pattern> salmonRunStageExcludeFilters = new HashMap<>();
-	private final Map<SplatoonSalmonRunStage, Pattern> salmonRunStageIncludeFilters = new HashMap<>();
+	private final Map<SalmonRunWeapon, Pattern> salmonRunWeaponExcludeFilters = new HashMap<>();
+	private final Map<SalmonRunWeapon, Pattern> salmonRunWeaponIncludeFilters = new HashMap<>();
+	private final Map<SalmonRunStage, Pattern> salmonRunStageExcludeFilters = new HashMap<>();
+	private final Map<SalmonRunStage, Pattern> salmonRunStageIncludeFilters = new HashMap<>();
+	private final Map<SalmonRunRandomFilter, Pattern> salmonRunRandomFilters = new HashMap<>();
 	private final Map<GearSlotFilter, Pattern> gearSlotFilters = new HashMap<>();
 
 	private final Pattern timeFilter;
@@ -62,7 +63,7 @@ public class TextFilters {
 			dayWithoutTimeFilters.put(dayFilter, Pattern.compile(withoutTimeRegex));
 		}
 
-		for (SplatoonSalmonRunWeapon weapon : SplatoonSalmonRunWeapon.All) {
+		for (SalmonRunWeapon weapon : SalmonRunWeapon.All) {
 			StringBuilder weaponConcatenateBuilder = new StringBuilder(weapon.getName().toLowerCase());
 			Arrays.stream(weapon.getAltNames()).forEach(name -> weaponConcatenateBuilder.append("|").append(name.toLowerCase()));
 			String weaponNames = weaponConcatenateBuilder.toString();
@@ -74,7 +75,7 @@ public class TextFilters {
 			salmonRunWeaponIncludeFilters.put(weapon, Pattern.compile(includeRegex));
 		}
 
-		for (SplatoonSalmonRunStage stage : SplatoonSalmonRunStage.All) {
+		for (SalmonRunStage stage : SalmonRunStage.All) {
 			StringBuilder stageConcatenateBuilder = new StringBuilder(stage.getName().toLowerCase());
 			Arrays.stream(stage.getAltNames()).forEach(name -> stageConcatenateBuilder.append("|").append(name.toLowerCase()));
 			String stageNames = stageConcatenateBuilder.toString();
@@ -94,6 +95,16 @@ public class TextFilters {
 //			String includeRegex = String.format("((?<=\\s)|^)(%s)((?=\\s)|$)", gearSlotNames);
 			String includeRegex = String.format("(%s)", gearSlotNames);
 			gearSlotFilters.put(gearSlotFilter, Pattern.compile(includeRegex));
+		}
+
+		for (SalmonRunRandomFilter salmonRunRandomFilter : SalmonRunRandomFilter.All) {
+			StringBuilder randomWeaponConcatenateBuilder = new StringBuilder(salmonRunRandomFilter.getName().toLowerCase());
+			Arrays.stream(salmonRunRandomFilter.getAltNames()).forEach(name -> randomWeaponConcatenateBuilder.append("|").append(name.toLowerCase()));
+			String randomFilters = randomWeaponConcatenateBuilder.toString();
+
+//			String includeRegex = String.format("((?<=\\s)|^)(%s)((?=\\s)|$)", randomFilters);
+			String includeRegex = String.format("(%s)", randomFilters);
+			salmonRunRandomFilters.put(salmonRunRandomFilter, Pattern.compile(includeRegex));
 		}
 	}
 }

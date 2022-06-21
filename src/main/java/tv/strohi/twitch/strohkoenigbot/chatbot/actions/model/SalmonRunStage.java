@@ -3,9 +3,10 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions.model;
 import lombok.Getter;
 
 import java.util.EnumSet;
+import java.util.List;
 
 @Getter
-public enum SplatoonSalmonRunStage {
+public enum SalmonRunStage {
 	// TODO idea for salmon run filter:
 	//  - stages
 	//  - no random weapons / some random weapons / all random weapons
@@ -21,11 +22,19 @@ public enum SplatoonSalmonRunStage {
 	private final String name;
 	private final String[] altNames;
 
-	SplatoonSalmonRunStage(int flag, String name, String... altNames) {
+	SalmonRunStage(int flag, String name, String... altNames) {
 		this.flag = flag;
 		this.name = name;
 		this.altNames = altNames;
 	}
 
-	public static final EnumSet<SplatoonSalmonRunStage> All = EnumSet.allOf(SplatoonSalmonRunStage.class);
+	public static final EnumSet<SalmonRunStage> All = EnumSet.allOf(SalmonRunStage.class);
+
+	public static SalmonRunStage[] resolveFromNumber(int number) {
+		return All.stream().filter(s -> (s.flag & number) == s.flag).toArray(SalmonRunStage[]::new);
+	}
+
+	public static int resolveToNumber(List<SalmonRunStage> stages) {
+		return stages.stream().map(s -> s.flag).reduce(0, Integer::sum);
+	}
 }

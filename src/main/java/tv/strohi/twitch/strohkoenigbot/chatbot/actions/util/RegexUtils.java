@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.DayFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.DayFilterWithTimeString;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -18,8 +19,8 @@ public class RegexUtils {
 		this.textFilters = textFilters;
 	}
 
-	public <T> String fillListAndReplaceText(String text, Map<T, Pattern> map, List<T> listToFill) {
-		for (Map.Entry<T, Pattern> enumAndPattern : map.entrySet()) {
+	public <T> String fillListAndReplaceText(String text, List<Map.Entry<T, Pattern>> entries, List<T> listToFill) {
+		for (Map.Entry<T, Pattern> enumAndPattern : entries) {
 			String[] results = enumAndPattern.getValue()
 					.matcher(text)
 					.results()
@@ -38,6 +39,10 @@ public class RegexUtils {
 		}
 
 		return text;
+	}
+
+	public <T> String fillListAndReplaceText(String text, Map<T, Pattern> map, List<T> listToFill) {
+		return fillListAndReplaceText(text, new ArrayList<>(map.entrySet()), listToFill);
 	}
 
 	public String fillDayFilterWithTimeList(String text, Map<DayFilter, Pattern> map, List<DayFilterWithTimeString> listToFill) {

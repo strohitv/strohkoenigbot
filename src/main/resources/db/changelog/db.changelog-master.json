@@ -2346,6 +2346,80 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "22",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_2_salmon_run_rotation_notification",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "account_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stages",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "included_weapons",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "excluded_weapons",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "days",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "includedRandom",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "account_id",
+              "baseTableName": "splatoon_2_salmon_run_rotation_notification",
+              "constraintName": "fk_splatoon_2_salmon_run_rotation_notification_account_id",
+              "onDelete": "RESTRICT",
+              "onUpdate": "RESTRICT",
+              "referencedColumnNames": "id",
+              "referencedTableName": "account",
+              "validate": true
+            }
+          }
+        ]
+      }
     }
   ]
 }
