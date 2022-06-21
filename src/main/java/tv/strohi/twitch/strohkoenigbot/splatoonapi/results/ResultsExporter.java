@@ -304,7 +304,7 @@ public class ResultsExporter {
 										weaponStatsRepository.save(weaponStats);
 									}
 
-									abilityMatchRepository.findAllByMatchId(id).forEach(abilityMatchRepository::delete);
+									abilityMatchRepository.deleteAll(abilityMatchRepository.findAllByMatchId(id));
 									matchRepository.delete(match);
 								}
 							}
