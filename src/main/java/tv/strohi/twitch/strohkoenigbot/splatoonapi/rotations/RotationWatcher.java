@@ -434,10 +434,6 @@ public class RotationWatcher {
 				break;
 		}
 
-		if (startTime.getHour() < allowedStartHour || startTime.getHour() > allowedEndHour) {
-			return true;
-		}
-
-		return false;
+		return startTime.getHour() < allowedStartHour || startTime.getHour() > allowedEndHour;
 	}
 }

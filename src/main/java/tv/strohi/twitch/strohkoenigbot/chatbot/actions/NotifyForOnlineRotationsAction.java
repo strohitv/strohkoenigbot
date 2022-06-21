@@ -81,7 +81,6 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 			return;
 		}
 
-
 		Account account = loadAccount(Long.parseLong(args.getUserId()));
 
 		if (message.startsWith("notify")) {
