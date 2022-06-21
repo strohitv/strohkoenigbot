@@ -134,8 +134,13 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 				}
 			}
 
-		} else if (message.startsWith("unnotify")) {
-			message = message.substring("unnotify".length()).trim();
+		} else if (message.startsWith("clear")) {
+			List<Splatoon2RotationNotification> foundNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(mode, account.getId());
+			rotationNotificationRepository.deleteAll(foundNotifications);
+
+			sender.send("I deleted all your notifications as requested.");
+		} else if (message.startsWith("delete")) {
+			message = message.substring("delete".length()).trim();
 
 			if (!message.isBlank()) {
 				String[] idStrings = message.split("\\s");
@@ -170,10 +175,7 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 					sender.send("**ERROR**! I could not find any notification for the numbers you gave me.");
 				}
 			} else {
-				List<Splatoon2RotationNotification> foundNotifications = rotationNotificationRepository.findByModeAndAccountIdOrderById(mode, account.getId());
-				rotationNotificationRepository.deleteAll(foundNotifications);
-
-				sender.send("I deleted all your notifications as requested.");
+				sender.send("**ERROR**! Please provide at least one number to delete.");
 			}
 		} else {
 			// no valid commands
@@ -183,7 +185,7 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 			} else if (mode == ModeFilter.TurfWar) {
 				command = "turf";
 			}
-			sender.send(String.format("Allowed commands:\n    - !%s notify\n    - !%s notifications\n    - !%s notifications <id>\n    - !%s unnotify\n    - !%s unnotify <id>", command, command, command, command, command));
+			sender.send(String.format("Allowed commands:\n    - !%s notify\n    - !%s notifications\n    - !%s notifications <id>\n    - !%s clear\n    - !%s delete <id>", command, command, command, command, command));
 		}
 	}
 

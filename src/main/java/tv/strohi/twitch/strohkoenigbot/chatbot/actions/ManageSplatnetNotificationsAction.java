@@ -118,9 +118,9 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			return;
 		}
 
-		if (!message.startsWith("!splatnet notify") && !(remove = message.startsWith("!splatnet unnotify"))) {
-			sender.send("Allowed commands:\n    - !splatnet notify\n    - !splatnet notifications\n    - !splatnet unnotify\n    - !splatnet unnotify <id>" +
-					"\n    - !gear notify\n    - !gear notifications\n    - !gear unnotify\n    - !gear unnotify <id>");
+		if (!message.startsWith("!splatnet notify") && !(remove = message.startsWith("!splatnet clear") || message.startsWith("!splatnet delete"))) {
+			sender.send("Allowed commands:\n    - !splatnet notify\n    - !splatnet notifications\n    - !splatnet clear\n    - !splatnet delete <id>" +
+					"\n    - !gear notify\n    - !gear notifications\n    - !gear clear\n    - !gear delete <id>");
 			return;
 		}
 
@@ -138,7 +138,11 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		}
 
 		if (remove) {
-			message = message.substring("!unnotify".length()).trim();
+			if (message.startsWith("!splatnet clear")) {
+				message = message.substring("!splatnet clear".length()).trim();
+			} else {
+				message = message.substring("!splatnet delete".length()).trim();
+			}
 		} else {
 			message = message.substring("!notify".length()).trim();
 		}
