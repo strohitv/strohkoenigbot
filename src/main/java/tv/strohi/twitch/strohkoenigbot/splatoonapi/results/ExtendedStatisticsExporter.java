@@ -1,6 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.*;
@@ -26,6 +28,8 @@ import java.util.stream.StreamSupport;
 
 @Component
 public class ExtendedStatisticsExporter {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
 	private final static String imageHost = "https://app.splatoon2.nintendo.net";
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -175,6 +179,8 @@ public class ExtendedStatisticsExporter {
 		Splatoon2Weapon lastMatchWeapon = StreamSupport.stream(weaponRepository.findAllById(Collections.singletonList(lastMatch.getWeaponId())).spliterator(), false)
 				.findFirst()
 				.orElse(new Splatoon2Weapon());
+
+		logger.info(lastMatchWeapon);
 
 		Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(lastMatchWeapon.getId(), accountId).orElse(new Splatoon2WeaponStats(0L, 0L, 0L, 0L, 0, 0));
 
