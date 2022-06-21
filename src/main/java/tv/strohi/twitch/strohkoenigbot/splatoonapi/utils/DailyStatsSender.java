@@ -69,6 +69,7 @@ public class DailyStatsSender {
 	}
 
 	@Scheduled(cron = "0 10 0 * * *")
+//	@Scheduled(cron = "0 * * * * *")
 	public void sendDailyStatsToDiscord() {
 		Calendar c = new GregorianCalendar();
 		c.set(Calendar.HOUR_OF_DAY, 0); //anything 0 - 23
@@ -155,14 +156,14 @@ public class DailyStatsSender {
 
 		for (Splatoon2WeaponStats weaponStats : allWeaponStats) {
 		    long yesterdayPaint = yesterdayMatches.stream()
-					.filter(w -> w.getWeaponId() == weaponStats.getId())
+					.filter(w -> w.getWeaponId().equals(weaponStats.getWeaponId()))
 					.map(m -> (long)m.getTurfGain())
 					.reduce(0L, Long::sum);
 			long yesterdayWins = yesterdayMatches.stream()
-					.filter(w -> w.getWeaponId() == weaponStats.getId() && w.getMatchResult() == Splatoon2MatchResult.Win)
+					.filter(w -> w.getWeaponId().equals(weaponStats.getWeaponId()) && w.getMatchResult() == Splatoon2MatchResult.Win)
 					.count();
 			long yesterdayDefeats = yesterdayMatches.stream()
-					.filter(w -> w.getWeaponId() == weaponStats.getId() && w.getMatchResult() != Splatoon2MatchResult.Win)
+					.filter(w -> w.getWeaponId().equals(weaponStats.getWeaponId()) && w.getMatchResult() != Splatoon2MatchResult.Win)
 					.count();
 
 			Splatoon2Weapon weapon = allWeapons.stream().filter(w -> w.getId() == weaponStats.getWeaponId()).findFirst().orElse(new Splatoon2Weapon());
