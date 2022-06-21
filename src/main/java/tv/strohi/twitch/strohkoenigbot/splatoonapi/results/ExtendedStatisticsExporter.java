@@ -159,6 +159,10 @@ public class ExtendedStatisticsExporter {
 		List<Splatoon2Match> allStreamMatches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndMode(accountId, started.getEpochSecond(), Splatoon2Mode.Ranked);
 		List<Splatoon2Match> allMonthMatches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndMode(accountId, currentMonthResult.getStartTime(), Splatoon2Mode.Ranked);
 
+		if (allStreamMatches.size() == 0) {
+			return;
+		}
+
 		Splatoon2Match lastMatch = allStreamMatches.stream()
 				.max(Comparator.comparing(Splatoon2Match::getStartTime))
 				.orElse(new Splatoon2Match());
@@ -179,8 +183,6 @@ public class ExtendedStatisticsExporter {
 		Splatoon2Weapon lastMatchWeapon = StreamSupport.stream(weaponRepository.findAllById(Collections.singletonList(lastMatch.getWeaponId())).spliterator(), false)
 				.findFirst()
 				.orElse(new Splatoon2Weapon());
-
-		logger.info(lastMatchWeapon);
 
 		Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(lastMatchWeapon.getId(), accountId).orElse(new Splatoon2WeaponStats(0L, 0L, 0L, 0L, 0, 0));
 
