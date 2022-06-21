@@ -1232,7 +1232,7 @@
       "changeSet": {
         "id": "8",
         "author": "strohkoenig",
-        "changes":[
+        "changes": [
           {
             "columns": [
               {
@@ -1243,7 +1243,7 @@
               }
             ],
             "tableName": "ability_notification",
-            "where":"main='Last Ditch Effort'"
+            "where": "main='Last Ditch Effort'"
           },
           {
             "columns": [
@@ -1255,7 +1255,7 @@
               }
             ],
             "tableName": "ability_notification",
-            "where":"main='Bomb Defense Up Dx'"
+            "where": "main='Bomb Defense Up Dx'"
           },
           {
             "columns": [
@@ -1267,7 +1267,7 @@
               }
             ],
             "tableName": "ability_notification",
-            "where":"favored='Bomb Defense Up Dx'"
+            "where": "favored='Bomb Defense Up Dx'"
           }
         ]
       }
@@ -1276,7 +1276,7 @@
       "changeSet": {
         "id": "9",
         "author": "strohkoenig",
-        "changes":[
+        "changes": [
           {
             "addColumn": {
               "columns": [
@@ -1298,21 +1298,21 @@
       "changeSet": {
         "id": "10",
         "author": "strohkoenig",
-        "changes":[
+        "changes": [
           {
-            "createIndex":{
-              "clustered":true,
-              "columns":[
+            "createIndex": {
+              "clustered": true,
+              "columns": [
                 {
-                  "column":{
-                    "descending":true,
-                    "name":"battle_number"
+                  "column": {
+                    "descending": true,
+                    "name": "battle_number"
                   }
                 }
               ],
-              "indexName":"splatnet_battle_number",
-              "tableName":"splatoon_match",
-              "unique":true
+              "indexName": "splatnet_battle_number",
+              "tableName": "splatoon_match",
+              "unique": true
             }
           }
         ]
@@ -1322,21 +1322,21 @@
       "changeSet": {
         "id": "11",
         "author": "strohkoenig",
-        "changes":[
+        "changes": [
           {
-            "createIndex":{
-              "clustered":false,
-              "columns":[
+            "createIndex": {
+              "clustered": false,
+              "columns": [
                 {
-                  "column":{
-                    "descending":true,
-                    "name":"battle_number"
+                  "column": {
+                    "descending": true,
+                    "name": "battle_number"
                   }
                 }
               ],
-              "indexName":"splatnet_battle_number",
-              "tableName":"splatoon_match",
-              "unique":true
+              "indexName": "splatnet_battle_number",
+              "tableName": "splatoon_match",
+              "unique": true
             }
           }
         ]
@@ -1450,6 +1450,972 @@
                   }
                 }
               ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "15",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "delete": {
+              "tableName": "twitch_auth",
+              "where": "is_main='true'"
+            }
+          },
+          {
+            "dropColumn": {
+              "tableName": "twitch_auth",
+              "columns": [
+                {
+                  "column": {
+                    "name": "channel_id"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "username"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_main"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "16",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "dropTable": {
+              "tableName": "splatoon_clip"
+            }
+          },
+          {
+            "dropTable": {
+              "tableName": "splatoon_clips"
+            }
+          },
+          {
+            "createTable": {
+              "tableName": "splatoon_clip",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_good_play",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clip_url",
+                    "type": "varchar(150)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "description",
+                    "type": "varchar(500)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "match_id",
+                    "type": "bigint"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "17",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_ability",
+              "newTableName": "splatoon_2_ability"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_ability_match",
+              "newTableName": "splatoon_2_ability_match"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "ability_notification",
+              "newTableName": "splatoon_2_ability_notification"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_clip",
+              "newTableName": "splatoon_2_clip"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_gear",
+              "newTableName": "splatoon_2_gear"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_login",
+              "newTableName": "splatoon_2_login"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_match",
+              "newTableName": "splatoon_2_match"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_monthly_result",
+              "newTableName": "splatoon_2_monthly_result"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_rotation",
+              "newTableName": "splatoon_2_rotation"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_stage",
+              "newTableName": "splatoon_2_stage"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_weapon",
+              "newTableName": "splatoon_2_weapon"
+            }
+          },
+          {
+            "renameTable": {
+              "oldTableName": "splatoon_weapon_request_ranking",
+              "newTableName": "splatoon_2_weapon_request_ranking"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "18",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "renameTable": {
+              "oldTableName": "discord_account",
+              "newTableName": "account"
+            }
+          },
+          {
+            "dropColumn": {
+              "tableName": "account",
+              "columns": [
+                {
+                  "column": {
+                    "name": "consent"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "splatoon_cookie",
+                    "type": "varchar(500)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatoon_cookie_expires_at",
+                    "type": "timestamp"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_main_account",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "timezone",
+                    "type": "varchar(75)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "should_send_daily_stats",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "current_step",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "account"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "splatoon_cookie",
+                    "valueComputed": "(select b.cookie from DBO.splatoon_2_login b)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatoon_cookie_expires_at",
+                    "valueComputed": "(select b.expires_at from DBO.splatoon_2_login b)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_main_account",
+                    "valueBoolean": "true"
+                  }
+                }
+              ],
+              "tableName": "account",
+              "where": "discord_id = 256536949756657664"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "is_main_account",
+                    "valueBoolean": "false"
+                  }
+                }
+              ],
+              "tableName": "account",
+              "where": "discord_id != 256536949756657664"
+            }
+          },
+          {
+            "dropTable": {
+              "tableName": "splatoon_2_login"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "19",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_2_stage_stats",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stage_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "account_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "zones_wins",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "zones_defeats",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_wins",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_defeats",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_wins",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_defeats",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_wins",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_defeats",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "sql": {
+              "sql": "INSERT INTO DBO.splatoon_2_stage_stats (stage_id, zones_wins, zones_defeats, rainmaker_wins, rainmaker_defeats, tower_wins, tower_defeats, clams_wins, clams_defeats) SELECT b.id, b.zones_wins, b.zones_defeats, b.rainmaker_wins, b.rainmaker_defeats, b.tower_wins, b.tower_defeats, b.clams_wins, b.clams_defeats FROM DBO.splatoon_2_stage b"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_stage_stats"
+            }
+          },
+          {
+            "createTable": {
+              "tableName": "splatoon_2_weapon_stats",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "account_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "turf",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "wins",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "defeats",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "sql": {
+              "sql": "INSERT INTO DBO.splatoon_2_weapon_stats (weapon_id, turf, wins, defeats) SELECT b.id, b.turf, b.wins, b.defeats FROM DBO.splatoon_2_weapon b"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_weapon_stats"
+            }
+          },
+          {
+            "dropColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "zones_wins"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "zones_defeats"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_wins"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rainmaker_defeats"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_wins"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tower_defeats"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_wins"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clams_defeats"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_stage"
+            }
+          },
+          {
+            "dropColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "turf"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "wins"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "defeats"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_weapon"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "position": 2,
+                    "type": "bigint"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_clip"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "position": 2,
+                    "type": "bigint"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "position": 2,
+                    "type": "bigint"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_monthly_result"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "position": 2,
+                    "type": "bigint"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_weapon_request_ranking"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "position": 2,
+                    "type": "bigint"
+                  }
+                }
+              ],
+              "tableName": "twitch_so_account"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_clip"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_monthly_result"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_weapon_request_ranking"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "account_id",
+                    "valueComputed": "(select b.id from DBO.account b where b.discord_id = 256536949756657664)"
+                  }
+                }
+              ],
+              "tableName": "twitch_so_account"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "20",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_2_rotation_notification",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "account_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "mode",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rule",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "included_stages",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "excluded_stages",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_monday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_monday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_monday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_tuesday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_tuesday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_tuesday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_wednesday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_wednesday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_wednesday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_thursday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_thursday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_thursday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_friday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_friday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_friday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_saturday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_saturday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_saturday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notify_sunday",
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time_sunday",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time_sunday",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "account_id",
+              "baseTableName": "splatoon_2_rotation_notification",
+              "constraintName": "fk_splatoon_2_rotation_notification_account_id",
+              "onDelete": "RESTRICT",
+              "onUpdate": "RESTRICT",
+              "referencedColumnNames": "id",
+              "referencedTableName": "account",
+              "validate": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "21",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addColumn":{
+              "columns":[
+                {
+                  "column":{
+                    "name":"slots",
+                    "type":"int",
+                    "valueComputed": "7"
+                  }
+                }
+              ],
+              "tableName":"splatoon_2_ability_notification"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "22",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_2_salmon_run_rotation_notification",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "account_id",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stages",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "included_weapons",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "excluded_weapons",
+                    "type": "bigint"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "days",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "includedRandom",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "account_id",
+              "baseTableName": "splatoon_2_salmon_run_rotation_notification",
+              "constraintName": "fk_splatoon_2_salmon_run_rotation_notification_account_id",
+              "onDelete": "RESTRICT",
+              "onUpdate": "RESTRICT",
+              "referencedColumnNames": "id",
+              "referencedTableName": "account",
+              "validate": true
             }
           }
         ]

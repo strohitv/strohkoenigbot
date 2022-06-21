@@ -5,10 +5,14 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonStage;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonWeapon;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonStageRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2StageStats;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2WeaponStats;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2StageStatsRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponStatsRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStatPage;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
@@ -22,18 +26,25 @@ import java.util.stream.Collectors;
 public class StatsExporter {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private SplatoonWeaponRepository weaponRepository;
+	private AccountRepository accountRepository;
 
 	@Autowired
-	public void setWeaponRepository(SplatoonWeaponRepository weaponRepository) {
-		this.weaponRepository = weaponRepository;
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
-	private SplatoonStageRepository stageRepository;
+	private Splatoon2WeaponStatsRepository weaponStatsRepository;
 
 	@Autowired
-	public void setStageRepository(SplatoonStageRepository stageRepository) {
-		this.stageRepository = stageRepository;
+	public void setWeaponStatsRepository(Splatoon2WeaponStatsRepository weaponStatsRepository) {
+		this.weaponStatsRepository = weaponStatsRepository;
+	}
+
+	private Splatoon2StageStatsRepository stageStatsRepository;
+
+	@Autowired
+	public void setStageStatsRepository(Splatoon2StageStatsRepository stageStatsRepository) {
+		this.stageStatsRepository = stageStatsRepository;
 	}
 
 	private WeaponExporter weaponExporter;
@@ -60,93 +71,102 @@ public class StatsExporter {
 	@Scheduled(cron = "0 47 4 * * *")
 	public void refreshStageAndWeaponStats() {
 		logger.info("loading stage and weapon stats");
-		SplatNetStatPage splatNetStatPage = splatoonStatsLoader.querySplatoonApi("/api/records", SplatNetStatPage.class);
+
+		Account account = accountRepository.findAll().stream()
+				.filter(Account::getIsMainAccount)
+				.findFirst()
+				.orElse(new Account());
+
+		SplatNetStatPage splatNetStatPage = splatoonStatsLoader.querySplatoonApiForAccount(account, "/api/records", SplatNetStatPage.class);
 
 		logger.info("refreshing weapon stats");
-		refreshWeaponStats(splatNetStatPage.getRecords().getWeapon_stats().values().stream()
+		refreshWeaponStats(account.getId(), splatNetStatPage.getRecords().getWeapon_stats().values().stream()
 				.sorted((w1, w2) -> -Integer.compare(w1.getWin_count(), w2.getWin_count()))
 				.collect(Collectors.toList())
 		);
 		logger.info("refreshing stage stats");
-		refreshStageStats(new ArrayList<>(splatNetStatPage.getRecords().getStage_stats().values()));
+		refreshStageStats(account.getId(), new ArrayList<>(splatNetStatPage.getRecords().getStage_stats().values()));
 		logger.info("finished refresh");
 	}
 
-	private void refreshWeaponStats(List<SplatNetStatPage.SplatNetRecords.SplatNetWeaponStats> weaponStats) {
-		for (SplatNetStatPage.SplatNetRecords.SplatNetWeaponStats singleWeaponStats : weaponStats) {
-			SplatoonWeapon weapon = weaponExporter.loadWeapon(singleWeaponStats.getWeapon());
+	private void refreshWeaponStats(long accountId, List<SplatNetStatPage.SplatNetRecords.SplatNetWeaponStats> loadedWeaponStats) {
+		for (SplatNetStatPage.SplatNetRecords.SplatNetWeaponStats singleWeaponStats : loadedWeaponStats) {
+			Splatoon2Weapon weapon = weaponExporter.loadWeapon(singleWeaponStats.getWeapon());
+			Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(weapon.getId(), accountId).orElse(new Splatoon2WeaponStats(0L, weapon.getId(), accountId, 0L, 0, 0));
 
-			boolean isDirty = false;
+			boolean isDirty = weaponStats.getId() == 0L;
 
-			if (!Objects.equals(weapon.getTurf(), singleWeaponStats.getTotal_paint_point())) {
-				weapon.setTurf(singleWeaponStats.getTotal_paint_point());
+			if (!Objects.equals(weaponStats.getTurf(), singleWeaponStats.getTotal_paint_point())) {
+				weaponStats.setTurf(singleWeaponStats.getTotal_paint_point());
 				isDirty = true;
 			}
 
-			if (!Objects.equals(weapon.getWins(), singleWeaponStats.getWin_count())) {
-				weapon.setWins(singleWeaponStats.getWin_count());
+			if (!Objects.equals(weaponStats.getWins(), singleWeaponStats.getWin_count())) {
+				weaponStats.setWins(singleWeaponStats.getWin_count());
 				isDirty = true;
 			}
 
-			if (!Objects.equals(weapon.getDefeats(), singleWeaponStats.getLose_count())) {
-				weapon.setDefeats(singleWeaponStats.getLose_count());
+			if (!Objects.equals(weaponStats.getDefeats(), singleWeaponStats.getLose_count())) {
+				weaponStats.setDefeats(singleWeaponStats.getLose_count());
 				isDirty = true;
 			}
 
 			if (isDirty) {
-				weaponRepository.save(weapon);
+				weaponStatsRepository.save(weaponStats);
 			}
 		}
 	}
 
-	private void refreshStageStats(List<SplatNetStatPage.SplatNetRecords.SplatNetStageStats> stageStats) {
-		for (SplatNetStatPage.SplatNetRecords.SplatNetStageStats singleStageStats : stageStats) {
-			SplatoonStage stage = stagesExporter.loadStage(singleStageStats.getStage());
+	private void refreshStageStats(long accountId, List<SplatNetStatPage.SplatNetRecords.SplatNetStageStats> loadedStageStats) {
+		for (SplatNetStatPage.SplatNetRecords.SplatNetStageStats singleStageStats : loadedStageStats) {
+			Splatoon2Stage stage = stagesExporter.loadStage(singleStageStats.getStage());
+			Splatoon2StageStats stageStats = stageStatsRepository.findByStageIdAndAccountId(stage.getId(), accountId)
+					.orElse(new Splatoon2StageStats(0L, stage.getId(), accountId, 0, 0, 0, 0, 0, 0, 0, 0));
 
-			boolean isDirty = false;
+			boolean isDirty = stageStats.getId() == 0L;
 
-			if (!Objects.equals(stage.getZonesWins(), singleStageStats.getZonesWinCount())) {
-				stage.setZonesWins(singleStageStats.getZonesWinCount());
+			if (!Objects.equals(stageStats.getZonesWins(), singleStageStats.getZonesWinCount())) {
+				stageStats.setZonesWins(singleStageStats.getZonesWinCount());
 				isDirty = true;
 			}
 
-			if (!Objects.equals(stage.getZonesDefeats(), singleStageStats.getZonesLoseCount())) {
-				stage.setZonesDefeats(singleStageStats.getZonesLoseCount());
+			if (!Objects.equals(stageStats.getZonesDefeats(), singleStageStats.getZonesLoseCount())) {
+				stageStats.setZonesDefeats(singleStageStats.getZonesLoseCount());
 				isDirty = true;
 			}
 
-			if (!Objects.equals(stage.getRainmakerWins(), singleStageStats.getRainmakerWinCount())) {
-				stage.setRainmakerWins(singleStageStats.getRainmakerWinCount());
+			if (!Objects.equals(stageStats.getRainmakerWins(), singleStageStats.getRainmakerWinCount())) {
+				stageStats.setRainmakerWins(singleStageStats.getRainmakerWinCount());
 				isDirty = true;
 			}
 
-			if (!Objects.equals(stage.getRainmakerDefeats(), singleStageStats.getRainmakerLoseCount())) {
-				stage.setRainmakerDefeats(singleStageStats.getRainmakerLoseCount());
+			if (!Objects.equals(stageStats.getRainmakerDefeats(), singleStageStats.getRainmakerLoseCount())) {
+				stageStats.setRainmakerDefeats(singleStageStats.getRainmakerLoseCount());
 				isDirty = true;
 			}
 
-			if (!Objects.equals(stage.getTowerWins(), singleStageStats.getTowerWinCount())) {
-				stage.setTowerWins(singleStageStats.getTowerWinCount());
+			if (!Objects.equals(stageStats.getTowerWins(), singleStageStats.getTowerWinCount())) {
+				stageStats.setTowerWins(singleStageStats.getTowerWinCount());
 				isDirty = true;
 			}
 
-			if (!Objects.equals(stage.getTowerDefeats(), singleStageStats.getTowerLoseCount())) {
-				stage.setTowerDefeats(singleStageStats.getTowerLoseCount());
+			if (!Objects.equals(stageStats.getTowerDefeats(), singleStageStats.getTowerLoseCount())) {
+				stageStats.setTowerDefeats(singleStageStats.getTowerLoseCount());
 				isDirty = true;
 			}
 
-			if (!Objects.equals(stage.getClamsWins(), singleStageStats.getClamsWinCount())) {
-				stage.setClamsWins(singleStageStats.getClamsWinCount());
+			if (!Objects.equals(stageStats.getClamsWins(), singleStageStats.getClamsWinCount())) {
+				stageStats.setClamsWins(singleStageStats.getClamsWinCount());
 				isDirty = true;
 			}
 
-			if (!Objects.equals(stage.getClamsDefeats(), singleStageStats.getClamsLoseCount())) {
-				stage.setClamsDefeats(singleStageStats.getClamsLoseCount());
+			if (!Objects.equals(stageStats.getClamsDefeats(), singleStageStats.getClamsLoseCount())) {
+				stageStats.setClamsDefeats(singleStageStats.getClamsLoseCount());
 				isDirty = true;
 			}
 
 			if (isDirty) {
-				stageRepository.save(stage);
+				stageStatsRepository.save(stageStats);
 			}
 		}
 	}

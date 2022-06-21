@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
@@ -11,8 +10,9 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonClip;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonClipRepository;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2ClipRepository;
 
 import java.util.EnumSet;
 
@@ -35,15 +35,22 @@ public class CreateClipAction extends ChatAction {
 	private TwitchBotClient botClient;
 
 	@Autowired
-	public void setBotClient(@Qualifier("botClient") TwitchBotClient botClient) {
+	public void setBotClient(TwitchBotClient botClient) {
 		this.botClient = botClient;
 	}
 
-	private SplatoonClipRepository clipRepository;
+	private Splatoon2ClipRepository clipRepository;
 
 	@Autowired
-	public void setClipRepository(SplatoonClipRepository clipRepository) {
+	public void setClipRepository(Splatoon2ClipRepository clipRepository) {
 		this.clipRepository = clipRepository;
+	}
+
+	private AccountRepository accountRepository;
+
+	@Autowired
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
 	@Override
@@ -58,10 +65,14 @@ public class CreateClipAction extends ChatAction {
 		if (message.startsWith("!clip")) {
 			logger.info("create clip action was called");
 			logger.info(message);
-			SplatoonClip clip = botClient.createClip("This was a regular clip without rating", true);
+
+			String channelId = (String) args.getArguments().getOrDefault(ArgumentKey.ChannelId, null);
+			Splatoon2Clip clip = botClient.createClip("This was a regular clip without rating", channelId, true);
 			logger.info(clip);
 
 			if (clip != null) {
+				accountRepository.findByTwitchUserId(channelId).ifPresent(account -> clip.setAccountId(account.getId()));
+
 				clipRepository.save(clip);
 
 				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
@@ -70,7 +81,7 @@ public class CreateClipAction extends ChatAction {
 						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			} else {
 				messageSender.reply((String) args.getArguments().get(ArgumentKey.ChannelName),
-						"I could not create the clip, probably because another one has been created in the last 20 seconds. Please try again in some seconds. strohk2OhFree",
+						"I could not create the clip, probably because another one has been created in the last 20 seconds. Please try again in some seconds. strohk2HuhFree",
 						(String) args.getArguments().get(ArgumentKey.MessageNonce),
 						(String) args.getArguments().get(ArgumentKey.ReplyMessageId));
 			}

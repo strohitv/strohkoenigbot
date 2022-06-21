@@ -3,17 +3,17 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonStage;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonStageRepository;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2StageRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStage;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 @Component
 public class StagesExporter {
-	private SplatoonStageRepository stageRepository;
+	private Splatoon2StageRepository stageRepository;
 
 	@Autowired
-	public void setStageRepository(SplatoonStageRepository stageRepository) {
+	public void setStageRepository(Splatoon2StageRepository stageRepository) {
 		this.stageRepository = stageRepository;
 	}
 
@@ -24,24 +24,15 @@ public class StagesExporter {
 		this.discordBot = discordBot;
 	}
 
-	public SplatoonStage loadStage(SplatNetStage splatNetStage) {
-		SplatoonStage stage = stageRepository.findBySplatoonApiId(splatNetStage.getId());
+	public Splatoon2Stage loadStage(SplatNetStage splatNetStage) {
+		Splatoon2Stage stage = stageRepository.findBySplatoonApiId(splatNetStage.getId());
 
 		if (stage == null) {
-			stage = new SplatoonStage();
+			stage = new Splatoon2Stage();
 
 			stage.setSplatoonApiId(splatNetStage.getId());
 			stage.setName(splatNetStage.getName());
 			stage.setImage(splatNetStage.getImage());
-
-			stage.setZonesWins(0);
-			stage.setZonesDefeats(0);
-			stage.setRainmakerWins(0);
-			stage.setRainmakerDefeats(0);
-			stage.setTowerWins(0);
-			stage.setTowerDefeats(0);
-			stage.setClamsWins(0);
-			stage.setClamsDefeats(0);
 
 			stage = stageRepository.save(stage);
 

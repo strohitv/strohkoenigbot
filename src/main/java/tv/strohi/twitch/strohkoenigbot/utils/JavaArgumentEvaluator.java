@@ -13,12 +13,10 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchChatBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.SplatoonLogin;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.SplatoonLoginRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 
 import java.io.BufferedWriter;
@@ -38,13 +36,6 @@ public class JavaArgumentEvaluator {
 		arguments = args;
 	}
 
-	private SplatoonLoginRepository splatoonLoginRepository;
-
-	@Autowired
-	public void setSplatoonLoginRepository(SplatoonLoginRepository splatoonLoginRepository) {
-		this.splatoonLoginRepository = splatoonLoginRepository;
-	}
-
 	private TwitchAuthRepository twitchAuthRepository;
 
 	@Autowired
@@ -59,11 +50,11 @@ public class JavaArgumentEvaluator {
 		this.configurationRepository = configurationRepository;
 	}
 
-	private TwitchChatBot twitchChatBot;
+	private TwitchBotClient twitchBotClient;
 
 	@Autowired
-	public void setTwitchChatBot(TwitchChatBot twitchChatBot) {
-		this.twitchChatBot = twitchChatBot;
+	public void setTwitchBotClient(TwitchBotClient twitchBotClient) {
+		this.twitchBotClient = twitchBotClient;
 	}
 
 	private StrohkoenigbotApplication app;
@@ -90,7 +81,6 @@ public class JavaArgumentEvaluator {
 				Map<String, Object> struct = new HashMap<>();
 				struct.put("config", configurationRepository.findAll());
 				struct.put("twitch", twitchAuthRepository.findAll());
-				struct.put("splatoon", splatoonLoginRepository.findAll());
 
 				try {
 					String json = mapper.writeValueAsString(struct);
@@ -114,18 +104,13 @@ public class JavaArgumentEvaluator {
 						configurationRepository.saveAll(Arrays.asList(config.getConfig()));
 					}
 
-					if (config.getSplatoon() != null) {
-						splatoonLoginRepository.deleteAll();
-						splatoonLoginRepository.saveAll(Arrays.asList(config.getSplatoon().clone()));
-					}
-
 					if (config.getTwitch() != null) {
-						twitchChatBot.stop();
+						twitchBotClient.stop();
 
 						twitchAuthRepository.deleteAll();
 						twitchAuthRepository.saveAll(Arrays.asList(config.getTwitch()));
 
-						twitchChatBot.initializeClients();
+						twitchBotClient.initializeClient();
 					}
 				} catch (IOException e) {
 					logger.error(e);
@@ -144,6 +129,5 @@ public class JavaArgumentEvaluator {
 	private static class Config {
 		private Configuration[] config;
 		private TwitchAuth[] twitch;
-		private SplatoonLogin[] splatoon;
 	}
 }

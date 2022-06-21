@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class AutoSoAction implements IChatAction {
+public class AutoSoAction extends ChatAction {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	@Override
@@ -40,7 +40,7 @@ public class AutoSoAction implements IChatAction {
 	}
 
 	@Override
-	public void run(ActionArgs args) {
+	public void execute(ActionArgs args) {
 		if (args.getReason() == TriggerReason.Raid) {
 			accountsToShoutOut.put(args.getUser().toLowerCase(), false);
 			new Thread(() -> sendTwitchSoMessage(args.getUser(), 15_000)).start();

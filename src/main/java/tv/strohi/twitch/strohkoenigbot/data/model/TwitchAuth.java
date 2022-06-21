@@ -17,10 +17,4 @@ public class TwitchAuth {
 	private long id;
 
 	private String token;
-
-	private String channelId;
-
-	private String username;
-
-	private Boolean isMain;
 }

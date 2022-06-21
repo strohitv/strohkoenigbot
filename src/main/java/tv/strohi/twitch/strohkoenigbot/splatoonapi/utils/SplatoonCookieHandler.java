@@ -3,13 +3,11 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.SplatoonLogin;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.SplatoonLoginRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.SplatNet2StatInkConfig;
 
 import java.io.File;
@@ -24,52 +22,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class SplatoonCookieHandler extends CookieHandler {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private SplatoonLoginRepository splatoonLoginRepository;
+	private Account account;
 
-	@Autowired
-	public void setSplatoonLoginRepository(SplatoonLoginRepository splatoonLoginRepository) {
-		this.splatoonLoginRepository = splatoonLoginRepository;
-	}
+	private final AccountRepository accountRepository;
+	private final ConfigurationRepository configurationRepository;
+	private final DiscordBot discordBot;
 
-	private ConfigurationRepository configurationRepository;
-
-	@Autowired
-	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
+	private SplatoonCookieHandler(Account account, AccountRepository accountRepository, ConfigurationRepository configurationRepository, DiscordBot discordBot) {
+		this.account = account;
+		this.accountRepository = accountRepository;
 		this.configurationRepository = configurationRepository;
+		this.discordBot = discordBot;
 	}
 
-	private DiscordBot discordBot;
-
-	@Autowired
-	public void setDiscordBot(DiscordBot discordBot) {
-		this.discordBot = discordBot;
+	public static SplatoonCookieHandler of(Account account, AccountRepository accountRepository, ConfigurationRepository configurationRepository, DiscordBot discordBot) {
+		return new SplatoonCookieHandler(account, accountRepository, configurationRepository, discordBot);
 	}
 
 	@Override
 	public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
 		logger.debug("putting authentication information into request");
 
-		List<SplatoonLogin> splatoonLogins = splatoonLoginRepository.findAll();
-		SplatoonLogin login = splatoonLogins.stream().findFirst().orElse(null);
-		logger.debug("found {} splatoon logins", splatoonLogins.size());
-		logger.debug("using login:");
-		logger.debug(login);
-
-		if (login == null) {
-			login = splatoonLoginRepository.save(new SplatoonLogin());
-
-			sendLogs("creating new login");
-		}
-
 		List<Configuration> refreshCookieConfigurationEntries = configurationRepository.findByConfigName("refreshSplatNetCookie");
-		if (login.getCookie() == null
-				|| login.getCookie().isBlank()
-				|| refreshCookieConfigurationEntries.size() > 0
-				|| Instant.now().isAfter(login.getExpiresAt())) {
+		if (account.getIsMainAccount()
+				&& (
+				account.getSplatoonCookie() == null
+						|| account.getSplatoonCookie().isBlank()
+						|| refreshCookieConfigurationEntries.size() > 0
+						|| Instant.now().isAfter(account.getSplatoonCookieExpiresAt()))) {
 			sendLogs("refreshing cookie from splatnet2statink script");
 
 			Configuration splatNet2StatInkLocation = configurationRepository.findByConfigName("splatNet2StatInkLocation").stream().findFirst().orElse(null);
@@ -90,13 +73,10 @@ public class SplatoonCookieHandler extends CookieHandler {
 				String configPath = String.format("%s%sconfig.txt", splatNet2StatInkLocation.getConfigValue(), File.separator);
 				SplatNet2StatInkConfig splatNet2StatInkConfig = new ObjectMapper().readValue(new File(configPath), SplatNet2StatInkConfig.class);
 
-				logger.debug("new auth data:");
-				logger.debug(login);
+				account.setSplatoonCookie(splatNet2StatInkConfig.getCookie());
+				account.setSplatoonCookieExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
 
-				login.setCookie(splatNet2StatInkConfig.getCookie());
-				login.setExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
-
-				login = splatoonLoginRepository.save(login);
+				account = accountRepository.save(account);
 				configurationRepository.deleteAll(configurationRepository.findByConfigName("refreshSplatNetCookie"));
 				sendLogs("done");
 			} else {
@@ -104,15 +84,15 @@ public class SplatoonCookieHandler extends CookieHandler {
 			}
 		}
 
-		logger.debug("setting cookie to: 'iksm_session={}'", login.getCookie());
+		logger.debug("setting cookie to: 'iksm_session={}'", account.getSplatoonCookie());
 		Map<String, List<String>> requestHeadersCopy = new HashMap<>(requestHeaders);
-		requestHeadersCopy.put("Cookie", Collections.singletonList(String.format("iksm_session=%s", login.getCookie())));
+		requestHeadersCopy.put("Cookie", Collections.singletonList(String.format("iksm_session=%s", account.getSplatoonCookie())));
 
 		return Collections.unmodifiableMap(requestHeadersCopy);
 	}
 
 	@Override
-	public void put(URI uri, Map<String, List<String>> responseHeaders) throws IOException {
+	public void put(URI uri, Map<String, List<String>> responseHeaders) {
 		if (responseHeaders.containsKey("set-cookie")) {
 			String iksmSessionCookieText = responseHeaders.get("set-cookie").stream().filter(c -> c.contains("iksm_session")).findFirst().orElse(null);
 
@@ -122,15 +102,13 @@ public class SplatoonCookieHandler extends CookieHandler {
 
 				if (iksmSessionCookie != null) {
 					String value = iksmSessionCookie.getValue();
+					account.setSplatoonCookie(value);
 
-					SplatoonLogin login = splatoonLoginRepository.findByCookie(value).stream().findFirst().orElse(null);
 					long cookieLifeDuration = iksmSessionCookie.getMaxAge() >= 0 ? iksmSessionCookie.getMaxAge() : 31536000L;
 					Instant expiresAt = Instant.now().plus(cookieLifeDuration, ChronoUnit.SECONDS);
+					account.setSplatoonCookieExpiresAt(expiresAt);
 
-					if (login != null && login.getExpiresAt() != null && login.getExpiresAt().isBefore(expiresAt)) {
-						login.setExpiresAt(expiresAt);
-						splatoonLoginRepository.save(login);
-					}
+					account = accountRepository.save(account);
 				}
 			}
 		}

@@ -5,20 +5,32 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ModeFilter;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.RuleFilter;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.SplatoonStage;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonRotation;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.SplatoonStage;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonMode;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoondata.enums.SplatoonRule;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoondata.SplatoonRotationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2RotationNotification;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Rotation;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2RotationNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2RotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class RotationWatcher {
@@ -35,11 +47,25 @@ public class RotationWatcher {
 		this.stagesExporter = stagesExporter;
 	}
 
-	private SplatoonRotationRepository rotationRepository;
+	private AccountRepository accountRepository;
 
 	@Autowired
-	public void setRotationRepository(SplatoonRotationRepository rotationRepository) {
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
+	}
+
+	private Splatoon2RotationRepository rotationRepository;
+
+	@Autowired
+	public void setRotationRepository(Splatoon2RotationRepository rotationRepository) {
 		this.rotationRepository = rotationRepository;
+	}
+
+	private Splatoon2RotationNotificationRepository notificationRepository;
+
+	@Autowired
+	public void setNotificationRepository(Splatoon2RotationNotificationRepository notificationRepository) {
+		this.notificationRepository = notificationRepository;
 	}
 
 	@Autowired
@@ -68,7 +94,7 @@ public class RotationWatcher {
 		}
 	}
 
-	@Scheduled(cron = "20 0 * * * *")
+		@Scheduled(cron = "20 0 * * * *")
 //	@Scheduled(cron = "20 * * * * *")
 	public void sendDiscordNotifications() {
 		refreshStages();
@@ -88,6 +114,24 @@ public class RotationWatcher {
 					formatDiscordMessage(stages.getLeague()),
 					stages.getLeague()[0].getStage_a().getImage(),
 					stages.getLeague()[0].getStage_b().getImage());
+
+//			if (stages.getRegular().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+			if (stages.getRegular().length > 0) {
+				sendDiscordNotificationsToUsers(stages.getRegular()[0]);
+				sendDiscordNotificationsToUsers(stages.getRegular()[stages.getRegular().length - 1]);
+			}
+
+//				if (stages.getGachi().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+			if (stages.getGachi().length > 0) {
+				sendDiscordNotificationsToUsers(stages.getGachi()[0]);
+				sendDiscordNotificationsToUsers(stages.getGachi()[stages.getGachi().length - 1]);
+			}
+
+//					if (stages.getLeague().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+			if (stages.getLeague().length > 0) {
+				sendDiscordNotificationsToUsers(stages.getLeague()[0]);
+				sendDiscordNotificationsToUsers(stages.getLeague()[stages.getLeague().length - 1]);
+			}
 		}
 	}
 
@@ -133,7 +177,13 @@ public class RotationWatcher {
 	private void refreshStages() {
 		if (stages == null || Arrays.stream(stages.getGachi()).anyMatch(s -> s.getEndTimeAsInstant().isBefore(Instant.now()))) {
 			logger.info("checking for new stages");
-			stages = stagesLoader.querySplatoonApi("/api/schedules", SplatNetStages.class);
+
+			Account account = accountRepository.findAll().stream()
+					.filter(Account::getIsMainAccount)
+					.findFirst()
+					.orElse(new Account());
+
+			stages = stagesLoader.querySplatoonApiForAccount(account, "/api/schedules", SplatNetStages.class);
 
 			saveStagesInDatabase(stages.getRegular());
 			saveStagesInDatabase(stages.getGachi());
@@ -146,22 +196,22 @@ public class RotationWatcher {
 
 	private void saveStagesInDatabase(SplatNetStages.SplatNetRotation[] rotations) {
 		for (SplatNetStages.SplatNetRotation rotation : rotations) {
-			boolean storeRotationIntoDatabase = rotationRepository.findBySplatoonApiIdAndMode(rotation.getId(), SplatoonMode.getModeByName(rotation.getGame_mode().getKey())) == null;
+			boolean storeRotationIntoDatabase = rotationRepository.findBySplatoonApiIdAndMode(rotation.getId(), Splatoon2Mode.getModeByName(rotation.getGame_mode().getKey())) == null;
 
 			if (storeRotationIntoDatabase) {
-				SplatoonRotation newRotation = new SplatoonRotation();
+				Splatoon2Rotation newRotation = new Splatoon2Rotation();
 				newRotation.setSplatoonApiId(rotation.getId());
 
 				newRotation.setStartTime(rotation.getStart_time());
 				newRotation.setEndTime(rotation.getEnd_time());
 
-				newRotation.setMode(SplatoonMode.getModeByName(rotation.getGame_mode().getKey()));
-				newRotation.setRule(SplatoonRule.getRuleByName(rotation.getRule().getKey()));
+				newRotation.setMode(Splatoon2Mode.getModeByName(rotation.getGame_mode().getKey()));
+				newRotation.setRule(Splatoon2Rule.getRuleByName(rotation.getRule().getKey()));
 
-				SplatoonStage stageA = stagesExporter.loadStage(rotation.getStage_a());
+				Splatoon2Stage stageA = stagesExporter.loadStage(rotation.getStage_a());
 				newRotation.setStageAId(stageA.getId());
 
-				SplatoonStage stageB = stagesExporter.loadStage(rotation.getStage_b());
+				Splatoon2Stage stageB = stagesExporter.loadStage(rotation.getStage_b());
 				newRotation.setStageBId(stageB.getId());
 
 				rotationRepository.save(newRotation);
@@ -181,6 +231,51 @@ public class RotationWatcher {
 		}
 	}
 
+	private void sendDiscordNotificationsToUsers(SplatNetStages.SplatNetRotation rotation) {
+		ModeFilter mode = ModeFilter.getFromSplatNetApiName(rotation.getGame_mode().getName());
+		RuleFilter rule = RuleFilter.getFromSplatNetApiName(rotation.getRule().getName());
+		List<Splatoon2RotationNotification> rotationNotifications = notificationRepository.findByModeAndRule(mode, rule);
+
+		List<Account> accountsToNotify = new ArrayList<>();
+
+		for (Splatoon2RotationNotification notification : rotationNotifications) {
+			if (accountsToNotify.contains(notification.getAccount())) {
+				continue;
+			}
+
+			// excluded stages
+			SplatoonStage[] excludedStages = SplatoonStage.resolveFromNumber(notification.getExcludedStages());
+			if (excludedStages.length > 0 && Arrays.stream(excludedStages).anyMatch(es -> es.getName().equals(rotation.getStage_a().getName()) || es.getName().equals(rotation.getStage_b().getName()))) {
+				continue;
+			}
+
+			// included stages
+			SplatoonStage[] includedStages = SplatoonStage.resolveFromNumber(notification.getIncludedStages());
+			if (includedStages.length > 0 && Arrays.stream(includedStages).noneMatch(es -> es.getName().equals(rotation.getStage_a().getName()) || es.getName().equals(rotation.getStage_b().getName()))) {
+				continue;
+			}
+
+			// times
+			if (notification.getAccount().getTimezone() != null && !notification.getAccount().getTimezone().isBlank()) {
+				// can check timezone
+				ZonedDateTime startTime = rotation.getStartTimeAsInstant().atZone(ZoneId.of(notification.getAccount().getTimezone()));
+
+				if (isOutSideAllowedTime(notification, startTime)) {
+					continue;
+				}
+			}
+
+			accountsToNotify.add(notification.getAccount());
+		}
+
+		for (Account recipient : accountsToNotify) {
+			sendDiscordMessageToUser(recipient.getDiscordId(),
+					formatDiscordMessage(rotation, recipient.getTimezone()),
+					rotation.getStage_a().getImage(),
+					rotation.getStage_b().getImage());
+		}
+	}
+
 	private String formatDiscordMessage(SplatNetStages.SplatNetRotation[] rotations) {
 		boolean isTurf = rotations[0].getRule().getKey().equals("turf_war");
 
@@ -188,7 +283,7 @@ public class RotationWatcher {
 		builder.append(String.format("**Current %s rotation**\n", rotations[0].getGame_mode().getName()));
 
 		if (!isTurf) {
-			builder.append(String.format("- Mode: %s**%s**\n", getEmoji(rotations[0].getRule().getKey()), rotations[0].getRule().getName()));
+			builder.append(String.format("- Rule: %s**%s**\n", getEmoji(rotations[0].getRule().getKey()), rotations[0].getRule().getName()));
 		}
 		builder.append(String.format("- Stage A: **%s**\n", rotations[0].getStage_a().getName()));
 		builder.append(String.format("- Stage B: **%s**\n\n", rotations[0].getStage_b().getName()));
@@ -203,6 +298,38 @@ public class RotationWatcher {
 					rotations[i].getStage_b().getName()));
 			hours += 2;
 		}
+
+		return builder.toString();
+	}
+
+	private String formatDiscordMessage(SplatNetStages.SplatNetRotation rotation, String timezone) {
+		boolean isTurf = rotation.getRule().getKey().equals("turf_war");
+
+		StringBuilder builder = new StringBuilder();
+
+		boolean hadTimeZone = timezone != null;
+		if (!hadTimeZone) {
+			timezone = "Europe/Berlin";
+		}
+
+		if (Instant.now().atZone(ZoneId.of(timezone)).plus(4, ChronoUnit.HOURS).isAfter(rotation.getStartTimeAsInstant().atZone(ZoneId.of(timezone)))) {
+			builder.append(String.format("Current **%s** rotation\n", rotation.getGame_mode().getName()));
+		} else {
+			builder.append(String.format("New **%s** rotation will start in **%d** hours",
+					rotation.getGame_mode().getName(),
+					Duration.between(Instant.now(), rotation.getStartTimeAsInstant()).abs().toHours() + 1));
+
+			builder.append(String.format("\nIt will start at **<t:%d:F>**", rotation.getStart_time()));
+
+			builder.append("\n");
+		}
+
+		if (!isTurf) {
+//			builder.append(String.format("- Mode: **%s**\n", rotation.getGame_mode().getName()));
+			builder.append(String.format("- Rule: %s**%s**\n", getEmoji(rotation.getRule().getKey()), rotation.getRule().getName()));
+		}
+		builder.append(String.format("- Stage A: **%s**\n", rotation.getStage_a().getName()));
+		builder.append(String.format("- Stage B: **%s**\n\n", rotation.getStage_b().getName()));
 
 		return builder.toString();
 	}
@@ -238,5 +365,73 @@ public class RotationWatcher {
 				String.format("https://app.splatoon2.nintendo.net%s", firstStageImageUrl),
 				String.format("https://app.splatoon2.nintendo.net%s", SecondStageImageUrl));
 		logger.info("Finished sending out discord notifications to server channel '{}'", channelName);
+	}
+
+	private void sendDiscordMessageToUser(long discordId, String message, String firstStageImageUrl, String SecondStageImageUrl) {
+		logger.info("Sending out discord notifications to server channel '{}'", discordId);
+		discordBot.sendPrivateMessageWithImages(discordId,
+				message,
+				String.format("https://app.splatoon2.nintendo.net%s", firstStageImageUrl),
+				String.format("https://app.splatoon2.nintendo.net%s", SecondStageImageUrl));
+		logger.info("Finished sending out discord notifications to server channel '{}'", discordId);
+	}
+
+	private boolean isOutSideAllowedTime(Splatoon2RotationNotification notification, ZonedDateTime startTime) {
+		int allowedStartHour = 0;
+		int allowedEndHour = 23;
+
+		switch (startTime.getDayOfWeek()) {
+			case MONDAY:
+				if (!notification.isNotifyMonday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeMonday();
+				allowedEndHour = notification.getEndTimeMonday();
+				break;
+			case TUESDAY:
+				if (!notification.isNotifyTuesday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeTuesday();
+				allowedEndHour = notification.getEndTimeTuesday();
+				break;
+			case WEDNESDAY:
+				if (!notification.isNotifyWednesday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeWednesday();
+				allowedEndHour = notification.getEndTimeWednesday();
+				break;
+			case THURSDAY:
+				if (!notification.isNotifyThursday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeThursday();
+				allowedEndHour = notification.getEndTimeThursday();
+				break;
+			case FRIDAY:
+				if (!notification.isNotifyFriday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeFriday();
+				allowedEndHour = notification.getEndTimeFriday();
+				break;
+			case SATURDAY:
+				if (!notification.isNotifySaturday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeSaturday();
+				allowedEndHour = notification.getEndTimeSaturday();
+				break;
+			case SUNDAY:
+				if (!notification.isNotifySunday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeSunday();
+				allowedEndHour = notification.getEndTimeSunday();
+				break;
+		}
+
+		return startTime.getHour() < allowedStartHour || startTime.getHour() > allowedEndHour;
 	}
 }

@@ -1,7 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.spring;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 
@@ -13,11 +12,14 @@ public class TwitchMessageSender {
 		return botTwitchMessageSender;
 	}
 
-	private final TwitchBotClient botClient;
+	private TwitchBotClient botClient;
 
 	@Autowired
-	public TwitchMessageSender(@Qualifier("botClient") TwitchBotClient botClient) {
+	public void setBotClient(TwitchBotClient botClient) {
 		this.botClient = botClient;
+	}
+
+	public TwitchMessageSender() {
 		TwitchMessageSender.botTwitchMessageSender = this;
 	}
 

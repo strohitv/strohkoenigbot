@@ -26,10 +26,11 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +47,13 @@ public class DiscordBot {
 	public void setBotActions(List<IChatAction> botActions) {
 		this.botActions.clear();
 		this.botActions.addAll(botActions);
+	}
+
+	private ResourcesDownloader resourcesDownloader;
+
+	@Autowired
+	public void setResourcesDownloader(ResourcesDownloader resourcesDownloader) {
+		this.resourcesDownloader = resourcesDownloader;
 	}
 
 	@Autowired
@@ -176,7 +184,7 @@ public class DiscordBot {
 			List<TextChannel> allChannels = allChannelsOfAllServers.stream()
 					.filter(c -> c.getName().equals(channelName))
 					.filter(c -> c instanceof TextChannel)
-					.map(c -> (TextChannel)c)
+					.map(c -> (TextChannel) c)
 					.collect(Collectors.toList());
 
 			for (TextChannel channel : allChannels) {
@@ -189,7 +197,7 @@ public class DiscordBot {
 		return result;
 	}
 
-	public boolean sendPrivateMessageWithImage(Long userId, String message, String... imageUrls) {
+	public boolean sendPrivateMessageWithImages(Long userId, String message, String... imageUrls) {
 		if (userId == null || getGateway() == null) {
 			return false;
 		}
@@ -214,13 +222,20 @@ public class DiscordBot {
 		try {
 			List<Tuple<String, InputStream>> streams = new ArrayList<>();
 
-			for (String imageUrl : imageUrls) {
-				URL url = new URL(imageUrl);
+			for (String imageUrlFullPath : imageUrls) {
+				String imageLocationString = resourcesDownloader.ensureExistsLocally(imageUrlFullPath);
+				String path = Paths.get(imageLocationString).toString();
+				String idStr = Paths.get(path).getFileName().toString();
 
-				String[] segments = url.getPath().split("/");
-				String idStr = segments[segments.length - 1];
+				Tuple<String, InputStream> filenameWithInputStream;
+				if (imageLocationString.startsWith("https://")) {
+					URL url = new URL(imageLocationString);
+					filenameWithInputStream = new Tuple<>(idStr, url.openStream());
+				} else {
+					filenameWithInputStream = new Tuple<>(idStr, new FileInputStream(Paths.get(System.getProperty("user.dir"), path).toString()));
+				}
 
-				streams.add(new Tuple<>(idStr, url.openStream()));
+				streams.add(filenameWithInputStream);
 			}
 
 			createMono = createMono.withFiles(
@@ -273,23 +288,18 @@ public class DiscordBot {
 		return result;
 	}
 
-	public boolean sendPrivateMessageWithAttachment(Long userId, String message, String fileName, InputStream content) {
+	public void sendPrivateMessageWithAttachment(Long userId, String message, String fileName, InputStream content) {
 		if (userId == null || getGateway() == null) {
-			return false;
+			return;
 		}
-
-		boolean result = false;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().block();
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
-				Message msg = channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).onErrorResume(e -> Mono.empty()).block();
-				result = msg != null;
+				channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).onErrorResume(e -> Mono.empty()).block();
 			}
 		}
-
-		return result;
 	}
 
 	public void reply(String message, TextChannel channel, Snowflake reference) {

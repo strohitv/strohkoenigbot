@@ -16,5 +16,7 @@ public class TwitchSoAccount {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
+	private Long accountId;
+
 	private String username;
 }

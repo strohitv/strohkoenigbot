@@ -6,12 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearSlotFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
-import tv.strohi.twitch.strohkoenigbot.data.model.AbilityNotification;
-import tv.strohi.twitch.strohkoenigbot.data.repository.AbilityNotificationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.DiscordAccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2AbilityNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMerchandises;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -49,18 +51,18 @@ public class SplatNetStoreWatcher {
 		this.discordBot = discordBot;
 	}
 
-	private AbilityNotificationRepository abilityNotificationRepository;
+	private Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository;
 
 	@Autowired
-	public void setAbilityNotificationRepository(AbilityNotificationRepository abilityNotificationRepository) {
-		this.abilityNotificationRepository = abilityNotificationRepository;
+	public void setAbilityNotificationRepository(Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository) {
+		this.splatoon2AbilityNotificationRepository = splatoon2AbilityNotificationRepository;
 	}
 
-	private DiscordAccountRepository discordAccountRepository;
+	private AccountRepository accountRepository;
 
 	@Autowired
-	public void setDiscordAccountRepository(DiscordAccountRepository discordAccountRepository) {
-		this.discordAccountRepository = discordAccountRepository;
+	public void setAccountRepository(AccountRepository accountRepository) {
+		this.accountRepository = accountRepository;
 	}
 
 	// 10 seconds after each full hour
@@ -69,13 +71,19 @@ public class SplatNetStoreWatcher {
 //	@Scheduled(cron = "10 * * * * *")
 	public void refreshSplatNetShop() {
 		logger.info("checking for new splatnet store offers");
-		SplatNetMerchandises gearOffers = shopLoader.querySplatoonApi("/api/onlineshop/merchandises", SplatNetMerchandises.class);
+
+		Account account = accountRepository.findAll().stream()
+				.filter(Account::getIsMainAccount)
+				.findFirst()
+				.orElse(new Account());
+
+		SplatNetMerchandises gearOffers = shopLoader.querySplatoonApiForAccount(account, "/api/onlineshop/merchandises", SplatNetMerchandises.class);
 
 		logger.info("found {} offers", gearOffers != null ? gearOffers.getMerchandises().length : 0);
 		logger.debug(gearOffers);
 
 		logger.debug("filters in database: ");
-		logger.debug(abilityNotificationRepository.findAll());
+		logger.debug(splatoon2AbilityNotificationRepository.findAll());
 
 		if (gearOffers != null && gearOffers.getMerchandises() != null) {
 			if (gearOffers.getMerchandises().length >= 1 && gearOffers.getMerchandises()[0].getEndTime().isBefore(Instant.now().plus(1, ChronoUnit.HOURS))) {
@@ -130,8 +138,8 @@ public class SplatNetStoreWatcher {
 						gear.getPrice(),
 						gear.getSkill().getName(),
 						frequentSkill,
-						gear.getGear().getRarity() + 1, Duration.between(Instant.now(),
-								gear.getEndTime()).abs().toHours() + 1);
+						gear.getGear().getRarity() + 1,
+						Duration.between(Instant.now(), gear.getEndTime()).abs().toHours() + 1);
 
 				channelMessageSender.send("strohkoenig", message);
 
@@ -142,8 +150,8 @@ public class SplatNetStoreWatcher {
 						gear.getPrice(),
 						gear.getSkill().getName(),
 						frequentSkill,
-						gear.getGear().getRarity() + 1, Duration.between(Instant.now(),
-								gear.getEndTime()).abs().toHours() + 1);
+						gear.getGear().getRarity() + 1,
+						Duration.between(Instant.now(), gear.getEndTime()).abs().toHours() + 1);
 
 				sendDiscordNotification(gear, discordMessage);
 			}
@@ -167,16 +175,14 @@ public class SplatNetStoreWatcher {
 		logger.debug("Finished sending out discord notifications to server channel");
 
 		logger.info("Sending out discord notifications to users");
-		List<AbilityNotification> notifications = findNotifications(gear);
+		List<Splatoon2AbilityNotification> notifications = findNotifications(gear);
 		List<Long> sentNotifications = new ArrayList<>();
-		for (AbilityNotification notification : notifications) {
+		for (Splatoon2AbilityNotification notification : notifications) {
 			if (!sentNotifications.contains(notification.getDiscordId())) {
-
-
-				discordAccountRepository.findById(notification.getDiscordId())
+				accountRepository.findById(notification.getDiscordId())
 						.ifPresent(discordAccount -> {
 									logger.info("Sending notification to discord account: {}", discordAccount.getDiscordId());
-									discordBot.sendPrivateMessageWithImage(discordAccount.getDiscordId(),
+									discordBot.sendPrivateMessageWithImages(discordAccount.getDiscordId(),
 											discordMessage,
 											images.toArray(String[]::new));
 								}
@@ -188,8 +194,8 @@ public class SplatNetStoreWatcher {
 		logger.info("Finished sending out discord notifications to users");
 	}
 
-	private List<AbilityNotification> findNotifications(SplatNetMerchandises.SplatNetMerchandise gear) {
-		return abilityNotificationRepository.findAll().stream()
+	private List<Splatoon2AbilityNotification> findNotifications(SplatNetMerchandises.SplatNetMerchandise gear) {
+		return splatoon2AbilityNotificationRepository.findAll().stream()
 				.filter(an ->
 						(an.getGear() == GearType.Any || an.getGear() == Arrays.stream(GearType.values()).filter(gt -> gt.getName().equals(gear.getGear().getKind())).findFirst().orElse(GearType.Any))
 								&& (an.getMain() == AbilityType.Any || an.getMain() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getSkill().getName())).findFirst().orElse(AbilityType.Any))
@@ -197,6 +203,7 @@ public class SplatNetStoreWatcher {
 								(
 										an.getFavored() == AbilityType.Any || (gear.getGear().getBrand().getFrequent_skill() != null && an.getFavored() == Arrays.stream(AbilityType.values()).filter(at -> at.getName().equals(gear.getGear().getBrand().getFrequent_skill().getName())).findFirst().orElse(AbilityType.Any))
 								)
+								&& Arrays.stream(GearSlotFilter.resolveFromNumber(an.getSlots())).anyMatch(sl -> sl.getSlots() == gear.getGear().getRarity() + 1)
 				)
 				.collect(Collectors.toList());
 	}

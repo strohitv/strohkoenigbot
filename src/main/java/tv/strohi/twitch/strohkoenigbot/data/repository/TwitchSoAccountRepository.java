@@ -9,8 +9,8 @@ import java.util.List;
 
 @Repository
 public interface TwitchSoAccountRepository extends CrudRepository<TwitchSoAccount, Long> {
-	@NotNull List<TwitchSoAccount> findAll();
+	@NotNull List<TwitchSoAccount> findAllByAccountId(long accountId);
 
 	TwitchSoAccount findById(long id);
-	TwitchSoAccount findByUsername(String username);
+	TwitchSoAccount findByAccountIdAndUsername(long accountId, String username);
 }
