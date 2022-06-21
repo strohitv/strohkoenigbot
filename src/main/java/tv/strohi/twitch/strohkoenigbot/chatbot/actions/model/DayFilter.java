@@ -2,25 +2,28 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions.model;
 
 import lombok.Getter;
 
+import java.time.DayOfWeek;
 import java.util.EnumSet;
 import java.util.List;
 
 @Getter
 public enum DayFilter {
-	Monday(1, "Monday", "mo", "mon"),
-	Tuesday(2, "Tuesday", "tu", "tue"),
-	Wednesday(4, "Wednesday", "we", "wed"),
-	Thursday(8, "Thursday", "th", "thu"),
-	Friday(16, "Friday", "fr", "fri"),
-	Saturday(32, "Saturday", "sa", "sat"),
-	Sunday(64, "Sunday", "su", "sun")	;
+	Monday(1, DayOfWeek.MONDAY, "Monday", "mo", "mon"),
+	Tuesday(2, DayOfWeek.TUESDAY, "Tuesday", "tu", "tue"),
+	Wednesday(4, DayOfWeek.WEDNESDAY, "Wednesday", "we", "wed"),
+	Thursday(8, DayOfWeek.THURSDAY, "Thursday", "th", "thu"),
+	Friday(16, DayOfWeek.FRIDAY, "Friday", "fr", "fri"),
+	Saturday(32, DayOfWeek.SATURDAY, "Saturday", "sa", "sat"),
+	Sunday(64, DayOfWeek.SUNDAY, "Sunday", "su", "sun")	;
 
 	private final int flag;
+	private final DayOfWeek day;
 	private final String name;
 	private final String[] altNames;
 
-	DayFilter(int flag, String name, String... altNames) {
+	DayFilter(int flag, DayOfWeek day, String name, String... altNames) {
 		this.flag = flag;
+		this.day = day;
 		this.name = name;
 		this.altNames = altNames;
 	}

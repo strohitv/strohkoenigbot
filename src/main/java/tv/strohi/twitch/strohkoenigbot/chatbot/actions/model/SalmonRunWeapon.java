@@ -79,4 +79,8 @@ public enum SalmonRunWeapon {
 	public static long resolveToNumber(List<SalmonRunWeapon> stages) {
 		return stages.stream().map(s -> s.flag).reduce(0L, Long::sum);
 	}
+
+	public static SalmonRunWeapon getFromSplatNetApiName(String name) {
+		return All.stream().filter(s -> s.getName().equals(name)).findFirst().orElse(SplattershotJr);
+	}
 }

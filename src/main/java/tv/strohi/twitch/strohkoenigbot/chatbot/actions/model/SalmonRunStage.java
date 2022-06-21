@@ -37,4 +37,8 @@ public enum SalmonRunStage {
 	public static int resolveToNumber(List<SalmonRunStage> stages) {
 		return stages.stream().map(s -> s.flag).reduce(0, Integer::sum);
 	}
+
+	public static SalmonRunStage getFromSplatNetApiName(String name) {
+		return All.stream().filter(s -> s.getName().equals(name)).findFirst().orElse(SpawningGrounds);
+	}
 }

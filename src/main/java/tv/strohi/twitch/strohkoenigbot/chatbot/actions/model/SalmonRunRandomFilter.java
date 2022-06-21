@@ -7,9 +7,9 @@ import java.util.List;
 
 @Getter
 public enum SalmonRunRandomFilter {
-	TurfWar(1, 0, "None", "0", "Zero"),
-	Ranked(2, 1, "One", "1", "Some"),
-	League(4, 4, "All", "4", "Four");
+	None(1, 0, "None", "0", "Zero"),
+	One(2, 1, "One", "1", "Some"),
+	Four(4, 4, "All", "4", "Four");
 
 	private final int flag;
 	private final int randomCount;
@@ -31,5 +31,8 @@ public enum SalmonRunRandomFilter {
 
 	public static int resolveToNumber(List<SalmonRunRandomFilter> gearSlots) {
 		return gearSlots.stream().map(s -> s.flag).reduce(0, Integer::sum);
+	}
+	public static SalmonRunRandomFilter getFromSplatNetApiRandomCount(int count) {
+		return All.stream().filter(s -> s.getRandomCount() == count).findFirst().orElse(None);
 	}
 }
