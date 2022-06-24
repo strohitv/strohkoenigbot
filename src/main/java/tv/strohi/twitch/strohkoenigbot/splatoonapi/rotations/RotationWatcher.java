@@ -94,7 +94,8 @@ public class RotationWatcher {
 		}
 	}
 
-		@Scheduled(cron = "20 0 * * * *")
+	// ON LOCAL DEBUG: Remember lines 119, 125, 131!!
+	@Scheduled(cron = "20 0 * * * *")
 //	@Scheduled(cron = "20 * * * * *")
 	public void sendDiscordNotifications() {
 		refreshStages();
@@ -115,20 +116,20 @@ public class RotationWatcher {
 					stages.getLeague()[0].getStage_a().getImage(),
 					stages.getLeague()[0].getStage_b().getImage());
 
-//			if (stages.getRegular().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
-			if (stages.getRegular().length > 0) {
+			if (stages.getRegular().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+//			if (stages.getRegular().length > 0) {
 				sendDiscordNotificationsToUsers(stages.getRegular()[0]);
 				sendDiscordNotificationsToUsers(stages.getRegular()[stages.getRegular().length - 1]);
 			}
 
-//				if (stages.getGachi().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
-			if (stages.getGachi().length > 0) {
+			if (stages.getGachi().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+//			if (stages.getGachi().length > 0) {
 				sendDiscordNotificationsToUsers(stages.getGachi()[0]);
 				sendDiscordNotificationsToUsers(stages.getGachi()[stages.getGachi().length - 1]);
 			}
 
-//					if (stages.getLeague().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
-			if (stages.getLeague().length > 0) {
+			if (stages.getLeague().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+//			if (stages.getLeague().length > 0) {
 				sendDiscordNotificationsToUsers(stages.getLeague()[0]);
 				sendDiscordNotificationsToUsers(stages.getLeague()[stages.getLeague().length - 1]);
 			}

@@ -39,33 +39,40 @@ public class ResourcesDownloader {
 		logger.debug("path '{}'", path);
 
 		File file = Paths.get(path).toFile();
-		if (!file.exists() && (file.getParentFile().exists() || file.getParentFile().mkdirs())) {
-			String downloadUrl = String.format("https://app.splatoon2.nintendo.net%s", imageUrl);
+		if (!file.exists()) {
+			if (file.getParentFile().exists() || file.getParentFile().mkdirs()) {
+				String downloadUrl = String.format("https://app.splatoon2.nintendo.net%s", imageUrl);
 
-			try (
-					BufferedInputStream in = new BufferedInputStream(new URL(downloadUrl).openStream());
-					FileOutputStream fileOutputStream = new FileOutputStream(file.getPath())
-			) {
-				byte[] dataBuffer = new byte[1024];
-				int bytesRead;
-				while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-					fileOutputStream.write(dataBuffer, 0, bytesRead);
+				try (
+						BufferedInputStream in = new BufferedInputStream(new URL(downloadUrl).openStream());
+						FileOutputStream fileOutputStream = new FileOutputStream(file.getPath())
+				) {
+					byte[] dataBuffer = new byte[1024];
+					int bytesRead;
+					while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+						fileOutputStream.write(dataBuffer, 0, bytesRead);
+					}
+
+					String newPath = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
+					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "I downloaded an image!", newPath);
+
+					logger.info("image download successful, path: '{}'", path);
+
+					return newPath;
+				} catch (IOException e) {
+					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not download an image because of an Exception!");
+					logger.error("exception occured!!!");
+					logger.error(e);
+					return splatNetResourceUrl;
 				}
-
-				String newPath = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
-				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "I downloaded an image!", newPath);
-
-				logger.info("image download successful, path: '{}'", path);
-
-				return newPath;
-			} catch (IOException e) {
-				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not download an image because of an Exception!");
-				logger.error("exception occured!!!");
-				logger.error(e);
+			} else {
+				logger.error("could not create directory to store the resources, returning original URL");
 				return splatNetResourceUrl;
 			}
 		} else {
-			return path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
+			String result = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
+			logger.info("resource already existed, returning '{}'", result);
+			return result;
 		}
 	}
 

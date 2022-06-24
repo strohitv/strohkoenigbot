@@ -8,8 +8,8 @@ import java.util.EnumSet;
 public enum RuleFilter {
 	TurfWar("Turf War", "Turfwar", "Turf", "War", "tw"),
 	SplatZones("Splat Zones", "Splatzones", "Splat", "Zones", "sz"),
-	Rainmaker("Tower Control", "Towercontrol", "Tower", "Control", "tc"),
-	TowerControl("Rainmaker", "Rain", "Maker", "rm"),
+	TowerControl("Tower Control", "Towercontrol", "Tower", "Control", "tc"),
+	Rainmaker("Rainmaker", "Rain", "Maker", "rm"),
 	ClamBlitz("Clam Blitz", "Clamblitz", "Clams", "Clam", "Blitz", "cb");
 
 	private final String name;
