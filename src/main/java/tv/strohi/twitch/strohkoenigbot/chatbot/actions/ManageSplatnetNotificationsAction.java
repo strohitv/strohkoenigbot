@@ -85,13 +85,11 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 		message = message.toLowerCase().trim();
 
-		if (message.startsWith("!gear")) {
-			message = String.format("!splatnet %s", message.substring("!gear".length()).trim());
-		} else if (!message.startsWith("!splatnet")) {
+		if (!message.startsWith("!gear")) {
 			return;
 		}
 
-		if (message.startsWith("!splatnet notifications")) {
+		if (message.startsWith("!gear notifications")) {
 			// Send current notifications of the account via discord
 			Account account = accountRepository.findByDiscordIdOrderById(parseLongSafe(args.getUserId()))
 					.stream()
@@ -118,9 +116,8 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			return;
 		}
 
-		if (!message.startsWith("!splatnet notify") && !(remove = message.startsWith("!splatnet clear") || message.startsWith("!splatnet delete"))) {
-			sender.send("Allowed commands:\n    - !splatnet notify\n    - !splatnet notifications\n    - !splatnet clear\n    - !splatnet delete <id>" +
-					"\n    - !gear notify\n    - !gear notifications\n    - !gear clear\n    - !gear delete <id>");
+		if (!message.startsWith("!gear notify") && !(remove = message.startsWith("!gear clear") || message.startsWith("!gear delete"))) {
+			sender.send("Allowed commands:\n    - !gear notify\n    - !gear notifications\n    - !gear clear\n    - !gear delete <id>");
 			return;
 		}
 
@@ -138,10 +135,10 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		}
 
 		if (remove) {
-			if (message.startsWith("!splatnet clear")) {
-				message = message.substring("!splatnet clear".length()).trim();
+			if (message.startsWith("!gear clear")) {
+				message = message.substring("!gear clear".length()).trim();
 			} else {
-				message = message.substring("!splatnet delete".length()).trim();
+				message = message.substring("!gear delete".length()).trim();
 			}
 		} else {
 			message = message.substring("!notify".length()).trim();
@@ -224,7 +221,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			splatoon2AbilityNotificationRepository.save(notification);
 
 			sender.send(String.format(
-					"Alright! I'm going to notify you via private message when I find %s with %s and %s in SplatNet shop.",
+					"Alright! I'm going to notify you via private message when I find %s with %s and %s in SplatNet gear shop.",
 					getGearString(type),
 					getAbilityString(main, false),
 					getAbilityString(favored, true))
@@ -248,7 +245,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				if (idList.size() == 0) {
 					splatoon2AbilityNotificationRepository.deleteAll(notifications);
 
-					sender.send("Alright! I'm not going to notify you anymore when I find any gear in SplatNet shop.");
+					sender.send("Alright! I'm not going to notify you anymore when I find any gear in SplatNet gear shop.");
 				} else {
 					StringBuilder builder = new StringBuilder("**The following notifications have been removed due to your request**:");
 					for (Splatoon2AbilityNotification notification : notifications.stream().filter(notif -> idList.contains(notif.getId())).collect(Collectors.toList())) {
@@ -257,7 +254,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 					splatoon2AbilityNotificationRepository.deleteAllById(idList);
 
-					sender.send("Alright! I'm not going to notify you anymore when I find any gear with the specified ids in SplatNet shop.");
+					sender.send("Alright! I'm not going to notify you anymore when I find any gear with the specified ids in SplatNet gear shop.");
 					accountRepository.findById(discordId).stream()
 							.map(Account::getDiscordId)
 							.findFirst()
