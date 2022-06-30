@@ -12,8 +12,8 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TextFilters;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2RotationNotification;
-import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2RotationNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -41,11 +41,11 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 		this.regexUtils = regexUtils;
 	}
 
-	private AccountRepository accountRepository;
+	private DiscordAccountLoader discordAccountLoader;
 
 	@Autowired
-	public void setAccountRepository(AccountRepository accountRepository) {
-		this.accountRepository = accountRepository;
+	public void setDiscordAccountLoader(DiscordAccountLoader discordAccountLoader) {
+		this.discordAccountLoader = discordAccountLoader;
 	}
 
 	private Splatoon2RotationNotificationRepository rotationNotificationRepository;
@@ -81,7 +81,7 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 			return;
 		}
 
-		Account account = loadAccount(Long.parseLong(args.getUserId()));
+		Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
 		if (message.startsWith("notify")) {
 			addNotification(mode, sender, message, account);
@@ -365,16 +365,6 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 
 		responseBuilder.append("\n\nI'm gonna send you a private message as soon as a rotation appears which matches your filters.");
 		sender.send(responseBuilder.toString());
-	}
-
-	private Account loadAccount(long discordId) {
-		Account account = accountRepository.findByDiscordIdOrderById(discordId).stream().findFirst().orElse(null);
-
-		if (account == null) {
-			account = new Account(0L, discordId, null, null, null, false, null, null, null);
-		}
-
-		return account;
 	}
 
 	private void fillNotificationIntoStringBuilder(Splatoon2RotationNotification notification, StringBuilder builder) {

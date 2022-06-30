@@ -20,6 +20,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository
 import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 
 import java.io.FileInputStream;
@@ -51,6 +52,13 @@ public class DiscordAdministrationAction extends ChatAction {
 	@Autowired
 	public void setAccountRepository(AccountRepository accountRepository) {
 		this.accountRepository = accountRepository;
+	}
+
+	private DiscordAccountLoader discordAccountLoader;
+
+	@Autowired
+	public void setDiscordAccountLoader(DiscordAccountLoader discordAccountLoader) {
+		this.discordAccountLoader = discordAccountLoader;
 	}
 
 	private ConfigurationRepository configurationRepository;
@@ -217,7 +225,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			String accountToAdd = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
 					.substring("!so add".length()).toLowerCase().trim();
 
-			Account account = accountRepository.findByDiscordIdOrderById(Long.parseLong(args.getUserId())).stream().findFirst().orElse(new Account());
+			Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
 			if (twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToAdd) == null) {
 				TwitchSoAccount soAccount = new TwitchSoAccount();
@@ -229,7 +237,7 @@ public class DiscordAdministrationAction extends ChatAction {
 		} else if (message.startsWith("!so list")) {
 			String answer = "You didn't tell me who to !so yet.";
 
-			Account account = accountRepository.findByDiscordIdOrderById(Long.parseLong(args.getUserId())).stream().findFirst().orElse(new Account());
+			Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
 			List<TwitchSoAccount> accounts = twitchSoAccountRepository.findAllByAccountId(account.getId());
 
@@ -245,7 +253,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			String accountToRemove = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
 					.substring("!so remove".length()).toLowerCase().trim();
 
-			Account account = accountRepository.findByDiscordIdOrderById(Long.parseLong(args.getUserId())).stream().findFirst().orElse(new Account());
+			Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
 			TwitchSoAccount soAccount = twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToRemove);
 			if (soAccount != null) {
@@ -258,11 +266,10 @@ public class DiscordAdministrationAction extends ChatAction {
 
 //			Path path = Paths.get(Paths.get(String.format("%s\\src\\main\\resources\\html\\template-example.html", Paths.get(".").toAbsolutePath().normalize().toString())).getParent().toString(), String.format("%s/win.txt", "/../../shared/woomydx-powers"));
 			Path path = Paths.get(filepath);
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("resolved path: %s", path.toString()));
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("resolved path: %s", path));
 
 			if (Files.exists(path)) {
-				try {
-					InputStream isPowerGain = new FileInputStream(path.toString());
+				try (InputStream isPowerGain = new FileInputStream(path.toString())) {
 					String result = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
 
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "File contents:");

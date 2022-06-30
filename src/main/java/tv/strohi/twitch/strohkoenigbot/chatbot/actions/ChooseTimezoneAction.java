@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -32,6 +33,13 @@ public class ChooseTimezoneAction extends ChatAction {
 	@Autowired
 	public void setAccountRepository(AccountRepository accountRepository) {
 		this.accountRepository = accountRepository;
+	}
+
+	private DiscordAccountLoader discordAccountLoader;
+
+	@Autowired
+	public void setDiscordAccountLoader(DiscordAccountLoader discordAccountLoader) {
+		this.discordAccountLoader = discordAccountLoader;
 	}
 
 	public ChooseTimezoneAction() {
@@ -79,7 +87,7 @@ public class ChooseTimezoneAction extends ChatAction {
 				String selection = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, "")).substring("!timezone set".length()).trim();
 
 				if (availableZoneIds.contains(selection)) {
-					Account account = loadAccount(Long.parseLong(args.getUserId()));
+					Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 					account.setTimezone(selection);
 					accountRepository.save(account);
 
@@ -91,7 +99,7 @@ public class ChooseTimezoneAction extends ChatAction {
 						if (number >= 0 && number < availableZoneIds.size()) {
 							String zone = availableZoneIds.get(number);
 
-							Account account = loadAccount(Long.parseLong(args.getUserId()));
+							Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 							account.setTimezone(zone);
 							accountRepository.save(account);
 
@@ -112,20 +120,10 @@ public class ChooseTimezoneAction extends ChatAction {
 	}
 
 	private String[] extractTimeGroups(String message) {
-		return Pattern.compile("([0-2][0-3]|[0-1]?[0-9]):[0-5][0-9]")
+		return Pattern.compile("([0-2][0-3]|[0-1]?\\d):[0-5]\\d")
 				.matcher(message)
 				.results()
 				.map(mr -> mr.group(1))
 				.toArray(String[]::new);
-	}
-
-	private Account loadAccount(long discordId) {
-		Account account = accountRepository.findByDiscordIdOrderById(discordId).stream().findFirst().orElse(null);
-
-		if (account == null) {
-			account = new Account(0L, discordId, null, null, null, false, null, null, null);
-		}
-
-		return account;
 	}
 }

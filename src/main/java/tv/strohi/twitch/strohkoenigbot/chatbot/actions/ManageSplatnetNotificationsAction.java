@@ -17,6 +17,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2AbilityNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,8 +34,19 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 	private final Map<AbilityType, GearType> exclusiveAbilities = new HashMap<>();
 
-	private final Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository;
-	private final AccountRepository accountRepository;
+	private Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository;
+
+	@Autowired
+	public void setSplatoon2AbilityNotificationRepository(Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository) {
+		this.splatoon2AbilityNotificationRepository = splatoon2AbilityNotificationRepository;
+	}
+
+	private DiscordAccountLoader discordAccountLoader;
+
+	@Autowired
+	public void setDiscordAccountLoader(DiscordAccountLoader discordAccountLoader) {
+		this.discordAccountLoader = discordAccountLoader;
+	}
 
 	private DiscordBot discordBot;
 
@@ -57,11 +69,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 		this.regexUtils = regexUtils;
 	}
 
-	@Autowired
-	public ManageSplatnetNotificationsAction(Splatoon2AbilityNotificationRepository splatoon2AbilityNotificationRepository, AccountRepository accountRepository) {
-		this.splatoon2AbilityNotificationRepository = splatoon2AbilityNotificationRepository;
-		this.accountRepository = accountRepository;
-
+	public ManageSplatnetNotificationsAction() {
 		fillGearNames();
 		fillAbilityNames();
 		fillAbilityNamesPlusAnyAbility();
@@ -91,15 +99,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 		if (message.startsWith("!gear notifications")) {
 			// Send current notifications of the account via discord
-			Account account = accountRepository.findByDiscordIdOrderById(parseLongSafe(args.getUserId()))
-					.stream()
-					.findFirst()
-					.orElse(null);
-
-			if (account == null) {
-				sender.send("You don't have any registered notifications yet. Use the !notify command to add some!");
-				return;
-			}
+			Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
 			List<Splatoon2AbilityNotification> notifications = splatoon2AbilityNotificationRepository.findByDiscordIdOrderById(account.getId());
 			if (notifications.size() > 0) {
@@ -110,7 +110,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 
 				discordBot.sendPrivateMessage(account.getDiscordId(), builder.toString());
 			} else {
-				sender.send("You don't have any registered notifications yet. Use the !notify command to add some!");
+				sender.send("You don't have any registered notifications yet. Use the !gear notify command to add some!");
 			}
 
 			return;
@@ -121,18 +121,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			return;
 		}
 
-		Long discordId = accountRepository.findByDiscordIdOrderById(Long.parseLong(args.getUserId())).stream()
-				.map(Account::getId)
-				.findFirst()
-				.orElse(null);
-
-		if (discordId == null) {
-			Account account = new Account();
-			account.setDiscordId(Long.parseLong(args.getUserId()));
-
-			account = accountRepository.save(account);
-			discordId = account.getId();
-		}
+		Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
 		if (remove) {
 			if (message.startsWith("!gear clear")) {
@@ -141,7 +130,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 				message = message.substring("!gear delete".length()).trim();
 			}
 		} else {
-			message = message.substring("!notify".length()).trim();
+			message = message.substring("!gear notify".length()).trim();
 		}
 
 		if (!remove) {
@@ -212,7 +201,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 			}
 
 			Splatoon2AbilityNotification notification = new Splatoon2AbilityNotification();
-			notification.setDiscordId(discordId);
+			notification.setDiscordId(account.getId());
 			notification.setGear(type);
 			notification.setMain(main);
 			notification.setFavored(favored);
@@ -227,12 +216,9 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 					getAbilityString(favored, true))
 			);
 
-			accountRepository.findById(discordId).stream()
-					.map(Account::getDiscordId)
-					.findFirst()
-					.ifPresent(discordAccountId -> discordBot.sendPrivateMessage(discordAccountId, String.format("**The following notification has been added due to your request**:\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s** - Slots: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored()), printSlots(notification.getSlots()))));
+			discordBot.sendPrivateMessage(account.getDiscordId(), String.format("**The following notification has been added due to your request**:\n- Id: **%d** - Gear type: **%s** - Main Ability: **%s** - Favored Ability: **%s** - Slots: **%s**", notification.getId(), notification.getGear(), getAbilityString(notification.getMain()), getAbilityString(notification.getFavored()), printSlots(notification.getSlots())));
 		} else {
-			List<Splatoon2AbilityNotification> notifications = splatoon2AbilityNotificationRepository.findByDiscordIdOrderById(discordId);
+			List<Splatoon2AbilityNotification> notifications = splatoon2AbilityNotificationRepository.findByDiscordIdOrderById(account.getId());
 
 			ArrayList<Long> idList = Arrays.stream(message.split(" "))
 					.map(String::trim)
@@ -255,10 +241,7 @@ public class ManageSplatnetNotificationsAction extends ChatAction {
 					splatoon2AbilityNotificationRepository.deleteAllById(idList);
 
 					sender.send("Alright! I'm not going to notify you anymore when I find any gear with the specified ids in SplatNet gear shop.");
-					accountRepository.findById(discordId).stream()
-							.map(Account::getDiscordId)
-							.findFirst()
-							.ifPresent(discordAccountId -> discordBot.sendPrivateMessage(discordAccountId, builder.toString()));
+					discordBot.sendPrivateMessage(account.getDiscordId(), builder.toString());
 				}
 			} else {
 				sender.send("You didn't have any notifications to remove.");
