@@ -329,6 +329,19 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "you need to either use !twitch join or !twitch leave or !twitch send - wrong command, I did nothing");
 			}
+		} else if (message.startsWith("!users")) {
+			List<Account> allUsers = accountRepository.findAll();
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("This bot currently has **%d** users", allUsers.size()));
+		} else if (message.startsWith("!users details")) {
+			List<Account> allUsers = accountRepository.findAll();
+
+			StringBuilder builder = new StringBuilder("This bot currently has **").append(allUsers.size()).append("** users\n\nList of all users:");
+
+			for (Account account : allUsers) {
+				builder.append("\n- id: ").append(account.getId()).append(" - name: ").append(discordBot.loadUserNameFromServer(account.getDiscordId()));
+			}
+
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
 		}
 	}
 }

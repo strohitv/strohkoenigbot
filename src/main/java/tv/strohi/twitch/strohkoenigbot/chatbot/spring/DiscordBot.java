@@ -164,6 +164,29 @@ public class DiscordBot {
 		return result;
 	}
 
+	public String loadUserNameFromServer(long id) {
+		if (getGateway() == null) {
+			return null;
+		}
+
+		String result = null;
+
+		List<Guild> guilds = getGateway().getGuilds().collectList().onErrorResume(e -> Mono.empty()).block();
+		if (guilds != null && guilds.size() > 0) {
+			List<Member> allMembersOfAllServers = guilds.stream()
+					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).collectList().block()).orElse(new ArrayList<>()).stream())
+					.collect(Collectors.toList());
+
+			result = allMembersOfAllServers.stream()
+					.filter(m -> m.getId().asLong() == id)
+					.map(m -> String.format("%s#%s", m.getMemberData().user().username(), m.getMemberData().user().discriminator()))
+					.findFirst()
+					.orElse(null);
+		}
+
+		return result;
+	}
+
 	public boolean sendServerMessageWithImages(String channelName, String message, String... imageUrls) {
 		if (getGateway() == null) {
 			return false;
