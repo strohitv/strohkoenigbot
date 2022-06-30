@@ -30,8 +30,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class DiscordAdministrationAction extends ChatAction {
@@ -330,15 +332,18 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "you need to either use !twitch join or !twitch leave or !twitch send - wrong command, I did nothing");
 			}
 		} else if (message.startsWith("!users")) {
-			List<Account> allUsers = accountRepository.findAll();
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("This bot currently has **%d** users", allUsers.size()));
-		} else if (message.startsWith("!users details")) {
-			List<Account> allUsers = accountRepository.findAll();
+			List<Account> allUsers = accountRepository.findAll().stream()
+					.sorted(Comparator.comparingLong(Account::getId))
+					.collect(Collectors.toList());
 
-			StringBuilder builder = new StringBuilder("This bot currently has **").append(allUsers.size()).append("** users\n\nList of all users:");
+			StringBuilder builder = new StringBuilder("This bot currently has **").append(allUsers.size()).append("** users");
 
-			for (Account account : allUsers) {
-				builder.append("\n- id: ").append(account.getId()).append(" - name: ").append(discordBot.loadUserNameFromServer(account.getDiscordId()));
+			if (message.startsWith("!users list")) {
+				builder.append("\n\nList of all users:");
+
+				for (Account account : allUsers) {
+					builder.append("\n- id: **").append(account.getId()).append("** - name: **").append(discordBot.loadUserNameFromServer(account.getDiscordId())).append("**");
+				}
 			}
 
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
