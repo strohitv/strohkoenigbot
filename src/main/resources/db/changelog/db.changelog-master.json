@@ -1493,6 +1493,44 @@
     },
     {
       "changeSet": {
+        "id": "15-fix",
+        "author": "strohkoenig",
+        "preConditions": [
+          {
+            "onFail": "MARK_RAN",
+            "not": {
+              "changeSetExecuted": {
+                "id": "16",
+                "author": "strohkoenig",
+                "changelog-file": "db.changelog-master.json"
+              }
+            }
+          }
+        ],
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_clip",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
         "id": "16",
         "author": "strohkoenig",
         "changes": [
@@ -2331,17 +2369,17 @@
         "author": "strohkoenig",
         "changes": [
           {
-            "addColumn":{
-              "columns":[
+            "addColumn": {
+              "columns": [
                 {
-                  "column":{
-                    "name":"slots",
-                    "type":"int",
+                  "column": {
+                    "name": "slots",
+                    "type": "int",
                     "valueComputed": "7"
                   }
                 }
               ],
-              "tableName":"splatoon_2_ability_notification"
+              "tableName": "splatoon_2_ability_notification"
             }
           }
         ]
@@ -2416,6 +2454,46 @@
               "referencedColumnNames": "id",
               "referencedTableName": "account",
               "validate": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "23",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "current_flag",
+                    "type": "double"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "current_flag",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "max_flag",
+                    "type": "double"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_weapon_stats"
             }
           }
         ]

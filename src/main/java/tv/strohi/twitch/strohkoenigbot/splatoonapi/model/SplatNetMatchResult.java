@@ -23,8 +23,8 @@ public class SplatNetMatchResult {
 
 	private SplatNetPlayerResult player_result;
 
-	// how often did the player win in a row
-	private int win_meter;
+	// how often did the player win in a row => turf war flag
+	private Double win_meter;
 	private long weapon_paint_point;
 	private int player_rank;
 	private int star_rank;

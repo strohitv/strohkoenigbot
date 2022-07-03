@@ -170,7 +170,7 @@ public class RandomWeaponAction extends ChatAction {
 
 						Splatoon2WeaponStats weaponStats = weaponStatsRepository
 								.findByWeaponIdAndAccountId(weapon.getId(), account.getId())
-								.orElse(new Splatoon2WeaponStats(0L, 0L, 0L, 0L, 0, 0));
+								.orElse(new Splatoon2WeaponStats(0L, 0L, 0L, 0L, 0, 0, 0.0, 0.0));
 
 						weaponPoints = String.format(" -> %s points", df.format(weaponStats.getTurf()).replace(',', ' ').replace('.', ' '));
 					}

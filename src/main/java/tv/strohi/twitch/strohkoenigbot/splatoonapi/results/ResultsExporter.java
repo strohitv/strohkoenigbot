@@ -385,6 +385,9 @@ public class ResultsExporter {
 							match.setClothesId(gearExporter.loadGear(singleResult.getPlayer_result().getPlayer().getClothes()).getId());
 							match.setShoesId(gearExporter.loadGear(singleResult.getPlayer_result().getPlayer().getShoes()).getId());
 
+							// only set for turf war matches
+							match.setCurrentFlag(singleResult.getWin_meter());
+
 							match.setMatchResultOverview(singleResult);
 							match.setMatchResultDetails(null);
 
@@ -407,6 +410,16 @@ public class ResultsExporter {
 								weaponStats.setTurf(0L);
 								weaponStats.setWins(0);
 								weaponStats.setDefeats(0);
+								weaponStats.setCurrentFlag(0.0);
+								weaponStats.setMaxFlag(0.0);
+							}
+
+							if (singleResult.getWin_meter() != null) {
+								weaponStats.setCurrentFlag(singleResult.getWin_meter());
+
+								if (weaponStats.getMaxFlag() == null || weaponStats.getMaxFlag() < singleResult.getWin_meter()) {
+									weaponStats.setMaxFlag(singleResult.getWin_meter());
+								}
 							}
 
 							weaponStats.setTurf(singleResult.getWeapon_paint_point());
@@ -795,8 +808,6 @@ public class ResultsExporter {
 			if (isDirty) {
 				monthlyResultRepository.save(result);
 			}
-		} else {
-			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Error: a monthly result for this month does NOT exist!");
 		}
 	}
 }

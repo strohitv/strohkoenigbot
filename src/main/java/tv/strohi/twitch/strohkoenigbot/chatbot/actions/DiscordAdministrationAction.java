@@ -20,7 +20,9 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository
 import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 
 import java.io.FileInputStream;
@@ -124,6 +126,13 @@ public class DiscordAdministrationAction extends ChatAction {
 	@Autowired
 	public void setObsSceneSwitcher(ObsSceneSwitcher obsSceneSwitcher) {
 		this.obsSceneSwitcher = obsSceneSwitcher;
+	}
+
+	private DailyStatsSender dailyStatsSender;
+
+	@Autowired
+	public void setDailyStatsSender(DailyStatsSender dailyStatsSender) {
+		this.dailyStatsSender = dailyStatsSender;
 	}
 
 	@Override
@@ -347,6 +356,14 @@ public class DiscordAdministrationAction extends ChatAction {
 			}
 
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
+		} else if (message.startsWith("!local_stats")) {
+			if (DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				dailyStatsSender.sendDailyStatsToDiscord();
+			}
+		} else if (message.startsWith("!daily_stats")) {
+			if (!DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				dailyStatsSender.sendDailyStatsToDiscord();
+			}
 		}
 	}
 }

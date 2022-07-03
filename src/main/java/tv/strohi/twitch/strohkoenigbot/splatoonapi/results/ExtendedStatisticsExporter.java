@@ -184,7 +184,7 @@ public class ExtendedStatisticsExporter {
 				.findFirst()
 				.orElse(new Splatoon2Weapon());
 
-		Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(lastMatchWeapon.getId(), accountId).orElse(new Splatoon2WeaponStats(0L, 0L, 0L, 0L, 0, 0));
+		Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(lastMatchWeapon.getId(), accountId).orElse(new Splatoon2WeaponStats(0L, 0L, 0L, 0L, 0, 0, 0.0, 0.0));
 
 		Splatoon2Gear lastMatchHead = StreamSupport.stream(gearRepository.findAllById(Collections.singletonList(lastMatch.getHeadgearId())).spliterator(), false)
 				.findFirst()

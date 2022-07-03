@@ -73,6 +73,8 @@ public class Splatoon2Match {
 	private Long clothesId;
 	private Long shoesId;
 
+	private Double currentFlag;
+
 	private String jsonOverview;
 	private String jsonMatch;
 

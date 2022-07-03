@@ -24,4 +24,7 @@ public class Splatoon2WeaponStats {
 	private Long turf;
 	private Integer wins;
 	private Integer defeats;
+
+	private Double currentFlag;
+	private Double maxFlag;
 }

@@ -90,9 +90,11 @@ public class StatsExporter {
 	}
 
 	private void refreshWeaponStats(long accountId, List<SplatNetStatPage.SplatNetRecords.SplatNetWeaponStats> loadedWeaponStats) {
+		List<Splatoon2WeaponStats> weaponsToSave = new ArrayList<>();
+
 		for (SplatNetStatPage.SplatNetRecords.SplatNetWeaponStats singleWeaponStats : loadedWeaponStats) {
 			Splatoon2Weapon weapon = weaponExporter.loadWeapon(singleWeaponStats.getWeapon());
-			Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(weapon.getId(), accountId).orElse(new Splatoon2WeaponStats(0L, weapon.getId(), accountId, 0L, 0, 0));
+			Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(weapon.getId(), accountId).orElse(new Splatoon2WeaponStats(0L, weapon.getId(), accountId, 0L, 0, 0, 0.0, 0.0));
 
 			boolean isDirty = weaponStats.getId() == 0L;
 
@@ -111,9 +113,23 @@ public class StatsExporter {
 				isDirty = true;
 			}
 
-			if (isDirty) {
-				weaponStatsRepository.save(weaponStats);
+			if (!Objects.equals(weaponStats.getCurrentFlag(), singleWeaponStats.getWin_meter())) {
+				weaponStats.setCurrentFlag(singleWeaponStats.getWin_meter());
+				isDirty = true;
 			}
+
+			if (!Objects.equals(weaponStats.getMaxFlag(), singleWeaponStats.getMax_win_meter())) {
+				weaponStats.setMaxFlag(singleWeaponStats.getMax_win_meter());
+				isDirty = true;
+			}
+
+			if (isDirty) {
+				weaponsToSave.add(weaponStats);
+			}
+		}
+
+		if (weaponsToSave.size() > 0) {
+			weaponStatsRepository.saveAll(weaponsToSave);
 		}
 	}
 
