@@ -357,13 +357,19 @@ public class DiscordAdministrationAction extends ChatAction {
 
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
 		} else if (message.startsWith("!local_stats")) {
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats requested");
 			if (DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "is local - sending...");
 				dailyStatsSender.sendDailyStatsToDiscord();
 			}
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats done");
 		} else if (message.startsWith("!daily_stats")) {
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats requested");
 			if (!DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "is server - sending...");
 				dailyStatsSender.sendDailyStatsToDiscord();
 			}
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats done");
 		}
 	}
 }
