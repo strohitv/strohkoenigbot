@@ -15,6 +15,8 @@ import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
 import discord4j.core.spec.MessageCreateMono;
 import discord4j.core.spec.MessageCreateSpec;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -38,6 +40,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class DiscordBot {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
 	private final ConfigurationRepository configurationRepository;
 	private final List<IChatAction> botActions = new ArrayList<>();
 
@@ -213,6 +217,7 @@ public class DiscordBot {
 			for (TextChannel channel : allChannels) {
 				if (channel != null) {
 					result = sendMessage(channel, message, imageUrls);
+					logger.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
 				}
 			}
 		}
@@ -233,6 +238,7 @@ public class DiscordBot {
 
 			if (channel != null) {
 				result = sendMessage(channel, message, imageUrls);
+				logger.info("sent message to server channel '{}': message: '{}'", userId, message);
 			}
 		}
 
@@ -271,6 +277,7 @@ public class DiscordBot {
 		}
 
 		Message msg = createMono.block();
+		logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
 		return msg != null;
 	}
 
@@ -305,6 +312,7 @@ public class DiscordBot {
 			if (channel != null) {
 				Message msg = channel.createMessage(message).onErrorResume(e -> Mono.empty()).block();
 				result = msg != null;
+				logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
 			}
 		}
 
@@ -321,6 +329,7 @@ public class DiscordBot {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
 				channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).onErrorResume(e -> Mono.empty()).block();
+				logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
 			}
 		}
 	}
