@@ -1,6 +1,5 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,7 +16,6 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2MatchRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponStatsRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponKit;
 
@@ -176,6 +174,14 @@ public class DailyStatsSender {
 			long yesterdayDefeats = yesterdayMatches.stream()
 					.filter(m -> m.getWeaponId().equals(weaponStats.getWeaponId()) && m.getMatchResult() != Splatoon2MatchResult.Win)
 					.count();
+
+			if (weaponStats.getCurrentFlag() == null) {
+				weaponStats.setCurrentFlag(0.0);
+			}
+
+			if (weaponStats.getMaxFlag() == null) {
+				weaponStats.setMaxFlag(0.0);
+			}
 
 			double currentFlag = yesterdayMatchesForWeapon.stream()
 					.map(Splatoon2Match::getCurrentFlag)
