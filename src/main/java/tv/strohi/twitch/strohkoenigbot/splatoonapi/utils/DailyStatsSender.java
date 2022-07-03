@@ -241,10 +241,10 @@ public class DailyStatsSender {
 					.append(";").append(yesterdayWins)
 					.append(";").append(yesterdayDefeats)
 					.append(";").append(String.format("%.2f", calculateAvgPaint(weaponStats.getTurf(), getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats()))))
-					.append(";").append(String.format("%.2f", currentFlag))
-//					.append(";").append(String.format("%.2f", currentFlag - currentFlagDelta))
-					.append(";").append(String.format("%.2f", maxFlag))
-//					.append(";").append(String.format("%.2f", (maxFlag > maxFlagDelta) ? maxFlag - maxFlagDelta : 0.0))
+					.append(";").append(String.format("%.1f", currentFlag))
+//					.append(";").append(String.format("%.1f", currentFlag - currentFlagDelta))
+					.append(";").append(String.format("%.1f", maxFlag))
+//					.append(";").append(String.format("%.1f", (maxFlag > maxFlagDelta) ? maxFlag - maxFlagDelta : 0.0))
 			;
 		}
 
