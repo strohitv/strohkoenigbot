@@ -2498,6 +2498,721 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "24",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "kind_as_integer",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_ability_match"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "kind_as_integer",
+                    "valueComputed": "0"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_ability_match",
+              "where": "kind='0'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "kind_as_integer",
+                    "valueComputed": "1"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_ability_match",
+              "where": "kind='1'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "kind_as_integer",
+                    "valueComputed": "2"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_ability_match",
+              "where": "kind='2'"
+            }
+          },
+          {
+            "dropColumn": {
+              "columnName": "kind",
+              "tableName": "splatoon_2_ability_match"
+            }
+          },
+          {
+            "renameColumn": {
+              "newColumnName": "kind",
+              "oldColumnName": "kind_as_integer",
+              "tableName": "splatoon_2_ability_match"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "gear_as_integer",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_ability_notification"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "gear_as_integer",
+                    "valueComputed": "0"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_ability_notification",
+              "where": "gear='0'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "gear_as_integer",
+                    "valueComputed": "1"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_ability_notification",
+              "where": "gear='1'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "gear_as_integer",
+                    "valueComputed": "2"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_ability_notification",
+              "where": "gear='2'"
+            }
+          },
+          {
+            "dropColumn": {
+              "columnName": "gear",
+              "tableName": "splatoon_2_ability_notification"
+            }
+          },
+          {
+            "renameColumn": {
+              "newColumnName": "gear",
+              "oldColumnName": "gear_as_integer",
+              "tableName": "splatoon_2_ability_notification"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "kind_as_integer",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_gear"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "kind_as_integer",
+                    "valueComputed": "0"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_gear",
+              "where": "kind='0'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "kind_as_integer",
+                    "valueComputed": "1"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_gear",
+              "where": "kind='1'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "kind_as_integer",
+                    "valueComputed": "2"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_gear",
+              "where": "kind='2'"
+            }
+          },
+          {
+            "dropColumn": {
+              "columnName": "kind",
+              "tableName": "splatoon_2_gear"
+            }
+          },
+          {
+            "renameColumn": {
+              "newColumnName": "kind",
+              "oldColumnName": "kind_as_integer",
+              "tableName": "splatoon_2_gear"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "match_result_as_int",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "match_result_as_int",
+                    "valueComputed": "0"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "match_result='0'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "match_result_as_int",
+                    "valueComputed": "1"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "match_result='1'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "match_result_as_int",
+                    "valueComputed": "2"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "match_result='2'"
+            }
+          },
+          {
+            "dropColumn": {
+              "columnName": "match_result",
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "renameColumn": {
+              "newColumnName": "match_result",
+              "oldColumnName": "match_result_as_int",
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "valueComputed": "0"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "mode='0'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "valueComputed": "1"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "mode='1'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "valueComputed": "2"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "mode='2'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "valueComputed": "3"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "mode='3'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "valueComputed": "4"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "mode='4'"
+            }
+          },
+          {
+            "dropColumn": {
+              "columnName": "mode",
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "renameColumn": {
+              "newColumnName": "mode",
+              "oldColumnName": "mode_as_int",
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "0"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "rule='0'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "1"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "rule='1'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "2"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "rule='2'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "3"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "rule='3'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "4"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "rule='4'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "5"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_match",
+              "where": "rule='5'"
+            }
+          },
+          {
+            "dropColumn": {
+              "columnName": "rule",
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "renameColumn": {
+              "newColumnName": "rule",
+              "oldColumnName": "rule_as_int",
+              "tableName": "splatoon_2_match"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "valueComputed": "0"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "mode='0'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "valueComputed": "1"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "mode='1'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "valueComputed": "2"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "mode='2'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "valueComputed": "3"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "mode='3'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_as_int",
+                    "valueComputed": "4"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "mode='4'"
+            }
+          },
+          {
+            "dropColumn": {
+              "columnName": "mode",
+              "tableName": "splatoon_2_rotation"
+            }
+          },
+          {
+            "renameColumn": {
+              "newColumnName": "mode",
+              "oldColumnName": "mode_as_int",
+              "tableName": "splatoon_2_rotation"
+            }
+          },
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "type": "int"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "0"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "rule='0'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "1"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "rule='1'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "2"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "rule='2'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "3"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "rule='3'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "4"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "rule='4'"
+            }
+          },
+          {
+            "update": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "rule_as_int",
+                    "valueComputed": "5"
+                  }
+                }
+              ],
+              "tableName": "splatoon_2_rotation",
+              "where": "rule='5'"
+            }
+          },
+          {
+            "dropColumn": {
+              "columnName": "rule",
+              "tableName": "splatoon_2_rotation"
+            }
+          },
+          {
+            "renameColumn": {
+              "newColumnName": "rule",
+              "oldColumnName": "rule_as_int",
+              "tableName": "splatoon_2_rotation"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "changeSet": {
+        "id": "25",
+        "author": "strohkoenig",
+        "preConditions": [
+          {
+            "onFail": "MARK_RAN",
+            "columnExists": {
+              "columnName": "send_daily_stats",
+              "tableName": "account"
+            }
+          }
+        ],
+        "changes": [
+          {
+            "dropColumn": {
+              "tableName": "account",
+              "columnName": "send_daily_stats"
+            }
+          }
+        ]
+      }
     }
   ]
 }

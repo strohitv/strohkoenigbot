@@ -12,10 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity(name = "splatoon_2_match")
 @Data
@@ -75,7 +72,10 @@ public class Splatoon2Match {
 
 	private Double currentFlag;
 
+	@Lob
 	private String jsonOverview;
+
+	@Lob
 	private String jsonMatch;
 
 	public SplatNetMatchResult getMatchResultOverview() {

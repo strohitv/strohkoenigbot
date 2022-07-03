@@ -29,7 +29,7 @@ public class Account {
 
 	private String timezone;
 
-	private Boolean sendDailyStats;
+	private Boolean shouldSendDailyStats;
 
 	private Integer currentStep;
 }
