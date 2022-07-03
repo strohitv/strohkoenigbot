@@ -85,7 +85,7 @@ public class DailyStatsSender {
 				.orElse(new Account());
 
 		List<Splatoon2Match> matches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndEndTimeLessThanEqual(account.getId(), startTime, endTime);
-		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), String.format("found %d matches..", matches.size()));
+		logger.info("found {} matches..", matches.size());
 
 		List<Splatoon2WeaponStats> weaponStats = weaponStatsRepository.findByTurfLessThanAndAccountId(100_000, account.getId());
 
