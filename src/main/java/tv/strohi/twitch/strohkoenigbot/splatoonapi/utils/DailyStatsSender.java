@@ -160,9 +160,13 @@ public class DailyStatsSender {
 				.sorted((x, y) -> y.getTurf().compareTo(x.getTurf()))
 				.collect(Collectors.toList());
 
+		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), String.format("Found %d weapons..", allWeaponStats.size()));
+
 		boolean sendAllWeapons = false;
 
 		for (Splatoon2WeaponStats weaponStats : allWeaponStats) {
+			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), String.format("Next weapon: **%d**..", weaponStats.getWeaponId()));
+
 			List<Splatoon2Match> yesterdayMatchesForWeapon = yesterdayMatches.stream()
 					.filter(m -> m.getWeaponId().equals(weaponStats.getWeaponId()))
 					.collect(Collectors.toList());
