@@ -160,12 +160,12 @@ public class DailyStatsSender {
 				.sorted((x, y) -> y.getTurf().compareTo(x.getTurf()))
 				.collect(Collectors.toList());
 
-		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), String.format("Found %d weapons..", allWeaponStats.size()));
+		logger.info("Found {} weapons..", allWeaponStats.size());
 
 		boolean sendAllWeapons = false;
 
 		for (Splatoon2WeaponStats weaponStats : allWeaponStats) {
-			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), String.format("Next weapon: **%d**..", weaponStats.getWeaponId()));
+			logger.info("Next weapon: {}..", weaponStats.getWeaponId());
 
 			List<Splatoon2Match> yesterdayMatchesForWeapon = yesterdayMatches.stream()
 					.filter(m -> m.getWeaponId().equals(weaponStats.getWeaponId()))
@@ -191,11 +191,13 @@ public class DailyStatsSender {
 
 			double currentFlag = yesterdayMatchesForWeapon.stream()
 					.map(Splatoon2Match::getCurrentFlag)
+					.filter(Objects::nonNull)
 					.reduce((first, second) -> second)
 					.orElse(weaponStats.getCurrentFlag());
 
 			double maxFlag = yesterdayMatchesForWeapon.stream()
 					.map(Splatoon2Match::getCurrentFlag)
+					.filter(Objects::nonNull)
 					.max(Comparator.naturalOrder())
 					.orElse(weaponStats.getMaxFlag());
 
