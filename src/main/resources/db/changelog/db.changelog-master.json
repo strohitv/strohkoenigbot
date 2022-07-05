@@ -3213,6 +3213,20 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "26",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "delete": {
+              "tableName": "splatoon_2_monthly_result",
+              "where": "account_id IS NULL"
+            }
+          }
+        ]
+      }
     }
   ]
 }

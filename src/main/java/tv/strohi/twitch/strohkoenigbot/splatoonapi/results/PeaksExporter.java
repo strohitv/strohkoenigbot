@@ -75,6 +75,7 @@ public class PeaksExporter {
 
 				Splatoon2MonthlyResult splatoon2MonthlyResult = new Splatoon2MonthlyResult();
 
+				splatoon2MonthlyResult.setAccountId(account.getId());
 				splatoon2MonthlyResult.setPeriodMonth(month);
 				splatoon2MonthlyResult.setPeriodYear(year);
 				splatoon2MonthlyResult.setStartTime(board.getSplat_zones().getStart_time());

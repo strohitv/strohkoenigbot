@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 public class ResultsExporter {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private boolean alreadyRunning = false;
 	private boolean isStreamRunning = false;
 
 	@Autowired
@@ -230,11 +229,12 @@ public class ResultsExporter {
 		int month = date.getMonthValue();
 
 		Splatoon2MonthlyResult result = monthlyResultRepository.findByAccountIdAndPeriodYearAndPeriodMonth(accountId, year, month);
+
 		Map<Splatoon2Rule, Double> startPowers = new HashMap<>() {{
-			put(Splatoon2Rule.SplatZones, result.getZonesCurrent());
-			put(Splatoon2Rule.Rainmaker, result.getRainmakerCurrent());
-			put(Splatoon2Rule.TowerControl, result.getTowerCurrent());
-			put(Splatoon2Rule.ClamBlitz, result.getClamsCurrent());
+			put(Splatoon2Rule.SplatZones, result != null && result.getZonesCurrent() != null ? result.getZonesCurrent() : 0.0);
+			put(Splatoon2Rule.Rainmaker, result != null && result.getRainmakerCurrent() != null ? result.getRainmakerCurrent() : 0.0);
+			put(Splatoon2Rule.TowerControl, result != null && result.getTowerCurrent() != null ? result.getTowerCurrent() : 0.0);
+			put(Splatoon2Rule.ClamBlitz, result != null && result.getClamsCurrent() != null ? result.getClamsCurrent() : 0.0);
 		}};
 		extendedStatisticsExporter.start(Instant.now(), startPowers);
 	}
@@ -256,22 +256,31 @@ public class ResultsExporter {
 		return isStreamRunning;
 	}
 
+	private int rateLimitNumber = 20;
+
+	// TODO change it so that waiting is determined by the type of account (main: true = every 5 minutes, main: false = every 60 minutes)
+	private final int attemptsPerMinute = 6;
+	private final int refreshEveryXMinutesMain = 5;
+	private final int refreshEveryXMinutesOther = 60;
+
 	//	@Scheduled(cron = "*/10 * * * * *")
-	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
+//	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
+	@Scheduled(fixedDelay = 10000)
 	public void loadGameResultsScheduled() {
 		logger.debug("running results exporter");
-		if (!alreadyRunning) {
-			alreadyRunning = true;
-			logger.info("loading results");
 
-			List<Account> accounts = accountRepository.findAll().stream()
-					.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank())
-					.filter(da -> da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
-					// TODO rework to make it work with any other account
-					.filter(Account::getIsMainAccount)
-					.collect(Collectors.toList());
+		List<Account> accounts = accountRepository.findAll().stream()
+				.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank())
+				.filter(da -> da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
+				// TODO rework to make it work with any other account
+				.filter(Account::getIsMainAccount)
+				.collect(Collectors.toList());
 
-			for (Account account : accounts) {
+		for (Account account : accounts) {
+			// TODO make isStreamRunning and rateLimitNumber dependent from account
+			if (isStreamRunning || rateLimitNumber == 0) {
+				logger.info("loading results");
+
 				try {
 					SplatNetMatchResultsCollection collection = splatoonResultsLoader.querySplatoonApiForAccount(account, "/api/results", SplatNetMatchResultsCollection.class);
 
@@ -582,10 +591,9 @@ public class ResultsExporter {
 					logger.error(t);
 				}
 			}
-
-//			logger.info("results refresh successful");
-			alreadyRunning = false;
 		}
+
+		rateLimitNumber = (rateLimitNumber + 1) % (refreshEveryXMinutesMain * attemptsPerMinute);
 	}
 
 	private void controlOBS(Account account) {
@@ -617,12 +625,12 @@ public class ResultsExporter {
 				if (match != null) {
 					if (match.getXPower() == null || !match.getXPower().equals(currentPower)
 							|| matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndMode
-							(
-									account.getId(),
-									extendedStatisticsExporter.getStarted().getEpochSecond() > rotation.getStartTime()
-											? extendedStatisticsExporter.getStarted().getEpochSecond()
-											: rotation.getStartTime()
-									, Splatoon2Mode.Ranked)
+									(
+											account.getId(),
+											extendedStatisticsExporter.getStarted().getEpochSecond() > rotation.getStartTime()
+													? extendedStatisticsExporter.getStarted().getEpochSecond()
+													: rotation.getStartTime()
+											, Splatoon2Mode.Ranked)
 							.size() == 0) {
 						logger.info("1 trying to switch to scene: {}", gameSceneName);
 						obsSceneSwitcher.switchScene(gameSceneName);
