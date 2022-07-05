@@ -157,13 +157,13 @@ public class ResultsExporter {
 	private int rateLimitNumber = 20;
 
 	// TODO change it so that waiting is determined by the type of account (main: true = every 5 minutes, main: false = every 60 minutes)
-	private final int attemptsPerMinute = 6;
+	private final int attemptsPerMinute = 3;
 	private final int refreshEveryXMinutesMain = 10;
 	private final int refreshEveryXMinutesOther = 60;
 
 //	@Scheduled(cron = "*/10 * * * * *")
 //	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
-	@Scheduled(fixedDelay = 10000)
+	@Scheduled(fixedDelay = 20000)
 	public void loadGameResultsScheduled() {
 		logger.debug("running results exporter");
 
