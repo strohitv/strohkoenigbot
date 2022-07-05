@@ -176,7 +176,7 @@ public class ResultsExporter {
 
 		for (Account account : accounts) {
 			// TODO make isStreamRunning and rateLimitNumber dependent from account
-			boolean isStreamRunning = twitchBotClient.isLive(account.getTwitchUserId());
+			boolean isStreamRunning = account.getIsMainAccount() && twitchBotClient.isLive(account.getTwitchUserId());
 
 			if (isStreamRunning || rateLimitNumber == 0) {
 				logger.info("loading results");
