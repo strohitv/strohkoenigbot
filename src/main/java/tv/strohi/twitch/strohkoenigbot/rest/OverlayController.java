@@ -6,16 +6,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ExtendedStatisticsExporter;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.Statistics;
 
 @RequestMapping("overlay")
 @Controller
 public class OverlayController {
-	private ResultsExporter exporter;
+	private Statistics statistics;
 
 	@Autowired
-	public void setExporter(ResultsExporter exporter) {
-		this.exporter = exporter;
+	public void setExporter(Statistics statistics) {
+		this.statistics = statistics;
 	}
 
 	private ExtendedStatisticsExporter fullscreenExporter;
@@ -27,7 +27,7 @@ public class OverlayController {
 
 	@GetMapping("")
 	public @ResponseBody String getOverlay() {
-		return exporter.getHtml();
+		return statistics.getCurrentHtml();
 	}
 
 	@GetMapping("/fullscreen")

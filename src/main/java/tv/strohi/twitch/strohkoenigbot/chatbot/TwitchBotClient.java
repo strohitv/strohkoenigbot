@@ -9,10 +9,7 @@ import com.github.twitch4j.chat.events.channel.RaidEvent;
 import com.github.twitch4j.common.events.user.PrivateMessageEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.github.twitch4j.events.ChannelGoOfflineEvent;
-import com.github.twitch4j.helix.domain.Clip;
-import com.github.twitch4j.helix.domain.ClipList;
-import com.github.twitch4j.helix.domain.CreateClipList;
-import com.github.twitch4j.helix.domain.User;
+import com.github.twitch4j.helix.domain.*;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,12 +39,6 @@ import java.util.List;
 @Component
 public class TwitchBotClient {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-
-	private static boolean isStreamRunning = false;
-
-	public static void setIsStreamRunning(boolean isStreamRunning) {
-		TwitchBotClient.isStreamRunning = isStreamRunning;
-	}
 
 	private static Instant lastClipCreatedTime = Instant.now();
 
@@ -88,10 +79,6 @@ public class TwitchBotClient {
 		return client;
 	}
 
-	public void setClient(TwitchClient client) {
-		this.client = client;
-	}
-
 	private final TwitchAuthRepository twitchAuthRepository;
 
 	@Autowired
@@ -128,21 +115,18 @@ public class TwitchBotClient {
 			client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, "38502044");
 
 			goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
-				isStreamRunning = true;
-
 				if (resultsExporter != null) {
 					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(new Account());
-					resultsExporter.start(account.getId());
+					resultsExporter.start(account);
 				}
 
 				autoSoAction.startStream();
 			});
 
 			goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
-				isStreamRunning = false;
-
 				if (resultsExporter != null) {
-					resultsExporter.stop();
+					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(new Account());
+					resultsExporter.stop(account);
 				}
 
 				autoSoAction.endStream();
@@ -195,7 +179,9 @@ public class TwitchBotClient {
 	}
 
 	public Splatoon2Clip createClip(String message, String channelId, boolean isGoodPlay) {
-		if (!isStreamRunning) {
+		StreamList liveStreams = client.getHelix().getStreams(accessToken, null, null, null, null, null, Collections.singletonList(channelId), null).execute();
+
+		if (liveStreams.getStreams().size() == 0) {
 			logger.warn("Can't create clip -> stream not running");
 			return null;
 		}

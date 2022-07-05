@@ -44,14 +44,19 @@ public class BotController {
 					.findFirst()
 					.orElse(new Account());
 
-			resultsExporter.start(account.getId());
+			resultsExporter.start(account);
 		}
 	}
 
 	@PostMapping("stop")
 	public void stopExporter() {
 		if (resultsExporter.isStreamRunning()) {
-			resultsExporter.stop();
+			Account account = accountRepository.findAll().stream()
+					.filter(Account::getIsMainAccount)
+					.findFirst()
+					.orElse(new Account());
+
+			resultsExporter.stop(account);
 		}
 	}
 }

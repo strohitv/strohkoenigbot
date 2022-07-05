@@ -162,10 +162,15 @@ public class DiscordAdministrationAction extends ChatAction {
 					.findFirst()
 					.orElse(new Account());
 
-			resultsExporter.start(account.getId());
+			resultsExporter.start(account);
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export started successfully.");
 		} else if (message.startsWith("!stop") && resultsExporter.isStreamRunning()) {
-			resultsExporter.stop();
+			Account account = accountRepository.findAll().stream()
+					.filter(Account::getIsMainAccount)
+					.findFirst()
+					.orElse(new Account());
+
+			resultsExporter.stop(account);
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export stopped successfully.");
 		} else if (message.startsWith("!config set") && message.contains("=")) {
 			String commandToSet = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config set".length()).trim();

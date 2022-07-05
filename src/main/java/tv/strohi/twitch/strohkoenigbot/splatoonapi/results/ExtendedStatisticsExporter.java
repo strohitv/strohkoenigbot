@@ -13,6 +13,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.*;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.utils.MonthlyResultRefresher;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 
 import java.io.FileWriter;
@@ -119,21 +120,42 @@ public class ExtendedStatisticsExporter {
 		this.resourcesDownloader = resourcesDownloader;
 	}
 
+	private MonthlyResultRefresher monthlyResultRefresher;
+
+	@Autowired
+	public void setMonthlyResultRefresher(MonthlyResultRefresher monthlyResultRefresher) {
+		this.monthlyResultRefresher = monthlyResultRefresher;
+	}
+
 	public ExtendedStatisticsExporter() {
 		String homePath = Paths.get(".").toAbsolutePath().normalize().toString();
 		path = String.format("%s\\src\\main\\resources\\html\\template-fullscreen-overlay-example.html", homePath);
 	}
 
-	public void start(Instant startTime, Map<Splatoon2Rule, Double> streamStartPowers) {
+	public void start(Instant startTime, long accountId) {
+		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault());
+		int year = date.getYear();
+		int month = date.getMonthValue();
+
+		Splatoon2MonthlyResult result = monthlyResultRepository.findByAccountIdAndPeriodYearAndPeriodMonth(accountId, year, month);
+
+		Map<Splatoon2Rule, Double> startPowers = new HashMap<>();
+		startPowers.put(Splatoon2Rule.SplatZones, result != null && result.getZonesCurrent() != null ? result.getZonesCurrent() : 0.0);
+		startPowers.put(Splatoon2Rule.Rainmaker, result != null && result.getRainmakerCurrent() != null ? result.getRainmakerCurrent() : 0.0);
+		startPowers.put(Splatoon2Rule.TowerControl, result != null && result.getTowerCurrent() != null ? result.getTowerCurrent() : 0.0);
+		startPowers.put(Splatoon2Rule.ClamBlitz, result != null && result.getClamsCurrent() != null ? result.getClamsCurrent() : 0.0);
+
 		started = startTime;
-		powersBeforeStream = streamStartPowers;
+		powersBeforeStream = startPowers;
 	}
 
 	public void end() {
 		started = null;
 	}
 
-	public void export(long accountId) {
+	public void export(long accountId, List<SplatNetMatchResult> results) {
+		monthlyResultRefresher.refreshMonthlyRankedResults(accountId, results);
+
 		Splatoon2Rotation currentRanked = rotationRepository.findByStartTimeLessThanEqualAndEndTimeGreaterThanEqualAndMode(
 				Instant.now().getEpochSecond(),
 				Instant.now().getEpochSecond(),
