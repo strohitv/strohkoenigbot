@@ -22,12 +22,12 @@ import tv.strohi.twitch.strohkoenigbot.utils.ExceptionSender;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import static tv.strohi.twitch.strohkoenigbot.utils.TimezoneUtils.timeOfTimezoneIsBetweenTimes;
 
 @Component
 public class ResultsExporter {
@@ -273,11 +273,6 @@ public class ResultsExporter {
 	}
 
 	private boolean isDirectlyPastMidnight(String timezone) {
-		if (timezone != null && !timezone.isBlank()) {
-			ZonedDateTime time = Instant.now().atZone(ZoneId.of(timezone));
-			return time.getHour() == 0 && time.getMinute() >= 7 && time.getMinute() <= 8;
-		}
-
-		return false;
+		return timeOfTimezoneIsBetweenTimes(timezone, 0, 8, 0, 12);
 	}
 }

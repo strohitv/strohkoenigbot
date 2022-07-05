@@ -68,7 +68,7 @@ public class DailyStatsSender {
 		this.matchRepository = matchRepository;
 	}
 
-	@Scheduled(cron = "0 10 0 * * *")
+	@Scheduled(cron = "0 15 0 * * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void sendDailyStatsToDiscord() {
 		Calendar c = new GregorianCalendar();
