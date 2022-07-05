@@ -7,9 +7,10 @@ import java.io.IOException;
 @Getter
 @Setter
 public class CookieRefreshException extends IOException {
-	private long AccountId;
+	private long accountId;
 
 	public CookieRefreshException(long accountId, String message) {
 		super(message);
+		this.accountId = accountId;
 	}
 }
