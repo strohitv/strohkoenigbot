@@ -158,7 +158,7 @@ public class ResultsExporter {
 
 	// TODO change it so that waiting is determined by the type of account (main: true = every 5 minutes, main: false = every 60 minutes)
 	private final int attemptsPerMinute = 6;
-	private final int refreshEveryXMinutesMain = 5;
+	private final int refreshEveryXMinutesMain = 10;
 	private final int refreshEveryXMinutesOther = 60;
 
 //	@Scheduled(cron = "*/10 * * * * *")
