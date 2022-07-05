@@ -137,14 +137,18 @@ public class ResultsExporter {
 	}
 
 	public void start(Account account) {
-		discordBot.sendPrivateMessage(account.getDiscordId(), "starting the stream!");
-		statistics.reset();
-		extendedStatisticsExporter.start(Instant.now(), account.getId());
+		if (account != null) {
+			discordBot.sendPrivateMessage(account.getDiscordId(), "starting the stream!");
+			statistics.reset();
+			extendedStatisticsExporter.start(Instant.now(), account.getId());
+		}
 	}
 
 	public void stop(Account account) {
-		discordBot.sendPrivateMessage(account.getDiscordId(), "stopping the stream!");
-		stop();
+		if (account != null) {
+			discordBot.sendPrivateMessage(account.getDiscordId(), "stopping the stream!");
+			stop();
+		}
 	}
 
 	public void stop() {
