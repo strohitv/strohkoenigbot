@@ -41,8 +41,6 @@ public class ResultsExporter {
 	private final ObsController obsController;
 	private final ExceptionSender exceptionSender;
 
-	private boolean isStreamRunning = false;
-
 	@Autowired
 	public ResultsExporter(AccountRepository accountRepository, Splatoon2MatchRepository matchRepository, MatchFiller matchFiller, MatchReloader matchReloader, WeaponStatsFiller weaponStatsFiller, AbilityMatchFiller abilityMatchFiller, ClipRefresher clipRefresher, ObsController obsController, ExceptionSender exceptionSender) {
 		this.accountRepository = accountRepository;
@@ -128,12 +126,16 @@ public class ResultsExporter {
 		this.statsExporter = statsExporter;
 	}
 
+	private TwitchBotClient twitchBotClient;
+
+	@Autowired
+	public void setTwitchBotClient(TwitchBotClient twitchBotClient) {
+		this.twitchBotClient = twitchBotClient;
+	}
+
 	public void start(Account account) {
 		discordBot.sendPrivateMessage(account.getDiscordId(), "starting the stream!");
-
-		isStreamRunning = true;
 		statistics.reset();
-
 		extendedStatisticsExporter.start(Instant.now(), account.getId());
 	}
 
@@ -143,7 +145,6 @@ public class ResultsExporter {
 	}
 
 	public void stop() {
-		isStreamRunning = false;
 		isRankedRunning = false;
 		statistics.stop();
 		extendedStatisticsExporter.end();
@@ -151,10 +152,6 @@ public class ResultsExporter {
 		weaponRequestRankingAction.stop();
 
 		obsController.disconnect();
-	}
-
-	public boolean isStreamRunning() {
-		return isStreamRunning;
 	}
 
 	private int rateLimitNumber = 20;
@@ -179,6 +176,8 @@ public class ResultsExporter {
 
 		for (Account account : accounts) {
 			// TODO make isStreamRunning and rateLimitNumber dependent from account
+			boolean isStreamRunning = twitchBotClient.isLive(account.getTwitchUserId());
+
 			if (isStreamRunning || rateLimitNumber == 0) {
 				logger.info("loading results");
 

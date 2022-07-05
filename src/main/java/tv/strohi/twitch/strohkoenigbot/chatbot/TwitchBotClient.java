@@ -43,11 +43,18 @@ public class TwitchBotClient {
 	private static Instant lastClipCreatedTime = Instant.now();
 
 	private TwitchClient client;
+
 	private static ResultsExporter resultsExporter;
 
 	private String accessToken;
 
 	private final String channelName = "strohkoenig";
+
+	private boolean fakeDebug = false;
+
+	public void setFakeDebug(boolean fakeDebug) {
+		this.fakeDebug = fakeDebug;
+	}
 
 	private final List<IChatAction> botActions = new ArrayList<>();
 
@@ -178,10 +185,27 @@ public class TwitchBotClient {
 		return client.getChat().isChannelJoined(channelName);
 	}
 
-	public Splatoon2Clip createClip(String message, String channelId, boolean isGoodPlay) {
-		StreamList liveStreams = client.getHelix().getStreams(accessToken, null, null, null, null, null, Collections.singletonList(channelId), null).execute();
+	public boolean isLive(String channelId) {
+		if (fakeDebug) {
+			Account account = accountRepository.findByTwitchUserId(channelId).stream().findFirst().orElse(null);
 
-		if (liveStreams.getStreams().size() == 0) {
+			if (account != null && account.getIsMainAccount() != null && account.getIsMainAccount()) {
+				return true;
+			}
+		}
+
+		return isLiveIgnoreDebug(channelId);
+	}
+
+	public boolean isLiveIgnoreDebug(String channelId) {
+		return channelId != null
+				&& !channelId.isBlank()
+				&& client.getHelix().getStreams(accessToken, null, null, null, null, null, Collections.singletonList(channelId), null).execute()
+				.getStreams().size() > 0;
+	}
+
+	public Splatoon2Clip createClip(String message, String channelId, boolean isGoodPlay) {
+		if (!isLiveIgnoreDebug(channelId)) {
 			logger.warn("Can't create clip -> stream not running");
 			return null;
 		}

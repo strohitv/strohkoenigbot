@@ -156,21 +156,29 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Token was set successfully.");
 			}
-		} else if (message.startsWith("!start") && !resultsExporter.isStreamRunning()) {
+		} else if (message.startsWith("!start")) {
 			Account account = accountRepository.findAll().stream()
 					.filter(Account::getIsMainAccount)
 					.findFirst()
 					.orElse(new Account());
 
-			resultsExporter.start(account);
+			if (!twitchBotClient.isLive(account.getTwitchUserId())) {
+				twitchBotClient.setFakeDebug(true);
+				resultsExporter.start(account);
+			}
+
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export started successfully.");
-		} else if (message.startsWith("!stop") && resultsExporter.isStreamRunning()) {
+		} else if (message.startsWith("!stop")) {
 			Account account = accountRepository.findAll().stream()
 					.filter(Account::getIsMainAccount)
 					.findFirst()
 					.orElse(new Account());
 
-			resultsExporter.stop(account);
+			if (twitchBotClient.isLive(account.getTwitchUserId())) {
+				twitchBotClient.setFakeDebug(false);
+				resultsExporter.stop(account);
+			}
+
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export stopped successfully.");
 		} else if (message.startsWith("!config set") && message.contains("=")) {
 			String commandToSet = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config set".length()).trim();
