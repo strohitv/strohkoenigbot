@@ -108,10 +108,11 @@ public class PeaksExporter {
 				splatoon2MonthlyResult = monthlyResultRepository.save(splatoon2MonthlyResult);
 
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
-						String.format("New X Rank peak month **%d-%d** with id **%d** and peaks Zones: **%s**, Rainmaker: **%s**, Tower: **%s**, Clams: **%s** was stored into Database!",
+						String.format("New X Rank peak month **%d-%d** with id **%d** for account with id **%d** and peaks Zones: **%s**, Rainmaker: **%s**, Tower: **%s**, Clams: **%s** was stored into Database!",
 								splatoon2MonthlyResult.getPeriodYear(),
 								splatoon2MonthlyResult.getPeriodMonth(),
 								splatoon2MonthlyResult.getId(),
+								splatoon2MonthlyResult.getAccountId(),
 								splatoon2MonthlyResult.getZonesPeak(),
 								splatoon2MonthlyResult.getRainmakerPeak(),
 								splatoon2MonthlyResult.getTowerPeak(),
