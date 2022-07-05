@@ -89,7 +89,7 @@ public class RequestSender {
 			}
 		} catch (IOException | InterruptedException e) {
 			if (e instanceof IOException && e.getCause() != null && e.getCause() instanceof CookieRefreshException) {
-				discordBot.sendPrivateMessage(account.getDiscordId(), "**ERROR** your cookie to access to splatnet became outdated, I cannot access splatnet anymore.\nPlease provide new login credentials by using the **!splatoon register** command.");
+				discordBot.sendPrivateMessage(account.getDiscordId(), "**ERROR** your cookie to access to splatnet became outdated, I cannot access splatnet anymore.\nPlease provide new login credentials by using the **!splatoon2 register** command.");
 				logger.error("The cookie for account with id {} wasn't valid anymore and no session token has been set!", account.getId());
 			} else {
 				logger.error("exception while sending request");

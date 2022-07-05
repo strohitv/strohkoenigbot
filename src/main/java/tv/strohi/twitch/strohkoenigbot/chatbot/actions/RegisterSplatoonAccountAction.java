@@ -73,8 +73,8 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 
 		message = message.trim();
 
-		if (message.toLowerCase().startsWith("!splatoon")) {
-			message = message.substring("!splatoon".length()).trim();
+		if (message.toLowerCase().startsWith("!splatoon2")) {
+			message = message.substring("!splatoon2".length()).trim();
 
 			Account account = accountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
@@ -95,13 +95,13 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 						"	2. Log in to your Nintendo account.\n"+
 						"	3. do a **right click** on the \"Select this person\" button and copy the link address.\n"+
 						"	4. send me a direct message with the copied address **within five minutes** in this form:" +
-						"```!splatoon link COPIED_ADDRESS```" +
-						"	For example: `!splatoon link npf71b963...` (link is much longer)\n\n" +
+						"```!splatoon2 link COPIED_ADDRESS```" +
+						"	For example: `!splatoon2 link npf71b963...` (link is much longer)\n\n" +
 						"2. By using mitmproxy, instructions can be found here: <https://github.com/frozenpandaman/splatnet2statink/wiki/mitmproxy-instructions>.\n" +
 						"	1. After copying the cookie (xxxxx) in Step 7, send me the cookie via direct message.\n" +
 						"	2. Send the message in this form:" +
-						"```!splatoon cookie COPIED_COOKIE```" +
-						"	For example: `!splatoon cookie ac2f44d4a...` (cookie is much longer)");
+						"```!splatoon2 cookie COPIED_COOKIE```" +
+						"	For example: `!splatoon2 cookie ac2f44d4a...` (cookie is much longer)");
 			} else if (message.toLowerCase().startsWith("link") && !(message = message.substring("link".length()).trim()).isBlank()) {
 				Tuple<AuthLinkCreator.AuthParams, Instant> params = paramsMap.getOrDefault(account.getDiscordId(), null);
 
@@ -117,10 +117,10 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 							sender.send("I could not connect your account. Please make sure you copied the correct link.");
 						}
 					} else {
-						sender.send("You didn't send the link in time. Please try again using **!splatoon register**.");
+						sender.send("You didn't send the link in time. Please try again using **!splatoon2 register**.");
 					}
 				} else {
-					sender.send("Please generate a link by using **!splatoon register** first.");
+					sender.send("Please generate a link by using **!splatoon2 register** first.");
 				}
 			} else if (message.toLowerCase().startsWith("cookie") && !(message = message.substring("cookie".length()).trim()).isBlank()) {
 				account.setSplatoonCookie(message);
@@ -144,7 +144,7 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 
 				sender.send("I successfully deleted the splatoon cookie for your account.");
 			} else {
-				sender.send("Allowed commands:\n    - !splatoon register\n    - !splatoon link\n    - !splatoon cookie\n    - !splatoon delete");
+				sender.send("Allowed commands:\n    - !splatoon2 register\n    - !splatoon2 link\n    - !splatoon2 cookie\n    - !splatoon2 delete");
 			}
 		}
 	}
