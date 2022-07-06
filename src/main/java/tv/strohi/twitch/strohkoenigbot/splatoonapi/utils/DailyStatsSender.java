@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static tv.strohi.twitch.strohkoenigbot.utils.TimezoneUtils.timeOfTimezoneIsBetweenTimes;
 
 @Component
 public class DailyStatsSender {
@@ -84,6 +85,7 @@ public class DailyStatsSender {
 				.filter(a -> a.getSplatoonCookie() != null && !a.getSplatoonCookie().isBlank())
 				.filter(a -> a.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(a.getSplatoonCookieExpiresAt()))
 				.filter(a -> a.getTimezone() != null && !a.getTimezone().isBlank())
+				.filter(a -> timeOfTimezoneIsBetweenTimes(a.getTimezone(), 0, 10, 0, 20))
 				.collect(Collectors.toList());
 
 		for (Account account : accounts) {
