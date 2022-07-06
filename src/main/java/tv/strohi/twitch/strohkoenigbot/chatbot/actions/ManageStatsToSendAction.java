@@ -58,7 +58,7 @@ public class ManageStatsToSendAction extends ChatAction {
 						accountRepository.save(account);
 
 						if (account.getShouldSendDailyStats()) {
-							sender.send("Alright, you'll receive weapon stats every day at 0:15 am!");
+							sender.send("Alright, you'll receive weapon stats every day at roughly 0:15 am!");
 						} else {
 							sender.send("Alright, I won't send you weapon stats once every day (anymore)!");
 						}
