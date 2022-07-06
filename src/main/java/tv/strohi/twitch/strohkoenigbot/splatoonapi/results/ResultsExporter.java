@@ -24,7 +24,10 @@ import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
+
+import static tv.strohi.twitch.strohkoenigbot.utils.TimezoneUtils.timeOfTimezoneIsBetweenTimes;
 
 @Component
 public class ResultsExporter {
@@ -134,14 +137,18 @@ public class ResultsExporter {
 	}
 
 	public void start(Account account) {
-		discordBot.sendPrivateMessage(account.getDiscordId(), "starting the stream!");
-		statistics.reset();
-		extendedStatisticsExporter.start(Instant.now(), account.getId());
+		if (account != null) {
+			discordBot.sendPrivateMessage(account.getDiscordId(), "starting the stream!");
+			statistics.reset();
+			extendedStatisticsExporter.start(Instant.now(), account.getId());
+		}
 	}
 
 	public void stop(Account account) {
-		discordBot.sendPrivateMessage(account.getDiscordId(), "stopping the stream!");
-		stop();
+		if (account != null) {
+			discordBot.sendPrivateMessage(account.getDiscordId(), "stopping the stream!");
+			stop();
+		}
 	}
 
 	public void stop() {
@@ -154,15 +161,10 @@ public class ResultsExporter {
 		obsController.disconnect();
 	}
 
-	private int rateLimitNumber = 20;
+	private final List<Account> blockedAccounts = new ArrayList<>();
 
-	// TODO change it so that waiting is determined by the type of account (main: true = every 5 minutes, main: false = every 60 minutes)
-	private final int attemptsPerMinute = 3;
-	private final int refreshEveryXMinutesMain = 10;
-	private final int refreshEveryXMinutesOther = 60;
-
-//	@Scheduled(cron = "*/10 * * * * *")
-//	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
+	//	@Scheduled(cron = "*/10 * * * * *")
+	//	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
 	@Scheduled(fixedDelay = 20000)
 	public void loadGameResultsScheduled() {
 		logger.debug("running results exporter");
@@ -170,16 +172,25 @@ public class ResultsExporter {
 		List<Account> accounts = accountRepository.findAll().stream()
 				.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank())
 				.filter(da -> da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
-				// TODO rework to make it work with any other account
-				.filter(Account::getIsMainAccount)
+				.filter(a -> a.getSplatoonCookie() != null && !a.getSplatoonCookie().isBlank())
 				.collect(Collectors.toList());
 
 		for (Account account : accounts) {
-			// TODO make isStreamRunning and rateLimitNumber dependent from account
-			boolean isStreamRunning = account.getIsMainAccount() && twitchBotClient.isLive(account.getTwitchUserId());
+			boolean isMidnight = isDirectlyPastMidnight(account.getTimezone()) && blockedAccounts.stream().noneMatch(a -> a.getId() == account.getId());
+			boolean forceRefresh = isMidnight || (account.getIsMainAccount() && twitchBotClient.isLive(account.getTwitchUserId()));
 
-			if (isStreamRunning || rateLimitNumber == 0) {
+			if (account.getRateLimitNumber() == null) {
+				account.setRateLimitNumber(new Random().nextInt(30));
+			}
+
+			if (forceRefresh || account.getRateLimitNumber() == 0) {
 				logger.info("loading results");
+
+				if (isMidnight) {
+					blockedAccounts.add(account);
+				} else if (!isDirectlyPastMidnight(account.getTimezone()) && blockedAccounts.stream().anyMatch(a -> a.getId() == account.getId())) {
+					blockedAccounts.removeIf(a -> a.getId() == account.getId());
+				}
 
 				try {
 					SplatNetMatchResultsCollection splatNetMatches = splatoonResultsLoader.querySplatoonApiForAccount(account, "/api/results", SplatNetMatchResultsCollection.class);
@@ -231,14 +242,14 @@ public class ResultsExporter {
 							loadSilently = false;
 						}
 
-						if (isStreamRunning) {
+						if (forceRefresh) {
 							statistics.addMatches(results);
 							statistics.exportHtml();
 							extendedStatisticsExporter.export(account.getId(), results);
 						}
 					}
 
-					if (isStreamRunning && isRankedRunning) {
+					if (forceRefresh && isRankedRunning) {
 						obsController.controlOBS(account, extendedStatisticsExporter.getStarted().getEpochSecond());
 					}
 				} catch (Exception ex) {
@@ -246,8 +257,22 @@ public class ResultsExporter {
 					exceptionSender.send(ex);
 				}
 			}
-		}
 
-		rateLimitNumber = (rateLimitNumber + 1) % (refreshEveryXMinutesMain * attemptsPerMinute);
+			refreshRateLimitNumber(account);
+		}
+	}
+
+	private void refreshRateLimitNumber(Account account) {
+		int attemptsPerMinute = 3;
+		int refreshEveryXMinutesMain = 10;
+		int refreshEveryXMinutesOther = 60;
+
+		int newRateLimitNumber = (account.getRateLimitNumber() + 1) % ((account.getIsMainAccount() ? refreshEveryXMinutesMain : refreshEveryXMinutesOther) * attemptsPerMinute);
+		account.setRateLimitNumber(newRateLimitNumber);
+		accountRepository.save(account);
+	}
+
+	private boolean isDirectlyPastMidnight(String timezone) {
+		return timeOfTimezoneIsBetweenTimes(timezone, 0, 8, 0, 12);
 	}
 }

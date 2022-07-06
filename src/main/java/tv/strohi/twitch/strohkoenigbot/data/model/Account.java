@@ -25,11 +25,15 @@ public class Account {
 
 	private Instant splatoonCookieExpiresAt;
 
+	private String splatoonNickname;
+
+	private String splatoonSessionToken;
+
 	private Boolean isMainAccount = false;
 
 	private String timezone;
 
 	private Boolean shouldSendDailyStats;
 
-	private Integer currentStep;
+	private Integer rateLimitNumber;
 }

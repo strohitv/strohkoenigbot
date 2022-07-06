@@ -92,7 +92,7 @@ public class RandomWeaponAction extends ChatAction {
 						.replace(" ", "");
 
 				long number = Integer.parseInt(foundFilter.replace("<", "").replace(">", "").replace("=", ""));
-				String prefix = foundFilter.replaceAll("[0-9]*", "");
+				String prefix = foundFilter.replaceAll("\\d*", "");
 
 				List<Splatoon2WeaponStats> filteredWeaponStats;
 

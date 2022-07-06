@@ -26,7 +26,7 @@ public class DiscordAccountLoader {
 		Account account = accountRepository.findByDiscordIdOrderById(discordId).stream().findFirst().orElse(null);
 
 		if (account == null) {
-			account = new Account(0L, discordId, null, null, null, false, null, null, null);
+			account = new Account(0L, discordId, null, null,null, null, null, false, null, false, 0);
 			account = accountRepository.save(account);
 
 			discordBot.sendPrivateMessage(discordId, "Hi! Nice to meet you!");

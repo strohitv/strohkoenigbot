@@ -3227,6 +3227,48 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "27",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "splatoon_nickname",
+                    "position": 5,
+                    "type": "varchar(50)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatoon_session_token",
+                    "position": 6,
+                    "type": "varchar(500)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rate_limit_number",
+                    "type": "int",
+                    "defaultValueComputed": "0"
+                  }
+                }
+              ],
+              "tableName": "account"
+            }
+          },
+          {
+            "dropColumn": {
+              "columnName": "current_step",
+              "tableName": "account"
+            }
+          }
+        ]
+      }
     }
   ]
 }

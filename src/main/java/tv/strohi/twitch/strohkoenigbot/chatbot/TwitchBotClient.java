@@ -123,7 +123,7 @@ public class TwitchBotClient {
 
 			goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
 				if (resultsExporter != null) {
-					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(new Account());
+					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
 					resultsExporter.start(account);
 				}
 
@@ -132,7 +132,7 @@ public class TwitchBotClient {
 
 			goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
 				if (resultsExporter != null) {
-					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(new Account());
+					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
 					resultsExporter.stop(account);
 				}
 

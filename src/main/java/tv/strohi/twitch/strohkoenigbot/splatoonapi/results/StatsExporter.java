@@ -17,10 +17,13 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStatPage;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static tv.strohi.twitch.strohkoenigbot.utils.TimezoneUtils.timeOfTimezoneIsBetweenTimes;
 
 @Component
 public class StatsExporter {
@@ -68,25 +71,33 @@ public class StatsExporter {
 		this.splatoonStatsLoader = splatoonStatsLoader;
 	}
 
-	@Scheduled(cron = "0 47 4 * * *")
+	@Scheduled(cron = "0 3 * * * *")
 	public void refreshStageAndWeaponStats() {
 		logger.info("loading stage and weapon stats");
 
-		Account account = accountRepository.findAll().stream()
-				.filter(Account::getIsMainAccount)
-				.findFirst()
-				.orElse(new Account());
+		List<Account> accounts = accountRepository.findAll().stream()
+				.filter(a -> a.getSplatoonCookie() != null && !a.getSplatoonCookie().isBlank())
+				.filter(a -> a.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(a.getSplatoonCookieExpiresAt()))
+				.filter(a -> a.getTimezone() != null && !a.getTimezone().isBlank())
+				.filter(a -> timeOfTimezoneIsBetweenTimes(a.getTimezone(), 0, 2, 0, 4))
+				.collect(Collectors.toList());
 
+		for (Account account : accounts) {
+			refreshStatsForAccount(account);
+		}
+	}
+
+	public void refreshStatsForAccount(Account account) {
 		SplatNetStatPage splatNetStatPage = splatoonStatsLoader.querySplatoonApiForAccount(account, "/api/records", SplatNetStatPage.class);
 
-		logger.info("refreshing weapon stats");
+		logger.info("refreshing weapon stats for account {}", account.getId());
 		refreshWeaponStats(account.getId(), splatNetStatPage.getRecords().getWeapon_stats().values().stream()
 				.sorted((w1, w2) -> -Integer.compare(w1.getWin_count(), w2.getWin_count()))
 				.collect(Collectors.toList())
 		);
-		logger.info("refreshing stage stats");
+		logger.info("refreshing stage stats for account {}", account.getId());
 		refreshStageStats(account.getId(), new ArrayList<>(splatNetStatPage.getRecords().getStage_stats().values()));
-		logger.info("finished refresh");
+		logger.info("finished refresh for account {}", account.getId());
 	}
 
 	private void refreshWeaponStats(long accountId, List<SplatNetStatPage.SplatNetRecords.SplatNetWeaponStats> loadedWeaponStats) {

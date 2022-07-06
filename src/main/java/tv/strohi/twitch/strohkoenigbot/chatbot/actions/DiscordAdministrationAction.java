@@ -160,9 +160,9 @@ public class DiscordAdministrationAction extends ChatAction {
 			Account account = accountRepository.findAll().stream()
 					.filter(Account::getIsMainAccount)
 					.findFirst()
-					.orElse(new Account());
+					.orElse(null);
 
-			if (!twitchBotClient.isLive(account.getTwitchUserId())) {
+			if (account != null && !twitchBotClient.isLive(account.getTwitchUserId())) {
 				twitchBotClient.setFakeDebug(true);
 				resultsExporter.start(account);
 			}
@@ -172,9 +172,9 @@ public class DiscordAdministrationAction extends ChatAction {
 			Account account = accountRepository.findAll().stream()
 					.filter(Account::getIsMainAccount)
 					.findFirst()
-					.orElse(new Account());
+					.orElse(null);
 
-			if (twitchBotClient.isLive(account.getTwitchUserId())) {
+			if (account != null && twitchBotClient.isLive(account.getTwitchUserId())) {
 				twitchBotClient.setFakeDebug(false);
 				resultsExporter.stop(account);
 			}

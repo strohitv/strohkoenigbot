@@ -100,39 +100,43 @@ public class RotationWatcher {
 	public void sendDiscordNotifications() {
 		refreshStages();
 
-		if (Arrays.stream(stages.getGachi()).allMatch(s -> s.getEndTimeAsInstant().isAfter(Instant.now().plus(1, ChronoUnit.HOURS)))) {
-			sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getTurfWarChannel(),
-					formatDiscordMessage(stages.getRegular()),
-					stages.getRegular()[0].getStage_a().getImage(),
-					stages.getRegular()[0].getStage_b().getImage());
+		if (stages != null) {
+			if (Arrays.stream(stages.getGachi()).allMatch(s -> s.getEndTimeAsInstant().isAfter(Instant.now().plus(1, ChronoUnit.HOURS)))) {
+				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getTurfWarChannel(),
+						formatDiscordMessage(stages.getRegular()),
+						stages.getRegular()[0].getStage_a().getImage(),
+						stages.getRegular()[0].getStage_b().getImage());
 
-			sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getRankedChannel(),
-					formatDiscordMessage(stages.getGachi()),
-					stages.getGachi()[0].getStage_a().getImage(),
-					stages.getGachi()[0].getStage_b().getImage());
+				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getRankedChannel(),
+						formatDiscordMessage(stages.getGachi()),
+						stages.getGachi()[0].getStage_a().getImage(),
+						stages.getGachi()[0].getStage_b().getImage());
 
-			sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getLeagueChannel(),
-					formatDiscordMessage(stages.getLeague()),
-					stages.getLeague()[0].getStage_a().getImage(),
-					stages.getLeague()[0].getStage_b().getImage());
+				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getLeagueChannel(),
+						formatDiscordMessage(stages.getLeague()),
+						stages.getLeague()[0].getStage_a().getImage(),
+						stages.getLeague()[0].getStage_b().getImage());
 
-			if (stages.getRegular().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				if (stages.getRegular().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
 //			if (stages.getRegular().length > 0) {
-				sendDiscordNotificationsToUsers(stages.getRegular()[0]);
-				sendDiscordNotificationsToUsers(stages.getRegular()[stages.getRegular().length - 1]);
-			}
+					sendDiscordNotificationsToUsers(stages.getRegular()[0]);
+					sendDiscordNotificationsToUsers(stages.getRegular()[stages.getRegular().length - 1]);
+				}
 
-			if (stages.getGachi().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				if (stages.getGachi().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
 //			if (stages.getGachi().length > 0) {
-				sendDiscordNotificationsToUsers(stages.getGachi()[0]);
-				sendDiscordNotificationsToUsers(stages.getGachi()[stages.getGachi().length - 1]);
-			}
+					sendDiscordNotificationsToUsers(stages.getGachi()[0]);
+					sendDiscordNotificationsToUsers(stages.getGachi()[stages.getGachi().length - 1]);
+				}
 
-			if (stages.getLeague().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				if (stages.getLeague().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
 //			if (stages.getLeague().length > 0) {
-				sendDiscordNotificationsToUsers(stages.getLeague()[0]);
-				sendDiscordNotificationsToUsers(stages.getLeague()[stages.getLeague().length - 1]);
+					sendDiscordNotificationsToUsers(stages.getLeague()[0]);
+					sendDiscordNotificationsToUsers(stages.getLeague()[stages.getLeague().length - 1]);
+				}
 			}
+		} else {
+			logger.error("stages were null!");
 		}
 	}
 
@@ -186,12 +190,16 @@ public class RotationWatcher {
 
 			stages = stagesLoader.querySplatoonApiForAccount(account, "/api/schedules", SplatNetStages.class);
 
-			saveStagesInDatabase(stages.getRegular());
-			saveStagesInDatabase(stages.getGachi());
-			saveStagesInDatabase(stages.getLeague());
+			if (stages != null ) {
+				saveStagesInDatabase(stages.getRegular());
+				saveStagesInDatabase(stages.getGachi());
+				saveStagesInDatabase(stages.getLeague());
 
-			logger.info("finished stage loading");
-			logger.debug(stages);
+				logger.info("finished stage loading");
+				logger.debug(stages);
+			} else {
+				logger.error("stages were null!");
+			}
 		}
 	}
 

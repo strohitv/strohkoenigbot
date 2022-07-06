@@ -5,7 +5,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.CookieRefreshException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,6 +27,13 @@ public class RequestSender {
 	@Autowired
 	public void setClientCreator(AuthenticatedHttpClientCreator clientCreator) {
 		this.clientCreator = clientCreator;
+	}
+
+	private DiscordBot discordBot;
+
+	@Autowired
+	public void setDiscordBot(DiscordBot discordBot) {
+		this.discordBot = discordBot;
 	}
 
 	private final ObjectMapper mapper = new ObjectMapper();
@@ -79,10 +88,15 @@ public class RequestSender {
 				logger.info(response);
 			}
 		} catch (IOException | InterruptedException e) {
-			logger.error("exception while sending request");
-			logger.error("response body: '{}'", body);
+			if (e instanceof IOException && e.getCause() != null && e.getCause() instanceof CookieRefreshException) {
+				discordBot.sendPrivateMessage(account.getDiscordId(), "**ERROR** your cookie to access to splatnet became outdated, I cannot access splatnet anymore.\nPlease provide new login credentials by using the **!splatoon2 register** command.");
+				logger.error("The cookie for account with id {} wasn't valid anymore and no session token has been set!", account.getId());
+			} else {
+				logger.error("exception while sending request");
+				logger.error("response body: '{}'", body);
 
-			logger.error(e);
+				logger.error(e);
+			}
 		}
 
 		return null;
