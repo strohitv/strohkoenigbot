@@ -17,6 +17,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStatPage;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -76,6 +77,7 @@ public class StatsExporter {
 
 		List<Account> accounts = accountRepository.findAll().stream()
 				.filter(a -> a.getSplatoonCookie() != null && !a.getSplatoonCookie().isBlank())
+				.filter(a -> a.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(a.getSplatoonCookieExpiresAt()))
 				.filter(a -> a.getTimezone() != null && !a.getTimezone().isBlank())
 				.filter(a -> timeOfTimezoneIsBetweenTimes(a.getTimezone(), 0, 2, 0, 4))
 				.collect(Collectors.toList());
