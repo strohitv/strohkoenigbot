@@ -4,6 +4,8 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoo
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2MatchResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 
+import java.util.Locale;
+
 public class MatchMessageFormatter {
 	public static String getMatchResultMessage(Splatoon2Match match, SplatNetMatchResult singleResult) {
 		return String.format(
@@ -39,8 +41,8 @@ public class MatchMessageFormatter {
 	public static String getMatchResultPerformance(Splatoon2Match match) {
 		return String.format("Last match: %s (%s : %s %s) - own stats: %dp ink, %d kills, %d assists, %d specials, %d deaths",
 				match.getRule().getAsString(),
-				match.getOwnScore() != null ? String.format("%d", match.getOwnScore()) : String.format("%.1f%%", match.getOwnPercentage()),
-				match.getEnemyScore() != null ? String.format("%d", match.getEnemyScore()) : String.format("%.1f%%", match.getEnemyPercentage()),
+				match.getOwnScore() != null ? String.format("%d", match.getOwnScore()) : String.format(Locale.US, "%.1f%%", match.getOwnPercentage()),
+				match.getEnemyScore() != null ? String.format("%d", match.getEnemyScore()) : String.format(Locale.US, "%.1f%%", match.getEnemyPercentage()),
 				match.getMatchResult() == Splatoon2MatchResult.Win ? "win" : "defeat",
 				match.getTurfGain(),
 				match.getKills(),

@@ -338,14 +338,14 @@ public class ExtendedStatisticsExporter {
 		String currentPowerDifference = "";
 		if (powersBeforeStream.get(lastMatch.getRule()) != null && lastMatch.getXPower() != null) {
 			currentPowerDifferenceSign = powersBeforeStream.get(lastMatch.getRule()) <= lastMatch.getXPower() ? "+" : "-";
-			currentPowerDifference = String.format("%.1f", Math.abs(lastMatch.getXPower() - powersBeforeStream.get(lastMatch.getRule())));
+			currentPowerDifference = String.format(Locale.US, "%.1f", Math.abs(lastMatch.getXPower() - powersBeforeStream.get(lastMatch.getRule())));
 		}
 
 		String lastMonthPowerDifferenceSign = "";
 		String lastMonthPowerDifference = "";
 		if (getPowerForRule(lastMonthResult, lastMatch.getRule()) != null && lastMatch.getXPower() != null) {
 			lastMonthPowerDifferenceSign = getPowerForRule(lastMonthResult, lastMatch.getRule()) <= lastMatch.getXPower() ? "+" : "-";
-			lastMonthPowerDifference = String.format("%.1f", Math.abs(lastMatch.getXPower() - getPowerForRule(lastMonthResult, lastMatch.getRule())));
+			lastMonthPowerDifference = String.format(Locale.US, "%.1f", Math.abs(lastMatch.getXPower() - getPowerForRule(lastMonthResult, lastMatch.getRule())));
 		}
 
 		InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/template-fullscreen-overlay.html");

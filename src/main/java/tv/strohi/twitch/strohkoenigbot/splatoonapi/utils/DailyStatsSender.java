@@ -301,17 +301,17 @@ public class DailyStatsSender {
 					.append(";").append(weaponStats.getTurf())
 //					.append(";").append(100_000 - weaponStats.getTurf() > 0 ? 100_000 - weaponStats.getTurf() : 0)
 					.append(";").append(yesterdayPaint)
-					.append(";").append(String.format("%.2f", calculateAvgPaint(weaponStats.getTurf(), getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats()))))
+					.append(";").append(String.format(Locale.US, "%.2f", calculateAvgPaint(weaponStats.getTurf(), getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats()))))
 					.append(";").append(getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats()))
 					.append(";").append(getNumber(weaponStats.getWins()))
 					.append(";").append(getNumber(weaponStats.getDefeats()))
 					.append(";").append(String.format("%d %%", getNumber(weaponStats.getWins()) * 100 / (getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats()))))
 					.append(";").append(yesterdayWins)
 					.append(";").append(yesterdayDefeats)
-					.append(";").append(String.format("%.1f", currentFlag))
-//					.append(";").append(String.format("%.1f", currentFlag - currentFlagDelta))
-					.append(";").append(String.format("%.1f", maxFlag))
-//					.append(";").append(String.format("%.1f", (maxFlag > maxFlagDelta) ? maxFlag - maxFlagDelta : 0.0))
+					.append(";").append(String.format(Locale.US, "%.1f", currentFlag))
+//					.append(";").append(String.format(Locale.US, "%.1f", currentFlag - currentFlagDelta))
+					.append(";").append(String.format(Locale.US, "%.1f", maxFlag))
+//					.append(";").append(String.format(Locale.US, "%.1f", (maxFlag > maxFlagDelta) ? maxFlag - maxFlagDelta : 0.0))
 			;
 		}
 
