@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface Splatoon2MatchRepository extends CrudRepository<Splatoon2Match, Long> {
@@ -24,5 +25,5 @@ public interface Splatoon2MatchRepository extends CrudRepository<Splatoon2Match,
 	@NotNull List<Splatoon2Match> findByAccountIdAndStartTimeGreaterThanEqualAndEndTimeLessThanEqual(long accountId, long startTime, long endTime);
 
 	@Query("select max(splatnetBattleNumber) from splatoon_2_match where accountId = :accountId")
-	int findMaxBattleNumber(long accountId);
+	Optional<Integer> findMaxBattleNumber(long accountId);
 }

@@ -208,7 +208,8 @@ public class ResultsExporter {
 							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), "removed last 50 matches successfully");
 						}
 
-						int maxSavedBattleNumber = matchRepository.findMaxBattleNumber(account.getId());
+						int maxSavedBattleNumber = matchRepository.findMaxBattleNumber(account.getId()).orElse(-1);
+
 						results = results.stream()
 								.filter(r -> r.getBattleNumberAsInteger() > maxSavedBattleNumber) // matchRepository.findBySplatnetBattleNumber(r.getBattleNumberAsInteger()) == null)
 								.collect(Collectors.toList());
