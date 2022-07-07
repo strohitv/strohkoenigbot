@@ -92,8 +92,6 @@ public class DailyStatsSender {
 			List<Splatoon2Match> matches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndEndTimeLessThanEqual(account.getId(), startTime, endTime);
 			logger.info("found {} matches..", matches.size());
 
-			List<Splatoon2WeaponStats> weaponStats = weaponStatsRepository.findByTurfLessThanAndAccountId(100_000, account.getId());
-
 			long yesterdayPaint = matches.stream().map(m -> (long) m.getTurfGain()).reduce(0L, Long::sum);
 			long weaponCount = matches.stream().map(Splatoon2Match::getWeaponId).distinct().count();
 
@@ -107,7 +105,39 @@ public class DailyStatsSender {
 					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
 
-			String message = String.format("Yesterday, you painted a total sum of **%d** points on **%d** different weapons in **%d** matches.", yesterdayPaint, weaponCount, matches.size());
+			List<Splatoon2WeaponStats> newBronzeBadgeWeaponStats = matches.stream()
+					.filter(m -> m.getTurfTotal() >= 500_000 && m.getTurfTotal() - m.getTurfGain() < 500_000)
+					.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+			List<Splatoon2Weapon> newBronzeBadgeWeapons = newRedBadgeWeaponStats.stream()
+					.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+
+			List<Splatoon2WeaponStats> newSilverBadgeWeaponStats = matches.stream()
+					.filter(m -> m.getTurfTotal() >= 1_000_000 && m.getTurfTotal() - m.getTurfGain() < 1_000_000)
+					.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+			List<Splatoon2Weapon> newSilverBadgeWeapons = newRedBadgeWeaponStats.stream()
+					.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+
+			List<Splatoon2WeaponStats> newGoldBadgeWeaponStats = matches.stream()
+					.filter(m -> m.getTurfTotal() >= 9_999_999 && m.getTurfTotal() - m.getTurfGain() < 9_999_999)
+					.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+			List<Splatoon2Weapon> newGoldBadgeWeapons = newRedBadgeWeaponStats.stream()
+					.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+
+			String message = String.format("Yesterday, you painted a total sum of **%d** points on **%d** different weapons in **%d** matches (%d wins, %d defeats).",
+					yesterdayPaint, weaponCount, matches.size(), (int) matches.stream().filter(m -> m.getMatchResult() == Splatoon2MatchResult.Win).count(),
+					(int) matches.stream().filter(m -> m.getMatchResult() != Splatoon2MatchResult.Win).count());
 
 			if (newRedBadgeWeapons.size() > 0) {
 				StringBuilder builder = new StringBuilder(message);
@@ -116,6 +146,41 @@ public class DailyStatsSender {
 				for (Splatoon2Weapon weapon : newRedBadgeWeapons) {
 					builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
 				}
+
+				message = builder.toString();
+			}
+
+			if (newBronzeBadgeWeapons.size() > 0) {
+				StringBuilder builder = new StringBuilder(message);
+				builder.append("\n\nYou received a bronze badge on these **").append(newBronzeBadgeWeapons.size()).append("** weapons yesterday:");
+
+				for (Splatoon2Weapon weapon : newBronzeBadgeWeapons) {
+					builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
+				}
+
+				message = builder.toString();
+			}
+
+			if (newSilverBadgeWeapons.size() > 0) {
+				StringBuilder builder = new StringBuilder(message);
+				builder.append("\n\nYou received a silver badge on these **").append(newSilverBadgeWeapons.size()).append("** weapons yesterday:");
+
+				for (Splatoon2Weapon weapon : newSilverBadgeWeapons) {
+					builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
+				}
+
+				message = builder.toString();
+			}
+
+			if (newGoldBadgeWeapons.size() > 0) {
+				StringBuilder builder = new StringBuilder(message);
+				builder.append("\n\nYou received a gold badge on these **").append(newGoldBadgeWeapons.size()).append("** weapons yesterday:");
+
+				for (Splatoon2Weapon weapon : newGoldBadgeWeapons) {
+					builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
+				}
+
+				builder.append("\nCongratulations!");
 
 				message = builder.toString();
 			}
