@@ -213,7 +213,7 @@ public class DailyStatsSender {
 	}
 
 	private String createWeaponStatsCsv(long accountId, List<Splatoon2Match> yesterdayMatches) {
-		StringBuilder builder = new StringBuilder("Name;Class;Sub;Special;Total Paint;Painted Yesterday;Paint per Match;Matches;Wins;Defeats;Win rate;Wins delta;Defeats delta;Current Flag"
+		StringBuilder builder = new StringBuilder("Name;Class;Sub;Special;Total Paint;Painted Yesterday;Paint per Match;Matches;Wins;Defeats;Win rate;Wins Yesterday;Defeats Yesterday;Current Flag"
 //				+ ";Current Flag delta"
 				+ ";Max Flag"
 //				+ ";Max Flag delta"
