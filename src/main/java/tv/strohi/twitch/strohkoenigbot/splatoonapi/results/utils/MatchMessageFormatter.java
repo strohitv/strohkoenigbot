@@ -12,6 +12,7 @@ public class MatchMessageFormatter {
 				"**I finished a Splatoon 2 match!**\n" +
 						"\n" +
 						"**General results**:\n" +
+						"- Account Id: **%d**\n" +
 						"- Mode: **%s**\n" +
 						"- Rule: **%s**\n" +
 						"- It was a **%s**\n" +
@@ -25,6 +26,7 @@ public class MatchMessageFormatter {
 						"- Deaths: **%d**\n" +
 						"- Paint: + **%d** points\n\n" +
 						"---------------------------------",
+				match.getAccountId(),
 				match.getMode(),
 				match.getRule(),
 				match.getMatchResult(),
@@ -52,8 +54,9 @@ public class MatchMessageFormatter {
 	}
 
 	public static String getAddedMatchMessage(Splatoon2Match match) {
-		return String.format("Put new Match with id **%d** for mode **%s** and rule **%s** into database. It was a **%s**.",
+		return String.format("Put new Match with id **%d** for account **%d** for mode **%s** and rule **%s** into database. It was a **%s**.",
 				match.getId(),
+				match.getAccountId(),
 				match.getMode(),
 				match.getRule(),
 				match.getMatchResult());
