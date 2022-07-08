@@ -206,13 +206,13 @@ public class DailyStatsSender {
 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 			String strDate = dateFormat.format(yesterday);
 
-			discordBot.sendPrivateMessageWithAttachment(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
+			discordBot.sendPrivateMessageWithAttachment(account.getDiscordId(),
 					message,
 					String.format("%s.csv", strDate),
 					new ByteArrayInputStream(weaponStatsCsv.getBytes(StandardCharsets.UTF_8)));
 		} else {
 			message = String.format("%s\nYou won't receive a CSV today as you didn't play online and nothing has changed since the last time you received a CSV.", message);
-			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), message);
+			discordBot.sendPrivateMessage(account.getDiscordId(), message);
 		}
 	}
 
