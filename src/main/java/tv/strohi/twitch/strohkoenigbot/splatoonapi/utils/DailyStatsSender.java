@@ -21,9 +21,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponKit;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -96,13 +97,9 @@ public class DailyStatsSender {
 	}
 
 	private void sendDailyStatsAsPrivateMessage(Account account) {
-		Calendar c = new GregorianCalendar();
-		c.set(Calendar.HOUR_OF_DAY, 0); //anything 0 - 23
-		c.set(Calendar.MINUTE, 0);
-		c.set(Calendar.SECOND, 0);
-		long endTime = c.toInstant().getEpochSecond();
-		c.add(Calendar.DAY_OF_YEAR, -1);
-		long startTime = c.toInstant().getEpochSecond(); //the midnight, that's the first second of the day.
+		ZonedDateTime time = Instant.now().atZone(ZoneId.of(account.getTimezone())).truncatedTo(DAYS);
+		long endTime = time.toInstant().getEpochSecond();
+		long startTime = time.minus(1, DAYS).toInstant().getEpochSecond(); //the midnight, that's the first second of the day.
 
 		List<Splatoon2Match> matches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndEndTimeLessThanEqual(account.getId(), startTime, endTime);
 		logger.info("found {} matches..", matches.size());
@@ -203,9 +200,9 @@ public class DailyStatsSender {
 		if (matches.size() > 0) {
 			String weaponStatsCsv = createWeaponStatsCsv(account.getId(), matches);
 
-			Date yesterday = c.getTime();
-			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			String strDate = dateFormat.format(yesterday);
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+					.withZone(ZoneId.of(account.getTimezone()));
+			String strDate =  formatter.format(time.minus(1, DAYS).toInstant());
 
 			discordBot.sendPrivateMessageWithAttachment(account.getDiscordId(),
 					message,
