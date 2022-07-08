@@ -150,7 +150,7 @@ public class DailyStatsSender {
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 
-		String message = String.format("Yesterday, you painted a total sum of **%d** points on **%d** different weapons in **%d** matches (%d wins, %d defeats).",
+		String message = String.format("Yesterday, you painted a total sum of **%d** points on **%d** different weapons in **%d** matches (**%d** wins, **%d** defeats).",
 				yesterdayPaint, weaponCount, matches.size(), (int) matches.stream().filter(m -> m.getMatchResult() == Splatoon2MatchResult.Win).count(),
 				(int) matches.stream().filter(m -> m.getMatchResult() != Splatoon2MatchResult.Win).count());
 
