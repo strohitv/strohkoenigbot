@@ -371,18 +371,40 @@ public class DiscordAdministrationAction extends ChatAction {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
 		} else if (message.startsWith("!local_stats")) {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats requested");
-			if (DiscordChannelDecisionMaker.isIsLocalDebug()) {
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "is local - sending...");
-				dailyStatsSender.sendDailyStatsToDiscord();
+			if (!DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				Long accountId;
+				String messageWithoutCommand = message.trim().substring("!local_stats".length());
+				if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("is local - sending for account Id %d...", accountId));
+					dailyStatsSender.sendDailyStatsToAccount(accountId);
+				} else {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "is local - sending - sending...");
+					dailyStatsSender.sendDailyStatsToDiscord();
+				}
 			}
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats done");
 		} else if (message.startsWith("!daily_stats")) {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats requested");
 			if (!DiscordChannelDecisionMaker.isIsLocalDebug()) {
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "is server - sending...");
-				dailyStatsSender.sendDailyStatsToDiscord();
+				Long accountId;
+				String messageWithoutCommand = message.trim().substring("!daily_stats".length());
+				if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("is server - sending for account Id %d...", accountId));
+					dailyStatsSender.sendDailyStatsToAccount(accountId);
+				} else {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "is server - sending...");
+					dailyStatsSender.sendDailyStatsToDiscord();
+				}
 			}
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats done");
+		}
+	}
+
+	private Long tryParseId(String message) {
+		try {
+			return Long.parseLong(message);
+		} catch (Exception ex) {
+			return null;
 		}
 	}
 }

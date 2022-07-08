@@ -72,6 +72,29 @@ public class DailyStatsSender {
 	@Scheduled(cron = "0 15 0 * * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void sendDailyStatsToDiscord() {
+		List<Account> accounts = accountRepository.findAll().stream()
+				.filter(a -> a.getShouldSendDailyStats() != null && a.getShouldSendDailyStats())
+				.filter(a -> a.getSplatoonCookie() != null && !a.getSplatoonCookie().isBlank())
+				.filter(a -> a.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(a.getSplatoonCookieExpiresAt()))
+				.filter(a -> a.getTimezone() != null && !a.getTimezone().isBlank())
+				.filter(a -> timeOfTimezoneIsBetweenTimes(a.getTimezone(), 0, 10, 0, 20))
+				.collect(Collectors.toList());
+
+		for (Account account : accounts) {
+			sendDailyStatsAsPrivateMessage(account);
+		}
+	}
+
+	public void sendDailyStatsToAccount(long accountId) {
+		accountRepository.findAll().stream()
+				.filter(a -> a.getId() == accountId)
+				.filter(a -> a.getShouldSendDailyStats() != null && a.getShouldSendDailyStats())
+				.filter(a -> a.getSplatoonCookie() != null && !a.getSplatoonCookie().isBlank())
+				.filter(a -> a.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(a.getSplatoonCookieExpiresAt()))
+				.findFirst().ifPresent(this::sendDailyStatsAsPrivateMessage);
+	}
+
+	private void sendDailyStatsAsPrivateMessage(Account account) {
 		Calendar c = new GregorianCalendar();
 		c.set(Calendar.HOUR_OF_DAY, 0); //anything 0 - 23
 		c.set(Calendar.MINUTE, 0);
@@ -80,126 +103,116 @@ public class DailyStatsSender {
 		c.add(Calendar.DAY_OF_YEAR, -1);
 		long startTime = c.toInstant().getEpochSecond(); //the midnight, that's the first second of the day.
 
-		List<Account> accounts = accountRepository.findAll().stream()
-				.filter(Account::getShouldSendDailyStats)
-				.filter(a -> a.getSplatoonCookie() != null && !a.getSplatoonCookie().isBlank())
-				.filter(a -> a.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(a.getSplatoonCookieExpiresAt()))
-				.filter(a -> a.getTimezone() != null && !a.getTimezone().isBlank())
-				.filter(a -> timeOfTimezoneIsBetweenTimes(a.getTimezone(), 0, 10, 0, 20))
+		List<Splatoon2Match> matches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndEndTimeLessThanEqual(account.getId(), startTime, endTime);
+		logger.info("found {} matches..", matches.size());
+
+		long yesterdayPaint = matches.stream().map(m -> (long) m.getTurfGain()).reduce(0L, Long::sum);
+		long weaponCount = matches.stream().map(Splatoon2Match::getWeaponId).distinct().count();
+
+		List<Splatoon2WeaponStats> newRedBadgeWeaponStats = matches.stream()
+				.filter(m -> m.getTurfTotal() >= 100_000 && m.getTurfTotal() - m.getTurfGain() < 100_000)
+				.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		List<Splatoon2Weapon> newRedBadgeWeapons = newRedBadgeWeaponStats.stream()
+				.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
+				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 
-		for (Account account : accounts) {
-			List<Splatoon2Match> matches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndEndTimeLessThanEqual(account.getId(), startTime, endTime);
-			logger.info("found {} matches..", matches.size());
+		List<Splatoon2WeaponStats> newBronzeBadgeWeaponStats = matches.stream()
+				.filter(m -> m.getTurfTotal() >= 500_000 && m.getTurfTotal() - m.getTurfGain() < 500_000)
+				.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		List<Splatoon2Weapon> newBronzeBadgeWeapons = newBronzeBadgeWeaponStats.stream()
+				.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 
-			long yesterdayPaint = matches.stream().map(m -> (long) m.getTurfGain()).reduce(0L, Long::sum);
-			long weaponCount = matches.stream().map(Splatoon2Match::getWeaponId).distinct().count();
+		List<Splatoon2WeaponStats> newSilverBadgeWeaponStats = matches.stream()
+				.filter(m -> m.getTurfTotal() >= 1_000_000 && m.getTurfTotal() - m.getTurfGain() < 1_000_000)
+				.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		List<Splatoon2Weapon> newSilverBadgeWeapons = newSilverBadgeWeaponStats.stream()
+				.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 
-			List<Splatoon2WeaponStats> newRedBadgeWeaponStats = matches.stream()
-					.filter(m -> m.getTurfTotal() >= 100_000 && m.getTurfTotal() - m.getTurfGain() < 100_000)
-					.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-			List<Splatoon2Weapon> newRedBadgeWeapons = newRedBadgeWeaponStats.stream()
-					.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
+		List<Splatoon2WeaponStats> newGoldBadgeWeaponStats = matches.stream()
+				.filter(m -> m.getTurfTotal() >= 9_999_999 && m.getTurfTotal() - m.getTurfGain() < 9_999_999)
+				.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		List<Splatoon2Weapon> newGoldBadgeWeapons = newGoldBadgeWeaponStats.stream()
+				.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 
-			List<Splatoon2WeaponStats> newBronzeBadgeWeaponStats = matches.stream()
-					.filter(m -> m.getTurfTotal() >= 500_000 && m.getTurfTotal() - m.getTurfGain() < 500_000)
-					.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-			List<Splatoon2Weapon> newBronzeBadgeWeapons = newRedBadgeWeaponStats.stream()
-					.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
+		String message = String.format("Yesterday, you painted a total sum of **%d** points on **%d** different weapons in **%d** matches (%d wins, %d defeats).",
+				yesterdayPaint, weaponCount, matches.size(), (int) matches.stream().filter(m -> m.getMatchResult() == Splatoon2MatchResult.Win).count(),
+				(int) matches.stream().filter(m -> m.getMatchResult() != Splatoon2MatchResult.Win).count());
 
-			List<Splatoon2WeaponStats> newSilverBadgeWeaponStats = matches.stream()
-					.filter(m -> m.getTurfTotal() >= 1_000_000 && m.getTurfTotal() - m.getTurfGain() < 1_000_000)
-					.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-			List<Splatoon2Weapon> newSilverBadgeWeapons = newRedBadgeWeaponStats.stream()
-					.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
+		if (newRedBadgeWeapons.size() > 0) {
+			StringBuilder builder = new StringBuilder(message);
+			builder.append("\n\nYou received a red badge on these **").append(newRedBadgeWeapons.size()).append("** weapons yesterday:");
 
-			List<Splatoon2WeaponStats> newGoldBadgeWeaponStats = matches.stream()
-					.filter(m -> m.getTurfTotal() >= 9_999_999 && m.getTurfTotal() - m.getTurfGain() < 9_999_999)
-					.map(m -> weaponStatsRepository.findByWeaponIdAndAccountId(m.getWeaponId(), account.getId()).orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-			List<Splatoon2Weapon> newGoldBadgeWeapons = newRedBadgeWeaponStats.stream()
-					.map(ws -> weaponRepository.findById(ws.getWeaponId()).orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-
-			String message = String.format("Yesterday, you painted a total sum of **%d** points on **%d** different weapons in **%d** matches (%d wins, %d defeats).",
-					yesterdayPaint, weaponCount, matches.size(), (int) matches.stream().filter(m -> m.getMatchResult() == Splatoon2MatchResult.Win).count(),
-					(int) matches.stream().filter(m -> m.getMatchResult() != Splatoon2MatchResult.Win).count());
-
-			if (newRedBadgeWeapons.size() > 0) {
-				StringBuilder builder = new StringBuilder(message);
-				builder.append("\n\nYou received a red badge on these **").append(newRedBadgeWeapons.size()).append("** weapons yesterday:");
-
-				for (Splatoon2Weapon weapon : newRedBadgeWeapons) {
-					builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
-				}
-
-				message = builder.toString();
+			for (Splatoon2Weapon weapon : newRedBadgeWeapons) {
+				builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
 			}
 
-			if (newBronzeBadgeWeapons.size() > 0) {
-				StringBuilder builder = new StringBuilder(message);
-				builder.append("\n\nYou received a bronze badge on these **").append(newBronzeBadgeWeapons.size()).append("** weapons yesterday:");
+			message = builder.toString();
+		}
 
-				for (Splatoon2Weapon weapon : newBronzeBadgeWeapons) {
-					builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
-				}
+		if (newBronzeBadgeWeapons.size() > 0) {
+			StringBuilder builder = new StringBuilder(message);
+			builder.append("\n\nYou received a bronze badge on these **").append(newBronzeBadgeWeapons.size()).append("** weapons yesterday:");
 
-				message = builder.toString();
+			for (Splatoon2Weapon weapon : newBronzeBadgeWeapons) {
+				builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
 			}
 
-			if (newSilverBadgeWeapons.size() > 0) {
-				StringBuilder builder = new StringBuilder(message);
-				builder.append("\n\nYou received a silver badge on these **").append(newSilverBadgeWeapons.size()).append("** weapons yesterday:");
+			message = builder.toString();
+		}
 
-				for (Splatoon2Weapon weapon : newSilverBadgeWeapons) {
-					builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
-				}
+		if (newSilverBadgeWeapons.size() > 0) {
+			StringBuilder builder = new StringBuilder(message);
+			builder.append("\n\nYou received a silver badge on these **").append(newSilverBadgeWeapons.size()).append("** weapons yesterday:");
 
-				message = builder.toString();
+			for (Splatoon2Weapon weapon : newSilverBadgeWeapons) {
+				builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
 			}
 
-			if (newGoldBadgeWeapons.size() > 0) {
-				StringBuilder builder = new StringBuilder(message);
-				builder.append("\n\nYou received a gold badge on these **").append(newGoldBadgeWeapons.size()).append("** weapons yesterday:");
+			message = builder.toString();
+		}
 
-				for (Splatoon2Weapon weapon : newGoldBadgeWeapons) {
-					builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
-				}
+		if (newGoldBadgeWeapons.size() > 0) {
+			StringBuilder builder = new StringBuilder(message);
+			builder.append("\n\nYou received a gold badge on these **").append(newGoldBadgeWeapons.size()).append("** weapons yesterday:");
 
-				builder.append("\nCongratulations!");
-
-				message = builder.toString();
+			for (Splatoon2Weapon weapon : newGoldBadgeWeapons) {
+				builder.append("\n- **").append(weapon.getName()).append("** (").append(weapon.getSubName()).append(", ").append(weapon.getSpecialName()).append(")");
 			}
 
-			if (matches.size() > 0) {
-				String weaponStatsCsv = createWeaponStatsCsv(account.getId(), matches);
+			builder.append("\nCongratulations!");
 
-				Date yesterday = c.getTime();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-				String strDate = dateFormat.format(yesterday);
+			message = builder.toString();
+		}
 
-				discordBot.sendPrivateMessageWithAttachment(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
-						message,
-						String.format("%s.csv", strDate),
-						new ByteArrayInputStream(weaponStatsCsv.getBytes(StandardCharsets.UTF_8)));
-			} else {
-				message = String.format("%s\nYou won't receive a CSV today as you didn't play online and nothing has changed since the last time you received a CSV.", message);
-				discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), message);
-			}
+		if (matches.size() > 0) {
+			String weaponStatsCsv = createWeaponStatsCsv(account.getId(), matches);
+
+			Date yesterday = c.getTime();
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			String strDate = dateFormat.format(yesterday);
+
+			discordBot.sendPrivateMessageWithAttachment(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
+					message,
+					String.format("%s.csv", strDate),
+					new ByteArrayInputStream(weaponStatsCsv.getBytes(StandardCharsets.UTF_8)));
+		} else {
+			message = String.format("%s\nYou won't receive a CSV today as you didn't play online and nothing has changed since the last time you received a CSV.", message);
+			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), message);
 		}
 	}
 
