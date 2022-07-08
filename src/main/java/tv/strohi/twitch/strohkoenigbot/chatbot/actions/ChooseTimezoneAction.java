@@ -58,7 +58,7 @@ public class ChooseTimezoneAction extends ChatAction {
 
 		message = message.toLowerCase().trim();
 
-		if (message.startsWith("!timezone find") || message.startsWith("!timezone set")) {
+		if (message.startsWith("!timezone find") || message.startsWith("!timezone set") || message.startsWith("!timezone get")) {
 			message = message.substring("!timezone".length()).trim();
 
 			if (message.startsWith("find")) {
@@ -83,7 +83,7 @@ public class ChooseTimezoneAction extends ChatAction {
 					sender.send("No Time found! Usage:\n" +
 							"- first use **!timezone find <your time>** to list all available timezones. The time has to be in 24h format, no am or pm allowed. Example: **!timezone find 19:34** if it's 19:34 (7:34 pm) at your place.");
 				}
-			} else {
+			} else if (message.startsWith("set")) {
 				String selection = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, "")).substring("!timezone set".length()).trim();
 
 				if (availableZoneIds.contains(selection)) {
@@ -111,11 +111,21 @@ public class ChooseTimezoneAction extends ChatAction {
 						sender.send(String.format("Please use **!timezone set <number>** to set it to the timezone you're in. Example: **!timezone set %d** if your timezone is in 'Europe/London'", availableZoneIds.indexOf("Europe/London")));
 					}
 				}
+			} else { // "!timezone get"
+				Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
+				String timezone = account.getTimezone();
+
+				if (timezone != null && !timezone.isBlank()) {
+					sender.send(String.format("Your timezone is currently set to be **%s**!", timezone));
+				} else {
+					sender.send("You didn't set a timezone yet, please do so using **!timezone find** and **!timezone set <timezone>**!");
+				}
 			}
 		} else if (message.startsWith("!timezone")) {
 			sender.send(String.format("Do this to set your timezone:\n" +
 					"- first use **!timezone find <your time>** to list all available timezones. The time has to be in 24h format, no am or pm allowed. Example: **!timezone find 19:34** if it's 19:34 (7:34 pm) at your place.\n" +
-					"- afterwards use **!timezone set <number>** to set it to the timezone you're in. Example: **!timezone set %d** if your timezone is in 'Europe/London'", availableZoneIds.indexOf("Europe/London")));
+					"- afterwards use **!timezone set <number>** to set it to the timezone you're in. Example: **!timezone set %d** if your timezone is in 'Europe/London'\n" +
+					"- if you want to know the currently set timezone, use **!timezone get**", availableZoneIds.indexOf("Europe/London")));
 		}
 	}
 
