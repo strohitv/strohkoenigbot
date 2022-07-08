@@ -88,6 +88,7 @@ public class DailyStatsSender {
 	public void sendDailyStatsToAccount(long accountId) {
 		accountRepository.findAll().stream()
 				.filter(a -> a.getId() == accountId)
+				.filter(a -> a.getDiscordId() != null)
 				.filter(a -> a.getShouldSendDailyStats() != null && a.getShouldSendDailyStats())
 				.filter(a -> a.getSplatoonCookie() != null && !a.getSplatoonCookie().isBlank())
 				.filter(a -> a.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(a.getSplatoonCookieExpiresAt()))
