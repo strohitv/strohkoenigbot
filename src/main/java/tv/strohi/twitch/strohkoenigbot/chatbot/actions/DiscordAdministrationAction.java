@@ -158,7 +158,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			}
 		} else if (message.startsWith("!start")) {
 			Account account = accountRepository.findAll().stream()
-					.filter(Account::getIsMainAccount)
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.findFirst()
 					.orElse(null);
 
@@ -170,7 +170,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export started successfully.");
 		} else if (message.startsWith("!stop")) {
 			Account account = accountRepository.findAll().stream()
-					.filter(Account::getIsMainAccount)
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.findFirst()
 					.orElse(null);
 
@@ -371,9 +371,9 @@ public class DiscordAdministrationAction extends ChatAction {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
 		} else if (message.startsWith("!local_stats")) {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats requested");
-			if (!DiscordChannelDecisionMaker.isIsLocalDebug()) {
+			if (DiscordChannelDecisionMaker.isIsLocalDebug()) {
 				Long accountId;
-				String messageWithoutCommand = message.trim().substring("!local_stats".length());
+				String messageWithoutCommand = message.trim().substring("!local_stats".length()).trim();
 				if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("is local - sending for account Id %d...", accountId));
 					dailyStatsSender.sendDailyStatsToAccount(accountId);
@@ -387,7 +387,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats requested");
 			if (!DiscordChannelDecisionMaker.isIsLocalDebug()) {
 				Long accountId;
-				String messageWithoutCommand = message.trim().substring("!daily_stats".length());
+				String messageWithoutCommand = message.trim().substring("!daily_stats".length()).trim();
 				if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("is server - sending for account Id %d...", accountId));
 					dailyStatsSender.sendDailyStatsToAccount(accountId);

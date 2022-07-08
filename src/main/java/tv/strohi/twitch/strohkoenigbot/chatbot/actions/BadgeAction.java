@@ -55,7 +55,7 @@ public class BadgeAction extends ChatAction {
 
 		if (message.startsWith("!badges")) {
 			Account account = accountRepository.findAll().stream()
-					.filter(Account::getIsMainAccount)
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.findFirst()
 					.orElse(new Account());
 
@@ -79,7 +79,7 @@ public class BadgeAction extends ChatAction {
 			long startTime = c.toInstant().getEpochSecond(); //the midnight, that's the first second of the day.
 
 			Account account = accountRepository.findAll().stream()
-					.filter(Account::getIsMainAccount)
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.findFirst()
 					.orElse(new Account());
 

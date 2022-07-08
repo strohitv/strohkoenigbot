@@ -73,7 +73,7 @@ public class SplatNetStoreWatcher {
 		logger.info("checking for new splatnet store offers");
 
 		Account account = accountRepository.findAll().stream()
-				.filter(Account::getIsMainAccount)
+				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 				.findFirst()
 				.orElse(new Account());
 

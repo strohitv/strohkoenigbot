@@ -34,7 +34,7 @@ public class UserCounter {
 				.collect(Collectors.toList());
 
 		Long mainAccountId = allUsers.stream()
-				.filter(Account::getIsMainAccount)
+				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 				.map(Account::getDiscordId)
 				.findFirst()
 				.orElse(null);

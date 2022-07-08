@@ -40,7 +40,7 @@ public class BotController {
 		BotStatus status = new BotStatus();
 
 		Account account = accountRepository.findAll().stream()
-				.filter(Account::getIsMainAccount)
+				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 				.findFirst()
 				.orElse(new Account());
 		status.setRunning(twitchBotClient.isLive(account.getTwitchUserId()));
@@ -51,7 +51,7 @@ public class BotController {
 	@PostMapping("start")
 	public void startExporter() {
 		Account account = accountRepository.findAll().stream()
-				.filter(Account::getIsMainAccount)
+				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 				.findFirst()
 				.orElse(new Account());
 
@@ -64,7 +64,7 @@ public class BotController {
 	@PostMapping("stop")
 	public void stopExporter() {
 		Account account = accountRepository.findAll().stream()
-				.filter(Account::getIsMainAccount)
+				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 				.findFirst()
 				.orElse(new Account());
 

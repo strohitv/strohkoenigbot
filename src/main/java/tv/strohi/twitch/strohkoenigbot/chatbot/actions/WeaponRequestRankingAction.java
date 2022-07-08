@@ -85,7 +85,7 @@ public class WeaponRequestRankingAction extends ChatAction {
 
 		if (args.getReason() == TriggerReason.ChatMessage) {
 			accountId = accountRepository.findByTwitchUserId((String) args.getArguments().getOrDefault(ArgumentKey.ChannelId, null))
-					.filter(Account::getIsMainAccount)
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.map(Account::getId)
 					.stream().findFirst()
 					.orElse(0L);

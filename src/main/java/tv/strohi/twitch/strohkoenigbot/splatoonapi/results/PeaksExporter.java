@@ -58,7 +58,7 @@ public class PeaksExporter {
 	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void reloadMonthlyResults() {
 		Account account = accountRepository.findAll().stream()
-				.filter(Account::getIsMainAccount)
+				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 				.findFirst()
 				.orElse(new Account());
 
@@ -155,7 +155,7 @@ public class PeaksExporter {
 //	@Scheduled(cron = "0 * * * * *")
 	public void refreshPreviousMonth() {
 		Account account = accountRepository.findAll().stream()
-				.filter(Account::getIsMainAccount)
+				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 				.findFirst()
 				.orElse(new Account());
 

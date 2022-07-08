@@ -63,7 +63,7 @@ public class RandomWeaponAction extends ChatAction {
 
 		if (message.startsWith("!rw")) {
 			Account account = accountRepository.findAll().stream()
-					.filter(Account::getIsMainAccount)
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.findFirst()
 					.orElse(new Account());
 
