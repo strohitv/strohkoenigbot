@@ -202,7 +202,7 @@ public class DailyStatsSender {
 
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 					.withZone(ZoneId.of(account.getTimezone()));
-			String strDate =  formatter.format(time.minus(1, DAYS).toInstant());
+			String strDate = formatter.format(time.minus(1, DAYS).toInstant());
 
 			discordBot.sendPrivateMessageWithAttachment(account.getDiscordId(),
 					message,
@@ -316,7 +316,7 @@ public class DailyStatsSender {
 					.append(";").append(getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats()))
 					.append(";").append(getNumber(weaponStats.getWins()))
 					.append(";").append(getNumber(weaponStats.getDefeats()))
-					.append(";").append(String.format("%.2f", getNumber(weaponStats.getWins()) * 1.0d / (getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats()))))
+					.append(";").append(String.format(Locale.US, "%.2f", getNumber(weaponStats.getWins()) * 1.0d / (getNumber(weaponStats.getWins()) + getNumber(weaponStats.getDefeats()))))
 					.append(";").append(yesterdayWins)
 					.append(";").append(yesterdayDefeats)
 					.append(";").append(String.format(Locale.US, "%.1f", currentFlag))
