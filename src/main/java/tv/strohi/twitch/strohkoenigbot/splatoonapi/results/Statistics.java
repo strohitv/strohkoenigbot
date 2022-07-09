@@ -46,6 +46,8 @@ public class Statistics {
 			"</body>\n" +
 			"</html>";
 
+	private String finishedHtml = currentHtml;
+
 	public Statistics() {
 		path = String.format("%s\\src\\main\\resources\\html\\template-example.html", Paths.get(".").toAbsolutePath().normalize().toString());
 		reset();
@@ -72,6 +74,10 @@ public class Statistics {
 		this.resourcesDownloader = resourcesDownloader;
 	}
 
+	public String getFinishedHtml() {
+		return finishedHtml;
+	}
+
 	public void reset() {
 		includedMatches.clear();
 		weaponPaints.clear();
@@ -93,10 +99,6 @@ public class Statistics {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public String getCurrentHtml() {
-		return currentHtml;
 	}
 
 	public void exportHtml() {
@@ -264,12 +266,13 @@ public class Statistics {
 							.replace("{shoes-sub3-hidden}", "hidden");
 				}
 
+				finishedHtml = currentHtml;
+
 				FileWriter myWriter = new FileWriter(path);
 				myWriter.write(currentHtml);
 				myWriter.close();
 			} catch (Exception e) {
 				e.printStackTrace();
-				return;
 			}
 		}
 	}

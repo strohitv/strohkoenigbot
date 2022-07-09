@@ -27,11 +27,11 @@ public class OverlayController {
 
 	@GetMapping("")
 	public @ResponseBody String getOverlay() {
-		return statistics.getCurrentHtml();
+		return statistics.getFinishedHtml();
 	}
 
 	@GetMapping("/fullscreen")
 	public @ResponseBody String getFullscreenOverlay() {
-		return fullscreenExporter.getCurrentHtml();
+		return fullscreenExporter.getFinishedHtml();
 	}
 }

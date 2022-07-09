@@ -46,8 +46,10 @@ public class ExtendedStatisticsExporter {
 			"</body>\n" +
 			"</html>";
 
-	public String getCurrentHtml() {
-		return currentHtml;
+	String finishedHtml = currentHtml;
+
+	public String getFinishedHtml() {
+		return finishedHtml;
 	}
 
 	private Instant started = Instant.now();
@@ -491,6 +493,8 @@ public class ExtendedStatisticsExporter {
 				currentHtml = currentHtml.replace("{shoes-sub-3-image}", "")
 						.replace("{shoes-sub-3-hidden}", "hidden");
 			}
+
+			finishedHtml = currentHtml;
 
 			FileWriter myWriter = new FileWriter(path);
 			myWriter.write(currentHtml);
