@@ -174,6 +174,10 @@ public class ExtendedStatisticsExporter {
 		int currentMonth = date.getMonthValue();
 		Splatoon2MonthlyResult currentMonthResult = monthlyResultRepository.findByAccountIdAndPeriodYearAndPeriodMonth(accountId, currentYear, currentMonth);
 
+		if (currentMonthResult == null) {
+			return;
+		}
+
 		int previousPeriodYear = date.minusDays(date.getDayOfMonth() + 5).getYear();
 		int previousPeriodMonth = date.minusDays(date.getDayOfMonth() + 5).getMonthValue();
 		Splatoon2MonthlyResult lastMonthResult = monthlyResultRepository.findByAccountIdAndPeriodYearAndPeriodMonth(accountId, previousPeriodYear, previousPeriodMonth);
