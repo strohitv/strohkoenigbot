@@ -205,8 +205,8 @@ public class WeaponRequestRankingAction extends ChatAction {
 
 		lastMatch = null;
 
-		configurationRepository.findByConfigName(LAST_REQUESTER_ID).forEach(configurationRepository::delete);
-		configurationRepository.findByConfigName(LAST_REQUESTER_NAME).forEach(configurationRepository::delete);
+		configurationRepository.deleteAll(configurationRepository.findByConfigName(LAST_REQUESTER_ID));
+		configurationRepository.deleteAll(configurationRepository.findByConfigName(LAST_REQUESTER_NAME));
 	}
 
 	private void reset() {
