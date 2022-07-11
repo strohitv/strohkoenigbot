@@ -90,7 +90,7 @@ public class WeaponRequestRankingAction extends ChatAction {
 					.stream().findFirst()
 					.orElse(0L);
 
-			if (message.startsWith("!wr info")) {
+			if (message.startsWith("!wr info") || message.equals("!wr")) {
 				args.getReplySender().send("To make weapon requests more interesting, there's a ranking of which request made me get the biggest win streak! Try giving me a weapon which makes me win many games to reach first place! Type \"!wr rules\" in chat to see the rules, type \"!wr list\" in chat to see the global ranking, type \"!wr me\" in chat to see your own ranking.");
 			} else if (message.startsWith("!wr list")) {
 				sendLeaderBoardToTwitch(args);
