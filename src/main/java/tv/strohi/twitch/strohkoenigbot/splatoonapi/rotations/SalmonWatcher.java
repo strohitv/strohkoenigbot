@@ -231,7 +231,11 @@ public class SalmonWatcher {
 			if (weapon.getWeapon() != null) {
 				builder.append("- ").append(weapon.getWeapon().getName()).append("\n");
 			} else if (weapon.getCoop_special_weapon() != null) {
-				builder.append("- ").append(weapon.getCoop_special_weapon().getName()).append("\n");
+				if ("-2".equals(weapon.getId())) {
+					builder.append("- ").append("Random (Gold)").append("\n");
+				} else {
+					builder.append("- ").append(weapon.getCoop_special_weapon().getName()).append("\n");
+				}
 			}
 		}
 

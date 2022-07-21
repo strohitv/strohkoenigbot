@@ -1,0 +1,110 @@
+{
+  "schedules": [
+    {
+      "start_time": 1658404800,
+      "end_time": 1658534400
+    },
+    {
+      "end_time": 1658721600,
+      "start_time": 1658556000
+    },
+    {
+      "end_time": 1658858400,
+      "start_time": 1658728800
+    },
+    {
+      "end_time": 1659009600,
+      "start_time": 1658880000
+    },
+    {
+      "end_time": 1659160800,
+      "start_time": 1659031200
+    }
+  ],
+  "details": [
+    {
+      "weapons": [
+        {
+          "id": "3020",
+          "weapon": {
+            "image": "/images/weapon/27a026e7dec5a068777bb7883f50451aec799d71.png",
+            "name": "Sloshing Machine",
+            "id": "3020",
+            "thumbnail": "/images/weapon/e3a38f4e457c8d8d7e5629d7f8508487c6c12746.png"
+          }
+        },
+        {
+          "weapon": {
+            "name": "Splat Roller",
+            "id": "1010",
+            "thumbnail": "/images/weapon/626210255f99cb22bee1eded39457c51aa9622aa.png",
+            "image": "/images/weapon/1041dbdd11b3036671148d47c2e0798cecf3dba2.png"
+          },
+          "id": "1010"
+        },
+        {
+          "weapon": {
+            "image": "/images/weapon/202724be5bb5e59457227d087d7c48a32c01db24.png",
+            "id": "300",
+            "name": "L-3 Nozzlenose",
+            "thumbnail": "/images/weapon/41001d5ba8ce0f05aaa00f9a0d6368b1fa109c73.png"
+          },
+          "id": "300"
+        },
+        {
+          "weapon": {
+            "image": "/images/weapon/e34bbd580e49695b97d5fc4464cc901d4fe08ce5.png",
+            "thumbnail": "/images/weapon/3a92a1fa8320222ca300d3c3ac25474c5077c304.png",
+            "id": "4020",
+            "name": "Hydra Splatling"
+          },
+          "id": "4020"
+        }
+      ],
+      "start_time": 1658404800,
+      "stage": {
+        "image": "/images/coop_stage/65c68c6f0641cc5654434b78a6f10b0ad32ccdee.png",
+        "name": "Spawning Grounds"
+      },
+      "end_time": 1658534400
+    },
+    {
+      "stage": {
+        "name": "Salmonid Smokeyard",
+        "image": "/images/coop_stage/e9f7c7b35e6d46778cd3cbc0d89bd7e1bc3be493.png"
+      },
+      "start_time": 1658556000,
+      "weapons": [
+        {
+          "id": "-2",
+          "coop_special_weapon": {
+            "image": "/images/coop_weapons/7076c8181ab5c49d2ac91e43a2d945a46a99c17d.png",
+            "name": "Random"
+          }
+        },
+        {
+          "coop_special_weapon": {
+            "image": "/images/coop_weapons/7076c8181ab5c49d2ac91e43a2d945a46a99c17d.png",
+            "name": "Random"
+          },
+          "id": "-2"
+        },
+        {
+          "id": "-2",
+          "coop_special_weapon": {
+            "image": "/images/coop_weapons/7076c8181ab5c49d2ac91e43a2d945a46a99c17d.png",
+            "name": "Random"
+          }
+        },
+        {
+          "id": "-2",
+          "coop_special_weapon": {
+            "name": "Random",
+            "image": "/images/coop_weapons/7076c8181ab5c49d2ac91e43a2d945a46a99c17d.png"
+          }
+        }
+      ],
+      "end_time": 1658721600
+    }
+  ]
+}
