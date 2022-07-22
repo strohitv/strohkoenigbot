@@ -97,7 +97,7 @@ public class WeaponRequestRankingAction extends ChatAction {
 			} else if (message.startsWith("!wr me")) {
 				sendAccountPlacementsToTwitch(args);
 			} else if (message.startsWith("!wr rules")) {
-				args.getReplySender().send("1. No requests while I'm playing with my Comp team. 2. No requests while I'm doing placements. 3. I'll play your weapon until I lose with it. 4. Banned weapons: Neo Sploosh & Custom Eliter 4k Scope. 5. One request per 30 minutes, one user can only do two requests per stream. 6. You can request the same weapon as often as you want to.");
+				args.getReplySender().send("1. No requests while I'm playing with my Comp team. 2. I might not accept requests while I'm doing placements. 3. I'll play your weapon until I lose with it. 4. Banned weapons: Neo Sploosh & Custom Eliter 4k Scope. 5. One request per 30 minutes, one user can only do two requests per stream. 6. You can request the same weapon as often as you want to.");
 			} else if (message.startsWith("!wr")) {
 				String channelName = (String) args.getArguments().getOrDefault(ArgumentKey.ChannelName, null);
 				String channelId = (String) args.getArguments().getOrDefault(ArgumentKey.ChannelId, null);
