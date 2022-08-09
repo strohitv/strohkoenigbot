@@ -66,36 +66,50 @@ public class RequestSender {
 
 	private <T> T sendRequestAndParseGzippedJson(Account account, HttpRequest request, Class<T> valueType) {
 		String body = "";
+		int retryCount = 0;
 
-		try {
-			logger.debug("RequestSender sending new request to '{}'", request.uri().toString());
-			HttpResponse<byte[]> response = clientCreator.createFor(account).send(request, HttpResponse.BodyHandlers.ofByteArray());
+		while (retryCount < 5) {
+			try {
+				logger.debug("RequestSender sending new request to '{}'", request.uri().toString());
+				HttpResponse<byte[]> response = clientCreator.createFor(account).send(request, HttpResponse.BodyHandlers.ofByteArray());
 
-			logger.debug("got response with status code {}:", response.statusCode());
+				logger.debug("got response with status code {}:", response.statusCode());
 
-			if (response.statusCode() < 300) {
-				body = new String(response.body());
+				if (response.statusCode() < 300) {
+					body = new String(response.body());
 
-				if (response.headers().map().containsKey("Content-Encoding") && !response.headers().map().get("Content-Encoding").isEmpty() && "gzip".equals(response.headers().map().get("Content-Encoding").get(0))) {
-					body = new String(new GZIPInputStream(new ByteArrayInputStream(response.body())).readAllBytes());
+					if (response.headers().map().containsKey("Content-Encoding") && !response.headers().map().get("Content-Encoding").isEmpty() && "gzip".equals(response.headers().map().get("Content-Encoding").get(0))) {
+						body = new String(new GZIPInputStream(new ByteArrayInputStream(response.body())).readAllBytes());
+					}
+
+					return mapper.readValue(body, valueType);
+				} else {
+					logger.info("request:");
+					logger.info(request);
+					logger.info("response:");
+					logger.info(response);
+
+					return null;
 				}
+			} catch (IOException | InterruptedException e) {
+				if (e instanceof IOException && e.getCause() != null && e.getCause() instanceof CookieRefreshException) {
+					discordBot.sendPrivateMessage(account.getDiscordId(), "**ERROR** your cookie to access to splatnet became outdated, I cannot access splatnet anymore.\nPlease provide new login credentials by using the **!splatoon2 register** command.");
+					logger.error("The cookie for account with id {} wasn't valid anymore and no session token has been set!", account.getId());
+					retryCount = 6;
+				} else {
+					logger.error("exception while sending request, retrying...");
+					logger.error("response body: '{}'", body);
 
-				return mapper.readValue(body, valueType);
-			} else {
-				logger.info("request:");
-				logger.info(request);
-				logger.info("response:");
-				logger.info(response);
-			}
-		} catch (IOException | InterruptedException e) {
-			if (e instanceof IOException && e.getCause() != null && e.getCause() instanceof CookieRefreshException) {
-				discordBot.sendPrivateMessage(account.getDiscordId(), "**ERROR** your cookie to access to splatnet became outdated, I cannot access splatnet anymore.\nPlease provide new login credentials by using the **!splatoon2 register** command.");
-				logger.error("The cookie for account with id {} wasn't valid anymore and no session token has been set!", account.getId());
-			} else {
-				logger.error("exception while sending request");
-				logger.error("response body: '{}'", body);
+					logger.error(e);
 
-				logger.error(e);
+					retryCount++;
+					logger.error("retry count: {} of 4", retryCount);
+
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ignored) {
+					}
+				}
 			}
 		}
 
