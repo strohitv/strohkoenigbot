@@ -26,7 +26,7 @@ public class ResourcesDownloader {
 	}
 
 	public String ensureExistsLocally(String splatNetResourceUrl) {
-		logger.info("downloading a resource '{}'", splatNetResourceUrl);
+		logger.debug("downloading a resource '{}'", splatNetResourceUrl);
 
 		String imageUrl = splatNetResourceUrl;
 		if (isValidURL(imageUrl)) {
@@ -71,7 +71,7 @@ public class ResourcesDownloader {
 			}
 		} else {
 			String result = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
-			logger.info("resource already existed, returning '{}'", result);
+			logger.debug("resource already existed, returning '{}'", result);
 			return result;
 		}
 	}
