@@ -78,7 +78,7 @@ public class DiscordBot {
 			gateway = client.login().block();
 
 			if (gateway != null) {
-				gateway.on(MessageCreateEvent.class).retry().doOnError(logger::error).subscribe(event -> {
+				gateway.on(MessageCreateEvent.class).retry().doOnError(err -> logger.error("HARR HARR HARR DISCORD ERROR LOL", err)).subscribe(event -> {
 					final Message message = event.getMessage();
 					final MessageChannel channel = message.getChannel().block();
 
