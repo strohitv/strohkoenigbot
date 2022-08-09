@@ -78,7 +78,7 @@ public class DiscordBot {
 			gateway = client.login().block();
 
 			if (gateway != null) {
-				gateway.on(MessageCreateEvent.class).subscribe(event -> {
+				gateway.on(MessageCreateEvent.class).retry().doOnError(logger::error).subscribe(event -> {
 					final Message message = event.getMessage();
 					final MessageChannel channel = message.getChannel().block();
 
@@ -152,7 +152,7 @@ public class DiscordBot {
 
 		Long result = null;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<Member> allMembersOfAllServers = guilds.stream()
 					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).collectList().block()).orElse(new ArrayList<>()).stream())
@@ -175,7 +175,7 @@ public class DiscordBot {
 
 		String result = null;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<Member> allMembersOfAllServers = guilds.stream()
 					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).collectList().block()).orElse(new ArrayList<>()).stream())
@@ -202,7 +202,7 @@ public class DiscordBot {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 					.flatMap(g -> Optional.ofNullable(g.getChannels().collectList().block()).orElse(new ArrayList<>()).stream())
@@ -232,7 +232,7 @@ public class DiscordBot {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 
@@ -291,9 +291,10 @@ public class DiscordBot {
 				.findFirst()
 				.flatMap(member -> getGateway()
 						.getUserById(member.getId())
+						.retry()
 						.onErrorResume(e -> Mono.empty())
 						.blockOptional()
-						.flatMap(u -> u.getPrivateChannel().onErrorResume(e -> Mono.empty()).blockOptional()))
+						.flatMap(u -> u.getPrivateChannel().retry().onErrorResume(e -> Mono.empty()).blockOptional()))
 				.stream()
 				.findFirst()
 				.orElse(null);
@@ -306,11 +307,11 @@ public class DiscordBot {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
-				Message msg = channel.createMessage(message).onErrorResume(e -> Mono.empty()).block();
+				Message msg = channel.createMessage(message).retry().onErrorResume(e -> Mono.empty()).block();
 				result = msg != null;
 				logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
 			}
@@ -324,11 +325,11 @@ public class DiscordBot {
 			return;
 		}
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry().block();
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
-				channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).onErrorResume(e -> Mono.empty()).block();
+				channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).retry().onErrorResume(e -> Mono.empty()).block();
 				logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
 			}
 		}
