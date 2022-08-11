@@ -92,6 +92,7 @@ public class Statistics {
 		try {
 			assert is != null;
 			currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			finishedHtml = currentHtml;
 
 			FileWriter myWriter = new FileWriter(path);
 			myWriter.write(currentHtml);
