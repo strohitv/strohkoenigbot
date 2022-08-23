@@ -30,7 +30,9 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -75,12 +77,12 @@ public class DiscordBot {
 		List<Configuration> tokens = configurationRepository.findByConfigName("discordToken");
 		if (gateway == null && tokens.size() > 0) {
 			DiscordClient client = DiscordClient.create(tokens.get(0).getConfigValue());
-			gateway = client.login().block();
+			gateway = client.login().retry().block();
 
 			if (gateway != null) {
 				gateway.on(MessageCreateEvent.class).retry().doOnError(err -> logger.error("HARR HARR HARR DISCORD ERROR LOL", err)).subscribe(event -> {
 					final Message message = event.getMessage();
-					final MessageChannel channel = message.getChannel().block();
+					final MessageChannel channel = getChannelOfMessageWithRetries(message);
 
 					if (channel instanceof PrivateChannel) {
 						if (message.getContent().trim().toLowerCase().startsWith("yes")) {
@@ -145,6 +147,34 @@ public class DiscordBot {
 		return gateway;
 	}
 
+	private MessageChannel getChannelOfMessageWithRetries(Message message) {
+		MessageChannel channel = null;
+		Exception lastException = null;
+		int attempts = 0;
+
+		while (attempts++ < 10 && channel == null) {
+			try {
+				logger.info("attempt number {}", attempts);
+				channel = message.getChannel().retry().block();
+			} catch (Exception ex) {
+				lastException = ex;
+
+				logger.error("SOMETHING WENT WRONG WTF???");
+				logger.error(message);
+				logger.error(ex);
+
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException ignored) {
+				}
+			}
+		}
+
+		if (channel == null) throw new RuntimeException(lastException);
+
+		return channel;
+	}
+
 	public Long loadUserIdFromDiscordServer(String username) {
 		if (getGateway() == null) {
 			return null;
@@ -155,7 +185,7 @@ public class DiscordBot {
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<Member> allMembersOfAllServers = guilds.stream()
-					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).collectList().block()).orElse(new ArrayList<>()).stream())
+					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry().collectList().block()).orElse(new ArrayList<>()).stream())
 					.collect(Collectors.toList());
 
 			result = allMembersOfAllServers.stream()
@@ -178,7 +208,7 @@ public class DiscordBot {
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<Member> allMembersOfAllServers = guilds.stream()
-					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).collectList().block()).orElse(new ArrayList<>()).stream())
+					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry().collectList().block()).orElse(new ArrayList<>()).stream())
 					.collect(Collectors.toList());
 
 			result = allMembersOfAllServers.stream()
@@ -205,7 +235,7 @@ public class DiscordBot {
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
-					.flatMap(g -> Optional.ofNullable(g.getChannels().collectList().block()).orElse(new ArrayList<>()).stream())
+					.flatMap(g -> Optional.ofNullable(g.getChannels().retry().collectList().block()).orElse(new ArrayList<>()).stream())
 					.collect(Collectors.toList());
 
 			List<TextChannel> allChannels = allChannelsOfAllServers.stream()
@@ -276,14 +306,14 @@ public class DiscordBot {
 			e.printStackTrace();
 		}
 
-		Message msg = createMono.block();
+		Message msg = createMono.retry().block();
 		logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
 		return msg != null;
 	}
 
 	private PrivateChannel getPrivateChannelForUserInGuild(Long userId, List<Guild> guilds) {
 		List<Member> allMembersOfAllServers = guilds.stream()
-				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).collectList().block()).orElse(new ArrayList<>()).stream())
+				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry().collectList().block()).orElse(new ArrayList<>()).stream())
 				.collect(Collectors.toList());
 
 		return allMembersOfAllServers.stream()
@@ -336,7 +366,7 @@ public class DiscordBot {
 	}
 
 	public void reply(String message, TextChannel channel, Snowflake reference) {
-		channel.createMessage(MessageCreateSpec.create().withMessageReference(reference).withContent(message)).onErrorResume(e -> Mono.empty()).block();
+		channel.createMessage(MessageCreateSpec.create().withMessageReference(reference).withContent(message)).retry().onErrorResume(e -> Mono.empty()).block();
 	}
 
 	private static class Tuple<X, Y> {
