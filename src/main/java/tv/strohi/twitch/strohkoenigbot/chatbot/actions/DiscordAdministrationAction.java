@@ -397,6 +397,17 @@ public class DiscordAdministrationAction extends ChatAction {
 				}
 			}
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats done");
+		} else if (message.startsWith("!cookie retrieve")) {
+			Account account = accountRepository.findAll().stream()
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.orElse(null);
+
+			if (account != null) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Cookie: `%s`", account.getSplatoonCookie()));
+			} else {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No cookie for you tsk tsk tsk");
+			}
 		}
 	}
 
