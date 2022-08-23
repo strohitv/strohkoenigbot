@@ -2,10 +2,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -17,13 +14,6 @@ import java.nio.file.Paths;
 @Component
 public class ResourcesDownloader {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-
-	private DiscordBot discordBot;
-
-	@Autowired
-	public void setDiscordBot(DiscordBot discordBot) {
-		this.discordBot = discordBot;
-	}
 
 	public String ensureExistsLocally(String splatNetResourceUrl) {
 		logger.debug("downloading a resource '{}'", splatNetResourceUrl);
@@ -54,13 +44,11 @@ public class ResourcesDownloader {
 					}
 
 					String newPath = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
-					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "I downloaded an image!", newPath);
 
 					logger.info("image download successful, path: '{}'", path);
 
 					return newPath;
 				} catch (IOException e) {
-					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not download an image because of an Exception!");
 					logger.error("exception occured!!!");
 					logger.error(e);
 					return splatNetResourceUrl;

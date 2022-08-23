@@ -7,9 +7,10 @@ import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
 import com.github.twitch4j.chat.events.channel.RaidEvent;
 import com.github.twitch4j.common.events.user.PrivateMessageEvent;
-import com.github.twitch4j.events.ChannelGoLiveEvent;
-import com.github.twitch4j.events.ChannelGoOfflineEvent;
-import com.github.twitch4j.helix.domain.*;
+import com.github.twitch4j.helix.domain.Clip;
+import com.github.twitch4j.helix.domain.ClipList;
+import com.github.twitch4j.helix.domain.CreateClipList;
+import com.github.twitch4j.helix.domain.User;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,6 +41,13 @@ import java.util.List;
 public class TwitchBotClient {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
+	private static final List<IChatAction> botActions = new ArrayList<>();
+
+	public static void setBotActions(List<IChatAction> actions) {
+		botActions.clear();
+		botActions.addAll(actions);
+	}
+
 	private static Instant lastClipCreatedTime = Instant.now();
 
 	private TwitchClient client;
@@ -54,14 +62,6 @@ public class TwitchBotClient {
 
 	public void setFakeDebug(boolean fakeDebug) {
 		this.fakeDebug = fakeDebug;
-	}
-
-	private final List<IChatAction> botActions = new ArrayList<>();
-
-	@Autowired
-	public void setBotActions(List<IChatAction> actions) {
-		botActions.clear();
-		botActions.addAll(actions);
 	}
 
 	private AutoSoAction autoSoAction;
@@ -97,6 +97,15 @@ public class TwitchBotClient {
 	IDisposable goLiveListener;
 	IDisposable goOfflineListener;
 
+	public void setGoLiveListener(IDisposable goLiveListener) {
+		this.goLiveListener = goLiveListener;
+	}
+
+	public void setGoOfflineListener(IDisposable goOfflineListener) {
+		this.goOfflineListener = goOfflineListener;
+	}
+
+	// TODO THIS WHOLE CRAP NEEDS A REWORK
 	public void initializeClient() {
 		OAuth2Credential botCredential = getBotCredential();
 		if (botCredential == null) return;
@@ -120,24 +129,6 @@ public class TwitchBotClient {
 			}
 
 			client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, "38502044");
-
-			goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
-				if (resultsExporter != null) {
-					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
-					resultsExporter.start(account);
-				}
-
-				autoSoAction.startStream();
-			});
-
-			goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
-				if (resultsExporter != null) {
-					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
-					resultsExporter.stop(account);
-				}
-
-				autoSoAction.endStream();
-			});
 
 			client.getEventManager().onEvent(RaidEvent.class, new RaidEventConsumer(botActions));
 			client.getEventManager().onEvent(RewardRedeemedEvent.class, new RewardRedeemedConsumer(botActions));
