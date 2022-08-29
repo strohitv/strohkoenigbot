@@ -7,9 +7,31 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.FParamLo
 
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.time.Instant;
 
 public class FTokenRetriever extends AuthenticatorBase {
 	private final String USER_AGENT = "stroh/1.0.0";
+
+	public FParamLoginResult getFTokenFromIminkApi(String accessToken, String guid, int now, int method) {
+		String address = "https://api.imink.app/f";
+
+		URI uri = URI.create(address);
+//		String hash = getS2SApiHash(accessToken, String.format("%d", now));
+
+		String body = String.format("{\"timestamp\":\"%s\"," +
+				"\"requestId\":\"%s\"," +
+				"\"hashMethod\":\"%d\"," +
+				"\"token\":\"%s\"}", Instant.ofEpochSecond(now).toString(), guid, method, accessToken);
+
+		HttpRequest request = HttpRequest.newBuilder()
+				.POST(HttpRequest.BodyPublishers.ofString(body))
+				.uri(uri)
+				.setHeader("User-Agent", USER_AGENT) // "splatnet2statink/1.8.0") //
+				.setHeader("Content-Type", "application/json; charset=utf-8")
+				.build();
+
+		return sendRequestAndParseGzippedJson(request, FParamLoginResult.class);
+	}
 
 	public FParamLoginResult getFToken(String accessToken, String guid, int now, String iid) {
 		String address = "https://flapg.com/ika2/api/login?public";

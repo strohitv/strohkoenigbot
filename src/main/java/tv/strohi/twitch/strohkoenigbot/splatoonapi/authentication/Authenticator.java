@@ -46,21 +46,21 @@ public class Authenticator {
 		logger.info("userInfo");
 		logger.info(userInfo);
 
-		FParamLoginResult fTokenNso = fTokenRetriever.getFToken(accountAccessToken, guid, now, "nso");
+		FParamLoginResult fTokenNso = fTokenRetriever.getFTokenFromIminkApi(accountAccessToken, guid, now, 1);
 		logger.info("fTokenNso");
 		logger.info(fTokenNso);
 
 
-		String gameWebToken = splatoonTokenRetriever.doSplatoonAppLogin(userInfo, fTokenNso);
+		String gameWebToken = splatoonTokenRetriever.doSplatoonAppLogin(userInfo, fTokenNso, accountAccessToken, guid, now);
 		logger.info("gameWebToken");
 		logger.info(gameWebToken);
 
-		FParamLoginResult fTokenApp = fTokenRetriever.getFToken(gameWebToken, guid, now, "app");
+		FParamLoginResult fTokenApp = fTokenRetriever.getFTokenFromIminkApi(gameWebToken, guid, now, 2);
 		logger.info("fTokenApp");
 		logger.info(fTokenApp);
 
 
-		String splatoonAccessToken = splatoonTokenRetriever.getSplatoonAccessToken(gameWebToken, fTokenApp);
+		String splatoonAccessToken = splatoonTokenRetriever.getSplatoonAccessToken(gameWebToken, fTokenApp, accountAccessToken, guid, now);
 		logger.info("splatoonAccessToken");
 		logger.info(splatoonAccessToken);
 
