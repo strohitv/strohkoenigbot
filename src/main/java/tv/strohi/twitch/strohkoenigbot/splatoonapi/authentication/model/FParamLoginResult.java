@@ -9,4 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FParamLoginResult {
 	private String f;
+	private String request_id;
+	private long timestamp;
 }

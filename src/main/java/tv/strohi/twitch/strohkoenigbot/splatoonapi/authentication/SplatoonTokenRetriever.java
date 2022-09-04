@@ -10,11 +10,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.UserInfo
 
 import java.net.URI;
 import java.net.http.HttpRequest;
-import java.time.Instant;
 
 public class SplatoonTokenRetriever extends AuthenticatorBase {
-	public String doSplatoonAppLogin(UserInfo userInfo, FParamLoginResult fParamLoginResult, String accessToken, String guid, int now) {
-		String address = "https://api-lp1.znc.srv.nintendo.net/v1/Account/Login";
+	public String doSplatoonAppLogin(UserInfo userInfo, FParamLoginResult fParamLoginResult, String accessToken) {
+		String address = "https://api-lp1.znc.srv.nintendo.net/v3/Account/Login";
 
 		URI uri = URI.create(address);
 
@@ -23,8 +22,8 @@ public class SplatoonTokenRetriever extends AuthenticatorBase {
 			body = mapper.writeValueAsString(new AccountLoginBody(new AccountLoginBody.LoginParameter(
 					fParamLoginResult.getF(),
 					accessToken,
-					now, // String.format("%d", now), //
-					guid,
+					fParamLoginResult.getTimestamp(), //.getEpochSecond(), // String.format("%d", now), //
+					fParamLoginResult.getRequest_id(),
 					userInfo.getCountry(),
 					userInfo.getBirthday(),
 					userInfo.getLanguage()
@@ -50,7 +49,7 @@ public class SplatoonTokenRetriever extends AuthenticatorBase {
 		return result != null ? result.getResult().getWebApiServerCredential().getAccessToken() : "";
 	}
 
-	public String getSplatoonAccessToken(String gameWebToken, FParamLoginResult FParamLoginResult, String accessToken, String guid, int now) {
+	public String getSplatoonAccessToken(String gameWebToken, FParamLoginResult fParamLoginResult, String accessToken) {
 		String address = "https://api-lp1.znc.srv.nintendo.net/v2/Game/GetWebServiceToken";
 
 		URI uri = URI.create(address);
@@ -59,10 +58,10 @@ public class SplatoonTokenRetriever extends AuthenticatorBase {
 		try {
 			body = mapper.writeValueAsString(new SplatoonTokenRequestBody(new SplatoonTokenRequestBody.LoginParameter(
 					5741031244955648L,
-					FParamLoginResult.getF(),
+					fParamLoginResult.getF(),
 					accessToken,
-					Instant.ofEpochSecond(now).toString(),
-					guid
+					fParamLoginResult.getTimestamp(),
+					fParamLoginResult.getRequest_id()
 			)));
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
@@ -96,7 +95,7 @@ public class SplatoonTokenRetriever extends AuthenticatorBase {
 		private static class LoginParameter {
 			private String f;
 			private String naIdToken;
-			private int timestamp;
+			private long timestamp;
 			private String requestId;
 			private String naCountry;
 			private String naBirthday;
@@ -117,7 +116,7 @@ public class SplatoonTokenRetriever extends AuthenticatorBase {
 			long id;
 			String f;
 			String registrationToken;
-			String timestamp;
+			long timestamp;
 			String requestId;
 		}
 	}

@@ -9,9 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.UserInfo
 import java.net.HttpCookie;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 public class Authenticator {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
@@ -27,16 +25,8 @@ public class Authenticator {
 		return sessionTokenRetriever.getSessionToken(clientId, sessionTokenCode, sessionTokenCodeVerifier);
 	}
 
-	public AuthenticationData getAccess(String clientId, String sessionTokenCode, String sessionTokenCodeVerifier) {
-		String sessionToken = sessionTokenRetriever.getSessionToken(clientId, sessionTokenCode, sessionTokenCodeVerifier);
-		return refreshAccess(sessionToken);
-	}
-
 	public AuthenticationData refreshAccess(String sessionToken) {
 		logger.info("refreshing cookie of session token: {}", sessionToken);
-
-		int now = (int) (new Date().getTime() / 1000);
-		String guid = UUID.randomUUID().toString();
 
 		String accountAccessToken = accountAccessTokenRetriever.getAccountAccessToken(sessionToken);
 		logger.info("accountAccessToken");
@@ -46,21 +36,21 @@ public class Authenticator {
 		logger.info("userInfo");
 		logger.info(userInfo);
 
-		FParamLoginResult fTokenNso = fTokenRetriever.getFTokenFromIminkApi(accountAccessToken, guid, now, 1);
+		FParamLoginResult fTokenNso = fTokenRetriever.getFTokenFromIminkApi(accountAccessToken, 1);
 		logger.info("fTokenNso");
 		logger.info(fTokenNso);
 
 
-		String gameWebToken = splatoonTokenRetriever.doSplatoonAppLogin(userInfo, fTokenNso, accountAccessToken, guid, now);
+		String gameWebToken = splatoonTokenRetriever.doSplatoonAppLogin(userInfo, fTokenNso, accountAccessToken);
 		logger.info("gameWebToken");
 		logger.info(gameWebToken);
 
-		FParamLoginResult fTokenApp = fTokenRetriever.getFTokenFromIminkApi(gameWebToken, guid, now, 2);
+		FParamLoginResult fTokenApp = fTokenRetriever.getFTokenFromIminkApi(gameWebToken, 2);
 		logger.info("fTokenApp");
 		logger.info(fTokenApp);
 
 
-		String splatoonAccessToken = splatoonTokenRetriever.getSplatoonAccessToken(gameWebToken, fTokenApp, accountAccessToken, guid, now);
+		String splatoonAccessToken = splatoonTokenRetriever.getSplatoonAccessToken(gameWebToken, fTokenApp, accountAccessToken);
 		logger.info("splatoonAccessToken");
 		logger.info(splatoonAccessToken);
 
