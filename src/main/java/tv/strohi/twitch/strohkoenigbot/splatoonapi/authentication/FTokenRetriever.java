@@ -11,7 +11,6 @@ public class FTokenRetriever extends AuthenticatorBase {
 		String address = "https://api.imink.app/f";
 
 		URI uri = URI.create(address);
-//		String hash = getS2SApiHash(accessToken, String.format("%d", now));
 
 		String body = String.format("{\"hashMethod\":\"%d\",\"token\":\"%s\"}", method, accessToken);
 
