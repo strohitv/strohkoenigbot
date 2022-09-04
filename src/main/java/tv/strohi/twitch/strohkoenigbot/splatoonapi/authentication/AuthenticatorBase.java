@@ -18,7 +18,7 @@ public abstract class AuthenticatorBase {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	protected static final String nsoAppVersion;
-	private static final String nsoAppFallbackVersion = "2.1.1";
+	private static final String nsoAppFallbackVersion = "2.2.0";
 	private static final String nsoAppVersionHistoryUrl = "https://www.nintendo.co.jp/support/app/nintendo_switch_online_app/index.html";
 
 	protected final HttpClient client = HttpClient.newBuilder()
@@ -48,9 +48,22 @@ public abstract class AuthenticatorBase {
 					body = new String(new GZIPInputStream(new ByteArrayInputStream(response.body())).readAllBytes());
 				}
 
-				logger.info("response body: '{}'", body);
+ 				logger.info("response body: '{}'", body);
 
 				return mapper.readValue(body, valueType);
+			} else {
+				logger.info("request:");
+				logger.info(request);
+				logger.info("response:");
+				logger.info(response);
+
+				String body = new String(response.body());
+				if (response.headers().map().containsKey("Content-Encoding") && !response.headers().map().get("Content-Encoding").isEmpty() && "gzip".equals(response.headers().map().get("Content-Encoding").get(0))) {
+					body = new String(new GZIPInputStream(new ByteArrayInputStream(response.body())).readAllBytes());
+				}
+				logger.info(body);
+
+				return null;
 			}
 		} catch (IOException | InterruptedException e) {
 			logger.error("exception while sending request");
