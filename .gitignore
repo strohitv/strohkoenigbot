@@ -3,6 +3,9 @@
 
 images
 
+game-results
+/export-*
+
 target
 **/TwitchAuthData.java
 
