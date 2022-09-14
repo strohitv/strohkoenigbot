@@ -181,7 +181,7 @@ public class S3Downloader {
 				}
 
 				if (parsedResult.getData().getBankaraBattleHistories() != null) {
-					storeIdsOfMatchesToDownload(allDownloadedGames.getRegular_games(), onlineAnarchyGamesToDownload, parsedResult.getData().getBankaraBattleHistories());
+					storeIdsOfMatchesToDownload(allDownloadedGames.getAnarchy_games(), onlineAnarchyGamesToDownload, parsedResult.getData().getBankaraBattleHistories());
 
 					if (onlineAnarchyGamesToDownload.size() > 0) {
 						String filename = String.format("%s_List_%s.json", key, timeString);
@@ -191,7 +191,7 @@ public class S3Downloader {
 				}
 
 				if (parsedResult.getData().getPrivateBattleHistories() != null) {
-					storeIdsOfMatchesToDownload(allDownloadedGames.getRegular_games(), onlinePrivateGamesToDownload, parsedResult.getData().getPrivateBattleHistories());
+					storeIdsOfMatchesToDownload(allDownloadedGames.getPrivate_games(), onlinePrivateGamesToDownload, parsedResult.getData().getPrivateBattleHistories());
 
 					if (onlinePrivateGamesToDownload.size() > 0) {
 						String filename = String.format("%s_List_%s.json", key, timeString);
