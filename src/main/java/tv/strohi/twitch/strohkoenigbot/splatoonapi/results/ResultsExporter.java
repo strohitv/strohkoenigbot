@@ -165,7 +165,7 @@ public class ResultsExporter {
 
 	//	@Scheduled(cron = "*/10 * * * * *")
 	//	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
-	@Scheduled(fixedDelay = 20000)
+	@Scheduled(fixedDelay = 3_600_000)
 	public void loadGameResultsScheduled() {
 		logger.debug("running results exporter");
 
