@@ -18,6 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
@@ -133,6 +134,13 @@ public class DiscordAdministrationAction extends ChatAction {
 	@Autowired
 	public void setDailyStatsSender(DailyStatsSender dailyStatsSender) {
 		this.dailyStatsSender = dailyStatsSender;
+	}
+
+	private S3Downloader s3Downloader;
+
+	@Autowired
+	public void setS3Downloader(S3Downloader s3Downloader) {
+		this.s3Downloader = s3Downloader;
 	}
 
 	@Override
@@ -420,6 +428,9 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No cookie for you tsk tsk tsk");
 			}
+		} else if (message.startsWith("!reimport s3")) {
+			s3Downloader.downloadStuff();
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
 		}
 	}
 
