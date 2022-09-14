@@ -57,7 +57,7 @@ public class S3Downloader {
 		this.requestSender = requestSender;
 	}
 
-	@Scheduled(cron = "30 25 * * * *")
+	@Scheduled(cron = "30 7 * * * *")
 	public void downloadStuff() {
 		sendLogs("Attempting to load and store Splatoon 3 results");
 
