@@ -57,7 +57,8 @@ public class S3Downloader {
 		this.requestSender = requestSender;
 	}
 
-	@Scheduled(cron = "30 7 * * * *")
+	@Scheduled(cron = "30 20 * * * *")
+//	@Scheduled(cron = "30 * * * * *")
 	public void downloadStuff() {
 		sendLogs("Attempting to load and store Splatoon 3 results");
 
@@ -111,13 +112,13 @@ public class S3Downloader {
 				}
 			}
 
-			File battleOverviewFile = directory.resolve("downloaded-battles.json").toFile();
+			File battleOverviewFile = directory.resolve("Already_Downloaded_Battles.json").toFile();
 			DownloadedGameList allDownloadedGames;
 			try {
 				if (battleOverviewFile.exists() && Files.size(battleOverviewFile.toPath()) > 0) { // if file already exists will do nothing
 					allDownloadedGames = objectMapper.readValue(battleOverviewFile, DownloadedGameList.class);
 				} else if (battleOverviewFile.exists() || battleOverviewFile.createNewFile()) {
-					allDownloadedGames = new DownloadedGameList(0, 0, new HashMap<>(), new HashMap<>());
+					allDownloadedGames = new DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
 					objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
 				} else {
 					sendLogs("COULD NOT OPEN FILE!!!");
@@ -129,10 +130,10 @@ public class S3Downloader {
 				continue;
 			}
 
-			String body = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.Home.getKey());
-			logger.debug(body);
+			String homeResponse = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.Home.getKey());
+			logger.debug(homeResponse);
 
-			if (!body.contains("currentPlayer")) {
+			if (!homeResponse.contains("currentPlayer")) {
 				sendLogs("Could not load homepage from SplatNet3");
 				continue;
 			}
@@ -140,21 +141,20 @@ public class S3Downloader {
 			ZonedDateTime now = Instant.now().atZone(ZoneId.systemDefault());
 			String timeString = String.format("%04d-%02d-%02d_%02d-%02d-%02d", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
 
-			List<String> onlineGamesToDownload = new ArrayList<>();
+			List<String> onlineRegularGamesToDownload = new ArrayList<>();
+			List<String> onlineAnarchyGamesToDownload = new ArrayList<>();
+			List<String> onlinePrivateGamesToDownload = new ArrayList<>();
 			for (S3RequestKey key : S3RequestKey.getOnlineBattles()) {
-				body = requestSender.queryS3Api(bulletToken, gToken, key.getKey());
-				logger.debug(body);
-				if (!body.contains("assistAverage")) {
+				String gameListResponse = requestSender.queryS3Api(bulletToken, gToken, key.getKey());
+				logger.debug(gameListResponse);
+				if (!gameListResponse.contains("assistAverage")) {
 					sendLogs(String.format("Could not load results from SplatNet3: %s", key));
 					continue;
 				}
 
-				String filename = String.format("%s_%s.json", key, timeString);
-				saveFile(directory.resolve(filename), body);
-
 				BattleResults parsedResult;
 				try {
-					parsedResult = objectMapper.readValue(body, BattleResults.class);
+					parsedResult = objectMapper.readValue(gameListResponse, BattleResults.class);
 				} catch (JsonProcessingException e) {
 					sendLogs(String.format("Could not parse results from SplatNet3: %s", key));
 					continue;
@@ -165,62 +165,68 @@ public class S3Downloader {
 				// Eventuell auch die latest results pullen?
 				// Aktuell nicht umgesetzt, da selbe matches unterschiedliche IDs haben in den unterschiedlichen Listen
 				if (parsedResult.getData().getRegularBattleHistories() != null) {
-					storeIdsOfMatchesToDownload(allDownloadedGames.getGames(), onlineGamesToDownload, parsedResult.getData().getRegularBattleHistories());
+					storeIdsOfMatchesToDownload(allDownloadedGames.getRegular_games(), onlineRegularGamesToDownload, parsedResult.getData().getRegularBattleHistories());
+
+					if (onlineRegularGamesToDownload.size() > 0) {
+						String filename = String.format("%s_List_%s.json", key, timeString);
+						saveFile(directory.resolve(filename), gameListResponse);
+					}
+					logger.debug(onlineRegularGamesToDownload);
 				}
 
 				if (parsedResult.getData().getBankaraBattleHistories() != null) {
-					storeIdsOfMatchesToDownload(allDownloadedGames.getGames(), onlineGamesToDownload, parsedResult.getData().getBankaraBattleHistories());
+					storeIdsOfMatchesToDownload(allDownloadedGames.getRegular_games(), onlineAnarchyGamesToDownload, parsedResult.getData().getBankaraBattleHistories());
+
+					if (onlineAnarchyGamesToDownload.size() > 0) {
+						String filename = String.format("%s_List_%s.json", key, timeString);
+						saveFile(directory.resolve(filename), gameListResponse);
+					}
+					logger.debug(onlineAnarchyGamesToDownload);
 				}
 
 				if (parsedResult.getData().getPrivateBattleHistories() != null) {
-					storeIdsOfMatchesToDownload(allDownloadedGames.getGames(), onlineGamesToDownload, parsedResult.getData().getPrivateBattleHistories());
-				}
+					storeIdsOfMatchesToDownload(allDownloadedGames.getRegular_games(), onlinePrivateGamesToDownload, parsedResult.getData().getPrivateBattleHistories());
 
-				logger.debug(onlineGamesToDownload);
-			}
-
-			for (String matchId : onlineGamesToDownload) {
-				String matchJson = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.GameDetail.getKey(), matchId);
-				logger.debug(matchJson);
-
-				if (!matchJson.contains("vsHistoryDetail")) {
-					sendLogs("could not load match detail from splatnet!");
-				}
-
-				String filename = String.format("Battle_Result_%05d.json", allDownloadedGames.getNumber_of_games() + 1);
-				if (saveFile(directory.resolve(filename), matchJson)) {
-					try {
-						SingleMatchResult data = objectMapper.readValue(matchJson, SingleMatchResult.class);
-
-						allDownloadedGames.setNumber_of_games(allDownloadedGames.getNumber_of_games() + 1);
-						allDownloadedGames.getGames().put(matchId, new StoredGame(
-								allDownloadedGames.getNumber_of_games(),
-								filename,
-								Instant.parse(data.getData().getVsHistoryDetail().getPlayedTime())));
-					} catch (JsonProcessingException e) {
-						sendLogs("Could not parse single match result!");
-						logger.error(e);
+					if (onlinePrivateGamesToDownload.size() > 0) {
+						String filename = String.format("%s_List_%s.json", key, timeString);
+						saveFile(directory.resolve(filename), gameListResponse);
 					}
+					logger.debug(onlinePrivateGamesToDownload);
 				}
+
 			}
 
-			body = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.Salmon.getKey());
-			logger.debug(body);
+			for (String matchId : onlineRegularGamesToDownload) {
+				storeOnlineGame(gToken, bulletToken, "Regular", directory, allDownloadedGames.getRegular_games(), matchId);
+			}
+
+			for (String matchId : onlineAnarchyGamesToDownload) {
+				storeOnlineGame(gToken, bulletToken, "Anarchy", directory, allDownloadedGames.getAnarchy_games(), matchId);
+			}
+
+			for (String matchId : onlinePrivateGamesToDownload) {
+				storeOnlineGame(gToken, bulletToken, "Private", directory, allDownloadedGames.getPrivate_games(), matchId);
+			}
+
+			String salmonListResponse = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.Salmon.getKey());
+			logger.debug(salmonListResponse);
 
 			List<String> salmonShiftsToDownload = new ArrayList<>();
-			if (body.contains("coop")) {
-				String filename = String.format("Salmon_%s.json", timeString);
-				saveFile(directory.resolve(filename), body);
-
+			if (salmonListResponse.contains("coop")) {
 				BattleResults parsedResult = null;
 				try {
-					parsedResult = objectMapper.readValue(body, BattleResults.class);
+					parsedResult = objectMapper.readValue(salmonListResponse, BattleResults.class);
 				} catch (JsonProcessingException e) {
 					sendLogs("Could not parse results from SplatNet3: Salmon Run");
 				}
 
 				if (parsedResult != null) {
 					storeIdsOfMatchesToDownload(allDownloadedGames.getSalmon_games(), salmonShiftsToDownload, parsedResult.getData().getCoopResult());
+
+					if (salmonShiftsToDownload.size() > 0) {
+						String filename = String.format("Salmon_List_%s.json", timeString);
+						saveFile(directory.resolve(filename), salmonListResponse);
+					}
 
 					for (String salmonShiftId : salmonShiftsToDownload) {
 						String salmonShiftJson = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.SalmonDetail.getKey(), salmonShiftId);
@@ -231,14 +237,13 @@ public class S3Downloader {
 							continue;
 						}
 
-						filename = String.format("Salmon_Result_%05d.json", allDownloadedGames.getNumber_of_salmon_games() + 1);
+						String filename = String.format("Salmon_Result_%05d.json", allDownloadedGames.getSalmon_games().size() + 1);
 						if (saveFile(directory.resolve(filename), salmonShiftJson)) {
 							try {
 								SingleMatchResult data = objectMapper.readValue(salmonShiftJson, SingleMatchResult.class);
 
-								allDownloadedGames.setNumber_of_salmon_games(allDownloadedGames.getNumber_of_salmon_games() + 1);
 								allDownloadedGames.getSalmon_games().put(salmonShiftId, new StoredGame(
-										allDownloadedGames.getNumber_of_salmon_games(),
+										allDownloadedGames.getSalmon_games().size() + 1,
 										filename,
 										Instant.parse(data.getData().getCoopHistoryDetail().getPlayedTime())));
 							} catch (JsonProcessingException e) {
@@ -264,7 +269,10 @@ public class S3Downloader {
 					.filter(name -> name.startsWith("export-"))
 					.collect(Collectors.toList());
 
-			if (onlineGamesToDownload.size() > 0 || salmonShiftsToDownload.size() > 0) {
+			if (onlineRegularGamesToDownload.size() > 0
+					|| onlineAnarchyGamesToDownload.size() > 0
+					|| onlinePrivateGamesToDownload.size() > 0
+					|| salmonShiftsToDownload.size() > 0) {
 				// move exported folders to back up directory
 				for (String dir : directories) {
 					try {
@@ -285,9 +293,39 @@ public class S3Downloader {
 				}
 			}
 
-			sendLogs(String.format("Finished loading and storing Splatoon 3 results:\n- **%d** new pvp matches\n- **%d** new salmon run shifts",
-					onlineGamesToDownload.size(),
+			sendLogs(String.format("Finished loading and storing Splatoon 3 results:\n" +
+							"- **%d** new regular battles\n" +
+							"- **%d** new anarchy battles\n" +
+							"- **%d** new private battles\n" +
+							"- **%d** new salmon run shifts",
+					onlineRegularGamesToDownload.size(),
+					onlineAnarchyGamesToDownload.size(),
+					onlinePrivateGamesToDownload.size(),
 					salmonShiftsToDownload.size()));
+		}
+	}
+
+	private void storeOnlineGame(String gToken, String bulletToken, String filenamePrefix, Path directory, Map<String, StoredGame> games, String matchId) {
+		String matchJson = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.GameDetail.getKey(), matchId);
+		logger.debug(matchJson);
+
+		if (!matchJson.contains("vsHistoryDetail")) {
+			sendLogs("could not load match detail from splatnet!");
+		}
+
+		String filename = String.format("%s_Result_%05d.json", filenamePrefix, games.size() + 1);
+		if (saveFile(directory.resolve(filename), matchJson)) {
+			try {
+				SingleMatchResult data = objectMapper.readValue(matchJson, SingleMatchResult.class);
+
+				games.put(matchId, new StoredGame(
+						games.size() + 1,
+						filename,
+						Instant.parse(data.getData().getVsHistoryDetail().getPlayedTime())));
+			} catch (JsonProcessingException e) {
+				sendLogs("Could not parse single match result!");
+				logger.error(e);
+			}
 		}
 	}
 
@@ -343,9 +381,9 @@ public class S3Downloader {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class DownloadedGameList {
-		private int number_of_games;
-		private int number_of_salmon_games;
-		private Map<String, StoredGame> games;
+		private Map<String, StoredGame> regular_games;
+		private Map<String, StoredGame> anarchy_games;
+		private Map<String, StoredGame> private_games;
 		private Map<String, StoredGame> salmon_games;
 	}
 
