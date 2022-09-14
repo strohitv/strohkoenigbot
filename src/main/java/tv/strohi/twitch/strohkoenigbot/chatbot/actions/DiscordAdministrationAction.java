@@ -198,6 +198,19 @@ public class DiscordAdministrationAction extends ChatAction {
 			config = configurationRepository.save(config);
 
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was stored into database.", config.getId()));
+		} else if (message.startsWith("!config add") && message.contains("=")) {
+			String commandToSet = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config add".length()).trim();
+
+			String propertyName = commandToSet.split("=")[0];
+			String propertyValue = commandToSet.substring(propertyName.length() + 1).trim();
+
+			Configuration config = new Configuration();
+			config.setConfigName(propertyName);
+			config.setConfigValue(propertyValue);
+
+			config = configurationRepository.save(config);
+
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was added into database.", config.getId()));
 		} else if (message.startsWith("!config get") && !message.toLowerCase().contains("pass")) {
 			String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config get".length()).trim();
 
@@ -212,7 +225,6 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Such a configuration does not exist.");
 			}
-
 		} else if (message.startsWith("!config remove")) {
 			String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config remove".length()).trim();
 
