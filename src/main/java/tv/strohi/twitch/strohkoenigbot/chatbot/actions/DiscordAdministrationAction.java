@@ -221,7 +221,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			}
 
 			if (config != null) {
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d: %s", config.getId(), config.getConfigValue()));
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d: `%s`", config.getId(), config.getConfigValue()));
 			} else {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Such a configuration does not exist.");
 			}
