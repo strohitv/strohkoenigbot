@@ -68,15 +68,21 @@ public class S3Downloader {
 
 		for (Configuration singleS3SScript : s3sScripts) {
 			Runtime rt = Runtime.getRuntime();
-			try {
-				int result = rt.exec(singleS3SScript.getConfigValue()).waitFor();
-
-				if (result != 0) {
-					sendLogs(String.format("Exception while executing s3s process!! Result wasn't 0 but %d instead!", result));
+			int result = -1;
+			int number = 0;
+			while (result != 0 && number < 5) {
+				try {
+					number++;
+					result = rt.exec(singleS3SScript.getConfigValue()).waitFor();
+				} catch (IOException | InterruptedException e) {
+					sendLogs("Exception while executing s3s process, see logs!");
+					logger.error(e);
 				}
-			} catch (IOException | InterruptedException e) {
-				sendLogs("Exception while executing s3s process, see logs!");
-				logger.error(e);
+			}
+
+			if (result != 0) {
+				sendLogs("Exception while executing s3s process!! Result wasn't 0 for 5 attempts!");
+				return;
 			}
 		}
 
