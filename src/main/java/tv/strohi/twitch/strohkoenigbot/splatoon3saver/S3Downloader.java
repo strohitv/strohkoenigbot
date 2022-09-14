@@ -140,7 +140,7 @@ public class S3Downloader {
 			ZonedDateTime now = Instant.now().atZone(ZoneId.systemDefault());
 			String timeString = String.format("%04d-%02d-%02d_%02d-%02d-%02d", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
 
-			List<String> idsOfMatchesToDownload = new ArrayList<>();
+			List<String> onlineGamesToDownload = new ArrayList<>();
 			for (S3RequestKey key : S3RequestKey.getOnlineBattles()) {
 				body = requestSender.queryS3Api(bulletToken, gToken, key.getKey());
 				logger.debug(body);
@@ -165,21 +165,21 @@ public class S3Downloader {
 				// Eventuell auch die latest results pullen?
 				// Aktuell nicht umgesetzt, da selbe matches unterschiedliche IDs haben in den unterschiedlichen Listen
 				if (parsedResult.getData().getRegularBattleHistories() != null) {
-					storeIdsOfMatchesToDownload(allDownloadedGames.getGames(), idsOfMatchesToDownload, parsedResult.getData().getRegularBattleHistories());
+					storeIdsOfMatchesToDownload(allDownloadedGames.getGames(), onlineGamesToDownload, parsedResult.getData().getRegularBattleHistories());
 				}
 
 				if (parsedResult.getData().getBankaraBattleHistories() != null) {
-					storeIdsOfMatchesToDownload(allDownloadedGames.getGames(), idsOfMatchesToDownload, parsedResult.getData().getBankaraBattleHistories());
+					storeIdsOfMatchesToDownload(allDownloadedGames.getGames(), onlineGamesToDownload, parsedResult.getData().getBankaraBattleHistories());
 				}
 
 				if (parsedResult.getData().getPrivateBattleHistories() != null) {
-					storeIdsOfMatchesToDownload(allDownloadedGames.getGames(), idsOfMatchesToDownload, parsedResult.getData().getPrivateBattleHistories());
+					storeIdsOfMatchesToDownload(allDownloadedGames.getGames(), onlineGamesToDownload, parsedResult.getData().getPrivateBattleHistories());
 				}
 
-				logger.debug(idsOfMatchesToDownload);
+				logger.debug(onlineGamesToDownload);
 			}
 
-			for (String matchId : idsOfMatchesToDownload) {
+			for (String matchId : onlineGamesToDownload) {
 				String matchJson = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.GameDetail.getKey(), matchId);
 				logger.debug(matchJson);
 
@@ -264,7 +264,7 @@ public class S3Downloader {
 					.filter(name -> name.startsWith("export-"))
 					.collect(Collectors.toList());
 
-			if (idsOfMatchesToDownload.size() > 0 || salmonShiftsToDownload.size() > 0) {
+			if (onlineGamesToDownload.size() > 0 || salmonShiftsToDownload.size() > 0) {
 				// move exported folders to back up directory
 				for (String dir : directories) {
 					try {
@@ -285,7 +285,9 @@ public class S3Downloader {
 				}
 			}
 
-			sendLogs("Finished loading and storing Splatoon 3 results");
+			sendLogs(String.format("Finished loading and storing Splatoon 3 results:\n- **%d** new pvp matches\n- **%d** new salmon run shifts",
+					onlineGamesToDownload.size(),
+					salmonShiftsToDownload.size()));
 		}
 	}
 
