@@ -57,23 +57,37 @@ public class S3Downloader {
 		this.requestSender = requestSender;
 	}
 
-	@Scheduled(cron = "30 35 * * * *")
-//	@Scheduled(cron = "30 * * * * *")
+//	@Scheduled(cron = "30 35 * * * *")
+	@Scheduled(cron = "30 * * * * *")
 	public void downloadStuff() {
 		sendLogs("Attempting to load and store Splatoon 3 results");
 
-		List<Configuration> s3sScripts = configurationRepository.findByConfigName("s3sScript");
+		String scriptFormatString = configurationRepository.findByConfigName("s3sScript").stream()
+				.map(Configuration::getConfigValue)
+				.findFirst()
+				.orElse("python3 %s/s3s.py -o");
+
 		List<Configuration> s3sLocations = configurationRepository.findByConfigName("s3sLocation");
 		if (s3sLocations.size() == 0) return;
 
-		for (Configuration singleS3SScript : s3sScripts) {
-			Runtime rt = Runtime.getRuntime();
+		Runtime rt = Runtime.getRuntime();
+		for (Configuration singleS3SLocation : s3sLocations) {
+			String configFileLocation = singleS3SLocation.getConfigValue();
+			String command = String.format(scriptFormatString, configFileLocation);
+
 			int result = -1;
 			int number = 0;
 			while (result != 0 && number < 5) {
 				try {
+					if (number > 0) {
+						ConfigFile configFile = readConfigFile(configFileLocation);
+						configFile.setGtoken("");
+						configFile.setBullettoken("");
+						storeConfigFile(configFileLocation, configFile);
+					}
+
 					number++;
-					result = rt.exec(singleS3SScript.getConfigValue()).waitFor();
+					result = rt.exec(command).waitFor();
 				} catch (IOException | InterruptedException e) {
 					sendLogs("Exception while executing s3s process, see logs!");
 					logger.error(e);
@@ -82,32 +96,19 @@ public class S3Downloader {
 
 			if (result != 0) {
 				sendLogs("Exception while executing s3s process!! Result wasn't 0 for 5 attempts!");
-				return;
-			}
-		}
-
-		for (Configuration singleS3SLocation : s3sLocations) {
-			String gToken = null;
-			String bulletToken = null;
-
-			Path configFileLocation = Path.of(singleS3SLocation.getConfigValue(), "config.txt");
-			if (Files.exists(configFileLocation)) {
-				ConfigFile configFileContent;
-				try {
-					configFileContent = objectMapper.readValue(configFileLocation.toUri().toURL(), ConfigFile.class);
-					gToken = configFileContent.gtoken;
-					bulletToken = configFileContent.bullettoken;
-				} catch (IOException e) {
-					sendLogs("Exception while loading s3s gToken from config file, see logs!");
-					logger.error(e);
-				}
-			} else {
-				sendLogs("Config file does not exist, see logs!");
+				continue;
+			} else if (number > 0) {
+				sendLogs(String.format("Retrieving the tokens for s3 access took %d attempts", number));
 			}
 
-			if (gToken == null || bulletToken == null) continue;
+			ConfigFile configFile = readConfigFile(configFileLocation);
 
-			String accountUUIDHash = UUID.nameUUIDFromBytes(configFileLocation.toString().getBytes()).toString();
+			if (configFile == null) continue;
+
+			String gToken = configFile.gtoken;
+			String bulletToken = configFile.bullettoken;
+
+			String accountUUIDHash = UUID.nameUUIDFromBytes(Path.of(configFileLocation, "config.txt").toString().getBytes()).toString();
 			Path directory = Path.of("game-results", accountUUIDHash);
 			if (!Files.exists(directory)) {
 				try {
@@ -308,6 +309,31 @@ public class S3Downloader {
 					onlineAnarchyGamesToDownload.size(),
 					onlinePrivateGamesToDownload.size(),
 					salmonShiftsToDownload.size()));
+		}
+	}
+
+	private ConfigFile readConfigFile(String configFileDirectory) {
+		Path configFileLocation = Path.of(configFileDirectory, "config.txt");
+		if (Files.exists(configFileLocation)) {
+			try {
+				return objectMapper.readValue(configFileLocation.toUri().toURL(), ConfigFile.class);
+			} catch (IOException e) {
+				sendLogs("Exception while loading config file, see logs!");
+				logger.error(e);
+			}
+		} else {
+			sendLogs("Config file does not exist");
+		}
+
+		return new ConfigFile();
+	}
+
+	private void storeConfigFile(String configFileDirectory, ConfigFile configFile) {
+		Path configFileLocation = Path.of(configFileDirectory, "config.txt");
+		try {
+			objectMapper.writeValue(configFileLocation.toFile(), configFile);
+		} catch (IOException e) {
+			sendLogs("Could not store new config file on disk");
 		}
 	}
 
