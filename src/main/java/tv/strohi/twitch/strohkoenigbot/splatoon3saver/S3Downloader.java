@@ -304,7 +304,7 @@ public class S3Downloader {
 					|| onlineAnarchyGamesToDownload.size() > 0
 					|| onlinePrivateGamesToDownload.size() > 0
 					|| salmonShiftsToDownload.size() > 0) {
-				String message = "Finished loading and storing Splatoon 3 results:\n";
+				String message = "Found new Splatoon 3 results:\n";
 
 				if (onlineRegularGamesToDownload.size() > 0) {
 					message = String.format("%s- **%d** new regular battles\n", message, onlineRegularGamesToDownload.size());
