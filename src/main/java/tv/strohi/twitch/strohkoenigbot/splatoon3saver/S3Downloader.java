@@ -304,25 +304,25 @@ public class S3Downloader {
 					|| onlineAnarchyGamesToDownload.size() > 0
 					|| onlinePrivateGamesToDownload.size() > 0
 					|| salmonShiftsToDownload.size() > 0) {
-				String message = "Found new Splatoon 3 results:\n";
+				String message = "Found new Splatoon 3 results:";
 
 				if (onlineRegularGamesToDownload.size() > 0) {
-					message = String.format("%s- **%d** new regular battles\n", message, onlineRegularGamesToDownload.size());
+					message = String.format("%s\n- **%d** new regular battles", message, onlineRegularGamesToDownload.size());
 				}
 
 				if (onlineAnarchyGamesToDownload.size() > 0) {
-					message = String.format("%s- **%d** new anarchy battles\n", message, onlineAnarchyGamesToDownload.size());
+					message = String.format("%s\n- **%d** new anarchy battles", message, onlineAnarchyGamesToDownload.size());
 				}
 
 				if (onlinePrivateGamesToDownload.size() > 0) {
-					message = String.format("%s- **%d** new private battles\n", message, onlinePrivateGamesToDownload.size());
+					message = String.format("%s\n- **%d** new private battles", message, onlinePrivateGamesToDownload.size());
 				}
 
 				if (salmonShiftsToDownload.size() > 0) {
-					message = String.format("%s- **%d** new salmon run shifts", message, salmonShiftsToDownload.size());
+					message = String.format("%s\n- **%d** new salmon run shifts", message, salmonShiftsToDownload.size());
 				}
 
-				sendLogs(message.trim());
+				sendLogs(message);
 			}
 		}
 	}
