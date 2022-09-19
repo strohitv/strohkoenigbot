@@ -300,15 +300,20 @@ public class S3Downloader {
 				}
 			}
 
-//			sendLogs(String.format("Finished loading and storing Splatoon 3 results:\n" +
-//							"- **%d** new regular battles\n" +
-//							"- **%d** new anarchy battles\n" +
-//							"- **%d** new private battles\n" +
-//							"- **%d** new salmon run shifts",
-//					onlineRegularGamesToDownload.size(),
-//					onlineAnarchyGamesToDownload.size(),
-//					onlinePrivateGamesToDownload.size(),
-//					salmonShiftsToDownload.size()));
+			if (onlineRegularGamesToDownload.size() > 0
+					|| onlineAnarchyGamesToDownload.size() > 0
+					|| onlinePrivateGamesToDownload.size() > 0
+					|| salmonShiftsToDownload.size() > 0) {
+				sendLogs(String.format("Finished loading and storing Splatoon 3 results:\n" +
+								"- **%d** new regular battles\n" +
+								"- **%d** new anarchy battles\n" +
+								"- **%d** new private battles\n" +
+								"- **%d** new salmon run shifts",
+						onlineRegularGamesToDownload.size(),
+						onlineAnarchyGamesToDownload.size(),
+						onlinePrivateGamesToDownload.size(),
+						salmonShiftsToDownload.size()));
+			}
 		}
 	}
 
