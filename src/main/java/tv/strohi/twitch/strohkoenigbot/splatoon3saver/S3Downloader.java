@@ -60,7 +60,7 @@ public class S3Downloader {
 	@Scheduled(cron = "30 35 * * * *")
 //	@Scheduled(cron = "30 * * * * *")
 	public void downloadStuff() {
-		sendLogs("Attempting to load and store Splatoon 3 results");
+//		sendLogs("Attempting to load and store Splatoon 3 results");
 
 		String scriptFormatString = configurationRepository.findByConfigName("s3sScript").stream()
 				.map(Configuration::getConfigValue)
@@ -300,15 +300,15 @@ public class S3Downloader {
 				}
 			}
 
-			sendLogs(String.format("Finished loading and storing Splatoon 3 results:\n" +
-							"- **%d** new regular battles\n" +
-							"- **%d** new anarchy battles\n" +
-							"- **%d** new private battles\n" +
-							"- **%d** new salmon run shifts",
-					onlineRegularGamesToDownload.size(),
-					onlineAnarchyGamesToDownload.size(),
-					onlinePrivateGamesToDownload.size(),
-					salmonShiftsToDownload.size()));
+//			sendLogs(String.format("Finished loading and storing Splatoon 3 results:\n" +
+//							"- **%d** new regular battles\n" +
+//							"- **%d** new anarchy battles\n" +
+//							"- **%d** new private battles\n" +
+//							"- **%d** new salmon run shifts",
+//					onlineRegularGamesToDownload.size(),
+//					onlineAnarchyGamesToDownload.size(),
+//					onlinePrivateGamesToDownload.size(),
+//					salmonShiftsToDownload.size()));
 		}
 	}
 
