@@ -97,8 +97,8 @@ public class S3Downloader {
 			if (result != 0) {
 				sendLogs("Exception while executing s3s process!! Result wasn't 0 for 5 attempts!");
 				continue;
-			} else if (number > 1) {
-				sendLogs(String.format("Retrieving the tokens for s3 access took %d attempts", number));
+//			} else if (number > 1) {
+//				sendLogs(String.format("Retrieving the tokens for s3 access took %d attempts", number));
 			}
 
 			ConfigFile configFile = readConfigFile(configFileLocation);
