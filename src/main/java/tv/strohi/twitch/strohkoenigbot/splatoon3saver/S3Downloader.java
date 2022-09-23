@@ -84,6 +84,12 @@ public class S3Downloader {
 						configFile.setGtoken("");
 						configFile.setBullettoken("");
 						storeConfigFile(configFileLocation, configFile);
+
+						try {
+							Thread.sleep(number * 10000);
+						} catch (InterruptedException e) {
+							logger.error(e);
+						}
 					}
 
 					number++;
