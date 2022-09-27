@@ -96,7 +96,9 @@ public class S3Downloader {
 					}
 
 					number++;
-					result = rt.exec(command).waitFor();
+					result = rt.exec("git pull", null, new File(configFileLocation)).waitFor();
+					result += rt.exec("pip install -r requirements.txt", null, new File(configFileLocation)).waitFor();
+					result += rt.exec(command).waitFor();
 				} catch (IOException | InterruptedException e) {
 					sendLogs("Exception while executing s3s process, see logs!");
 					logger.error(e);
