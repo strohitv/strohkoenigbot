@@ -28,6 +28,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,8 @@ import java.util.stream.Collectors;
 public class S3Downloader {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+	private Instant lastSuccessfulAttempt = Instant.now().minus(1, ChronoUnit.HOURS);
 
 	private ConfigurationRepository configurationRepository;
 
@@ -101,9 +104,14 @@ public class S3Downloader {
 			}
 
 			if (result != 0) {
-				sendLogs("Exception while executing s3s process!! Result wasn't 0 for 5 attempts!");
+				if (lastSuccessfulAttempt.isBefore(Instant.now().minus(3, ChronoUnit.HOURS))) {
+					sendLogs("Exception while executing s3s process!! Result wasn't 0 for at least three hours now!");
+				}
+
 				continue;
 			}
+
+			lastSuccessfulAttempt = Instant.now();
 
 			ConfigFile configFile = readConfigFile(configFileLocation);
 
