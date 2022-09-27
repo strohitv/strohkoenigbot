@@ -70,7 +70,8 @@ public class DailyStatsSender {
 		this.matchRepository = matchRepository;
 	}
 
-	@Scheduled(cron = "0 15 0 * * *")
+	@Scheduled(cron = "0 15 * * * *")
+//	@Scheduled(cron = "0 15 0 * * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void sendDailyStatsToDiscord() {
 		List<Account> accounts = accountRepository.findAll().stream()
