@@ -101,7 +101,7 @@ public class S3Downloader {
 					if (result == 0) {
 						String executeCommand = String.format("%s > /home/pi/Documents/source/java/strohkoenigbot/testlog.txt 2>&1", completeCommand);
 						sendLogs(executeCommand);
-						result = rt.exec(executeCommand).waitFor();
+						result = rt.exec(executeCommand, null, new File(configFileLocation)).waitFor();
 
 //						ProcessBuilder ps = new ProcessBuilder(command);
 //						ps.redirectErrorStream(true);
@@ -313,7 +313,7 @@ public class S3Downloader {
 				logger.error(e);
 			}
 
-			File file = new File(".");
+			File file = new File(configFileLocation);
 			List<String> directories = Arrays.stream(Objects.requireNonNull(file.list((current, name) -> new File(current, name).isDirectory())))
 					.filter(name -> name.startsWith("export-"))
 					.collect(Collectors.toList());
