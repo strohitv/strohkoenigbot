@@ -87,7 +87,7 @@ public class S3Downloader {
 						storeConfigFile(configFileLocation, configFile);
 
 						try {
-							sendLogs(String.format("Sleeping for %d seconds before the next attempt", number * 60));
+							logger.warn(String.format("Didn't work, retrying & sleeping for %d seconds before the next attempt", number * 10));
 							Thread.sleep(number * 10000);
 						} catch (InterruptedException e) {
 							logger.error(e);
@@ -130,7 +130,7 @@ public class S3Downloader {
 			}
 
 			if (result != 0) {
-				sendLogs("DEBUG: Still did not work..");
+				logger.warn("Did not work..");
 				if (lastSuccessfulAttempt.isBefore(Instant.now().minus(3, ChronoUnit.HOURS))) {
 					sendLogs("Exception while executing s3s process!! Result wasn't 0 for at least three hours now!");
 				}
@@ -310,7 +310,7 @@ public class S3Downloader {
 				logger.error(e);
 			}
 
-			File file = new File(configFileLocation);
+			File file = new File(".");
 			List<String> directories = Arrays.stream(Objects.requireNonNull(file.list((current, name) -> new File(current, name).isDirectory())))
 					.filter(name -> name.startsWith("export-"))
 					.collect(Collectors.toList());
