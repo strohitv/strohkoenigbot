@@ -18,10 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -76,7 +73,8 @@ public class S3Downloader {
 		Runtime rt = Runtime.getRuntime();
 		for (Configuration singleS3SLocation : s3sLocations) {
 			String configFileLocation = singleS3SLocation.getConfigValue();
-			String command = String.format(scriptFormatString, configFileLocation);
+			String completeCommand = String.format(scriptFormatString, configFileLocation).trim();
+//			String[] command = completeCommand.split(" ");
 
 			int result = -1;
 			int number = 0;
@@ -100,7 +98,28 @@ public class S3Downloader {
 					result += rt.exec("pip install -r requirements.txt", null, new File(configFileLocation)).waitFor();
 
 					if (result == 0) {
-						result = rt.exec(command).waitFor();
+						result = rt.exec(String.format("%s > testlog.txt 2>&1", completeCommand)).waitFor();
+
+//						ProcessBuilder ps = new ProcessBuilder(command);
+//						ps.redirectErrorStream(true);
+//						Process process = ps.start();
+//
+//						BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//
+//						new Thread(() -> {
+//							try {
+//								String line;
+//								while ((line = in.readLine()) != null) {
+//									logger.info(line);
+//								}
+//							} catch (IOException ex) {
+//								logger.error(ex);
+//							}
+//						}).start();
+//
+//						result = process.waitFor();
+//
+//						in.close();
 					} else {
 						sendLogs(String.format("Result was %d before the import even started!", result));
 					}
