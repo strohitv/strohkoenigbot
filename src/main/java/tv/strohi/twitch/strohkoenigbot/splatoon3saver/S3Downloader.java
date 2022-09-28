@@ -101,6 +101,8 @@ public class S3Downloader {
 
 					if (result == 0) {
 						result = rt.exec(command).waitFor();
+					} else {
+						sendLogs(String.format("Result was %d before the import even started!", result));
 					}
 				} catch (IOException | InterruptedException e) {
 					sendLogs("Exception while executing s3s process, see logs!");
