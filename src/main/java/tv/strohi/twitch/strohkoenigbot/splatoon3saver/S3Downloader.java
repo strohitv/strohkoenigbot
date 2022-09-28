@@ -111,6 +111,7 @@ public class S3Downloader {
 			}
 
 			if (result != 0) {
+				sendLogs("DEBUG: Still did not work..");
 				if (lastSuccessfulAttempt.isBefore(Instant.now().minus(3, ChronoUnit.HOURS))) {
 					sendLogs("Exception while executing s3s process!! Result wasn't 0 for at least three hours now!");
 				}
