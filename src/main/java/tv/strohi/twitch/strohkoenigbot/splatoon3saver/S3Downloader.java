@@ -99,29 +99,27 @@ public class S3Downloader {
 					result += rt.exec("pip install -r requirements.txt", null, new File(configFileLocation)).waitFor();
 
 					if (result == 0) {
-						sendLogs(completeCommand);
-						result = rt.exec(completeCommand, null, new File(configFileLocation)).waitFor();
+//						sendLogs(completeCommand);
+//						result = rt.exec(completeCommand, null, new File(configFileLocation)).waitFor();
 
-//						ProcessBuilder ps = new ProcessBuilder(command);
-//						ps.redirectErrorStream(true);
-//						Process process = ps.start();
-//
-//						BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//
-//						new Thread(() -> {
-//							try {
-//								String line;
-//								while ((line = in.readLine()) != null) {
-//									logger.info(line);
-//								}
-//							} catch (IOException ex) {
-//								logger.error(ex);
-//							}
-//						}).start();
-//
-//						result = process.waitFor();
-//
-//						in.close();
+						ProcessBuilder ps = new ProcessBuilder(completeCommand.split(" "));
+						ps.redirectErrorStream(true);
+						Process process = ps.start();
+
+						BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+						try {
+							String line;
+							while ((line = in.readLine()) != null) {
+								logger.info(line);
+							}
+						} catch (IOException ex) {
+							logger.error(ex);
+						}
+
+						result = process.waitFor();
+
+						in.close();
 					} else {
 						sendLogs(String.format("Result was %d before the import even started!", result));
 					}
