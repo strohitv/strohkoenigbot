@@ -88,7 +88,7 @@ public class S3Downloader {
 
 						try {
 							sendLogs(String.format("Sleeping for %d seconds before the next attempt", number * 60));
-							Thread.sleep(number * 60000);
+							Thread.sleep(number * 10000);
 						} catch (InterruptedException e) {
 							logger.error(e);
 						}
