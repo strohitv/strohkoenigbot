@@ -99,7 +99,9 @@ public class S3Downloader {
 					result += rt.exec("pip install -r requirements.txt", null, new File(configFileLocation)).waitFor();
 
 					if (result == 0) {
-						result = rt.exec(String.format("%s > /home/pi/Documents/source/java/strohkoenigbot/testlog.txt 2>&1", completeCommand)).waitFor();
+						String executeCommand = String.format("%s > /home/pi/Documents/source/java/strohkoenigbot/testlog.txt 2>&1", completeCommand);
+						sendLogs(executeCommand);
+						result = rt.exec(executeCommand).waitFor();
 
 //						ProcessBuilder ps = new ProcessBuilder(command);
 //						ps.redirectErrorStream(true);
