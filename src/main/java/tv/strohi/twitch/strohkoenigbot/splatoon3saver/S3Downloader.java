@@ -87,7 +87,7 @@ public class S3Downloader {
 						storeConfigFile(configFileLocation, configFile);
 
 						try {
-							Thread.sleep(number * 10000);
+							Thread.sleep(number * 60000);
 						} catch (InterruptedException e) {
 							logger.error(e);
 						}
