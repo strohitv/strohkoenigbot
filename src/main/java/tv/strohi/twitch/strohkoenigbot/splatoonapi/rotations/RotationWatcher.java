@@ -140,7 +140,7 @@ public class RotationWatcher {
 		}
 	}
 
-	@Scheduled(cron = "0 50 * * * *")
+//	@Scheduled(cron = "0 50 * * * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void sendStagesToTwitch() {
 		refreshStages();

@@ -97,16 +97,16 @@ public class SplatNetStoreWatcher {
 					frequentSkill = gear.getGear().getBrand().getFrequent_skill().getName();
 				}
 
-				String message = String.format("%d MINUTES LEFT FOR THIS GEAR IN SPLATNET GEAR SHOP: %s - brand: %s - \"%s\" - price: %d coins - main ability: %s - favored ability: %s - unlocked sub slots: %d",
-						Duration.between(Instant.now(), gear.getEndTime()).abs().toMinutes() + 1,
-						gear.getKind(), gear.getGear().getBrand().getName(),
-						gear.getGear().getName(),
-						gear.getPrice(),
-						gear.getSkill().getName(),
-						frequentSkill,
-						gear.getGear().getRarity() + 1);
+//				String message = String.format("%d MINUTES LEFT FOR THIS GEAR IN SPLATNET GEAR SHOP: %s - brand: %s - \"%s\" - price: %d coins - main ability: %s - favored ability: %s - unlocked sub slots: %d",
+//						Duration.between(Instant.now(), gear.getEndTime()).abs().toMinutes() + 1,
+//						gear.getKind(), gear.getGear().getBrand().getName(),
+//						gear.getGear().getName(),
+//						gear.getPrice(),
+//						gear.getSkill().getName(),
+//						frequentSkill,
+//						gear.getGear().getRarity() + 1);
 
-				channelMessageSender.send("strohkoenig", message);
+//				channelMessageSender.send("strohkoenig", message);
 
 				String discordMessage = String.format("**ONLY %d MINUTES LEFT FOR THIS GEAR IN SPLATNET GEAR SHOP**!\n\nType: **%s**\nBrand: **%s**\nName: **%s**\nPrice: **%d** coins\n\nMain ability: **%s**\nFavored ability: **%s**\nUnlocked sub slots: **%d**",
 						Duration.between(Instant.now(), gear.getEndTime()).abs().toMinutes() + 1,
@@ -131,17 +131,17 @@ public class SplatNetStoreWatcher {
 					frequentSkill = gear.getGear().getBrand().getFrequent_skill().getName();
 				}
 
-				String message = String.format("NEW GEAR ARRIVED IN SPLATNET GEAR SHOP: %s - brand: %s - \"%s\" - price: %d coins - main ability: %s - favored ability: %s - unlocked sub slots: %d. Available for %d hours.",
-						gear.getKind(),
-						gear.getGear().getBrand().getName(),
-						gear.getGear().getName(),
-						gear.getPrice(),
-						gear.getSkill().getName(),
-						frequentSkill,
-						gear.getGear().getRarity() + 1,
-						Duration.between(Instant.now(), gear.getEndTime()).abs().toHours() + 1);
+//				String message = String.format("NEW GEAR ARRIVED IN SPLATNET GEAR SHOP: %s - brand: %s - \"%s\" - price: %d coins - main ability: %s - favored ability: %s - unlocked sub slots: %d. Available for %d hours.",
+//						gear.getKind(),
+//						gear.getGear().getBrand().getName(),
+//						gear.getGear().getName(),
+//						gear.getPrice(),
+//						gear.getSkill().getName(),
+//						frequentSkill,
+//						gear.getGear().getRarity() + 1,
+//						Duration.between(Instant.now(), gear.getEndTime()).abs().toHours() + 1);
 
-				channelMessageSender.send("strohkoenig", message);
+//				channelMessageSender.send("strohkoenig", message);
 
 				String discordMessage = String.format("New gear arrived in splatnet gear shop!\n\nType: **%s**\nBrand: **%s**\nName: **%s**\nPrice: **%s** coins\n\nMain ability: **%s**\nFavored ability: **%s**\nUnlocked sub slots: **%s**\n\nAvailable for **%d hours**",
 						gear.getKind(),
