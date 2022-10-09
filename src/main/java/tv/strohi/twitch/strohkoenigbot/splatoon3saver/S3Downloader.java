@@ -59,7 +59,20 @@ public class S3Downloader {
 
 	@Scheduled(cron = "30 35 * * * *")
 //	@Scheduled(cron = "30 * * * * *")
-	public void downloadStuff() {
+	public void downloadStuffExceptionSafe() {
+		try {
+			downloadStuff();
+		} catch (Exception e) {
+			try {
+				sendLogs(String.format("An exception occurred during S3 download: '%s'\nSee logs for details!", e.getMessage()));
+			} catch (Exception ignored) {
+			}
+
+			logger.error(e);
+		}
+	}
+
+	private void downloadStuff() {
 //		sendLogs("Attempting to load and store Splatoon 3 results");
 
 		String scriptFormatString = configurationRepository.findByConfigName("s3sScript").stream()

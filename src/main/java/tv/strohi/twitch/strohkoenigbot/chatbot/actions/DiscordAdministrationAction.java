@@ -429,7 +429,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No cookie for you tsk tsk tsk");
 			}
 		} else if (message.startsWith("!reimport s3")) {
-			s3Downloader.downloadStuff();
+			s3Downloader.downloadStuffExceptionSafe();
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
 		}
 	}
