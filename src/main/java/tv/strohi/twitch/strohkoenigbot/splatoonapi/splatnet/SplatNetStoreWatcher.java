@@ -9,11 +9,10 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearSlotFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2AbilityNotification;
-import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2AbilityNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMerchandises;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -37,12 +36,12 @@ public class SplatNetStoreWatcher {
 		this.shopLoader = shopLoader;
 	}
 
-	private TwitchMessageSender channelMessageSender;
-
-	@Autowired
-	public void setChannelMessageSender(TwitchMessageSender channelMessageSender) {
-		this.channelMessageSender = channelMessageSender;
-	}
+//	private TwitchMessageSender channelMessageSender;
+//
+//	@Autowired
+//	public void setChannelMessageSender(TwitchMessageSender channelMessageSender) {
+//		this.channelMessageSender = channelMessageSender;
+//	}
 
 	private DiscordBot discordBot;
 
