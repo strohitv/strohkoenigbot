@@ -24,27 +24,31 @@
 
 	</appender>
 
-	<category name="com.github.twitch4j">
-		<priority value="off"/>
-	</category>
-
-	<category name="discord4j">
-		<priority value="off"/>
-	</category>
-
-	<category name="c.g.t">
-		<priority value="off"/>
-	</category>
-
-	<category name="d.g">
-		<priority value="off"/>
-	</category>
-
 	<!-- LOG everything at INFO level -->
 	<root level="info">
 		<appender-ref ref="RollingFile" />
 		<appender-ref ref="Console" />
 	</root>
+
+	<logger name="com.github.twitch4j" level="off" additivity="false">
+		<appender-ref ref="RollingFile" />
+		<appender-ref ref="Console" />
+	</logger>
+
+	<logger name="discord4j" level="off" additivity="false">
+		<appender-ref ref="RollingFile" />
+		<appender-ref ref="Console" />
+	</logger>
+
+	<logger name="c.g.t" level="off" additivity="false">
+		<appender-ref ref="RollingFile" />
+		<appender-ref ref="Console" />
+	</logger>
+
+	<logger name="d.g" level="off" additivity="false">
+		<appender-ref ref="RollingFile" />
+		<appender-ref ref="Console" />
+	</logger>
 
 	<!-- LOG "com.baeldung*" at TRACE level -->
 	<logger name="tv.strohi.twitch.strohkoenigbot" level="trace" additivity="false">
