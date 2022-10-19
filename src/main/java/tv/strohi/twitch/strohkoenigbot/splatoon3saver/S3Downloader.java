@@ -60,6 +60,7 @@ public class S3Downloader {
 	@Scheduled(cron = "30 35 * * * *")
 //	@Scheduled(cron = "30 * * * * *")
 	public void downloadStuffExceptionSafe() {
+		sendLogs("Loading Splatoon 3 games...");
 		try {
 			downloadStuff();
 		} catch (Exception e) {
