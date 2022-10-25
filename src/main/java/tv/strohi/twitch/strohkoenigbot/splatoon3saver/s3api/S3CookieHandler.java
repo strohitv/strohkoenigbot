@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
+package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api;
 
 import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;

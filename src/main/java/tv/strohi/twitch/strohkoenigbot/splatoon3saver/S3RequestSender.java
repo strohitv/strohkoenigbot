@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3CookieHandler;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.CookieRefreshException;
 
 import java.io.ByteArrayInputStream;
