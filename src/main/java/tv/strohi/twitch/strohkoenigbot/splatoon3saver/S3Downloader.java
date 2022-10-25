@@ -26,10 +26,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -229,7 +228,8 @@ public class S3Downloader {
 				logSender.sendLogs(logger, message);
 			}
 
-			if (LocalDate.now(ZoneId.systemDefault()).get(ChronoField.HOUR_OF_DAY) == 9) {
+
+			if (LocalDateTime.now(ZoneId.systemDefault()).getHour() == 8) { // = 9:35 am
 				tryParseAllBattles(accountUUIDHash);
 			}
 		}
