@@ -19,7 +19,7 @@ public class BattleResults {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public class BattleResultsData {
+	public static class BattleResultsData {
 		private BattleHistories latestBattleHistories;
 		private BattleHistories regularBattleHistories;
 		private BattleHistories bankaraBattleHistories;
@@ -33,7 +33,7 @@ public class BattleResults {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public class BattleHistories {
+	public static class BattleHistories {
 		private Object summary;
 		private Object historyGroupsOnlyFirst;
 		private HistoryGroups historyGroups;

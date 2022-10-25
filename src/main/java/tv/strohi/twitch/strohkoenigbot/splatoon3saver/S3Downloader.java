@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
@@ -188,6 +189,7 @@ public class S3Downloader {
 						Files.move(new File(dir).toPath(), directory.resolve(dir), StandardCopyOption.REPLACE_EXISTING);
 					} catch (IOException e) {
 						logSender.sendLogs(logger, String.format("could not move directory %s", dir));
+						logger.error(e);
 					}
 				}
 			} else {
@@ -227,7 +229,7 @@ public class S3Downloader {
 				logSender.sendLogs(logger, message);
 			}
 
-			if (Instant.now().getLong(ChronoField.HOUR_OF_DAY) == 9L) {
+			if (LocalDate.now(ZoneId.systemDefault()).get(ChronoField.HOUR_OF_DAY) == 9) {
 				tryParseAllBattles(accountUUIDHash);
 			}
 		}
@@ -309,6 +311,7 @@ public class S3Downloader {
 			parsedResult = objectMapper.readValue(gameListResponse, BattleResults.class);
 		} catch (JsonProcessingException e) {
 			logSender.sendLogs(logger, String.format("Could not parse results from SplatNet3: %s", key));
+			logger.error(e);
 			return;
 		}
 
@@ -353,6 +356,7 @@ public class S3Downloader {
 			parsedResult = objectMapper.readValue(salmonListResponse, BattleResults.class);
 		} catch (JsonProcessingException e) {
 			logSender.sendLogs(logger, "Could not parse results from SplatNet3: Salmon Run");
+			logger.error(e);
 		}
 
 		if (parsedResult != null) {
