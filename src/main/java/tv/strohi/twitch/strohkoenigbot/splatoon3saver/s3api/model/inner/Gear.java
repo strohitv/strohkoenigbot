@@ -10,11 +10,14 @@ import java.util.List;
 @Setter
 // @Accessors(fluent = true)
 public class Gear implements Serializable {
-	private Image image;
+	private String __isGear;
+	private String name;
+	private IdAndNameAndImage brand;
+
 	private NameAndImage primaryGearPower;
 	private List<NameAndImage> additionalGearPowers;
-	private String name;
-	private String __isGear;
+
+	private Image image;
 	private Image originalImage;
-	private IdAndNameAndImage brand;
+	private Image thumbnailImage;
 }

@@ -25,9 +25,9 @@ public class Player implements Serializable {
 	private String __isPlayer;
 	private Nameplate nameplate;
 
-	private ClothingGear headGear;
-	private ClothingGear clothingGear;
-	private ClothingGear shoesGear;
+	private Gear headGear;
+	private Gear clothingGear;
+	private Gear shoesGear;
 
 	// Salmon Run
 	private IdAndNameAndImage uniform;
