@@ -431,6 +431,12 @@ public class DiscordAdministrationAction extends ChatAction {
 		} else if (message.startsWith("!reimport s3")) {
 			s3Downloader.downloadStuffExceptionSafe();
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
+		} else if (message.startsWith("!tryparse")) {
+			String uuid = message.substring("!tryparse".length()).trim();
+
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Attempting to parse for uuid '%s'", uuid));
+			s3Downloader.tryParseAllBattles(uuid);
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished parse");
 		}
 	}
 

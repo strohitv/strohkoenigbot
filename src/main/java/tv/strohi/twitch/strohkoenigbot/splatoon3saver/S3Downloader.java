@@ -235,7 +235,7 @@ public class S3Downloader {
 		}
 	}
 
-	private void tryParseAllBattles(String accountUUIDHash) {
+	public void tryParseAllBattles(String accountUUIDHash) {
 		logSender.sendLogs(logger, String.format("Loading Splatoon 3 games for account with hash '%s'...", accountUUIDHash));
 
 		Path directory = Path.of("game-results", accountUUIDHash);
