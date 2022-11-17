@@ -6,7 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
@@ -17,7 +17,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ConfigFileConnector;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
+import javax.annotation.PostConstruct;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -49,7 +52,19 @@ public class S3Downloader {
 	private final S3GTokenRefresher gTokenRefresher;
 	private final ConfigFileConnector configFileConnector;
 
-	@Scheduled(cron = "30 35 * * * *")
+	private SchedulingService schedulingService;
+
+	@Autowired
+	public void setSchedulingService(SchedulingService schedulingService) {
+		this.schedulingService = schedulingService;
+	}
+
+	@PostConstruct
+	public void registerSchedule() {
+		schedulingService.register("S3Downloader_schedule", CronSchedule.getScheduleString("30 35 * * * *"), this::downloadStuffExceptionSafe);
+	}
+
+//	@Scheduled(cron = "30 35 * * * *")
 //	@Scheduled(cron = "30 * * * * *")
 	public void downloadStuffExceptionSafe() {
 		logSender.sendLogs(logger, "Loading Splatoon 3 games...");
