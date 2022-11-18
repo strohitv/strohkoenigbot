@@ -3269,6 +3269,47 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "28-add-splatoon3-fields",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addColumn": {
+              "columns": [
+                {
+                  "column": {
+                    "name": "g_token_splatoon3",
+                    "position": 5,
+                    "type": "varchar(1200)"
+                  }
+                },{
+                  "column": {
+                    "name": "bullet_token_splatoon3",
+                    "position": 5,
+                    "type": "varchar(180)"
+                  }
+                },{
+                  "column": {
+                    "name": "nickname_splatoon3",
+                    "position": 5,
+                    "type": "varchar(50)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rate_limit_number_splatoon3",
+                    "type": "int",
+                    "defaultValueComputed": "0"
+                  }
+                }
+              ],
+              "tableName": "account"
+            }
+          }
+        ]
+      }
     }
   ]
 }

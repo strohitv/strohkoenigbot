@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.data.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Account {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -36,4 +38,12 @@ public class Account {
 	private Boolean shouldSendDailyStats;
 
 	private Integer rateLimitNumber;
+
+	private String nicknameSplatoon3;
+
+	private String gTokenSplatoon3;
+
+	private String bulletTokenSplatoon3;
+
+	private Integer rateLimitNumberSplatoon3;
 }
