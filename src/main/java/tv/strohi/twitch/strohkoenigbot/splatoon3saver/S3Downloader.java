@@ -6,10 +6,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.FileSystemUtils;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3GTokenRefresher;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
@@ -17,7 +18,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ConfigFileConnector;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
+import javax.annotation.PostConstruct;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -39,18 +43,30 @@ public class S3Downloader {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 
-	private final ObjectMapper objectMapper = new ObjectMapper()
-			.registerModule(new JavaTimeModule());
+	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
 	private Instant lastSuccessfulAttempt = Instant.now().minus(1, ChronoUnit.HOURS);
 
 	private final ConfigurationRepository configurationRepository;
-	private final S3RequestSender requestSender;
+	private final AccountRepository accountRepository;
+	private final S3ApiQuerySender requestSender;
 	private final S3GTokenRefresher gTokenRefresher;
 	private final ConfigFileConnector configFileConnector;
 
-	@Scheduled(cron = "30 35 * * * *")
-//	@Scheduled(cron = "30 * * * * *")
+	private SchedulingService schedulingService;
+
+	@Autowired
+	public void setSchedulingService(SchedulingService schedulingService) {
+		this.schedulingService = schedulingService;
+	}
+
+	@PostConstruct
+	public void registerSchedule() {
+		schedulingService.register("S3Downloader_schedule", CronSchedule.getScheduleString("30 35 * * * *"), this::downloadStuffExceptionSafe);
+	}
+
+	//	@Scheduled(cron = "30 35 * * * *")
+	//	@Scheduled(cron = "30 * * * * *")
 	public void downloadStuffExceptionSafe() {
 		logSender.sendLogs(logger, "Loading Splatoon 3 games...");
 		try {
@@ -66,38 +82,12 @@ public class S3Downloader {
 	}
 
 	private void downloadStuff() {
-		String scriptFormatString = configurationRepository.findByConfigName("s3sScript").stream()
-				.map(Configuration::getConfigValue)
-				.findFirst()
-				.orElse("python3 %s/s3s.py -o");
+		List<Account> accounts = accountRepository.findByEnableSplatoon3(true);
 
-		List<Configuration> s3sLocations = configurationRepository.findByConfigName("s3sLocation");
-		if (s3sLocations.size() == 0) return;
-
-		Runtime rt = Runtime.getRuntime();
-		for (Configuration singleS3SLocation : s3sLocations) {
-			String configFileLocation = singleS3SLocation.getConfigValue();
-			String completeCommand = String.format(scriptFormatString, configFileLocation).trim();
-
-			if (!gTokenRefresher.refreshGToken(rt, configFileLocation, completeCommand)) {
-				logger.warn("Did not work..");
-				if (lastSuccessfulAttempt.isBefore(Instant.now().minus(3, ChronoUnit.HOURS))) {
-					logSender.sendLogs(logger, "Exception while executing s3s process!! Result wasn't 0 for at least three hours now!");
-				}
-
-				continue;
-			}
-
+		for (Account account : accounts) {
 			lastSuccessfulAttempt = Instant.now();
 
-			ConfigFile configFile = configFileConnector.readConfigFile(configFileLocation);
-
-			if (configFile == null) continue;
-
-			String gToken = configFile.getGtoken();
-			String bulletToken = configFile.getBullettoken();
-
-			String accountUUIDHash = UUID.nameUUIDFromBytes(Path.of(configFileLocation, "config.txt").toString().getBytes()).toString();
+			String accountUUIDHash = String.format("%05d", account.getId()); // UUID.nameUUIDFromBytes(Path.of(configFileLocation, "config.txt").toString().getBytes()).toString();
 			Path directory = Path.of("game-results", accountUUIDHash);
 			if (!Files.exists(directory)) {
 				try {
@@ -126,7 +116,7 @@ public class S3Downloader {
 				continue;
 			}
 
-			String homeResponse = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.Home.getKey());
+			String homeResponse = requestSender.queryS3Api(account, S3RequestKey.Home.getKey());
 			logger.debug(homeResponse);
 
 			if (!homeResponse.contains("currentPlayer")) {
@@ -141,27 +131,27 @@ public class S3Downloader {
 			List<String> onlineAnarchyGamesToDownload = new ArrayList<>();
 			List<String> onlinePrivateGamesToDownload = new ArrayList<>();
 			for (S3RequestKey key : S3RequestKey.getOnlineBattles()) {
-				downloadPvPGames(gToken, bulletToken, directory, allDownloadedGames, timeString, onlineRegularGamesToDownload, onlineAnarchyGamesToDownload, onlinePrivateGamesToDownload, key);
+				downloadPvPGames(account, directory, allDownloadedGames, timeString, onlineRegularGamesToDownload, onlineAnarchyGamesToDownload, onlinePrivateGamesToDownload, key);
 			}
 
 			for (String matchId : onlineRegularGamesToDownload) {
-				storeOnlineGame(gToken, bulletToken, "Regular", directory, allDownloadedGames.getRegular_games(), matchId);
+				storeOnlineGame(account, "Regular", directory, allDownloadedGames.getRegular_games(), matchId);
 			}
 
 			for (String matchId : onlineAnarchyGamesToDownload) {
-				storeOnlineGame(gToken, bulletToken, "Anarchy", directory, allDownloadedGames.getAnarchy_games(), matchId);
+				storeOnlineGame(account, "Anarchy", directory, allDownloadedGames.getAnarchy_games(), matchId);
 			}
 
 			for (String matchId : onlinePrivateGamesToDownload) {
-				storeOnlineGame(gToken, bulletToken, "Private", directory, allDownloadedGames.getPrivate_games(), matchId);
+				storeOnlineGame(account, "Private", directory, allDownloadedGames.getPrivate_games(), matchId);
 			}
 
-			String salmonListResponse = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.Salmon.getKey());
+			String salmonListResponse = requestSender.queryS3Api(account, S3RequestKey.Salmon.getKey());
 			logger.debug(salmonListResponse);
 
 			List<String> salmonShiftsToDownload = new ArrayList<>();
 			if (salmonListResponse.contains("coop")) {
-				downloadSalmonRunGames(gToken, bulletToken, directory, allDownloadedGames, timeString, salmonListResponse, salmonShiftsToDownload);
+				downloadSalmonRunGames(account, directory, allDownloadedGames, timeString, salmonListResponse, salmonShiftsToDownload);
 			} else {
 				logSender.sendLogs(logger, "Could not load Salmon Run Stats from SplatNet3");
 			}
@@ -171,36 +161,6 @@ public class S3Downloader {
 			} catch (IOException e) {
 				logSender.sendLogs(logger, "IOEXCEPTION WHILE WRITING REFRESHED OVERVIEW FILE!!!");
 				logger.error(e);
-			}
-
-			File file = new File(".");
-			List<String> directories = Arrays.stream(Objects.requireNonNull(file.list((current, name) -> new File(current, name).isDirectory())))
-					.filter(name -> name.startsWith("export-"))
-					.collect(Collectors.toList());
-
-			if (onlineRegularGamesToDownload.size() > 0
-					|| onlineAnarchyGamesToDownload.size() > 0
-					|| onlinePrivateGamesToDownload.size() > 0
-					|| salmonShiftsToDownload.size() > 0) {
-				// move exported folders to back up directory
-				for (String dir : directories) {
-					try {
-						Files.move(new File(dir).toPath(), directory.resolve(dir), StandardCopyOption.REPLACE_EXISTING);
-					} catch (IOException e) {
-						logSender.sendLogs(logger, String.format("could not move directory %s", dir));
-						logger.error(e);
-					}
-				}
-			} else {
-				// delete exported folders
-				for (String dir : directories) {
-					try {
-						FileSystemUtils.deleteRecursively(Path.of(dir));
-					} catch (IOException e) {
-						logSender.sendLogs(logger, String.format("could not delete directory %s", dir));
-						logger.error(e);
-					}
-				}
 			}
 
 			if (onlineRegularGamesToDownload.size() > 0
@@ -226,6 +186,9 @@ public class S3Downloader {
 				}
 
 				logSender.sendLogs(logger, message);
+
+				// start refresh of s3s script asynchronously
+				runS3S();
 			}
 
 
@@ -233,6 +196,58 @@ public class S3Downloader {
 				tryParseAllBattles(accountUUIDHash);
 			}
 		}
+	}
+
+	private void runS3S() {
+		new Thread(() -> {
+			String scriptFormatString = configurationRepository.findByConfigName("s3sScript").stream().map(Configuration::getConfigValue).findFirst().orElse("python3 %s/s3s.py -o");
+
+			List<Configuration> s3sLocations = configurationRepository.findByConfigName("s3sLocation");
+			if (s3sLocations.size() == 0) return;
+
+			Runtime rt = Runtime.getRuntime();
+			for (Configuration singleS3SLocation : s3sLocations) {
+				String configFileLocation = singleS3SLocation.getConfigValue();
+				String completeCommand = String.format(scriptFormatString, configFileLocation).trim();
+
+				if (!gTokenRefresher.refreshGToken(rt, configFileLocation, completeCommand)) {
+					logger.warn("Did not work..");
+					if (lastSuccessfulAttempt.isBefore(Instant.now().minus(3, ChronoUnit.HOURS))) {
+						logSender.sendLogs(logger, "Exception while executing s3s process!! Result wasn't 0 for at least three hours now!");
+					}
+
+					continue;
+				}
+
+				ConfigFile configFile = configFileConnector.readConfigFile(configFileLocation);
+
+				if (configFile == null) continue;
+
+				String accountUUIDHash = UUID.nameUUIDFromBytes(Path.of(configFileLocation, "config.txt").toString().getBytes()).toString();
+				Path directory = Path.of("game-results", accountUUIDHash);
+				if (!Files.exists(directory)) {
+					try {
+						Files.createDirectories(directory);
+					} catch (IOException e) {
+						logSender.sendLogs(logger, String.format("Could not create game directory!! %s", directory));
+						continue;
+					}
+				}
+
+				File file = new File(".");
+				List<String> directories = Arrays.stream(Objects.requireNonNull(file.list((current, name) -> new File(current, name).isDirectory()))).filter(name -> name.startsWith("export-")).collect(Collectors.toList());
+
+				// move exported folders to back up directory
+				for (String dir : directories) {
+					try {
+						Files.move(new File(dir).toPath(), directory.resolve(dir), StandardCopyOption.REPLACE_EXISTING);
+					} catch (IOException e) {
+						logSender.sendLogs(logger, String.format("could not move directory %s", dir));
+						logger.error(e);
+					}
+				}
+			}
+		}).start();
 	}
 
 	public void tryParseAllBattles(String accountUUIDHash) {
@@ -298,8 +313,8 @@ public class S3Downloader {
 		}
 	}
 
-	private void downloadPvPGames(String gToken, String bulletToken, Path directory, ConfigFile.DownloadedGameList allDownloadedGames, String timeString, List<String> onlineRegularGamesToDownload, List<String> onlineAnarchyGamesToDownload, List<String> onlinePrivateGamesToDownload, S3RequestKey key) {
-		String gameListResponse = requestSender.queryS3Api(bulletToken, gToken, key.getKey());
+	private void downloadPvPGames(Account account, Path directory, ConfigFile.DownloadedGameList allDownloadedGames, String timeString, List<String> onlineRegularGamesToDownload, List<String> onlineAnarchyGamesToDownload, List<String> onlinePrivateGamesToDownload, S3RequestKey key) {
+		String gameListResponse = requestSender.queryS3Api(account, key.getKey());
 		logger.debug(gameListResponse);
 		if (!gameListResponse.contains("assistAverage")) {
 			logSender.sendLogs(logger, String.format("Could not load results from SplatNet3: %s", key));
@@ -350,7 +365,7 @@ public class S3Downloader {
 		}
 	}
 
-	private void downloadSalmonRunGames(String gToken, String bulletToken, Path directory, ConfigFile.DownloadedGameList allDownloadedGames, String timeString, String salmonListResponse, List<String> salmonShiftsToDownload) {
+	private void downloadSalmonRunGames(Account account, Path directory, ConfigFile.DownloadedGameList allDownloadedGames, String timeString, String salmonListResponse, List<String> salmonShiftsToDownload) {
 		BattleResults parsedResult = null;
 		try {
 			parsedResult = objectMapper.readValue(salmonListResponse, BattleResults.class);
@@ -368,7 +383,7 @@ public class S3Downloader {
 			}
 
 			for (String salmonShiftId : salmonShiftsToDownload) {
-				String salmonShiftJson = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.SalmonDetail.getKey(), salmonShiftId);
+				String salmonShiftJson = requestSender.queryS3Api(account, S3RequestKey.SalmonDetail.getKey(), salmonShiftId);
 				logger.debug(salmonShiftJson);
 
 				if (!salmonShiftJson.contains("coopHistoryDetail")) {
@@ -381,10 +396,7 @@ public class S3Downloader {
 					try {
 						BattleResults.SingleMatchResult data = objectMapper.readValue(salmonShiftJson, BattleResults.SingleMatchResult.class);
 
-						allDownloadedGames.getSalmon_games().put(salmonShiftId, new ConfigFile.StoredGame(
-								allDownloadedGames.getSalmon_games().size() + 1,
-								filename,
-								Instant.parse(data.getData().getCoopHistoryDetail().getPlayedTime())));
+						allDownloadedGames.getSalmon_games().put(salmonShiftId, new ConfigFile.StoredGame(allDownloadedGames.getSalmon_games().size() + 1, filename, Instant.parse(data.getData().getCoopHistoryDetail().getPlayedTime())));
 					} catch (JsonProcessingException e) {
 						logSender.sendLogs(logger, "Could not parse single salmon shift result!");
 						logger.error(e);
@@ -394,8 +406,8 @@ public class S3Downloader {
 		}
 	}
 
-	private void storeOnlineGame(String gToken, String bulletToken, String filenamePrefix, Path directory, Map<String, ConfigFile.StoredGame> games, String matchId) {
-		String matchJson = requestSender.queryS3Api(bulletToken, gToken, S3RequestKey.GameDetail.getKey(), matchId);
+	private void storeOnlineGame(Account account, String filenamePrefix, Path directory, Map<String, ConfigFile.StoredGame> games, String matchId) {
+		String matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail.getKey(), matchId);
 		logger.debug(matchJson);
 
 		if (!matchJson.contains("vsHistoryDetail")) {
@@ -407,10 +419,7 @@ public class S3Downloader {
 			try {
 				BattleResults.SingleMatchResult data = objectMapper.readValue(matchJson, BattleResults.SingleMatchResult.class);
 
-				games.put(matchId, new ConfigFile.StoredGame(
-						games.size() + 1,
-						filename,
-						Instant.parse(data.getData().getVsHistoryDetail().getPlayedTime())));
+				games.put(matchId, new ConfigFile.StoredGame(games.size() + 1, filename, Instant.parse(data.getData().getVsHistoryDetail().getPlayedTime())));
 			} catch (JsonProcessingException e) {
 				logSender.sendLogs(logger, "Could not parse single match result!");
 				logger.error(e);

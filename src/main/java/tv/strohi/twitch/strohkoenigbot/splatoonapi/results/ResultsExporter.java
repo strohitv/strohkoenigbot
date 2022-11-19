@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.WeaponRequestRankingAction;
@@ -20,7 +19,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.ExceptionSender;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -136,6 +138,18 @@ public class ResultsExporter {
 		this.twitchBotClient = twitchBotClient;
 	}
 
+	private SchedulingService schedulingService;
+
+	@Autowired
+	public void setSchedulingService(SchedulingService schedulingService) {
+		this.schedulingService = schedulingService;
+	}
+
+	@PostConstruct
+	public void registerSchedule() {
+		schedulingService.register("ResultsExporter_schedule", TickSchedule.getScheduleString(720), this::loadGameResultsScheduled);
+	}
+
 	public void start(Account account) {
 		if (account != null) {
 			discordBot.sendPrivateMessage(account.getDiscordId(), "starting the stream!");
@@ -165,7 +179,7 @@ public class ResultsExporter {
 
 	//	@Scheduled(cron = "*/10 * * * * *")
 	//	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
-	@Scheduled(fixedDelay = 3_600_000)
+//	@Scheduled(fixedDelay = 3_600_000)
 	public void loadGameResultsScheduled() {
 		logger.debug("running results exporter");
 

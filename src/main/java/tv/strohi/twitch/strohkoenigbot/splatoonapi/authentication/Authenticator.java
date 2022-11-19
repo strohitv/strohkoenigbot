@@ -12,6 +12,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class Authenticator {
+	private static final long SPLATOON2_TOKEN_REQUEST_ID = 5741031244955648L;
+
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final SessionTokenRetriever sessionTokenRetriever = new SessionTokenRetriever();
@@ -50,7 +52,7 @@ public class Authenticator {
 		logger.info(fTokenApp);
 
 
-		String splatoonAccessToken = splatoonTokenRetriever.getSplatoonAccessToken(gameWebToken, fTokenApp, accountAccessToken);
+		String splatoonAccessToken = splatoonTokenRetriever.getSplatoonAccessToken(gameWebToken, fTokenApp, accountAccessToken, SPLATOON2_TOKEN_REQUEST_ID);
 		logger.info("splatoonAccessToken");
 		logger.info(splatoonAccessToken);
 

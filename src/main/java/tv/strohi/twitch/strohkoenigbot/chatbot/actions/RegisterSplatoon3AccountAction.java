@@ -15,9 +15,8 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authenticator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.AuthLinkCreator;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.Authenticator;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 
 import java.net.URI;
@@ -26,10 +25,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 @Component
-public class RegisterSplatoonAccountAction extends ChatAction {
+public class RegisterSplatoon3AccountAction extends ChatAction {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private AccountRepository accountRepository;
@@ -46,15 +44,16 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 		this.accountLoader = accountLoader;
 	}
 
-	private StatsExporter statsExporter;
-
-	@Autowired
-	public void setStatsExporter(StatsExporter statsExporter) {
-		this.statsExporter = statsExporter;
-	}
+	// TODO later
+//	private StatsExporter statsExporter;
+//
+//	@Autowired
+//	public void setStatsExporter(StatsExporter statsExporter) {
+//		this.statsExporter = statsExporter;
+//	}
 
 	private final AuthLinkCreator authLinkCreator = new AuthLinkCreator();
-	private final Authenticator authenticator = new Authenticator();
+	private final S3Authenticator authenticator = new S3Authenticator();
 	private final Map<Long, Tuple<AuthLinkCreator.AuthParams, Instant>> paramsMap = new HashMap<>();
 
 	@Override
@@ -73,8 +72,8 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 
 		message = message.trim();
 
-		if (message.toLowerCase().startsWith("!splatoon2")) {
-			message = message.substring("!splatoon2".length()).trim();
+		if (message.toLowerCase().startsWith("!splatoon3")) {
+			message = message.substring("!splatoon3".length()).trim();
 
 			Account account = accountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
@@ -95,13 +94,13 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 						"	2. Log in to your Nintendo account.\n"+
 						"	3. do a **right click** on the \"Select this person\" button and copy the link address.\n"+
 						"	4. send me a direct message with the copied address **within five minutes** in this form:" +
-						"```!splatoon2 link COPIED_ADDRESS```" +
-						"	For example: `!splatoon2 link npf71b963...` (link is much longer)\n\n" +
-						"2. By using mitmproxy, instructions can be found here: <https://github.com/frozenpandaman/splatnet2statink/wiki/mitmproxy-instructions>.\n" +
+						"```!splatoon3 link COPIED_ADDRESS```" +
+						"	For example: `!splatoon3 link npf71b963...` (link is much longer)\n\n" +
+						"2. **THIS IS NOT POSSIBLE YET** By using mitmproxy, instructions can be found here: <https://github.com/frozenpandaman/splatnet2statink/wiki/mitmproxy-instructions>.\n" +
 						"	1. After copying the cookie (xxxxx) in Step 7, send me the cookie via direct message.\n" +
 						"	2. Send the message in this form:" +
-						"```!splatoon2 cookie COPIED_COOKIE```" +
-						"	For example: `!splatoon2 cookie ac2f44d4a...` (cookie is much longer)");
+						"```!splatoon3 cookie COPIED_COOKIE```" +
+						"	For example: `!splatoon3 cookie ac2f44d4a...` (cookie is much longer)");
 			} else if (message.toLowerCase().startsWith("link") && !(message = message.substring("link".length()).trim()).isBlank()) {
 				Tuple<AuthLinkCreator.AuthParams, Instant> params = paramsMap.getOrDefault(account.getDiscordId(), null);
 
@@ -109,7 +108,8 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 					if (Instant.now().isBefore(params.second)) {
 						try {
 							account = generateAndStoreSessionToken(account, params.first, message);
-							statsExporter.refreshStatsForAccount(account);
+							// TODO later
+//							statsExporter.refreshStatsForAccount(account);
 
 							sender.send("I successfully connected your account.");
 						} catch (Exception ex) {
@@ -117,26 +117,35 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 							sender.send("I could not connect your account. Please make sure you copied the correct link.");
 						}
 					} else {
-						sender.send("You didn't send the link in time. Please try again using **!splatoon2 register**.");
+						sender.send("You didn't send the link in time. Please try again using **!splatoon3 register**.");
 					}
 				} else {
-					sender.send("Please generate a link by using **!splatoon2 register** first.");
+					sender.send("Please generate a link by using **!splatoon3 register** first.");
 				}
 			} else if (message.toLowerCase().startsWith("cookie") && !(message = message.substring("cookie".length()).trim()).isBlank()) {
-				account.setSplatoonCookie(message);
-				account.setSplatoonCookieExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
-				account.setSplatoonSessionToken(null);
-				account.setSplatoonNickname(args.getUser());
-				account.setRateLimitNumber(new Random().nextInt(30));
-
-				account = accountRepository.save(account);
-
-				statsExporter.refreshStatsForAccount(account);
-
-				sender.send("I successfully connected your account.");
+				sender.send("This action is not supported yet.");
+//				account.setGTokenSplatoon3(message);
+//				account.setBulletTokenSplatoon3(Instant.now().plus(10, ChronoUnit.MINUTES));
+//				account.setSessionTokenSplatoon3(null);
+//				account.setSplatoonNickname(args.getUser());
+//				account.setRateLimitNumberSplatoon3(new Random().nextInt(30));
+//
+//				account = accountRepository.save(account);
+//
+//				statsExporter.refreshStatsForAccount(account);
+//
+//				sender.send("I successfully connected your account.");
+			} else if (message.toLowerCase().startsWith("enable") && account.getSplatoonSessionToken() != null && !account.getSplatoonSessionToken().isBlank()) {
+				account.setEnableSplatoon3(true);
+				accountRepository.save(account);
+				sender.send("Splatoon 3 was enabled for your account.");
+			} else if (message.toLowerCase().startsWith("disable")) {
+				account.setEnableSplatoon3(false);
+				accountRepository.save(account);
+				sender.send("Splatoon 3 was disabled for your account.");
 			} else if (message.toLowerCase().startsWith("delete")) {
-				account.setSplatoonCookie(null);
-				account.setSplatoonCookieExpiresAt(null);
+				account.setGTokenSplatoon3(null);
+				account.setBulletTokenSplatoon3(null);
 				account.setSplatoonSessionToken(null);
 				account.setSplatoonNickname(args.getUser());
 
@@ -144,7 +153,13 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 
 				sender.send("I successfully deleted the splatoon cookie for your account.");
 			} else {
-				sender.send("Allowed commands:\n    - !splatoon2 register\n    - !splatoon2 link\n    - !splatoon2 cookie\n    - !splatoon2 delete");
+				sender.send("Allowed commands:\n" +
+						"    - !splatoon3 register\n" +
+						"    - !splatoon3 link\n" +
+						"    - !splatoon3 cookie\n" +
+						"    - !splatoon3 enable\n" +
+						"    - !splatoon3 disable\n" +
+						"    - !splatoon3 delete");
 			}
 		}
 	}
@@ -155,8 +170,8 @@ public class RegisterSplatoonAccountAction extends ChatAction {
 		String session_token_code = getQueryMap(link.getFragment()).get("session_token_code");
 
 		account.setSplatoonSessionToken(authenticator.getSessionToken("71b963c1b7b6d119", session_token_code, params.getCodeVerifier()));
-		account.setSplatoonCookie(null);
-		account.setSplatoonCookieExpiresAt(null);
+		account.setGTokenSplatoon3(null);
+		account.setBulletTokenSplatoon3(null);
 		account.setSplatoonNickname(null);
 
 		account = accountRepository.save(account);

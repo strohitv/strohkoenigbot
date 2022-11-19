@@ -1,7 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
@@ -11,7 +10,10 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetXRankLeaderBoard;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -55,7 +57,25 @@ public class PeaksExporter {
 		this.discordBot = discordBot;
 	}
 
-	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
+	private SchedulingService schedulingService;
+
+	@Autowired
+	public void setSchedulingService(SchedulingService schedulingService) {
+		this.schedulingService = schedulingService;
+	}
+
+	@PostConstruct
+	public void registerSchedule() {
+		schedulingService.register("PeaksExporter_schedule", CronSchedule.getScheduleString("0 0 5 1 * *"), this::refreshPreviousMonth);
+		schedulingService.registerOnce(2, this::reloadMonthlyResults);
+
+//		try {
+//			reloadMonthlyResults();
+//		} catch (Exception ignored) {
+//		}
+	}
+
+//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void reloadMonthlyResults() {
 		Account account = accountRepository.findAll().stream()
 				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
@@ -151,7 +171,7 @@ public class PeaksExporter {
 	}
 
 
-	@Scheduled(cron = "0 0 5 1 * *")
+//	@Scheduled(cron = "0 0 5 1 * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void refreshPreviousMonth() {
 		Account account = accountRepository.findAll().stream()

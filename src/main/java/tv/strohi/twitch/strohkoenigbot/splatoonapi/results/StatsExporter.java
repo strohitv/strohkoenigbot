@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
@@ -16,7 +15,10 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStatPage;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +73,19 @@ public class StatsExporter {
 		this.splatoonStatsLoader = splatoonStatsLoader;
 	}
 
-	@Scheduled(cron = "0 3 * * * *")
+	private SchedulingService schedulingService;
+
+	@Autowired
+	public void setSchedulingService(SchedulingService schedulingService) {
+		this.schedulingService = schedulingService;
+	}
+
+	@PostConstruct
+	public void registerSchedule() {
+		schedulingService.register("StatsExporter_schedule", CronSchedule.getScheduleString("0 3 * * * *"), this::refreshStageAndWeaponStats);
+	}
+
+//	@Scheduled(cron = "0 3 * * * *")
 	public void refreshStageAndWeaponStats() {
 		logger.info("loading stage and weapon stats");
 

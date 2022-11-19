@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
@@ -18,7 +17,10 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponStatsRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponKit;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
+import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -70,7 +72,19 @@ public class DailyStatsSender {
 		this.matchRepository = matchRepository;
 	}
 
-	@Scheduled(cron = "0 15 * * * *")
+	private SchedulingService schedulingService;
+
+	@Autowired
+	public void setSchedulingService(SchedulingService schedulingService) {
+		this.schedulingService = schedulingService;
+	}
+
+	@PostConstruct
+	public void registerSchedule() {
+		schedulingService.register("DailyStatsSender_schedule", CronSchedule.getScheduleString("0 15 * * * *"), this::sendDailyStatsToDiscord);
+	}
+
+//	@Scheduled(cron = "0 15 * * * *")
 //	@Scheduled(cron = "0 15 0 * * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void sendDailyStatsToDiscord() {

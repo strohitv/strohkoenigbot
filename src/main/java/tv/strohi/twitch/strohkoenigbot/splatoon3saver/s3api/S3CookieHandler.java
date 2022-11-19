@@ -1,27 +1,33 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class S3CookieHandler extends CookieHandler {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final String gtoken;
+	private final boolean addDnt;
 
 	@Override
 	public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
 		Map<String, List<String>> requestHeadersCopy = new HashMap<>(requestHeaders);
-		requestHeadersCopy.put("Cookie", Collections.singletonList(String.format("_gtoken=%s", gtoken)));
+
+		List<String> cookies = new ArrayList<>();
+		cookies.add(String.format("_gtoken=%s", gtoken));
+
+		if (addDnt) {
+			cookies.add("_dnt=1");
+		}
+
+		requestHeadersCopy.put("Cookie", cookies);
 
 		return Collections.unmodifiableMap(requestHeadersCopy);
 	}

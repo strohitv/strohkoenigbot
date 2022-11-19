@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.DayFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.SalmonRunRandomFilter;
@@ -18,7 +17,10 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2Salmon
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetSalmonRunSchedules;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
+import javax.annotation.PostConstruct;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
@@ -73,7 +75,19 @@ public class SalmonWatcher {
 		this.discordBot = discordBot;
 	}
 
-	@Scheduled(cron = "15 0 * * * *")
+	private SchedulingService schedulingService;
+
+	@Autowired
+	public void setSchedulingService(SchedulingService schedulingService) {
+		this.schedulingService = schedulingService;
+	}
+
+	@PostConstruct
+	public void registerSchedule() {
+		schedulingService.register("SalmonWatcher_schedule", CronSchedule.getScheduleString("15 0 * * * *"), this::sendDiscordNotifications);
+	}
+
+//	@Scheduled(cron = "15 0 * * * *")
 //	@Scheduled(cron = "15 * * * * *")
 	public void sendDiscordNotifications() {
 		refreshRotations();

@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.splatnet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.AbilityType;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.GearSlotFilter;
@@ -16,7 +15,10 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2Abilit
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMerchandises;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
+import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -64,9 +66,21 @@ public class SplatNetStoreWatcher {
 		this.accountRepository = accountRepository;
 	}
 
+	private SchedulingService schedulingService;
+
+	@Autowired
+	public void setSchedulingService(SchedulingService schedulingService) {
+		this.schedulingService = schedulingService;
+	}
+
+	@PostConstruct
+	public void registerSchedule() {
+		schedulingService.register("SplatNetStoreWatcher_schedule", CronSchedule.getScheduleString("10 0 * * * *"), this::refreshSplatNetShop);
+	}
+
 	// 10 seconds after each full hour
 //	@Scheduled(cron = "10 */3 * * * *")
-	@Scheduled(cron = "10 0 * * * *")
+//	@Scheduled(cron = "10 0 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void refreshSplatNetShop() {
 		logger.info("checking for new splatnet store offers");
