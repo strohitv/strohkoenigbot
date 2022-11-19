@@ -16,4 +16,5 @@ public interface AccountRepository extends CrudRepository<Account, Long> {
 	Optional<Account> findByTwitchUserId(String id);
 
 	List<Account> findByDiscordIdOrderById(Long discordId);
+	List<Account> findByEnableSplatoon3(Boolean enable);
 }

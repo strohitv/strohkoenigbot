@@ -3284,7 +3284,8 @@
                     "position": 5,
                     "type": "varchar(1200)"
                   }
-                },{
+                },
+                {
                   "column": {
                     "name": "bullet_token_splatoon3",
                     "position": 5,

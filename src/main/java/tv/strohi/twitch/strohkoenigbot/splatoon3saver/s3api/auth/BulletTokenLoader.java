@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -59,8 +60,13 @@ public class BulletTokenLoader {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	private static class BulletToken {
+		@JsonProperty(value = "bulletToken")
 		private String bulletToken;
+
+		@JsonProperty(value = "lang")
 		private String lang;
+
+		@JsonProperty(value = "is_noe_country")
 		private boolean is_noe_country;
 	}
 }
