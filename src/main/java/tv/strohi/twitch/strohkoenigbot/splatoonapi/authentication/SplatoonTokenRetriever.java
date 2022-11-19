@@ -49,7 +49,7 @@ public class SplatoonTokenRetriever extends AuthenticatorBase {
 		return result != null ? result.getResult().getWebApiServerCredential().getAccessToken() : "";
 	}
 
-	public String getSplatoonAccessToken(String gameWebToken, FParamLoginResult fParamLoginResult, String accessToken) {
+	public String getSplatoonAccessToken(String gameWebToken, FParamLoginResult fParamLoginResult, String accessToken, long id) {
 		String address = "https://api-lp1.znc.srv.nintendo.net/v2/Game/GetWebServiceToken";
 
 		URI uri = URI.create(address);
@@ -57,7 +57,7 @@ public class SplatoonTokenRetriever extends AuthenticatorBase {
 		String body = "";
 		try {
 			body = mapper.writeValueAsString(new SplatoonTokenRequestBody(new SplatoonTokenRequestBody.LoginParameter(
-					5741031244955648L,
+					id,
 					fParamLoginResult.getF(),
 					accessToken,
 					fParamLoginResult.getTimestamp(),

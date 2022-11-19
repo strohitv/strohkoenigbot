@@ -3,10 +3,12 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.*;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.AuthenticationData;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.FParamLoginResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.UserInfo;
 
 public class S3Authenticator {
+	private static final long SPLATOON3_TOKEN_REQUEST_ID = 4834290508791808L;
+
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final SessionTokenRetriever sessionTokenRetriever = new SessionTokenRetriever();
@@ -14,13 +16,13 @@ public class S3Authenticator {
 	private final UserInfoRetriever userInfoRetriever = new UserInfoRetriever();
 	private final FTokenRetriever fTokenRetriever = new FTokenRetriever();
 	private final SplatoonTokenRetriever splatoonTokenRetriever = new SplatoonTokenRetriever();
-	private final SplatoonCookieRetriever splatoonCookieRetriever = new SplatoonCookieRetriever();
+	private final BulletTokenLoader bulletTokenLoader = new BulletTokenLoader();
 
 	public String getSessionToken(String clientId, String sessionTokenCode, String sessionTokenCodeVerifier) {
 		return sessionTokenRetriever.getSessionToken(clientId, sessionTokenCode, sessionTokenCodeVerifier);
 	}
 
-	public AuthenticationData refreshAccess(String sessionToken) {
+	public S3AuthenticationData refreshAccess(String sessionToken) {
 		logger.info("refreshing cookie of session token: {}", sessionToken);
 
 		String accountAccessToken = accountAccessTokenRetriever.getAccountAccessToken(sessionToken);
@@ -31,48 +33,32 @@ public class S3Authenticator {
 		logger.info("userInfo");
 		logger.info(userInfo);
 
-		// TODO  it's probably different from here on / seemingly not too much but I gotta check that.
-//		FParamLoginResult fTokenNso = fTokenRetriever.getFTokenFromIminkApi(accountAccessToken, 1);
-//		logger.info("fTokenNso");
-//		logger.info(fTokenNso);
-//
-//
-//		String gameWebToken = splatoonTokenRetriever.doSplatoonAppLogin(userInfo, fTokenNso, accountAccessToken);
-//		logger.info("gameWebToken");
-//		logger.info(gameWebToken);
-//
-//		FParamLoginResult fTokenApp = fTokenRetriever.getFTokenFromIminkApi(gameWebToken, 2);
-//		logger.info("fTokenApp");
-//		logger.info(fTokenApp);
-//
-//
-//		String splatoonAccessToken = splatoonTokenRetriever.getSplatoonAccessToken(gameWebToken, fTokenApp, accountAccessToken);
-//		logger.info("splatoonAccessToken");
-//		logger.info(splatoonAccessToken);
-//
-//		String splatoonCookie = splatoonCookieRetriever.getSplatoonCookie(splatoonAccessToken);
-//		logger.info("splatoonCookie");
-//		logger.info(splatoonCookie);
-//
-//
-//		List<HttpCookie> cookies = HttpCookie.parse(splatoonCookie);
-//		HttpCookie iksmSessionCookie = cookies.stream().findFirst().orElse(null);
-//		logger.info("iksmSessionCookie");
-//		logger.info(iksmSessionCookie);
-//
-//
-//		if (iksmSessionCookie != null) {
-//			logger.info("worked");
-//			String value = iksmSessionCookie.getValue();
-//			long cookieLifeDuration = iksmSessionCookie.getMaxAge() >= 0 ? iksmSessionCookie.getMaxAge() : 31536000L;
-//
-//			Instant expiresAt = Instant.now().plus(cookieLifeDuration, ChronoUnit.SECONDS);
-//			return new AuthenticationData(userInfo.getNickname(), value, expiresAt, sessionToken);
-//		} else {
-//			logger.error("exepction");
-//			throw new RuntimeException("Splatoon 2 cookie could not be loaded");
-//		}
+		FParamLoginResult fTokenNso = fTokenRetriever.getFTokenFromIminkApi(accountAccessToken, 1);
+		logger.info("fTokenNso");
+		logger.info(fTokenNso);
 
-		return null;
+
+		String idToken = splatoonTokenRetriever.doSplatoonAppLogin(userInfo, fTokenNso, accountAccessToken);
+		logger.info("gameWebToken");
+		logger.info(idToken);
+
+		FParamLoginResult fTokenApp = fTokenRetriever.getFTokenFromIminkApi(idToken, 2);
+		logger.info("fTokenApp");
+		logger.info(fTokenApp);
+
+		// TODO apparently this is the gtoken???
+		String gToken = splatoonTokenRetriever.getSplatoonAccessToken(idToken, fTokenApp, accountAccessToken, SPLATOON3_TOKEN_REQUEST_ID);
+		logger.info("gToken");
+		logger.info(gToken);
+
+		// TODO steps to bulletToken are new
+		String bulletToken = bulletTokenLoader.getBulletToken(gToken, userInfo);
+		logger.info("bulletToken");
+		logger.info(bulletToken);
+
+		return S3AuthenticationData.builder()
+				.gToken(gToken)
+				.bulletToken(bulletToken)
+				.build();
 	}
 }

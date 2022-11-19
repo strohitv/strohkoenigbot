@@ -48,7 +48,7 @@ public class S3Downloader {
 	private Instant lastSuccessfulAttempt = Instant.now().minus(1, ChronoUnit.HOURS);
 
 	private final ConfigurationRepository configurationRepository;
-	private final S3RequestSender requestSender;
+	private final S3ApiQuerySender requestSender;
 	private final S3GTokenRefresher gTokenRefresher;
 	private final ConfigFileConnector configFileConnector;
 

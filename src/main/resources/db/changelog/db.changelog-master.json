@@ -3290,18 +3290,12 @@
                     "position": 5,
                     "type": "varchar(180)"
                   }
-                },{
-                  "column": {
-                    "name": "nickname_splatoon3",
-                    "position": 5,
-                    "type": "varchar(50)"
-                  }
                 },
                 {
                   "column": {
-                    "name": "rate_limit_number_splatoon3",
-                    "type": "int",
-                    "defaultValueComputed": "0"
+                    "name": "enable_splatoon3",
+                    "type": "boolean",
+                    "defaultValueComputed": "false"
                   }
                 }
               ],

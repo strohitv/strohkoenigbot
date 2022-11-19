@@ -39,11 +39,9 @@ public class Account {
 
 	private Integer rateLimitNumber;
 
-	private String nicknameSplatoon3;
-
 	private String gTokenSplatoon3;
 
 	private String bulletTokenSplatoon3;
 
-	private Integer rateLimitNumberSplatoon3;
+	private Boolean enableSplatoon3;
 }

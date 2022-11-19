@@ -96,7 +96,7 @@ public class RegisterSplatoon3AccountAction extends ChatAction {
 						"	4. send me a direct message with the copied address **within five minutes** in this form:" +
 						"```!splatoon3 link COPIED_ADDRESS```" +
 						"	For example: `!splatoon3 link npf71b963...` (link is much longer)\n\n" +
-						"2. By using mitmproxy, instructions can be found here: <https://github.com/frozenpandaman/splatnet2statink/wiki/mitmproxy-instructions>.\n" +
+						"2. **THIS IS NOT POSSIBLE YET** By using mitmproxy, instructions can be found here: <https://github.com/frozenpandaman/splatnet2statink/wiki/mitmproxy-instructions>.\n" +
 						"	1. After copying the cookie (xxxxx) in Step 7, send me the cookie via direct message.\n" +
 						"	2. Send the message in this form:" +
 						"```!splatoon3 cookie COPIED_COOKIE```" +
@@ -111,7 +111,7 @@ public class RegisterSplatoon3AccountAction extends ChatAction {
 							// TODO later
 //							statsExporter.refreshStatsForAccount(account);
 
-							sender.send(String.format("I successfully connected your account **%s**.", account.getNicknameSplatoon3()));
+							sender.send("I successfully connected your account.");
 						} catch (Exception ex) {
 							logger.error(ex);
 							sender.send("I could not connect your account. Please make sure you copied the correct link.");
@@ -135,6 +135,14 @@ public class RegisterSplatoon3AccountAction extends ChatAction {
 //				statsExporter.refreshStatsForAccount(account);
 //
 //				sender.send("I successfully connected your account.");
+			} else if (message.toLowerCase().startsWith("enable") && account.getSplatoonSessionToken() != null && !account.getSplatoonSessionToken().isBlank()) {
+				account.setEnableSplatoon3(true);
+				accountRepository.save(account);
+				sender.send("Splatoon 3 was enabled for your account.");
+			} else if (message.toLowerCase().startsWith("disable")) {
+				account.setEnableSplatoon3(false);
+				accountRepository.save(account);
+				sender.send("Splatoon 3 was disabled for your account.");
 			} else if (message.toLowerCase().startsWith("delete")) {
 				account.setGTokenSplatoon3(null);
 				account.setBulletTokenSplatoon3(null);
@@ -145,7 +153,13 @@ public class RegisterSplatoon3AccountAction extends ChatAction {
 
 				sender.send("I successfully deleted the splatoon cookie for your account.");
 			} else {
-				sender.send("Allowed commands:\n    - !splatoon3 register\n    - !splatoon3 link\n    - !splatoon3 cookie\n    - !splatoon3 delete");
+				sender.send("Allowed commands:\n" +
+						"    - !splatoon3 register\n" +
+						"    - !splatoon3 link\n" +
+						"    - !splatoon3 cookie\n" +
+						"    - !splatoon3 enable\n" +
+						"    - !splatoon3 disable\n" +
+						"    - !splatoon3 delete");
 			}
 		}
 	}

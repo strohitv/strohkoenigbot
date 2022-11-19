@@ -30,7 +30,7 @@ public class DiscordAccountLoader {
 					.discordId(discordId)
 					.id(0L)
 					.rateLimitNumber(0)
-					.rateLimitNumberSplatoon3(0)
+					.enableSplatoon3(false)
 					.build();
 
 			account = accountRepository.save(account);
