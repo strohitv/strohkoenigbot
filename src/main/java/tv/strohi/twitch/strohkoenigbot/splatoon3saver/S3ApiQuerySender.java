@@ -44,7 +44,7 @@ public class S3ApiQuerySender {
 
 			account = accountRepository.save(account);
 			result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, matchId);
-			logSender.sendLogs(logger, String.format("is result null again? %b", result != null));
+			logSender.sendLogs(logger, String.format("is result null again? %b", result == null));
 		}
 
 		return result;

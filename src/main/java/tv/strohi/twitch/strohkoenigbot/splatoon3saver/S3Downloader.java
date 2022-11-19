@@ -210,6 +210,8 @@ public class S3Downloader {
 				String configFileLocation = singleS3SLocation.getConfigValue();
 				String completeCommand = String.format(scriptFormatString, configFileLocation).trim();
 
+				logSender.sendLogs(logger, String.format("Starting download for location %s", configFileLocation));
+
 				if (!gTokenRefresher.refreshGToken(rt, configFileLocation, completeCommand)) {
 					logger.warn("Did not work..");
 					if (lastSuccessfulAttempt.isBefore(Instant.now().minus(3, ChronoUnit.HOURS))) {
@@ -240,6 +242,7 @@ public class S3Downloader {
 				// move exported folders to back up directory
 				for (String dir : directories) {
 					try {
+						logSender.sendLogs(logger, String.format("Moving directory %s", dir));
 						Files.move(new File(dir).toPath(), directory.resolve(dir), StandardCopyOption.REPLACE_EXISTING);
 					} catch (IOException e) {
 						logSender.sendLogs(logger, String.format("could not move directory %s", dir));
