@@ -200,6 +200,8 @@ public class S3Downloader {
 
 	private void runS3S() {
 		new Thread(() -> {
+			logSender.sendLogs(logger, "Starting s3s refresh...");
+
 			String scriptFormatString = configurationRepository.findByConfigName("s3sScript").stream().map(Configuration::getConfigValue).findFirst().orElse("python3 %s/s3s.py -o");
 
 			List<Configuration> s3sLocations = configurationRepository.findByConfigName("s3sLocation");
@@ -250,6 +252,8 @@ public class S3Downloader {
 					}
 				}
 			}
+
+			logSender.sendLogs(logger, "Finished s3s refresh");
 		}).start();
 	}
 
