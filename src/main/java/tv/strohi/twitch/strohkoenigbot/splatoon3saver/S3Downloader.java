@@ -191,7 +191,6 @@ public class S3Downloader {
 				runS3S();
 			}
 
-
 			if (LocalDateTime.now(ZoneId.systemDefault()).getHour() == 8) { // = 9:35 am
 				tryParseAllBattles(accountUUIDHash);
 			}
@@ -325,6 +324,7 @@ public class S3Downloader {
 		logger.debug(gameListResponse);
 		if (!gameListResponse.contains("assistAverage")) {
 			logSender.sendLogs(logger, String.format("Could not load results from SplatNet3: %s", key));
+			logger.error(gameListResponse);
 			return;
 		}
 
