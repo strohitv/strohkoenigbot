@@ -12,7 +12,7 @@ import java.util.List;
 public class Gear implements Serializable {
 	private String __isGear;
 	private String name;
-	private IdAndNameAndImage brand;
+	private Brand brand;
 
 	private NameAndImage primaryGearPower;
 	private List<NameAndImage> additionalGearPowers;

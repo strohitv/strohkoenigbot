@@ -256,10 +256,10 @@ public class S3Downloader {
 		}).start();
 	}
 
-	public void tryParseAllBattles(String accountUUIDHash) {
-		logSender.sendLogs(logger, String.format("Loading Splatoon 3 games for account with hash '%s'...", accountUUIDHash));
+	public void tryParseAllBattles(String folderName) {
+		logSender.sendLogs(logger, String.format("Loading Splatoon 3 games for account with folder name '%s'...", folderName));
 
-		Path directory = Path.of("game-results", accountUUIDHash);
+		Path directory = Path.of("game-results", folderName);
 		if (!Files.exists(directory)) {
 			try {
 				Files.createDirectories(directory);
@@ -303,7 +303,7 @@ public class S3Downloader {
 			parseBattleResult(game, directory);
 		}
 
-		logSender.sendLogs(logger, String.format("Done with loading Splatoon 3 games for account with hash '%s'...", accountUUIDHash));
+		logSender.sendLogs(logger, String.format("Done with loading Splatoon 3 games for account with folder name '%s'...", folderName));
 	}
 
 	private void parseBattleResult(Map.Entry<String, ConfigFile.StoredGame> game, Path directory) {
