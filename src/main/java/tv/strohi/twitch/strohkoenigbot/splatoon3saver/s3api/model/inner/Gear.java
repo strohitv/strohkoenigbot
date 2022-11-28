@@ -11,13 +11,24 @@ import java.util.List;
 // @Accessors(fluent = true)
 public class Gear implements Serializable {
 	private String __isGear;
+
 	private String name;
 	private Brand brand;
 
-	private NameAndImage primaryGearPower;
-	private List<NameAndImage> additionalGearPowers;
+	private GearPowerGearPage primaryGearPower;
+	private List<GearPowerGearPage> additionalGearPowers;
 
 	private Image image;
 	private Image originalImage;
 	private Image thumbnailImage;
+
+	// gear list
+	private String __typename;
+	private Integer rarity;
+
+	private Long headGearId;
+	private Long clothingGearId;
+	private Long shoesGearId;
+
+	private Stats stats;
 }

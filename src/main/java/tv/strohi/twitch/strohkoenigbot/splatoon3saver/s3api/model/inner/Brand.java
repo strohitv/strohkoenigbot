@@ -13,4 +13,7 @@ public class Brand implements Serializable {
 	private String name;
 	private Image image;
 	private GearPower usualGearPower;
+
+	// gear list
+	private String __typename;
 }

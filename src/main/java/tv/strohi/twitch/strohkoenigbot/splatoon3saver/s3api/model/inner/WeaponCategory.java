@@ -8,11 +8,9 @@ import java.io.Serializable;
 @Getter
 @Setter
 // @Accessors(fluent = true)
-public class WeaponDetail implements Serializable {
+public class WeaponCategory implements Serializable {
 	private String __typename;
 	private String id;
 	private String name;
-
 	private Image image;
-	private MaskingImage maskingImage;
 }

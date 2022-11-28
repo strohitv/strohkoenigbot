@@ -9,13 +9,22 @@ import java.io.Serializable;
 @Setter
 // @Accessors(fluent = true)
 public class Weapon implements Serializable {
-	private IdAndNameAndImage subWeapon;
-	private Image image;
-	private Image image3dThumbnail;
-	private String name;
-	private Image image2d;
-	private SpecialWeapon specialWeapon;
-	private Image image3d;
 	private String id;
+
+	private String name;
+	private Image image;
+
+	private Image image2d;
 	private Image image2dThumbnail;
+	private Image image3d;
+	private Image image3dThumbnail;
+
+	private WeaponDetail subWeapon;
+	private WeaponDetail specialWeapon;
+
+	// gear page
+	private String __typename;
+	private Long weaponId;
+	private Stats stats;
+	private WeaponCategory weaponCategory;
 }

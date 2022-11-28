@@ -11,6 +11,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
 
@@ -30,7 +31,12 @@ public class ResourcesDownloader {
 
 		String imageUrl = splatNetResourceUrl;
 		if (isValidURL(imageUrl)) {
-			imageUrl = imageUrl.replace("https://app.splatoon2.nintendo.net", "");
+//			imageUrl = imageUrl.replace("https://app.splatoon2.nintendo.net", "");
+			try {
+				imageUrl = new URL(splatNetResourceUrl).getPath();
+			} catch (MalformedURLException ignored) {
+				// won't happen
+			}
 		}
 
 		logger.debug("new url '{}'", imageUrl);
@@ -41,7 +47,10 @@ public class ResourcesDownloader {
 		File file = Paths.get(path).toFile();
 		if (!file.exists()) {
 			if (file.getParentFile().exists() || file.getParentFile().mkdirs()) {
-				String downloadUrl = String.format("https://app.splatoon2.nintendo.net%s", imageUrl);
+				String downloadUrl = splatNetResourceUrl;
+				if (!isValidURL(downloadUrl)) {
+					downloadUrl = String.format("https://app.splatoon2.nintendo.net%s", imageUrl);
+				}
 
 				try (
 						BufferedInputStream in = new BufferedInputStream(new URL(downloadUrl).openStream());
