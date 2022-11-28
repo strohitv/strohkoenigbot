@@ -9,8 +9,10 @@ import java.io.Serializable;
 @Setter
 // @Accessors(fluent = true)
 public class SpecialWeapon implements Serializable {
+	private String __typename;
+	private String id;
+	private String name;
+
 	private Image image;
 	private MaskingImage maskingImage;
-	private String name;
-	private String id;
 }
