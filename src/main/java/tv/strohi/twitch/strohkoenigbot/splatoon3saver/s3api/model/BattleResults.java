@@ -23,6 +23,7 @@ public class BattleResults {
 		private BattleHistories latestBattleHistories;
 		private BattleHistories regularBattleHistories;
 		private BattleHistories bankaraBattleHistories;
+		private BattleHistories xBattleHistories;
 		private BattleHistories privateBattleHistories;
 		private BattleHistories coopResult;
 		private Object currentFest;
