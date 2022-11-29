@@ -25,8 +25,8 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class S3NewGearChecker {
-	private static final String ALL_GEAR_GRAPHQL_KEY = "d29cd0c2b5e6bac90dd5b817914832f8";
-	private static final String SPLATNET_SHOP_GRAPHQL_KEY = "a43dd44899a09013bcfd29b4b13314ff";
+//	private static final String ALL_GEAR_GRAPHQL_KEY = "d29cd0c2b5e6bac90dd5b817914832f8";
+//	private static final String SPLATNET_SHOP_GRAPHQL_KEY = "a43dd44899a09013bcfd29b4b13314ff";
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
@@ -60,12 +60,12 @@ public class S3NewGearChecker {
 //				SplatNetShopResult result = new ObjectMapper().readValue(new File("C:\\Users\\marco\\Documents\\win 8.1 vorteile\\test\\splatnetshop_test.txt").toURI().toURL(), SplatNetShopResult.class);
 //				System.out.println(result);
 
-				String allGearResponse = requestSender.queryS3Api(account, ALL_GEAR_GRAPHQL_KEY);
+				String allGearResponse = requestSender.queryS3Api(account, S3RequestKey.OwnedWeaponsAndGear.getKey());
 				OwnedGearAndWeaponsResult ownedGear = new ObjectMapper().readValue(allGearResponse, OwnedGearAndWeaponsResult.class);
 
 //				ownedGear.getData().getHeadGears().setNodes(Arrays.stream(ownedGear.getData().getHeadGears().getNodes()).filter(g -> !"Classic Bowler".equals(g.getName())).toArray(Gear[]::new));
 
-				String splatNetGearResponse = requestSender.queryS3Api(account, SPLATNET_SHOP_GRAPHQL_KEY);
+				String splatNetGearResponse = requestSender.queryS3Api(account, S3RequestKey.SplatNetShop.getKey());
 				SplatNetShopResult splatNetOffers = new ObjectMapper().readValue(splatNetGearResponse, SplatNetShopResult.class);
 
 				for (GearOffer offer : splatNetOffers.getAllOffers()) {
