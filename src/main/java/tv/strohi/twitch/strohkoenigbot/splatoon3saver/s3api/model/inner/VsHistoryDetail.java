@@ -30,7 +30,7 @@ public class VsHistoryDetail implements Serializable {
 	private FestMatch festMatch;
 	private BankaraMatch bankaraMatch;
 
-	private IdAndNameAndImage vsStage;
+	private VsStage vsStage;
 	private VsMode vsMode;
 	private VsRule vsRule;
 

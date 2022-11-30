@@ -35,7 +35,7 @@ public class CoopHistoryDetail implements Serializable {
 	private Integer smellMeter;
 
 	private String rule;
-	private IdAndNameAndImage coopStage;
+	private CoopStage coopStage;
 	private List<NameAndImage> weapons;
 
 	private Nothing scenarioCode;

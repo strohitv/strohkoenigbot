@@ -21,7 +21,9 @@ public enum S3RequestKey {
 	SalmonDetail("3cc5f826a6646b85f3ae45db51bd0707"),
 
 	SplatNetShop("a43dd44899a09013bcfd29b4b13314ff"),
-	OwnedWeaponsAndGear("d29cd0c2b5e6bac90dd5b817914832f8");
+	OwnedWeaponsAndGear("d29cd0c2b5e6bac90dd5b817914832f8"),
+
+	RotationSchedules("730cd98e84f1030d3e9ac86b6f1aae13");
 
 	@Getter
 	private final static EnumSet<S3RequestKey> onlineBattles = EnumSet.of(Regular, Anarchy, XRank, Private); // EnumSet.of(Latest, Regular, Anarchy, Private); //
