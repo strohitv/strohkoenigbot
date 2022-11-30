@@ -122,17 +122,17 @@ public class RotationWatcher {
 
 		if (stages != null) {
 			if (Arrays.stream(stages.getGachi()).allMatch(s -> s.getEndTimeAsInstant().isAfter(Instant.now().plus(1, ChronoUnit.HOURS)))) {
-				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getTurfWarChannel(),
+				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getS2TurfWarChannel(),
 						formatDiscordMessage(stages.getRegular()),
 						stages.getRegular()[0].getStage_a().getImage(),
 						stages.getRegular()[0].getStage_b().getImage());
 
-				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getRankedChannel(),
+				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getS2RankedChannel(),
 						formatDiscordMessage(stages.getGachi()),
 						stages.getGachi()[0].getStage_a().getImage(),
 						stages.getGachi()[0].getStage_b().getImage());
 
-				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getLeagueChannel(),
+				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getS2LeagueChannel(),
 						formatDiscordMessage(stages.getLeague()),
 						stages.getLeague()[0].getStage_a().getImage(),
 						stages.getLeague()[0].getStage_b().getImage());

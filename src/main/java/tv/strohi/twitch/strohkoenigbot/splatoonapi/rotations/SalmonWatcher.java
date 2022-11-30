@@ -107,11 +107,11 @@ public class SalmonWatcher {
 		if (detail != null) {
 			// new rotation started!
 			logger.info("Posting new salmon run rotation into discord");
-			sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getSalmonRunChannel(), formatRotation(detail), detail.getStage().getImage());
+			sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getS2SalmonRunChannel(), formatRotation(detail), detail.getStage().getImage());
 
 			if (newAnnouncedRotation != null) {
 				logger.info("Posting new next salmon run rotation into discord");
-				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getSalmonRunChannel(), formatRotation(newAnnouncedRotation), newAnnouncedRotation.getStage().getImage());
+				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getS2SalmonRunChannel(), formatRotation(newAnnouncedRotation), newAnnouncedRotation.getStage().getImage());
 			}
 
 			logger.info("Posting new salmon run rotation into twitch");

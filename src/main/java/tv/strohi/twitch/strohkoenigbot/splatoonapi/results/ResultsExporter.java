@@ -219,7 +219,7 @@ public class ResultsExporter {
 							matchReloader.forceMatchReload(account, results);
 							forceReload = false;
 							loadSilently = true;
-							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), "removed last 50 matches successfully");
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS2MatchChannelName(), "removed last 50 matches successfully");
 						}
 
 						int maxSavedBattleNumber = matchRepository.findMaxBattleNumber(account.getId()).orElse(-1);
@@ -245,7 +245,7 @@ public class ResultsExporter {
 								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), MatchMessageFormatter.getAddedMatchMessage(match));
 								twitchMessageSender.send("strohkoenig", MatchMessageFormatter.getMatchResultPerformance(match));
 //								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), String.format("Added used abilities to Match with id **%d**", match.getId()));
-								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), MatchMessageFormatter.getMatchResultMessage(match, singleResult));
+								discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS2MatchChannelName(), MatchMessageFormatter.getMatchResultMessage(match, singleResult));
 							}
 
 							clipRefresher.refresh(account.getId(), match, loadSilently);
@@ -253,7 +253,7 @@ public class ResultsExporter {
 
 						if (loadSilently) {
 							statsExporter.refreshStageAndWeaponStats();
-							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), "reload of all 50 matches completed successfully");
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS2MatchChannelName(), "reload of all 50 matches completed successfully");
 							loadSilently = false;
 						}
 

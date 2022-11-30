@@ -182,7 +182,7 @@ public class SplatNetStoreWatcher {
 		}
 
 		logger.debug("Sending out discord notifications to server channel");
-		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getSplatNetGearChannel(),
+		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS2SplatNetGearChannel(),
 				discordMessage,
 				images.toArray(String[]::new));
 		logger.debug("Finished sending out discord notifications to server channel");

@@ -42,7 +42,7 @@ public class ClipRefresher {
 			}
 
 			if (!loadSilently) {
-				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getMatchChannelName(), ratingsMessageBuilder.toString());
+				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS2MatchChannelName(), ratingsMessageBuilder.toString());
 			}
 
 			clipRepository.saveAll(clips);

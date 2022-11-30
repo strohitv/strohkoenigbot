@@ -4,12 +4,12 @@ public class DiscordChannelDecisionMaker {
 	private final static String debugTempChannel = "debug-logs-temp";
 
 	private final static String debugChannel = "debug-logs";
-	private final static String splatNetGearChannel = "splatnet-gear";
-	private final static String turfWarChannel = "turf-war-rotations";
-	private final static String rankedChannel = "ranked-rotations";
-	private final static String leagueChannel = "league-rotations";
-	private final static String salmonRunChannel = "salmon-run-rotations";
-	private final static String matchChannel = "matches";
+	private final static String s2SplatNetGearChannel = "s2-splatnet-gear";
+	private final static String s2TurfWarChannel = "s2-turf-war-rotations";
+	private final static String s2RankedChannel = "s2-ranked-rotations";
+	private final static String s2LeagueChannel = "s2-league-rotations";
+	private final static String s2SalmonRunChannel = "s2-salmon-run-rotations";
+	private final static String s2MatchChannel = "s2-matches";
 
 	private static boolean isLocalDebug = false;
 
@@ -31,51 +31,51 @@ public class DiscordChannelDecisionMaker {
 		}
 	}
 
-	public static String getSplatNetGearChannel() {
+	public static String getS2SplatNetGearChannel() {
 		if (isLocalDebug) {
 			return debugTempChannel;
 		} else {
-			return splatNetGearChannel;
+			return s2SplatNetGearChannel;
 		}
 	}
 
-	public static String getTurfWarChannel() {
+	public static String getS2TurfWarChannel() {
 		if (isLocalDebug) {
 			return debugTempChannel;
 		} else {
-			return turfWarChannel;
+			return s2TurfWarChannel;
 		}
 	}
 
-	public static String getRankedChannel() {
+	public static String getS2RankedChannel() {
 		if (isLocalDebug) {
 			return debugTempChannel;
 		} else {
-			return rankedChannel;
+			return s2RankedChannel;
 		}
 	}
 
-	public static String getLeagueChannel() {
+	public static String getS2LeagueChannel() {
 		if (isLocalDebug) {
 			return debugTempChannel;
 		} else {
-			return leagueChannel;
+			return s2LeagueChannel;
 		}
 	}
 
-	public static String getSalmonRunChannel() {
+	public static String getS2SalmonRunChannel() {
 		if (isLocalDebug) {
 			return debugTempChannel;
 		} else {
-			return salmonRunChannel;
+			return s2SalmonRunChannel;
 		}
 	}
 
-	public static String getMatchChannelName() {
+	public static String getS2MatchChannelName() {
 		if (isLocalDebug) {
 			return debugTempChannel;
 		} else {
-			return matchChannel;
+			return s2MatchChannel;
 		}
 	}
 }
