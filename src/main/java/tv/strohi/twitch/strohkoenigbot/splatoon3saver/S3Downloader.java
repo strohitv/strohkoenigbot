@@ -124,6 +124,8 @@ public class S3Downloader {
 				continue;
 			}
 
+			preventNullFields(allDownloadedGames);
+
 			ZonedDateTime now = Instant.now().atZone(ZoneId.systemDefault());
 			String timeString = String.format("%04d-%02d-%02d_%02d-%02d-%02d", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
 
@@ -131,6 +133,7 @@ public class S3Downloader {
 			List<String> onlineAnarchyGamesToDownload = new ArrayList<>();
 			List<String> onlineXRankGamesToDownload = new ArrayList<>();
 			List<String> onlinePrivateGamesToDownload = new ArrayList<>();
+
 			for (S3RequestKey key : S3RequestKey.getOnlineBattles()) {
 				downloadPvPGames(account, directory, allDownloadedGames, timeString, onlineRegularGamesToDownload, onlineAnarchyGamesToDownload, onlineXRankGamesToDownload, onlinePrivateGamesToDownload, key);
 			}
@@ -204,6 +207,28 @@ public class S3Downloader {
 			if (LocalDateTime.now(ZoneId.systemDefault()).getHour() == 8) { // = 9:35 am
 				tryParseAllBattles(accountUUIDHash);
 			}
+		}
+	}
+
+	private void preventNullFields(ConfigFile.DownloadedGameList allDownloadedGames) {
+		if (allDownloadedGames.getRegular_games() == null) {
+			allDownloadedGames.setRegular_games(new HashMap<>());
+		}
+
+		if (allDownloadedGames.getAnarchy_games() == null) {
+			allDownloadedGames.setAnarchy_games(new HashMap<>());
+		}
+
+		if (allDownloadedGames.getX_rank_games() == null) {
+			allDownloadedGames.setX_rank_games(new HashMap<>());
+		}
+
+		if (allDownloadedGames.getPrivate_games() == null) {
+			allDownloadedGames.setPrivate_games(new HashMap<>());
+		}
+
+		if (allDownloadedGames.getSalmon_games() == null) {
+			allDownloadedGames.setSalmon_games(new HashMap<>());
 		}
 	}
 
@@ -297,25 +322,7 @@ public class S3Downloader {
 			return;
 		}
 
-		if (allDownloadedGames.getRegular_games() == null) {
-			allDownloadedGames.setRegular_games(new HashMap<>());
-		}
-
-		if (allDownloadedGames.getAnarchy_games() == null) {
-			allDownloadedGames.setAnarchy_games(new HashMap<>());
-		}
-
-		if (allDownloadedGames.getX_rank_games() == null) {
-			allDownloadedGames.setX_rank_games(new HashMap<>());
-		}
-
-		if (allDownloadedGames.getPrivate_games() == null) {
-			allDownloadedGames.setPrivate_games(new HashMap<>());
-		}
-
-		if (allDownloadedGames.getSalmon_games() == null) {
-			allDownloadedGames.setSalmon_games(new HashMap<>());
-		}
+		preventNullFields(allDownloadedGames);
 
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getAnarchy_games().entrySet()) {
 			parseBattleResult(game, directory);
