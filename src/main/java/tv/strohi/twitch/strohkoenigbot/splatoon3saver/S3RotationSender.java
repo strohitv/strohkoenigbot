@@ -58,6 +58,7 @@ public class S3RotationSender {
 			return;
 		}
 
+		logSender.sendLogs(logger, "Start posting rotations to discord");
 		try {
 			String allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules.getKey());
 			RotationSchedulesResult rotationSchedulesResult = new ObjectMapper().readValue(allRotationsResponse, RotationSchedulesResult.class);
@@ -73,6 +74,8 @@ public class S3RotationSender {
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
+
+		logSender.sendLogs(logger, "Done posting rotations to discord");
 	}
 
 	private void sendRotations(List<RotationSchedulesResult.Node> rotationSchedulesResult) {
