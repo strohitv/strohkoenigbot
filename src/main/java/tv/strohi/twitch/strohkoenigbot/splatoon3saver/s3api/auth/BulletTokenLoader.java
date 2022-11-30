@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3CookieHandler;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.S3RequestSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.UserInfo;
@@ -16,6 +18,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 
 public class BulletTokenLoader {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final S3RequestSender s3RequestSender = new S3RequestSender();
 
 	public String getBulletToken(String gToken, UserInfo userInfo) {
@@ -45,6 +48,7 @@ public class BulletTokenLoader {
 
 		try {
 			String result = s3RequestSender.sendRequestAndParseGzippedJson(client, request);
+			logger.info(result);
 			BulletToken token = new ObjectMapper().readValue(result, BulletToken.class);
 
 			bulletToken = token.getBulletToken();

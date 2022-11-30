@@ -297,6 +297,26 @@ public class S3Downloader {
 			return;
 		}
 
+		if (allDownloadedGames.getRegular_games() == null) {
+			allDownloadedGames.setRegular_games(new HashMap<>());
+		}
+
+		if (allDownloadedGames.getAnarchy_games() == null) {
+			allDownloadedGames.setAnarchy_games(new HashMap<>());
+		}
+
+		if (allDownloadedGames.getX_rank_games() == null) {
+			allDownloadedGames.setX_rank_games(new HashMap<>());
+		}
+
+		if (allDownloadedGames.getPrivate_games() == null) {
+			allDownloadedGames.setPrivate_games(new HashMap<>());
+		}
+
+		if (allDownloadedGames.getSalmon_games() == null) {
+			allDownloadedGames.setSalmon_games(new HashMap<>());
+		}
+
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getAnarchy_games().entrySet()) {
 			parseBattleResult(game, directory);
 		}
