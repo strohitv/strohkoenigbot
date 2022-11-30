@@ -13,11 +13,11 @@ public class CoopRotation {
 
 	private CoopSetting setting;
 
-	private Instant getStartTimeAsInstant() {
+	public Instant getStartTimeAsInstant() {
 		return Instant.parse(startTime);
 	}
 
-	private Instant getEndTimeAsInstant() {
+	public Instant getEndTimeAsInstant() {
 		return Instant.parse(endTime);
 	}
 }

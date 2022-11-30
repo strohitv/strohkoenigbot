@@ -11,6 +11,8 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.RotationSchedulesResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopGroupingSchedule;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Rotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.RotationMatchSetting;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
@@ -71,11 +73,52 @@ public class S3RotationSender {
 					// TODO ADD SPLATFEST SCHEDULES
 //					rotationSchedulesResult.getData().getFestSchedules()
 			));
+
+			sendSalmonRotations(rotationSchedulesResult.getData().getCoopGroupingSchedule());
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
 
 		logSender.sendLogs(logger, "Done posting rotations to discord");
+	}
+
+	private void sendSalmonRotations(CoopGroupingSchedule coopGroupingSchedule) {
+		String regularChannelName = DiscordChannelDecisionMaker.getS3SalmonRunChannel();
+		String bigRunChannelName = DiscordChannelDecisionMaker.getS3SalmonRunBigRunChannel();
+
+		CoopRotation regularRotation = Arrays.stream(coopGroupingSchedule.getRegularSchedules().getNodes())
+				.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
+				.orElse(null);
+
+		CoopRotation bigRunRotation = Arrays.stream(coopGroupingSchedule.getBigRunSchedules().getNodes())
+				.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
+				.orElse(null);
+
+		if (regularRotation != null) {
+			sendSalmonRotationToDiscord(regularChannelName, "Salmon Run", regularRotation);
+		}
+
+		if (bigRunRotation != null) {
+			sendSalmonRotationToDiscord(bigRunChannelName, "Big Run", bigRunRotation);
+		}
+	}
+
+	private void sendSalmonRotationToDiscord(String channelName, String typeName, CoopRotation rotation) {
+		if (rotation.getStartTimeAsInstant().isBefore(Instant.now())
+				&& rotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES))) {
+			StringBuilder builder = new StringBuilder(String.format("**Current %s rotation**\n\n**Stage**:\n- ", typeName))
+					.append(rotation.getSetting().getCoopStage().getName())
+					.append("\n\n**Weapons**:\n");
+
+			Arrays.stream(rotation.getSetting().getWeapons()).forEach(w ->
+					builder.append("- ").append(w.getName()).append("\n"));
+
+			builder.append("\nRotation will be running for **")
+					.append((int) Duration.between(rotation.getStartTimeAsInstant(), rotation.getEndTimeAsInstant()).toHours())
+					.append("** hours!");
+
+			discordBot.sendServerMessageWithImages(channelName, builder.toString(), rotation.getSetting().getCoopStage().getImage().getUrl());
+		}
 	}
 
 	private void sendRotations(List<RotationSchedulesResult.Node> rotationSchedulesResult) {
@@ -159,7 +202,8 @@ public class S3RotationSender {
 
 		return emoji;
 	}
-	private int getHourDifference( Instant now, Instant startTime) {
+
+	private int getHourDifference(Instant now, Instant startTime) {
 		return Duration.between(now, startTime).toHoursPart() + 1;
 	}
 
@@ -187,14 +231,14 @@ public class S3RotationSender {
 		return list;
 	}
 
-	private RotationMatchSetting getRotation(Rotation rsr ) {
+	private RotationMatchSetting getRotation(Rotation rsr) {
 		RotationMatchSetting result;
 
 		if (rsr.getRegularMatchSetting() != null) {
 			result = rsr.getRegularMatchSetting();
 		} else if (rsr.getXMatchSetting() != null) {
 			result = rsr.getXMatchSetting();
-		} else  if (rsr.getLeagueMatchSetting() != null) {
+		} else if (rsr.getLeagueMatchSetting() != null) {
 			result = rsr.getLeagueMatchSetting();
 		} else { //  if (rsr.getFestMatchSetting() != null) {
 			// TODO add as soon as spatfest exists!!
