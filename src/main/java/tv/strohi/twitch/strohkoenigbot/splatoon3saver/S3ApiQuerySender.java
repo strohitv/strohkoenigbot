@@ -71,14 +71,15 @@ public class S3ApiQuerySender {
 				.uri(uri)
 				.setHeader("Authorization", String.format("Bearer %s", bulletToken))
 				.setHeader("Accept-Language", "en-US")
+				.setHeader("Accept-Encoding", "gzip,deflate,br")
 				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
-				.setHeader("X-Web-View-Ver", "1.0.0-d3a90678")
+				.setHeader("X-Web-View-Ver", "2.0.0-15dc639f")
 				.setHeader("Content-Type", "application/json")
 				.setHeader("Accept", "*/*")
 				.setHeader("Origin", "https://api.lp1.av5ja.srv.nintendo.net")
 				.setHeader("X-Requested-With", "com.nintendo.znca")
 				.setHeader("Referer", "https://api.lp1.av5ja.srv.nintendo.net/?lang=en-US&na_country=US&na_lang=en-US")
-				.setHeader("Accept-Encoding", "gzip, deflate")
+//				.setHeader("Accept-Encoding", "gzip, deflate")
 				.build();
 
 		HttpClient client = HttpClient.newBuilder()
