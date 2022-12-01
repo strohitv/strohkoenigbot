@@ -1,6 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.utils.scheduling;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
@@ -17,6 +19,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SchedulingService {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
 	private final static int MAX_ERRORS_SINGLE = 3;
 	private final static int MAX_ERRORS_REPEATED = 5;
 
@@ -34,6 +38,8 @@ public class SchedulingService {
 			Schedule schedule = singleRunSchedules.get(i);
 
 			if (schedule.shouldRun(now)) {
+				logger.info("running job...");
+
 				try {
 					schedule.getRunnable().run();
 					singleRunSchedules.remove(i);
@@ -48,6 +54,8 @@ public class SchedulingService {
 						i--;
 					}
 				}
+
+				logger.info("finished job...");
 			}
 		}
 

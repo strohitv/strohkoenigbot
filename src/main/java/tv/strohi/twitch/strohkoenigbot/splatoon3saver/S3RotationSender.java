@@ -53,6 +53,10 @@ public class S3RotationSender {
 	}
 
 	private void refreshRotations() {
+		refreshRotations(false);
+	}
+
+	public void refreshRotations(boolean force) {
 		Account account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
 		if (account == null) {
@@ -72,9 +76,9 @@ public class S3RotationSender {
 					rotationSchedulesResult.getData().getLeagueSchedules()
 					// TODO ADD SPLATFEST SCHEDULES
 //					rotationSchedulesResult.getData().getFestSchedules()
-			));
+			), force);
 
-			sendSalmonRotations(rotationSchedulesResult.getData().getCoopGroupingSchedule());
+			sendSalmonRotations(rotationSchedulesResult.getData().getCoopGroupingSchedule(), force);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
@@ -82,7 +86,7 @@ public class S3RotationSender {
 		logSender.sendLogs(logger, "Done posting rotations to discord");
 	}
 
-	private void sendSalmonRotations(CoopGroupingSchedule coopGroupingSchedule) {
+	private void sendSalmonRotations(CoopGroupingSchedule coopGroupingSchedule, boolean force) {
 		String regularChannelName = DiscordChannelDecisionMaker.getS3SalmonRunChannel();
 		String bigRunChannelName = DiscordChannelDecisionMaker.getS3SalmonRunBigRunChannel();
 
@@ -95,17 +99,19 @@ public class S3RotationSender {
 				.orElse(null);
 
 		if (regularRotation != null) {
-			sendSalmonRotationToDiscord(regularChannelName, "Salmon Run", regularRotation);
+			sendSalmonRotationToDiscord(regularChannelName, "Salmon Run", regularRotation, force);
 		}
 
 		if (bigRunRotation != null) {
-			sendSalmonRotationToDiscord(bigRunChannelName, "Big Run", bigRunRotation);
+			sendSalmonRotationToDiscord(bigRunChannelName, "Big Run", bigRunRotation, force);
 		}
 	}
 
-	private void sendSalmonRotationToDiscord(String channelName, String typeName, CoopRotation rotation) {
-		if (rotation.getStartTimeAsInstant().isBefore(Instant.now())
-				&& rotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES))) {
+	private void sendSalmonRotationToDiscord(String channelName, String typeName, CoopRotation rotation, boolean force) {
+		if (force ||
+				(rotation.getStartTimeAsInstant().isBefore(Instant.now())
+						&& rotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
+		) {
 			StringBuilder builder = new StringBuilder(String.format("**Current %s rotation**\n\n**Stage**:\n- ", typeName))
 					.append(rotation.getSetting().getCoopStage().getName())
 					.append("\n\n**Weapons**:\n");
@@ -121,11 +127,12 @@ public class S3RotationSender {
 		}
 	}
 
-	private void sendRotations(List<RotationSchedulesResult.Node> rotationSchedulesResult) {
+	private void sendRotations(List<RotationSchedulesResult.Node> rotationSchedulesResult, boolean force) {
 		for (var schedule : rotationSchedulesResult) {
 			Rotation currentRotation = schedule.getNodes()[0];
-			if (currentRotation.getStartTimeAsInstant().isBefore(Instant.now())
-					&& currentRotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES))
+			if (force || (
+					currentRotation.getStartTimeAsInstant().isBefore(Instant.now())
+							&& currentRotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
 			) {
 				// new rotation -> send notifications
 				List<Rotation> rotations = Arrays.stream(schedule.getNodes()).collect(Collectors.toList());
