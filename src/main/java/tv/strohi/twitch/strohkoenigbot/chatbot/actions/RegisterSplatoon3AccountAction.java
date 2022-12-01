@@ -2,6 +2,7 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class RegisterSplatoon3AccountAction extends ChatAction {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
@@ -53,7 +55,7 @@ public class RegisterSplatoon3AccountAction extends ChatAction {
 //	}
 
 	private final AuthLinkCreator authLinkCreator = new AuthLinkCreator();
-	private final S3Authenticator authenticator = new S3Authenticator();
+	private final S3Authenticator authenticator;
 	private final Map<Long, Tuple<AuthLinkCreator.AuthParams, Instant>> paramsMap = new HashMap<>();
 
 	@Override

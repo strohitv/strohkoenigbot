@@ -5,7 +5,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3CookieHandler;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3AuthenticationData;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authenticator;
@@ -16,16 +18,19 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 
+import static tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authenticator.SPLATOON3_WEBVIEWVERSION_CONFIG_NAME;
+
 @Component
 @RequiredArgsConstructor
 public class S3ApiQuerySender {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final S3RequestSender s3RequestSender;
 	private final AccountRepository accountRepository;
+	private final ConfigurationRepository configurationRepository;
 
 	private final LogSender logSender;
 
-	private final S3Authenticator authenticator = new S3Authenticator();
+	private final S3Authenticator authenticator;
 
 	public String queryS3Api(Account account, String actionHash) {
 		return queryS3Api(account, actionHash, null);
@@ -62,6 +67,11 @@ public class S3ApiQuerySender {
 			}
 		}
 
+		String webViewVersion = configurationRepository.findByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
+				.findFirst()
+				.map(Configuration::getConfigValue)
+				.orElse("");
+
 		String address = "https://api.lp1.av5ja.srv.nintendo.net/api/graphql";
 
 		URI uri = URI.create(address);
@@ -73,7 +83,7 @@ public class S3ApiQuerySender {
 				.setHeader("Accept-Language", "en-US")
 				.setHeader("Accept-Encoding", "gzip,deflate,br")
 				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
-				.setHeader("X-Web-View-Ver", "2.0.0-15dc639f")
+				.setHeader("X-Web-View-Ver", webViewVersion)
 				.setHeader("Content-Type", "application/json")
 				.setHeader("Accept", "*/*")
 				.setHeader("Origin", "https://api.lp1.av5ja.srv.nintendo.net")
