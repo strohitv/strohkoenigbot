@@ -47,7 +47,7 @@ public class WebViewVersionLoader {
 
 		try {
 			String homepageHtml = s3RequestSender.sendRequestAndParseGzippedJson(client, homePageRequest);
-			logger.info(homepageHtml);
+			logger.debug(homepageHtml);
 
 			if (homepageHtml != null) {
 				Document doc = Jsoup.parse(homepageHtml);
@@ -79,7 +79,7 @@ public class WebViewVersionLoader {
 							.build();
 
 					String mainJsContent = s3RequestSender.sendRequestAndParseGzippedJson(client, mainJsRequest);
-					logger.info(mainJsContent);
+					logger.debug(mainJsContent);
 
 					if (mainJsContent != null) {
 						Matcher mainJsMatcher = Pattern

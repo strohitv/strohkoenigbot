@@ -39,34 +39,34 @@ public class S3Authenticator {
 		logger.info("refreshing cookie of session token: {}", sessionToken);
 
 		String accountAccessToken = accountAccessTokenRetriever.getAccountAccessToken(sessionToken);
-		logger.info("accountAccessToken");
-		logger.info(accountAccessToken);
+		logger.debug("accountAccessToken");
+		logger.debug(accountAccessToken);
 
 		UserInfo userInfo = userInfoRetriever.getUserInfo(accountAccessToken);
-		logger.info("userInfo");
-		logger.info(userInfo);
+		logger.debug("userInfo");
+		logger.debug(userInfo);
 
 		FParamLoginResult fTokenNso = fTokenRetriever.getFTokenFromIminkApi(accountAccessToken, 1);
-		logger.info("fTokenNso");
-		logger.info(fTokenNso);
+		logger.debug("fTokenNso");
+		logger.debug(fTokenNso);
 
 
 		String idToken = splatoonTokenRetriever.doSplatoonAppLogin(userInfo, fTokenNso, accountAccessToken);
-		logger.info("gameWebToken");
-		logger.info(idToken);
+		logger.debug("gameWebToken");
+		logger.debug(idToken);
 
 		FParamLoginResult fTokenApp = fTokenRetriever.getFTokenFromIminkApi(idToken, 2);
-		logger.info("fTokenApp");
-		logger.info(fTokenApp);
+		logger.debug("fTokenApp");
+		logger.debug(fTokenApp);
 
 		// TODO apparently this is the gtoken???
 		String gToken = splatoonTokenRetriever.getSplatoonAccessToken(idToken, fTokenApp, accountAccessToken, SPLATOON3_TOKEN_REQUEST_ID);
-		logger.info("gToken");
-		logger.info(gToken);
+		logger.debug("gToken");
+		logger.debug(gToken);
 
 		String webViewVersion = webViewVersionLoader.refreshWebViewVersion(gToken);
-		logger.info("webViewVersion");
-		logger.info(webViewVersion);
+		logger.debug("webViewVersion");
+		logger.debug(webViewVersion);
 
 		if (webViewVersion != null) {
 			Configuration webViewConfigs = configurationRepository.findByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
@@ -83,8 +83,10 @@ public class S3Authenticator {
 
 		// TODO steps to bulletToken are new
 		String bulletToken = bulletTokenLoader.getBulletToken(gToken, userInfo);
-		logger.info("bulletToken");
-		logger.info(bulletToken);
+		logger.debug("bulletToken");
+		logger.debug(bulletToken);
+
+		logger.info("done refreshing cookie of session token: {}", sessionToken);
 
 		return S3AuthenticationData.builder()
 				.gToken(gToken)

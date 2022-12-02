@@ -20,5 +20,5 @@ public class CoopResult implements Serializable {
 	private Integer rescuedCount;
 
 	private List<NameAndImage> weapons;
-	private IdAndNameAndImage specialWeapon;
+	private Weapon specialWeapon;
 }

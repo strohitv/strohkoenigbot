@@ -17,4 +17,8 @@ public class Team implements Serializable {
 	private Color color;
 	private String tricolorRole;
 	private String festTeamName;
+
+	private Nothing festUniformBonusRate;
+	private Nothing festStreakWinCount;
+	private Nothing festUniformName;
 }

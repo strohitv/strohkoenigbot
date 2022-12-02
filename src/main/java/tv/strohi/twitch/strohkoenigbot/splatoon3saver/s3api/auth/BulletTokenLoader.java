@@ -59,7 +59,7 @@ public class BulletTokenLoader {
 
 		try {
 			String result = s3RequestSender.sendRequestAndParseGzippedJson(client, request);
-			logger.info(result);
+			logger.debug(result);
 			BulletToken token = new ObjectMapper().readValue(result, BulletToken.class);
 
 			bulletToken = token.getBulletToken();
