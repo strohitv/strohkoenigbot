@@ -29,6 +29,8 @@ public class Player implements Serializable {
 	private Gear clothingGear;
 	private Gear shoesGear;
 
+	private Boolean crown;
+
 	// Salmon Run
 	private IdAndNameAndImage uniform;
 }
