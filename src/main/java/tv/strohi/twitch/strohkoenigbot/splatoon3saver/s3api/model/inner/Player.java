@@ -31,6 +31,9 @@ public class Player implements Serializable {
 
 	private Boolean crown;
 
+	// Splatfest
+	private String festGrade;
+
 	// Salmon Run
 	private IdAndNameAndImage uniform;
 }

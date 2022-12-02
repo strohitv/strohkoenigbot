@@ -12,4 +12,18 @@ public class Result implements Serializable {
 	private Integer score;
 	private Integer noroshi;
 	private Double paintRatio;
+	private Integer paintPoint;
+
+	private Integer deliverCount;
+	private Integer goldenDeliverCount;
+
+	// Salmon Run
+	private Player player;
+	private Weapon[] weapons;
+	private Weapon specialWeapon;
+
+	private Integer defeatEnemyCount;
+	private Integer goldenAssistCount;
+	private Integer rescueCount;
+	private Integer rescuedCount;
 }
