@@ -28,7 +28,7 @@ public class VsHistoryDetail implements Serializable {
 	private String knockout;
 	private String judgement;
 	private FestMatch festMatch;
-	private BankaraMatch bankaraMatch;
+	private Match bankaraMatch;
 
 	private VsStage vsStage;
 	private VsMode vsMode;
@@ -36,5 +36,5 @@ public class VsHistoryDetail implements Serializable {
 
 	private Nothing leagueMatch;
 	@JsonProperty("xMatch")
-	private Nothing xMatch;
+	private Match xMatch;
 }
