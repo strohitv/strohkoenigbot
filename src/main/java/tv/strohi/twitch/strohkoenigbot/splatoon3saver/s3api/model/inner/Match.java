@@ -8,7 +8,8 @@ import java.io.Serializable;
 @Getter
 @Setter
 // @Accessors(fluent = true)
-public class BankaraMatch implements Serializable {
+public class Match implements Serializable {
 	private String mode;
 	private Integer earnedUdemaePoint;
+	private Double lastXPower;
 }
