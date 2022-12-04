@@ -68,7 +68,7 @@ public class S3Downloader {
 	//	@Scheduled(cron = "30 35 * * * *")
 	//	@Scheduled(cron = "30 * * * * *")
 	public void downloadStuffExceptionSafe() {
-		logSender.sendLogs(logger, "Loading Splatoon 3 games...");
+		logger.info("Loading Splatoon 3 games...");
 		try {
 			downloadStuff();
 		} catch (Exception e) {
@@ -246,7 +246,7 @@ public class S3Downloader {
 				String configFileLocation = singleS3SLocation.getConfigValue();
 				String completeCommand = String.format(scriptFormatString, configFileLocation).trim();
 
-				logSender.sendLogs(logger, String.format("Starting download for location %s", configFileLocation));
+				logger.info(String.format("Starting download for location %s", configFileLocation));
 
 				if (!gTokenRefresher.refreshGToken(rt, configFileLocation, completeCommand)) {
 					logger.warn("Did not work..");
@@ -278,7 +278,7 @@ public class S3Downloader {
 				// move exported folders to back up directory
 				for (String dir : directories) {
 					try {
-						logSender.sendLogs(logger, String.format("Moving directory %s", dir));
+						logger.info(String.format("Moving directory %s", dir));
 						Files.move(new File(dir).toPath(), directory.resolve(dir), StandardCopyOption.REPLACE_EXISTING);
 					} catch (IOException e) {
 						logSender.sendLogs(logger, String.format("could not move directory %s", dir));

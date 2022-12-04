@@ -64,7 +64,7 @@ public class S3RotationSender {
 			return;
 		}
 
-		logSender.sendLogs(logger, "Start posting rotations to discord");
+		logger.info("Start posting rotations to discord");
 		try {
 			String allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules.getKey());
 			RotationSchedulesResult rotationSchedulesResult = new ObjectMapper().readValue(allRotationsResponse, RotationSchedulesResult.class);
@@ -83,7 +83,7 @@ public class S3RotationSender {
 			e.printStackTrace();
 		}
 
-		logSender.sendLogs(logger, "Done posting rotations to discord");
+		logger.info("Done posting rotations to discord");
 	}
 
 	private void sendSalmonRotations(CoopGroupingSchedule coopGroupingSchedule, boolean force) {
