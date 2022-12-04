@@ -18,6 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3DailyStatsSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3RotationSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
@@ -149,6 +150,13 @@ public class DiscordAdministrationAction extends ChatAction {
 	@Autowired
 	public void setS3Downloader(S3RotationSender s3RotationSender) {
 		this.s3RotationSender = s3RotationSender;
+	}
+
+	private S3DailyStatsSender s3DailyStatsSender;
+
+	@Autowired
+	public void setS3DailyStatsSender(S3DailyStatsSender s3DailyStatsSender) {
+		this.s3DailyStatsSender = s3DailyStatsSender;
 	}
 
 	@Override
@@ -449,6 +457,10 @@ public class DiscordAdministrationAction extends ChatAction {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing rotation posts");
 			s3RotationSender.refreshRotations(true);
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting forced rotation posts");
+		} else if (message.startsWith("!repost stats s3")) {
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing daily stats messages");
+			s3DailyStatsSender.sendStats(true);
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting daily stats messages");
 		}
 	}
 
