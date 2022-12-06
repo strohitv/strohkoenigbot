@@ -169,6 +169,15 @@ public class S3DailyStatsSender {
 
 			if ("WIN".equals(result.getData().getVsHistoryDetail().getJudgement())) {
 				String rule = result.getData().getVsHistoryDetail().getVsRule().getName();
+
+				if ("Tricolor Turf War".equals(rule)) {
+					if (result.getData().getVsHistoryDetail().getMyTeam().getPlayers().size() == 2) {
+						rule += " (Attacker)";
+					} else {
+						rule += " (Defender)";
+					}
+				}
+
 				int currentRuleWinCount = winResults.getOrDefault(rule, 0);
 				winResults.put(rule, currentRuleWinCount + 1);
 
