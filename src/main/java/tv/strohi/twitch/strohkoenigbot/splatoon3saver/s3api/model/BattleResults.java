@@ -283,7 +283,7 @@ public class BattleResults {
 	@AllArgsConstructor
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class AnarchyMatch {
-		private Nothing earnedUdemaePoint;
+		private Integer earnedUdemaePoint;
 		private String mode;
 	}
 
