@@ -80,7 +80,8 @@ public class S3RotationSender {
 
 			sendSalmonRotations(rotationSchedulesResult.getData().getCoopGroupingSchedule(), force);
 		} catch (JsonProcessingException e) {
-			e.printStackTrace();
+			logSender.sendLogs(logger, String.format("exception during rotation refresh!! %s", e.getMessage()));
+			logger.error(e);
 		}
 
 		logger.info("Done posting rotations to discord");

@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CoopGroupingSchedule {
-	private Nothing bannerImage;
+	private Image bannerImage;
 	private CoopSchedule regularSchedules;
 	private CoopSchedule bigRunSchedules;
 
