@@ -104,41 +104,41 @@ public class S3DailyStatsSender {
 		}
 
 		Map<String, Integer> wonOnlineGames = new HashMap<>();
+		Map<String, Integer> winCountSpecialWeapons = new HashMap<>();
+		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getRegular_games().entrySet()) {
+			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
+		}
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getAnarchy_games().entrySet()) {
-			countOnlineWins(game, directory, wonOnlineGames);
+			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
 		}
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getX_rank_games().entrySet()) {
-			countOnlineWins(game, directory, wonOnlineGames);
+			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
 		}
 
-		var winStats = wonOnlineGames.entrySet().stream()
-				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-				.collect(Collectors.toList());
-		StringBuilder winBuilder = new StringBuilder("**Current Online Game Win statistics:**");
-
-		for (var srEnemyStat : winStats) {
-			winBuilder.append("\n- ").append(srEnemyStat.getKey()).append(": **").append(srEnemyStat.getValue()).append("**");
-		}
-
-		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
+		SendStatsToDiscord(wonOnlineGames, "**Current Online Game Win statistics:**", account);
+		SendStatsToDiscord(winCountSpecialWeapons, "**Current Online Game Special Weapon Win statistics:**", account);
 
 		Map<String, Integer> defeatedSalmonRunBosses = new HashMap<>();
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getSalmon_games().entrySet()) {
 			countSalmonRunEnemyDefeatResults(game, directory, defeatedSalmonRunBosses);
 		}
 
-		var srEnemyStats = defeatedSalmonRunBosses.entrySet().stream()
-				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-				.collect(Collectors.toList());
-		StringBuilder srBossBuilder = new StringBuilder("**Current Salmon Run Boss Kill statistics:**");
-
-		for (var srEnemyStat : srEnemyStats) {
-			srBossBuilder.append("\n- ").append(srEnemyStat.getKey()).append(": **").append(srEnemyStat.getValue()).append("**");
-		}
-
-		discordBot.sendPrivateMessage(account.getDiscordId(), srBossBuilder.toString());
+		SendStatsToDiscord(defeatedSalmonRunBosses, "**Current Salmon Run Boss Kill statistics:**", account);
 
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
+	}
+
+	private void SendStatsToDiscord(Map<String, Integer> wonOnlineGames, String str, Account account) {
+		var winStats = wonOnlineGames.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.collect(Collectors.toList());
+		StringBuilder winBuilder = new StringBuilder(str);
+
+		for (var srEnemyStat : winStats) {
+			winBuilder.append("\n- ").append(srEnemyStat.getKey()).append(": **").append(srEnemyStat.getValue()).append("**");
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
 	}
 
 	private void countSalmonRunEnemyDefeatResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses) {
@@ -159,7 +159,7 @@ public class S3DailyStatsSender {
 		}
 	}
 
-	private void countOnlineWins(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> winResults) {
+	private void countOnlineWins(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> winResults, Map<String, Integer> specialWinResults) {
 		String filename = directory.resolve(game.getValue().getFilename()).toAbsolutePath().toString();
 
 		try {
@@ -168,8 +168,22 @@ public class S3DailyStatsSender {
 			logger.debug(result);
 
 			if ("WIN".equals(result.getData().getVsHistoryDetail().getJudgement())) {
-				int currentCount = winResults.getOrDefault(result.getData().getVsHistoryDetail().getVsRule().getName(), 0);
-				winResults.put(result.getData().getVsHistoryDetail().getVsRule().getName(), currentCount + 1);
+				String rule = result.getData().getVsHistoryDetail().getVsRule().getName();
+				int currentRuleWinCount = winResults.getOrDefault(rule, 0);
+				winResults.put(rule, currentRuleWinCount + 1);
+
+				String specialWeapon;
+				if (result.getData().getVsHistoryDetail().getPlayer().getWeapon() != null) {
+					specialWeapon = result.getData().getVsHistoryDetail().getPlayer().getWeapon().getSpecialWeapon().getName();
+				} else {
+					String id = result.getData().getVsHistoryDetail().getPlayer().getId();
+					specialWeapon = result.getData().getVsHistoryDetail().getMyTeam().getPlayers().stream()
+							.filter(pid -> pid.getId().equals(id))
+							.map(p -> p.getWeapon().getSpecialWeapon().getName())
+							.findFirst().orElse("UNKOWN");
+				}
+				int currentSpecialWinCount = specialWinResults.getOrDefault(specialWeapon, 0);
+				specialWinResults.put(specialWeapon, currentSpecialWinCount + 1);
 			}
 		} catch (IOException e) {
 			logSender.sendLogs(logger, String.format("Couldn't parse salmon run result json file '%s' OH OH", filename));
