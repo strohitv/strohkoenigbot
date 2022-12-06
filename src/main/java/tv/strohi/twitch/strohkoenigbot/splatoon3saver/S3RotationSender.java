@@ -109,9 +109,8 @@ public class S3RotationSender {
 	}
 
 	private void sendSalmonRotationToDiscord(String channelName, String typeName, CoopRotation rotation, boolean force) {
-		if (force ||
-				(rotation.getStartTimeAsInstant().isBefore(Instant.now())
-						&& rotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
+		if ((force && rotation.getStartTimeAsInstant().isBefore(Instant.now()))
+				|| (rotation.getStartTimeAsInstant().isBefore(Instant.now()) && rotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
 		) {
 			StringBuilder builder = new StringBuilder(String.format("**Current %s rotation**\n\n**Stage**:\n- ", typeName))
 					.append(rotation.getSetting().getCoopStage().getName())
