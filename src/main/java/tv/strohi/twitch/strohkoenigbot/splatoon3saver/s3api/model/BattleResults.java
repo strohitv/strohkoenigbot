@@ -249,7 +249,7 @@ public class BattleResults {
 		@JsonProperty("xMatch")
 		private XMatch xMatch;
 
-		private Nothing festMatch;
+		private FestMatch festMatch;
 
 		private Nothing leagueMatch;
 
@@ -294,5 +294,17 @@ public class BattleResults {
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class XMatch {
 		private Double lastXPower;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class FestMatch {
+		private String dragonMatchType;
+		private Integer contribution;
+		private Integer jewel;
+		private double myFestPower;
 	}
 }
