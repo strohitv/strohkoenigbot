@@ -37,6 +37,8 @@ public class S3NewGearChecker {
 
 	private final S3ApiQuerySender requestSender;
 
+	private final S3DailyStatsSender dailyStatsSender;
+
 	private SchedulingService schedulingService;
 
 	@Autowired
@@ -67,6 +69,14 @@ public class S3NewGearChecker {
 
 				String splatNetGearResponse = requestSender.queryS3Api(account, S3RequestKey.SplatNetShop.getKey());
 				SplatNetShopResult splatNetOffers = new ObjectMapper().readValue(splatNetGearResponse, SplatNetShopResult.class);
+
+				if (account.getIsMainAccount()) {
+					List<Gear> allGear = new ArrayList<>();
+					allGear.addAll(List.of(ownedGear.getData().getHeadGears().getNodes()));
+					allGear.addAll(List.of(ownedGear.getData().getClothingGears().getNodes()));
+					allGear.addAll(List.of(ownedGear.getData().getShoesGears().getNodes()));
+					dailyStatsSender.setGear(allGear);
+				}
 
 				for (GearOffer offer : splatNetOffers.getAllOffers()) {
 					Gear[] gearToSearch;

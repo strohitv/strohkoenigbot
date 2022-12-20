@@ -13,6 +13,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.EnemyResults;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
@@ -26,7 +27,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -51,6 +54,13 @@ public class S3DailyStatsSender {
 	@PostConstruct
 	public void registerSchedule() {
 		schedulingService.register("S3DailyStatsSender_schedule", CronSchedule.getScheduleString("30 25 * * * *"), this::sendStats);
+	}
+
+	private final List<Gear> allOwnedGear = new ArrayList<>();
+
+	public void setGear(List<Gear> allGear) {
+		allOwnedGear.clear();
+		allOwnedGear.addAll(allGear);
 	}
 
 	private void sendStats() {
@@ -120,6 +130,10 @@ public class S3DailyStatsSender {
 		SendStatsToDiscord(wonOnlineGames, "**Current Online Game Win statistics:**", account);
 		SendStatsToDiscord(winCountSpecialWeapons, "**Current Online Game Special Weapon Win statistics:**", account);
 
+		Map<String, Integer> gearStars = new HashMap<>();
+		countStarsOnGear(gearStars);
+		SendStatsToDiscord(gearStars, "**Current statistics about Stars on Gear:**", account);
+
 		Map<String, Integer> defeatedSalmonRunBosses = new HashMap<>();
 		Map<String, Integer> defeatedSalmonRunBossesYesterday = new HashMap<>();
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getSalmon_games().entrySet()) {
@@ -146,6 +160,7 @@ public class S3DailyStatsSender {
 		}
 
 		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
+//		System.out.println(winBuilder);
 	}
 
 	private void countSalmonRunEnemyDefeatResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses, Map<String, Integer> defeatedSalmonRunBossesYesterday) {
@@ -171,6 +186,13 @@ public class S3DailyStatsSender {
 		} catch (IOException e) {
 			logSender.sendLogs(logger, String.format("Couldn't parse salmon run result json file '%s' OH OH", filename));
 			logger.error(e);
+		}
+	}
+
+	private void countStarsOnGear(Map<String, Integer> brandsWithStars) {
+		for (Gear gear : allOwnedGear) {
+			int currentBrandStarCount = brandsWithStars.getOrDefault(gear.getBrand().getName(), 0);
+			brandsWithStars.put(gear.getBrand().getName(), currentBrandStarCount + gear.getRarity());
 		}
 	}
 
