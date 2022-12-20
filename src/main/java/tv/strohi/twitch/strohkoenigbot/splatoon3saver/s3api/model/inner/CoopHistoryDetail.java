@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 
 @Getter
@@ -39,4 +40,12 @@ public class CoopHistoryDetail implements Serializable {
 	private List<NameAndImage> weapons;
 
 	private Nothing scenarioCode;
+
+	public Instant getPlayedTimeAsInstant() {
+		try {
+			return Instant.parse(playedTime);
+		} catch (Exception ignored) {
+			return null;
+		}
+	}
 }

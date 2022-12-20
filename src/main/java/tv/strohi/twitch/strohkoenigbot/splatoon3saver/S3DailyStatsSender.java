@@ -22,8 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -119,11 +121,16 @@ public class S3DailyStatsSender {
 		SendStatsToDiscord(winCountSpecialWeapons, "**Current Online Game Special Weapon Win statistics:**", account);
 
 		Map<String, Integer> defeatedSalmonRunBosses = new HashMap<>();
+		Map<String, Integer> defeatedSalmonRunBossesYesterday = new HashMap<>();
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getSalmon_games().entrySet()) {
-			countSalmonRunEnemyDefeatResults(game, directory, defeatedSalmonRunBosses);
+			countSalmonRunEnemyDefeatResults(game, directory, defeatedSalmonRunBosses, defeatedSalmonRunBossesYesterday);
 		}
 
 		SendStatsToDiscord(defeatedSalmonRunBosses, "**Current Salmon Run Boss Kill statistics:**", account);
+
+		if (defeatedSalmonRunBossesYesterday.size() > 0) {
+			SendStatsToDiscord(defeatedSalmonRunBossesYesterday, "**Yesterday Salmon Run Boss Kill statistics:**", account);
+		}
 
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
 	}
@@ -141,7 +148,7 @@ public class S3DailyStatsSender {
 		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
 	}
 
-	private void countSalmonRunEnemyDefeatResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses) {
+	private void countSalmonRunEnemyDefeatResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses, Map<String, Integer> defeatedSalmonRunBossesYesterday) {
 		String filename = directory.resolve(game.getValue().getFilename()).toAbsolutePath().toString();
 
 		try {
@@ -152,6 +159,14 @@ public class S3DailyStatsSender {
 			for (EnemyResults enemyResult : result.getData().getCoopHistoryDetail().getEnemyResults()) {
 				int currentCount = defeatedSalmonRunBosses.getOrDefault(enemyResult.getEnemy().getName(), 0);
 				defeatedSalmonRunBosses.put(enemyResult.getEnemy().getName(), currentCount + enemyResult.getDefeatCount());
+
+				Instant time = result.getData().getCoopHistoryDetail().getPlayedTimeAsInstant();
+				if (time != null
+						&& time.isAfter(Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
+						&& time.isBefore(Instant.now().truncatedTo(ChronoUnit.DAYS))) {
+					int currentCountYesterday = defeatedSalmonRunBossesYesterday.getOrDefault(enemyResult.getEnemy().getName(), 0);
+					defeatedSalmonRunBossesYesterday.put(enemyResult.getEnemy().getName(), currentCountYesterday + enemyResult.getDefeatCount());
+				}
 			}
 		} catch (IOException e) {
 			logSender.sendLogs(logger, String.format("Couldn't parse salmon run result json file '%s' OH OH", filename));
