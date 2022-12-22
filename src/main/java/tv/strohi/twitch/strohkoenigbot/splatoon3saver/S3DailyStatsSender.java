@@ -175,12 +175,16 @@ public class S3DailyStatsSender {
 				int currentCount = defeatedSalmonRunBosses.getOrDefault(enemyResult.getEnemy().getName(), 0);
 				defeatedSalmonRunBosses.put(enemyResult.getEnemy().getName(), currentCount + enemyResult.getDefeatCount());
 
-				Instant time = result.getData().getCoopHistoryDetail().getPlayedTimeAsInstant();
-				if (time != null
-						&& time.isAfter(Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
-						&& time.isBefore(Instant.now().truncatedTo(ChronoUnit.DAYS))) {
-					int currentCountYesterday = defeatedSalmonRunBossesYesterday.getOrDefault(enemyResult.getEnemy().getName(), 0);
-					defeatedSalmonRunBossesYesterday.put(enemyResult.getEnemy().getName(), currentCountYesterday + enemyResult.getDefeatCount());
+				Instant timeAsInstant = result.getData().getCoopHistoryDetail().getPlayedTimeAsInstant();
+				if (timeAsInstant != null) {
+					LocalDateTime time = LocalDateTime.ofInstant(timeAsInstant, ZoneId.systemDefault());
+					if (time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
+							&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS))) {
+						int currentCountYesterday = defeatedSalmonRunBossesYesterday.getOrDefault(enemyResult.getEnemy().getName(), 0);
+						defeatedSalmonRunBossesYesterday.put(enemyResult.getEnemy().getName(), currentCountYesterday + enemyResult.getDefeatCount());
+					}
+				} else {
+					logSender.sendLogs(logger, "Instant from match was null?? WTH?");
 				}
 			}
 		} catch (IOException e) {
