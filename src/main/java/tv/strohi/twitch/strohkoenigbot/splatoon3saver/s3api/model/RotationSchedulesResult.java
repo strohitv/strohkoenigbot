@@ -30,7 +30,7 @@ public class RotationSchedulesResult implements Serializable {
 		private CoopGroupingSchedule coopGroupingSchedule;
 		private Node festSchedules;
 
-		private Nothing currentFest;
+		private Fest currentFest;
 
 		private Player currentPlayer;
 		private StageData vsStages;
@@ -61,5 +61,32 @@ public class RotationSchedulesResult implements Serializable {
 	// @Accessors(fluent = true)
 	public static class StageData implements Serializable {
 		private VsStage[] nodes;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	// @Accessors(fluent = true)
+	public static class Fest implements Serializable {
+		private String id;
+		private String title;
+		private String startTime;
+		private String endTime;
+		private String midtermTime;
+		private String state;
+		private Team[] teams;
+		private VsStage tricolorStage;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	// @Accessors(fluent = true)
+	public static class Team implements Serializable {
+		private String id;
+		private Color color;
+		private String myVoteState;
 	}
 }
