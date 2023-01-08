@@ -24,10 +24,7 @@ import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -73,9 +70,8 @@ public class S3RotationSender {
 					rotationSchedulesResult.getData().getRegularSchedules(),
 					rotationSchedulesResult.getData().getBankaraSchedules(),
 					rotationSchedulesResult.getData().getXSchedules(),
-					rotationSchedulesResult.getData().getLeagueSchedules()
-					// TODO ADD SPLATFEST SCHEDULES
-//					rotationSchedulesResult.getData().getFestSchedules()
+					rotationSchedulesResult.getData().getLeagueSchedules(),
+					rotationSchedulesResult.getData().getFestSchedules()
 			), force);
 
 			sendSalmonRotations(rotationSchedulesResult.getData().getCoopGroupingSchedule(), force);
@@ -149,9 +145,12 @@ public class S3RotationSender {
 					sendRotationToDiscord(openChannelName, openRotations);
 				} else {
 					String channelName = decideChannelToPostIn(currentRotation);
-					List<RotationMatchSettingWithTime> rotationMatchSettingsWithTimes = getRotationSettingsWithTimes(rotations);
 
-					sendRotationToDiscord(channelName, rotationMatchSettingsWithTimes);
+					if (channelName != null) {
+						List<RotationMatchSettingWithTime> rotationMatchSettingsWithTimes = getRotationSettingsWithTimes(rotations);
+
+						sendRotationToDiscord(channelName, rotationMatchSettingsWithTimes);
+					}
 				}
 			}
 		}
@@ -169,18 +168,23 @@ public class S3RotationSender {
 				.append("- Stage B: **").append(firstRotation.getRotationMatchSetting().getVsStages()[1].getName()).append("**\n\n")
 				.append("**Next rotations**");
 
-		rotations.stream().sorted(Comparator.comparing(RotationMatchSettingWithTime::getStartTime)).skip(1).forEach(r ->
-				builder.append("\n- in **")
-						.append(getHourDifference(Instant.now(), r.getStartTime()))
-						.append("** hours: ")
-						.append(getEmoji(r.getRotationMatchSetting().getVsRule().getName()))
-						.append(r.getRotationMatchSetting().getVsRule().getName())
-						.append(" --- **")
-						.append(r.getRotationMatchSetting().getVsStages()[0].getName())
-						.append("** --- **")
-						.append(r.getRotationMatchSetting().getVsStages()[1].getName())
-						.append("**")
-		);
+		rotations.stream()
+				.filter(Objects::nonNull)
+				.sorted(Comparator.comparing(RotationMatchSettingWithTime::getStartTime))
+				.filter(r ->r.getRotationMatchSetting() != null)
+				.skip(1)
+				.forEach(r ->
+						builder.append("\n- in **")
+								.append(getHourDifference(Instant.now(), r.getStartTime()))
+								.append("** hours: ")
+								.append(getEmoji(r.getRotationMatchSetting().getVsRule().getName()))
+								.append(r.getRotationMatchSetting().getVsRule().getName())
+								.append(" --- **")
+								.append(r.getRotationMatchSetting().getVsStages()[0].getName())
+								.append("** --- **")
+								.append(r.getRotationMatchSetting().getVsStages()[1].getName())
+								.append("**")
+				);
 
 		discordBot.sendServerMessageWithImages(channelName, builder.toString(), image1, image2);
 	}
@@ -248,9 +252,7 @@ public class S3RotationSender {
 		} else if (rsr.getLeagueMatchSetting() != null) {
 			result = rsr.getLeagueMatchSetting();
 		} else { //  if (rsr.getFestMatchSetting() != null) {
-			// TODO add as soon as spatfest exists!!
-			// result = rsr.getFestMatchSetting();
-			throw new RuntimeException("SPLATFEST ROTATIONS NOT YET SUPPORTED!!!");
+			result = rsr.getFestMatchSetting();
 		}
 
 		return result;
@@ -261,17 +263,15 @@ public class S3RotationSender {
 
 		if (currentRotation.getRegularMatchSetting() != null) {
 			channelName = DiscordChannelDecisionMaker.getS3TurfWarChannel();
-		}
-
-		if (currentRotation.getXMatchSetting() != null) {
+		} else if (currentRotation.getXMatchSetting() != null) {
 			channelName = DiscordChannelDecisionMaker.getS3XRankChannel();
-		}
-
-		if (currentRotation.getLeagueMatchSetting() != null) {
+		} else if (currentRotation.getLeagueMatchSetting() != null) {
 			channelName = DiscordChannelDecisionMaker.getS3LeagueChannel();
-		}
-
-		if (currentRotation.getFestMatchSetting() != null) {
+		} else if (currentRotation.getFestMatchSetting() != null && currentRotation.getFestMatchSetting().getVsStages() == null) {
+			// other game mode DURING splatfest
+			channelName = null;
+		} else if (currentRotation.getFestMatchSetting() != null) {
+			// real splatfest game mode
 			channelName = DiscordChannelDecisionMaker.getS3SplatfestChannel();
 		}
 
