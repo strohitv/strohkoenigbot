@@ -67,7 +67,7 @@ public class PeaksExporter {
 	@PostConstruct
 	public void registerSchedule() {
 		schedulingService.register("PeaksExporter_schedule", CronSchedule.getScheduleString("0 0 5 1 * *"), this::refreshPreviousMonth);
-		schedulingService.registerOnce(2, this::reloadMonthlyResults);
+		schedulingService.registerOnce("PeaksExporter_reloadMonthlyResults", 2, this::reloadMonthlyResults);
 
 //		try {
 //			reloadMonthlyResults();
@@ -75,7 +75,7 @@ public class PeaksExporter {
 //		}
 	}
 
-//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
+	//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void reloadMonthlyResults() {
 		Account account = accountRepository.findAll().stream()
 				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
@@ -171,7 +171,7 @@ public class PeaksExporter {
 	}
 
 
-//	@Scheduled(cron = "0 0 5 1 * *")
+	//	@Scheduled(cron = "0 0 5 1 * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void refreshPreviousMonth() {
 		Account account = accountRepository.findAll().stream()

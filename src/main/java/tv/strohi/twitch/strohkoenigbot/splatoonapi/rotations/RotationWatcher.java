@@ -99,7 +99,7 @@ public class RotationWatcher {
 	@PostConstruct
 	public void registerSchedule() {
 		schedulingService.register("RotationWatcher_schedule", CronSchedule.getScheduleString("20 0 * * * *"), this::sendDiscordNotifications);
-		schedulingService.registerOnce(2, this::sendDiscordNotificationsOnLocalDebug);
+		schedulingService.registerOnce("RotationWatcher_sendDiscordNotificationsOnLocalDebug", 2, this::sendDiscordNotificationsOnLocalDebug);
 
 //		try {
 //			sendDiscordNotificationsOnLocalDebug();
@@ -107,7 +107,7 @@ public class RotationWatcher {
 //		}
 	}
 
-//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
+	//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void sendDiscordNotificationsOnLocalDebug() {
 		if (DiscordChannelDecisionMaker.isIsLocalDebug()) {
 			sendDiscordNotifications();
@@ -160,7 +160,7 @@ public class RotationWatcher {
 		}
 	}
 
-//	@Scheduled(cron = "0 50 * * * *")
+	//	@Scheduled(cron = "0 50 * * * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void sendStagesToTwitch() {
 		refreshStages();
@@ -210,7 +210,7 @@ public class RotationWatcher {
 
 			stages = stagesLoader.querySplatoonApiForAccount(account, "/api/schedules", SplatNetStages.class);
 
-			if (stages != null ) {
+			if (stages != null) {
 				saveStagesInDatabase(stages.getRegular());
 				saveStagesInDatabase(stages.getGachi());
 				saveStagesInDatabase(stages.getLeague());

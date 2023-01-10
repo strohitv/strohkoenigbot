@@ -12,6 +12,8 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.Schedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +24,7 @@ public class SchedulingService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final static int MAX_ERRORS_SINGLE = 3;
-	private final static int MAX_ERRORS_REPEATED = 5;
+	private final static int MAX_ERRORS_REPEATED = 3; //5; //
 
 	private final ConfigurationRepository configurationRepository;
 	private final DiscordBot discordBot;
@@ -44,7 +46,7 @@ public class SchedulingService {
 					schedule.getRunnable().run();
 					singleRunSchedules.remove(i);
 					i--;
-				} catch (Exception ignored){
+				} catch (Exception ignored) {
 					schedule.increaseErrorCount();
 
 					if (schedule.isFailed(MAX_ERRORS_SINGLE)) {
@@ -63,28 +65,43 @@ public class SchedulingService {
 			Schedule schedule = schedules.get(i);
 
 			if (schedule.shouldRun(now)) {
-				try {
-					schedule.getRunnable().run();
-				} catch (Exception ignored){
-					schedule.increaseErrorCount();
+				schedule.run();
 
-					if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
-						discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
-								String.format("**ERROR**: Repeated Runnable failed **%d** times and got removed from Scheduler!! Schedule: `%s`", MAX_ERRORS_REPEATED, schedule));
-						schedules.remove(i);
-						i--;
+				if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
+					discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
+							String.format("**ERROR**: Repeated Runnable '**%s**' failed **%d** times and got removed from Scheduler!! Schedule: `%s`", schedule.getName(), MAX_ERRORS_REPEATED, schedule));
+
+					List<Exception> exceptions = schedule.getErrors();
+					Exception exception = exceptions.get(exceptions.size() - 1);
+
+					Long discordId = discordBot.loadUserIdFromDiscordServer("strohkoenig#8058");
+
+					discordBot.sendPrivateMessage(discordId, String.format("**Message of last exception**: '%s'", exception.getMessage()));
+
+					StringWriter stringWriter = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(stringWriter);
+					exception.printStackTrace(printWriter);
+
+					String stacktrace = stringWriter.toString();
+					if (stacktrace.length() > 1900) {
+						stacktrace = stacktrace.substring(0, 1900);
 					}
+
+					discordBot.sendPrivateMessage(discordId, String.format("**Stacktrace of last exception**:\n'%s'", stacktrace));
+
+					schedules.remove(i);
+					i--;
 				}
 			}
 		}
 	}
 
-	public void registerOnce(int ticks, Runnable runnable) {
-		singleRunSchedules.add(new TickSchedule(ticks, runnable));
+	public void registerOnce(String name, int ticks, Runnable runnable) {
+		singleRunSchedules.add(new TickSchedule(name, ticks, runnable));
 	}
 
-	public void registerOnce(String cron, Runnable runnable) {
-		singleRunSchedules.add(new CronSchedule(cron, runnable));
+	public void registerOnce(String name, String cron, Runnable runnable) {
+		singleRunSchedules.add(new CronSchedule(name, cron, runnable));
 	}
 
 	public void register(String configName, String defaultValue, Runnable runnable) {
@@ -96,27 +113,27 @@ public class SchedulingService {
 					String.format("Added new Schedule: id = **%d**, name = **%s**, value = **%s**", config.getId(), configName, defaultValue));
 		}
 
-		schedules.add(createFromSettings(config.getConfigValue(), runnable));
+		schedules.add(createFromSettings(configName, config.getConfigValue(), runnable));
 	}
 
-	private static Schedule createFromSettings(String setting, Runnable runnable) {
+	private static Schedule createFromSettings(String name, String setting, Runnable runnable) {
 		if (setting.toLowerCase().startsWith("cron: ")) {
-			return create(setting.substring("cron: ".length()), runnable);
+			return create(name, setting.substring("cron: ".length()), runnable);
 		} else if (setting.toLowerCase().startsWith("tick: ")) {
 			try {
-				return create(Integer.parseInt(setting.substring("tick: ".length())), runnable);
+				return create(name, Integer.parseInt(setting.substring("tick: ".length())), runnable);
 			} catch (NumberFormatException ignored) {
 			}
 		}
 
-		return create(720, runnable);
+		return create(name, 720, runnable);
 	}
 
-	private static Schedule create(String cron, Runnable runnable) {
-		return new CronSchedule(cron, runnable);
+	private static Schedule create(String name, String cron, Runnable runnable) {
+		return new CronSchedule(name, cron, runnable);
 	}
 
-	private static Schedule create(int tickEvery, Runnable runnable) {
-		return new TickSchedule(tickEvery, runnable);
+	private static Schedule create(String name, int tickEvery, Runnable runnable) {
+		return new TickSchedule(name, tickEvery, runnable);
 	}
 }
