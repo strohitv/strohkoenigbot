@@ -159,6 +159,11 @@ public class S3RotationSender {
 	private void sendRotationToDiscord(String channelName, List<RotationMatchSettingWithTime> rotations) {
 		RotationMatchSettingWithTime firstRotation = rotations.stream().min(Comparator.comparing(RotationMatchSettingWithTime::getStartTime)).orElseThrow();
 
+		if (firstRotation.getRotationMatchSetting() == null) {
+			// Splatfest whenever a fest is not active.
+			return;
+		}
+
 		String image1 = firstRotation.getRotationMatchSetting().getVsStages()[0].getImage().getUrl();
 		String image2 = firstRotation.getRotationMatchSetting().getVsStages()[1].getImage().getUrl();
 
@@ -171,7 +176,7 @@ public class S3RotationSender {
 		rotations.stream()
 				.filter(Objects::nonNull)
 				.sorted(Comparator.comparing(RotationMatchSettingWithTime::getStartTime))
-				.filter(r ->r.getRotationMatchSetting() != null)
+				.filter(r -> r.getRotationMatchSetting() != null)
 				.skip(1)
 				.forEach(r ->
 						builder.append("\n- in **")
