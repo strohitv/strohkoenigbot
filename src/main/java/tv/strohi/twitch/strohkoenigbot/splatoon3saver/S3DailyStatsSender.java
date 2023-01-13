@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.DailyGearStatsSaveModel;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.EnemyResults;
@@ -36,9 +40,12 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class S3DailyStatsSender {
+	private static final String YESTERDAY_CONFIG_NAME = "DailyStatsSender_yesterday";
+
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 	private final AccountRepository accountRepository;
+	private final ConfigurationRepository configurationRepository;
 
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
@@ -127,12 +134,14 @@ public class S3DailyStatsSender {
 			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
 		}
 
-		SendStatsToDiscord(wonOnlineGames, "**Current Online Game Win statistics:**", account);
-		SendStatsToDiscord(winCountSpecialWeapons, "**Current Online Game Special Weapon Win statistics:**", account);
+		sendStatsToDiscord(wonOnlineGames, "**Current Online Game Win statistics:**", account);
+		sendStatsToDiscord(winCountSpecialWeapons, "**Current Online Game Special Weapon Win statistics:**", account);
 
 		Map<String, Integer> gearStars = new HashMap<>();
 		countStarsOnGear(gearStars);
-		SendStatsToDiscord(gearStars, "**Current statistics about Stars on Gear:**", account);
+		DailyGearStatsSaveModel yesterdayStats = loadYesterdayStats();
+		sendGearStatsToDiscord(gearStars, yesterdayStats, account);
+		refreshYesterdayStats(yesterdayStats);
 
 		Map<String, Integer> defeatedSalmonRunBosses = new HashMap<>();
 		Map<String, Integer> defeatedSalmonRunBossesYesterday = new HashMap<>();
@@ -140,27 +149,97 @@ public class S3DailyStatsSender {
 			countSalmonRunEnemyDefeatResults(game, directory, defeatedSalmonRunBosses, defeatedSalmonRunBossesYesterday);
 		}
 
-		SendStatsToDiscord(defeatedSalmonRunBosses, "**Current Salmon Run Boss Kill statistics:**", account);
+		sendStatsToDiscord(defeatedSalmonRunBosses, "**Current Salmon Run Boss Kill statistics:**", account);
 
 		if (defeatedSalmonRunBossesYesterday.size() > 0) {
-			SendStatsToDiscord(defeatedSalmonRunBossesYesterday, "**Yesterday Salmon Run Boss Kill statistics:**", account);
+			sendStatsToDiscord(defeatedSalmonRunBossesYesterday, "**Yesterday Salmon Run Boss Kill statistics:**", account);
 		}
 
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
 	}
 
-	private void SendStatsToDiscord(Map<String, Integer> wonOnlineGames, String str, Account account) {
-		var winStats = wonOnlineGames.entrySet().stream()
+	private DailyGearStatsSaveModel loadYesterdayStats() {
+		Configuration yesterdayStatsConfig = configurationRepository.findByConfigName(YESTERDAY_CONFIG_NAME).stream().findFirst().orElse(null);
+
+		DailyGearStatsSaveModel yesterdayStats = new DailyGearStatsSaveModel();
+		if (yesterdayStatsConfig != null) {
+			try {
+				yesterdayStats = objectMapper.readValue(yesterdayStatsConfig.getConfigValue(), DailyGearStatsSaveModel.class);
+			} catch (JsonProcessingException e) {
+				logSender.sendLogs(logger, "yesterday stats parsing failed!!!");
+				logger.error(e);
+			}
+		}
+
+		return yesterdayStats;
+	}
+
+	private void refreshYesterdayStats(DailyGearStatsSaveModel yesterdayStats) {
+		String json;
+		try {
+			json = objectMapper.writeValueAsString(yesterdayStats);
+
+			Configuration config = configurationRepository.findByConfigName(YESTERDAY_CONFIG_NAME).stream().findFirst().orElse(new Configuration());
+			config.setConfigName(YESTERDAY_CONFIG_NAME);
+			config.setConfigValue(json);
+
+			configurationRepository.save(config);
+		} catch (JsonProcessingException e) {
+			logSender.sendLogs(logger, "yesterday stats saving failed!!!");
+			logger.error(e);
+		}
+	}
+
+	private void sendGearStatsToDiscord(Map<String, Integer> stats, DailyGearStatsSaveModel yesterdayStats, Account account) {
+		var sortedStats = stats.entrySet().stream()
 				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
 				.collect(Collectors.toList());
-		StringBuilder winBuilder = new StringBuilder(str);
+		StringBuilder winBuilder = new StringBuilder("**Current statistics about Stars on Gear:**");
 
-		for (var srEnemyStat : winStats) {
-			winBuilder.append("\n- ").append(srEnemyStat.getKey()).append(": **").append(srEnemyStat.getValue()).append("**");
+		for (var gearStat : sortedStats) {
+			String isFinishedChar = "o";
+			if (gearStat.getValue() > 30 || yesterdayStats.getDoneBrands().contains(gearStat.getKey())) {
+				isFinishedChar = "+";
+			} else if (yesterdayStats.getIgnoredBrands().contains(gearStat.getKey())) {
+				isFinishedChar = "-";
+			}
+
+			int yesterdayStarCount = yesterdayStats.getPreviousStarCount().getOrDefault(gearStat.getKey(), gearStat.getValue());
+
+			// build message
+			winBuilder.append("\n- `").append(isFinishedChar).append("` ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			if (yesterdayStarCount != gearStat.getValue()) {
+				winBuilder.append(" (")
+						.append(yesterdayStarCount < gearStat.getValue() ? "+" : "-")
+						.append(Math.abs(yesterdayStarCount - gearStat.getValue()))
+						.append(")");
+			}
+
+			// save new stats
+			if (!yesterdayStats.getIgnoredBrands().contains(gearStat.getKey())
+					&& !yesterdayStats.getDoneBrands().contains(gearStat.getKey())
+					&& gearStat.getValue() >= 30) {
+				yesterdayStats.getDoneBrands().add(gearStat.getKey());
+			}
+
+			yesterdayStats.getPreviousStarCount().put(gearStat.getKey(), gearStat.getValue());
 		}
 
 		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
-//		System.out.println(winBuilder);
+	}
+
+	private void sendStatsToDiscord(Map<String, Integer> stats, String header, Account account) {
+		var sortedStats = stats.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.collect(Collectors.toList());
+		StringBuilder statMessageBuilder = new StringBuilder(header);
+
+		for (var singleStat : sortedStats) {
+			statMessageBuilder.append("\n- ").append(singleStat.getKey()).append(": **").append(singleStat.getValue()).append("**");
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), statMessageBuilder.toString());
+//		System.out.println(statMessageBuilder);
 	}
 
 	private void countSalmonRunEnemyDefeatResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses, Map<String, Integer> defeatedSalmonRunBossesYesterday) {
