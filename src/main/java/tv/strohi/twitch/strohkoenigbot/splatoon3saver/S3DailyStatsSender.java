@@ -154,7 +154,7 @@ public class S3DailyStatsSender {
 
 		if (defeatedSalmonRunBossesYesterday.size() > 0) {
 			sendStatsToDiscord(defeatedSalmonRunBossesYesterday, "**Yesterday Salmon Run Boss Kill statistics:**", account);
-			sendStatsToDiscord(salmonrunWeaponsYesterday, "**Yesterday Salmon Run Weapon statistics:**", account);
+			sendStatsToDiscord(salmonrunWeaponsYesterday, String.format("**Yesterday, you played a total of __%d__ different weapons** in Salmon Run**", salmonrunWeaponsYesterday.size()), account);
 		}
 
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
