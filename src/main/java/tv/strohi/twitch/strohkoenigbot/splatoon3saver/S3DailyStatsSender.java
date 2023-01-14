@@ -154,7 +154,7 @@ public class S3DailyStatsSender {
 
 		if (defeatedSalmonRunBossesYesterday.size() > 0) {
 			sendStatsToDiscord(defeatedSalmonRunBossesYesterday, "**Yesterday Salmon Run Boss Kill statistics:**", account);
-			sendStatsToDiscord(salmonrunWeaponsYesterday, String.format("**Yesterday, you played a total of __%d__ different weapons** in Salmon Run**", salmonrunWeaponsYesterday.size()), account);
+			sendStatsToDiscord(salmonrunWeaponsYesterday, String.format("**Yesterday, you played a total of __%d__ different weapons in Salmon Run**", salmonrunWeaponsYesterday.size()), account);
 		}
 
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
@@ -253,33 +253,32 @@ public class S3DailyStatsSender {
 			BattleResult result = objectMapper.readValue(new File(filename), BattleResult.class);
 			logger.debug(result);
 
-			for (EnemyResults enemyResult : result.getData().getCoopHistoryDetail().getEnemyResults()) {
-				int currentCount = defeatedSalmonRunBosses.getOrDefault(enemyResult.getEnemy().getName(), 0);
-				defeatedSalmonRunBosses.put(enemyResult.getEnemy().getName(), currentCount + enemyResult.getDefeatCount());
-
-				Instant timeAsInstant = result.getData().getCoopHistoryDetail().getPlayedTimeAsInstant();
-				if (timeAsInstant != null) {
-					LocalDateTime time = LocalDateTime.ofInstant(timeAsInstant, ZoneId.systemDefault());
-					if (time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
-							&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS))) {
-						int currentCountYesterday = defeatedSalmonRunBossesYesterday.getOrDefault(enemyResult.getEnemy().getName(), 0);
-						defeatedSalmonRunBossesYesterday.put(enemyResult.getEnemy().getName(), currentCountYesterday + enemyResult.getDefeatCount());
-					}
-				} else {
-					logSender.sendLogs(logger, "Instant from match was null?? WTH?");
-				}
-			}
+			boolean wasToday = false;
 
 			Instant timeAsInstant = result.getData().getCoopHistoryDetail().getPlayedTimeAsInstant();
 			if (timeAsInstant != null) {
 				LocalDateTime time = LocalDateTime.ofInstant(timeAsInstant, ZoneId.systemDefault());
 
-				if (time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
-						&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS))) {
-					for (var weapon : result.getData().getCoopHistoryDetail().getMyResult().getWeapons()) {
-						int countYesterday = receivedWeaponsYesterday.getOrDefault(weapon.getName(), 0);
-						receivedWeaponsYesterday.put(weapon.getName(), countYesterday + 1);
-					}
+				wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
+						&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
+			} else {
+				logSender.sendLogs(logger, "Instant from match was null?? WTH?");
+			}
+
+			for (EnemyResults enemyResult : result.getData().getCoopHistoryDetail().getEnemyResults()) {
+				int currentCount = defeatedSalmonRunBosses.getOrDefault(enemyResult.getEnemy().getName(), 0);
+				defeatedSalmonRunBosses.put(enemyResult.getEnemy().getName(), currentCount + enemyResult.getDefeatCount());
+
+				if (wasToday) {
+					int currentCountYesterday = defeatedSalmonRunBossesYesterday.getOrDefault(enemyResult.getEnemy().getName(), 0);
+					defeatedSalmonRunBossesYesterday.put(enemyResult.getEnemy().getName(), currentCountYesterday + enemyResult.getDefeatCount());
+				}
+			}
+
+			if (wasToday) {
+				for (var weapon : result.getData().getCoopHistoryDetail().getMyResult().getWeapons()) {
+					int countYesterday = receivedWeaponsYesterday.getOrDefault(weapon.getName(), 0);
+					receivedWeaponsYesterday.put(weapon.getName(), countYesterday + 1);
 				}
 			}
 		} catch (IOException e) {
