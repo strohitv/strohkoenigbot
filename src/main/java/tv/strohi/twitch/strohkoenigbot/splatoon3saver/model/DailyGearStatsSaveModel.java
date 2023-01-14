@@ -14,6 +14,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DailyGearStatsSaveModel {
 	private List<String> ignoredBrands = new ArrayList<>(List.of("amiibo", "Cuttlegear", "Grizzco"));
-	private List<String> doneBrands = new ArrayList<>(List.of("SquidForce", "Skalop"));
+	private List<String> doneBrands = new ArrayList<>(List.of());
 	private Map<String, Integer> previousStarCount = new HashMap<>();
 }

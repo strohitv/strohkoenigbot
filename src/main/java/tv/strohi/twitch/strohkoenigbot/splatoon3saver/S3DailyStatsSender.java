@@ -198,7 +198,8 @@ public class S3DailyStatsSender {
 
 		for (var gearStat : sortedStats) {
 			String isFinishedChar = "o";
-			if (gearStat.getValue() > 30 || yesterdayStats.getDoneBrands().contains(gearStat.getKey())) {
+			if (!yesterdayStats.getIgnoredBrands().contains(gearStat.getKey())
+					&& (yesterdayStats.getDoneBrands().contains(gearStat.getKey()) || gearStat.getValue() >= 30)) {
 				isFinishedChar = "+";
 			} else if (yesterdayStats.getIgnoredBrands().contains(gearStat.getKey())) {
 				isFinishedChar = "-";
