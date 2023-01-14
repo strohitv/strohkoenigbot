@@ -277,8 +277,8 @@ public class S3DailyStatsSender {
 				if (time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
 						&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS))) {
 					for (var weapon : result.getData().getCoopHistoryDetail().getMyResult().getWeapons()) {
-						int countYesterday = defeatedSalmonRunBossesYesterday.getOrDefault(weapon.getName(), 0);
-						defeatedSalmonRunBossesYesterday.put(weapon.getName(), countYesterday + 1);
+						int countYesterday = receivedWeaponsYesterday.getOrDefault(weapon.getName(), 0);
+						receivedWeaponsYesterday.put(weapon.getName(), countYesterday + 1);
 					}
 				}
 			}
