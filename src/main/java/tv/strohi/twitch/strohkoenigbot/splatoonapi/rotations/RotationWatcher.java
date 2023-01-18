@@ -109,7 +109,7 @@ public class RotationWatcher {
 
 	//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void sendDiscordNotificationsOnLocalDebug() {
-		if (DiscordChannelDecisionMaker.isIsLocalDebug()) {
+		if (DiscordChannelDecisionMaker.isLocalDebug()) {
 			sendDiscordNotifications();
 		}
 	}
@@ -137,19 +137,19 @@ public class RotationWatcher {
 						stages.getLeague()[0].getStage_a().getImage(),
 						stages.getLeague()[0].getStage_b().getImage());
 
-				if (stages.getRegular().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				if (stages.getRegular().length > 0 && !DiscordChannelDecisionMaker.isLocalDebug()) {
 //			if (stages.getRegular().length > 0) {
 					sendDiscordNotificationsToUsers(stages.getRegular()[0]);
 					sendDiscordNotificationsToUsers(stages.getRegular()[stages.getRegular().length - 1]);
 				}
 
-				if (stages.getGachi().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				if (stages.getGachi().length > 0 && !DiscordChannelDecisionMaker.isLocalDebug()) {
 //			if (stages.getGachi().length > 0) {
 					sendDiscordNotificationsToUsers(stages.getGachi()[0]);
 					sendDiscordNotificationsToUsers(stages.getGachi()[stages.getGachi().length - 1]);
 				}
 
-				if (stages.getLeague().length > 0 && !DiscordChannelDecisionMaker.isIsLocalDebug()) {
+				if (stages.getLeague().length > 0 && !DiscordChannelDecisionMaker.isLocalDebug()) {
 //			if (stages.getLeague().length > 0) {
 					sendDiscordNotificationsToUsers(stages.getLeague()[0]);
 					sendDiscordNotificationsToUsers(stages.getLeague()[stages.getLeague().length - 1]);

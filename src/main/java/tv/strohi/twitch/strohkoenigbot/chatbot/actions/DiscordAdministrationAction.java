@@ -407,7 +407,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
 		} else if (message.startsWith("!local_stats")) {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats requested");
-			if (DiscordChannelDecisionMaker.isIsLocalDebug()) {
+			if (DiscordChannelDecisionMaker.isLocalDebug()) {
 				Long accountId;
 				String messageWithoutCommand = message.trim().substring("!local_stats".length()).trim();
 				if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
@@ -421,7 +421,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats done");
 		} else if (message.startsWith("!daily_stats")) {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats requested");
-			if (!DiscordChannelDecisionMaker.isIsLocalDebug()) {
+			if (!DiscordChannelDecisionMaker.isLocalDebug()) {
 				Long accountId;
 				String messageWithoutCommand = message.trim().substring("!daily_stats".length()).trim();
 				if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {

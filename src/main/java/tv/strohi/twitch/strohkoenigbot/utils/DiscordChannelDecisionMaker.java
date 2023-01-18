@@ -27,7 +27,7 @@ public class DiscordChannelDecisionMaker {
 
 	private static boolean isLocalDebug = false;
 
-	public static boolean isIsLocalDebug() {
+	public static boolean isLocalDebug() {
 		return isLocalDebug;
 	}
 

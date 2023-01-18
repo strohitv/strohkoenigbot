@@ -41,7 +41,7 @@ public class S3ApiQuerySender {
 		String result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, matchId);
 
 		if (result == null) {
-			if (DiscordChannelDecisionMaker.isIsLocalDebug()) logSender.sendLogs(logger, "Didn't receive a result, retrying after refreshing tokens...");
+			if (DiscordChannelDecisionMaker.isLocalDebug()) logSender.sendLogs(logger, "Didn't receive a result, retrying after refreshing tokens...");
 
 			// Tokens might be outdated -> retry once with refreshed Tokens
 			S3AuthenticationData authenticationData = authenticator.refreshAccess(account.getSplatoonSessionToken());
@@ -50,7 +50,7 @@ public class S3ApiQuerySender {
 
 			account = accountRepository.save(account);
 			result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, matchId);
-			if (DiscordChannelDecisionMaker.isIsLocalDebug()) logSender.sendLogs(logger, String.format("is result null again? %b", result == null));
+			if (DiscordChannelDecisionMaker.isLocalDebug()) logSender.sendLogs(logger, String.format("is result null again? %b", result == null));
 		}
 
 		return result;
