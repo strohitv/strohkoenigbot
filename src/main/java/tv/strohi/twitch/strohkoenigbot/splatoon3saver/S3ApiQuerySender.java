@@ -13,6 +13,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authenticatio
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authenticator;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.S3RequestSender;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -40,7 +41,7 @@ public class S3ApiQuerySender {
 		String result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, matchId);
 
 		if (result == null) {
-			logSender.sendLogs(logger, "Didn't receive a result, retrying after refreshing tokens...");
+			if (DiscordChannelDecisionMaker.isIsLocalDebug()) logSender.sendLogs(logger, "Didn't receive a result, retrying after refreshing tokens...");
 
 			// Tokens might be outdated -> retry once with refreshed Tokens
 			S3AuthenticationData authenticationData = authenticator.refreshAccess(account.getSplatoonSessionToken());
@@ -49,7 +50,7 @@ public class S3ApiQuerySender {
 
 			account = accountRepository.save(account);
 			result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, matchId);
-			logSender.sendLogs(logger, String.format("is result null again? %b", result == null));
+			if (DiscordChannelDecisionMaker.isIsLocalDebug()) logSender.sendLogs(logger, String.format("is result null again? %b", result == null));
 		}
 
 		return result;
