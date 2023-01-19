@@ -144,16 +144,16 @@ public class S3DailyStatsSender {
 		sendGearStatsToDiscord(gearStars, yesterdayStats, account);
 
 		Map<String, Integer> defeatedSalmonRunBosses = new HashMap<>();
-		Map<String, Integer> defeatedSalmonRunBossesYesterday = new HashMap<>();
+//		Map<String, Integer> defeatedSalmonRunBossesYesterday = new HashMap<>();
 		Map<String, Integer> salmonrunWeaponsYesterday = new HashMap<>();
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getSalmon_games().entrySet()) {
-			countSalmonRunEnemyDefeatAndWeaponResults(game, directory, defeatedSalmonRunBosses, defeatedSalmonRunBossesYesterday, salmonrunWeaponsYesterday);
+			countSalmonRunEnemyDefeatAndWeaponResults(game, directory, defeatedSalmonRunBosses, /*defeatedSalmonRunBossesYesterday, */salmonrunWeaponsYesterday);
 		}
 
 		sendSalmonRunStatsToDiscord(defeatedSalmonRunBosses, yesterdayStats, account);
 
 		if (salmonrunWeaponsYesterday.size() > 0) {
-			sendStatsToDiscord(defeatedSalmonRunBossesYesterday, "**Yesterday Salmon Run Boss Kill statistics:**", account);
+//			sendStatsToDiscord(defeatedSalmonRunBossesYesterday, "**Yesterday Salmon Run Boss Kill statistics:**", account);
 			sendStatsToDiscord(salmonrunWeaponsYesterday, String.format("**Yesterday, you played a total of __%d__ different weapons in Salmon Run**", salmonrunWeaponsYesterday.size()), account);
 		}
 
@@ -353,7 +353,7 @@ public class S3DailyStatsSender {
 		discordBot.sendPrivateMessage(account.getDiscordId(), statMessageBuilder.toString());
 	}
 
-	private void countSalmonRunEnemyDefeatAndWeaponResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses, Map<String, Integer> defeatedSalmonRunBossesYesterday, Map<String, Integer> receivedWeaponsYesterday) {
+	private void countSalmonRunEnemyDefeatAndWeaponResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses, /*Map<String, Integer> defeatedSalmonRunBossesYesterday, */ Map<String, Integer> receivedWeaponsYesterday) {
 		String filename = directory.resolve(game.getValue().getFilename()).toAbsolutePath().toString();
 
 		try {
@@ -377,10 +377,10 @@ public class S3DailyStatsSender {
 				int currentCount = defeatedSalmonRunBosses.getOrDefault(enemyResult.getEnemy().getName(), 0);
 				defeatedSalmonRunBosses.put(enemyResult.getEnemy().getName(), currentCount + enemyResult.getDefeatCount());
 
-				if (wasToday) {
-					int currentCountYesterday = defeatedSalmonRunBossesYesterday.getOrDefault(enemyResult.getEnemy().getName(), 0);
-					defeatedSalmonRunBossesYesterday.put(enemyResult.getEnemy().getName(), currentCountYesterday + enemyResult.getDefeatCount());
-				}
+//				if (wasToday) {
+//					int currentCountYesterday = defeatedSalmonRunBossesYesterday.getOrDefault(enemyResult.getEnemy().getName(), 0);
+//					defeatedSalmonRunBossesYesterday.put(enemyResult.getEnemy().getName(), currentCountYesterday + enemyResult.getDefeatCount());
+//				}
 			}
 
 			if (wasToday) {
