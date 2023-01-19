@@ -12,8 +12,15 @@ import java.util.Map;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class DailyGearStatsSaveModel {
+public class DailyStatsSaveModel {
 	private List<String> ignoredBrands = new ArrayList<>(List.of("amiibo", "Cuttlegear", "Grizzco"));
 	private List<String> doneBrands = new ArrayList<>(List.of());
 	private Map<String, Integer> previousStarCount = new HashMap<>();
+
+	private List<String> ignoredModes = new ArrayList<>(List.of("Tricolor Turf War (Defender)", "Tricolor Turf War (Attacker)"));
+	private Map<String, Integer> previousModeWinCount = new HashMap<>();
+	private Map<String, Integer> previousSpecialWeaponWinCount = new HashMap<>();
+
+	private List<String> ignoredSalmonRunBosses = new ArrayList<>(List.of("Goldie", "Griller", "Mudmouth"));
+	private Map<String, Integer> previousSalmonRunBossDefeatCount = new HashMap<>();
 }
