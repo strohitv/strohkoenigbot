@@ -13,7 +13,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.OwnedGearAndWe
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.SplatNetShopResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.GearOffer;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
@@ -29,15 +28,23 @@ public class S3NewGearChecker {
 //	private static final String SPLATNET_SHOP_GRAPHQL_KEY = "a43dd44899a09013bcfd29b4b13314ff";
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final LogSender logSender;
+
+	private final List<Gear> allOwnedGear = new ArrayList<>();
+
+	public void setGear(List<Gear> allGear) {
+		allOwnedGear.clear();
+		allOwnedGear.addAll(allGear);
+	}
+
+	public List<Gear> getAllOwnedGear() {
+		return List.copyOf(allOwnedGear);
+	}
 
 	private final DiscordBot discordBot;
 
 	private final AccountRepository accountRepository;
 
 	private final S3ApiQuerySender requestSender;
-
-	private final S3DailyStatsSender dailyStatsSender;
 
 	private SchedulingService schedulingService;
 
@@ -54,7 +61,12 @@ public class S3NewGearChecker {
 //		schedulingService.register("S3NewGearChecker_schedule", CronSchedule.getScheduleString("15 * * * * *"), this::checkForNewGearInSplatNetShop);
 //	}
 
+
 	public void checkForNewGearInSplatNetShop() {
+		checkForNewGearInSplatNetShop(false);
+	}
+
+	public void checkForNewGearInSplatNetShop(boolean skipPosts) {
 		List<Account> accounts = accountRepository.findByEnableSplatoon3(true);
 
 		for (Account account : accounts) {
@@ -75,7 +87,11 @@ public class S3NewGearChecker {
 					allGear.addAll(List.of(ownedGear.getData().getHeadGears().getNodes()));
 					allGear.addAll(List.of(ownedGear.getData().getClothingGears().getNodes()));
 					allGear.addAll(List.of(ownedGear.getData().getShoesGears().getNodes()));
-					dailyStatsSender.setGear(allGear);
+					setGear(allGear);
+				}
+
+				if (skipPosts) {
+					continue;
 				}
 
 				for (GearOffer offer : splatNetOffers.getAllOffers()) {

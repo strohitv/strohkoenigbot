@@ -34,7 +34,6 @@ public class S3RotationSender {
 	private final LogSender logSender;
 	private final AccountRepository accountRepository;
 	private final S3ApiQuerySender requestSender;
-
 	private final DiscordBot discordBot;
 
 	private SchedulingService schedulingService;

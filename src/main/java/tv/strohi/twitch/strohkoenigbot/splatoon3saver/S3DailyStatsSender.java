@@ -31,7 +31,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +49,8 @@ public class S3DailyStatsSender {
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
 	private final DiscordBot discordBot;
+	private final S3Downloader downloader;
+	private final S3NewGearChecker newGearChecker;
 
 	private SchedulingService schedulingService;
 
@@ -58,23 +59,9 @@ public class S3DailyStatsSender {
 		this.schedulingService = schedulingService;
 	}
 
-	private S3Downloader downloader;
-
-	@Autowired
-	public void setDownloader(S3Downloader downloader) {
-		this.downloader = downloader;
-	}
-
 	@PostConstruct
 	public void registerSchedule() {
-		schedulingService.register("S3DailyStatsSender_schedule", CronSchedule.getScheduleString("30 12 * * * *"), this::sendStats);
-	}
-
-	private final List<Gear> allOwnedGear = new ArrayList<>();
-
-	public void setGear(List<Gear> allGear) {
-		allOwnedGear.clear();
-		allOwnedGear.addAll(allGear);
+		schedulingService.register("S3DailyStatsSender_schedule", CronSchedule.getScheduleString("30 11 * * * *"), this::sendStats);
 	}
 
 	private void sendStats() {
@@ -94,6 +81,7 @@ public class S3DailyStatsSender {
 			String accountUUIDHash = String.format("%05d", account.getId());
 
 			downloader.downloadBattles();
+			newGearChecker.checkForNewGearInSplatNetShop(true);
 			sendStatsToDiscord(accountUUIDHash, account);
 
 			logger.info("Done posting rotations to discord");
@@ -405,6 +393,7 @@ public class S3DailyStatsSender {
 	}
 
 	private void countStarsOnGear(Map<String, Integer> brandsWithStars) {
+		List<Gear> allOwnedGear = newGearChecker.getAllOwnedGear();
 		for (Gear gear : allOwnedGear) {
 			int currentBrandStarCount = brandsWithStars.getOrDefault(gear.getBrand().getName(), 0);
 			brandsWithStars.put(gear.getBrand().getName(), currentBrandStarCount + gear.getRarity());
