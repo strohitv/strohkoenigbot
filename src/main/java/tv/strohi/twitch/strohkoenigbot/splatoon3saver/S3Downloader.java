@@ -62,15 +62,15 @@ public class S3Downloader {
 
 	@PostConstruct
 	public void registerSchedule() {
-		schedulingService.register("S3Downloader_schedule", CronSchedule.getScheduleString("30 35 * * * *"), this::downloadStuffExceptionSafe);
+		schedulingService.register("S3Downloader_schedule", CronSchedule.getScheduleString("30 35 * * * *"), this::downloadBattles);
 	}
 
 	//	@Scheduled(cron = "30 35 * * * *")
 	//	@Scheduled(cron = "30 * * * * *")
-	public void downloadStuffExceptionSafe() {
+	public void downloadBattles() {
 		logger.info("Loading Splatoon 3 games...");
 		try {
-			downloadStuff();
+			doDownloadBattles();
 		} catch (Exception e) {
 			try {
 				logSender.sendLogs(logger, String.format("An exception occurred during S3 download: '%s'\nSee logs for details!", e.getMessage()));
@@ -81,7 +81,7 @@ public class S3Downloader {
 		}
 	}
 
-	private void downloadStuff() {
+	private void doDownloadBattles() {
 		List<Account> accounts = accountRepository.findByEnableSplatoon3(true);
 
 		for (Account account : accounts) {

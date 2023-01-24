@@ -58,9 +58,16 @@ public class S3DailyStatsSender {
 		this.schedulingService = schedulingService;
 	}
 
+	private S3Downloader downloader;
+
+	@Autowired
+	public void setDownloader(S3Downloader downloader) {
+		this.downloader = downloader;
+	}
+
 	@PostConstruct
 	public void registerSchedule() {
-		schedulingService.register("S3DailyStatsSender_schedule", CronSchedule.getScheduleString("30 25 * * * *"), this::sendStats);
+		schedulingService.register("S3DailyStatsSender_schedule", CronSchedule.getScheduleString("30 12 * * * *"), this::sendStats);
 	}
 
 	private final List<Gear> allOwnedGear = new ArrayList<>();
@@ -85,6 +92,8 @@ public class S3DailyStatsSender {
 		if (force || LocalDateTime.now(ZoneId.of(account.getTimezone())).getHour() == 0) {
 			logger.info("Start posting stats to discord");
 			String accountUUIDHash = String.format("%05d", account.getId());
+
+			downloader.downloadBattles();
 			sendStatsToDiscord(accountUUIDHash, account);
 
 			logger.info("Done posting rotations to discord");

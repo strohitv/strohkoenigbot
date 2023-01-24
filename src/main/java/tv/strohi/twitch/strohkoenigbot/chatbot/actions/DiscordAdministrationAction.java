@@ -445,7 +445,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No cookie for you tsk tsk tsk");
 			}
 		} else if (message.startsWith("!reimport s3")) {
-			s3Downloader.downloadStuffExceptionSafe();
+			s3Downloader.downloadBattles();
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
 		} else if (message.startsWith("!tryparse")) {
 			String uuid = message.substring("!tryparse".length()).trim();
