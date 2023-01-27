@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -192,9 +193,21 @@ public class S3DailyStatsSender {
 	}
 
 	private void sendGearStatsToDiscord(Map<String, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
-		var sortedStats = stats.entrySet().stream()
+		var sortedStats = new ArrayList<Map.Entry<String, Integer>>();
+
+		stats.entrySet().stream()
+				.filter(b -> (yesterdayStats.getDoneBrands().contains(b.getKey()) || b.getValue() >= 30) && !yesterdayStats.getIgnoredBrands().contains(b.getKey()))
 				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-				.collect(Collectors.toList());
+				.forEach(sortedStats::add);
+		stats.entrySet().stream()
+				.filter(b -> !yesterdayStats.getDoneBrands().contains(b.getKey()) && b.getValue() < 30 && !yesterdayStats.getIgnoredBrands().contains(b.getKey()))
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedStats::add);
+		stats.entrySet().stream()
+				.filter(b -> yesterdayStats.getIgnoredBrands().contains(b.getKey()))
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedStats::add);
+
 		StringBuilder winBuilder = new StringBuilder("**Current statistics about Stars on Gear:**");
 
 		for (var gearStat : sortedStats) {
