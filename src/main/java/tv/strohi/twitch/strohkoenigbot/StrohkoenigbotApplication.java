@@ -54,6 +54,9 @@ public class StrohkoenigbotApplication {
 	public void onExit() {
 		logger.info("stopping application");
 
+		logger.info("sending shutdown message to strohkoenig");
+		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "Bot gets shut down!");
+
 		if (dataSource != null && !dataSource.isClosed()) {
 			logger.info("closing datasource");
 			dataSource.close();
