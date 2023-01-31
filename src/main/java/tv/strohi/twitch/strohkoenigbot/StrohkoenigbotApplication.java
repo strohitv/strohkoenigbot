@@ -68,6 +68,9 @@ public class StrohkoenigbotApplication {
 	public void shutdown() {
 		logger.info("restarting application");
 
+		logger.info("sending message about triggered shutdown to strohkoenig");
+		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "Bot will shut itself down!");
+
 		if (dataSource != null && !dataSource.isClosed()) {
 			dataSource.close();
 		}
