@@ -175,7 +175,7 @@ public class S3RotationSender {
 		rotations.stream()
 				.filter(Objects::nonNull)
 				.sorted(Comparator.comparing(RotationMatchSettingWithTime::getStartTime))
-				.filter(r -> r.getRotationMatchSetting() != null)
+				.filter(r -> r.getRotationMatchSetting() != null && r.getRotationMatchSetting().getVsRule() != null && r.getRotationMatchSetting().getVsStages() != null)
 				.skip(1)
 				.forEach(r ->
 						builder.append("\n- in **")
