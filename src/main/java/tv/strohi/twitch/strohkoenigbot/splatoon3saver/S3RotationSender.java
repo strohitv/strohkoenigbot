@@ -231,6 +231,7 @@ public class S3RotationSender {
 
 		if (anarchyMode != null) {
 			list.addAll(rotationSchedulesResult.stream()
+					.filter(rsr -> rsr.getBankaraMatchSettings() != null)
 					.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(),
 							Arrays.stream(rsr.getBankaraMatchSettings())
 									.filter(bms -> anarchyMode.equals(bms.getMode()))
