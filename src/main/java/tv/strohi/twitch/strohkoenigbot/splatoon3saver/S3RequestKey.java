@@ -22,6 +22,7 @@ public enum S3RequestKey {
 
 	SplatNetShop("a43dd44899a09013bcfd29b4b13314ff"),
 	OwnedWeaponsAndGear("d29cd0c2b5e6bac90dd5b817914832f8"),
+	Weapons("5f279779e7081f2d14ae1ddca0db2b6e"),
 
 	RotationSchedules("730cd98e84f1030d3e9ac86b6f1aae13");
 

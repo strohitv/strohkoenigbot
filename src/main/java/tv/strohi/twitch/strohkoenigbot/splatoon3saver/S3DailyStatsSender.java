@@ -18,6 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.EnemyResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
@@ -52,6 +53,7 @@ public class S3DailyStatsSender {
 	private final DiscordBot discordBot;
 	private final S3Downloader downloader;
 	private final S3NewGearChecker newGearChecker;
+	private final S3WeaponDownloader weaponDownloader;
 
 	private SchedulingService schedulingService;
 
@@ -83,6 +85,7 @@ public class S3DailyStatsSender {
 
 			downloader.downloadBattles();
 			newGearChecker.checkForNewGearInSplatNetShop(true);
+			weaponDownloader.loadWeapons();
 			sendStatsToDiscord(accountUUIDHash, account);
 
 			logger.info("Done posting rotations to discord");
@@ -141,18 +144,20 @@ public class S3DailyStatsSender {
 		countStarsOnGear(gearStars);
 		sendGearStatsToDiscord(gearStars, yesterdayStats, account);
 
+		Map<String, Integer> weaponLevelNumbers = new HashMap<>();
+		countWeaponNumberForEveryStarLevel(weaponLevelNumbers);
+		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
+
 		Map<String, Integer> defeatedSalmonRunBosses = new HashMap<>();
-//		Map<String, Integer> defeatedSalmonRunBossesYesterday = new HashMap<>();
-		Map<String, Integer> salmonrunWeaponsYesterday = new HashMap<>();
+		Map<String, Integer> salmonRunWeaponsYesterday = new HashMap<>();
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getSalmon_games().entrySet()) {
-			countSalmonRunEnemyDefeatAndWeaponResults(game, directory, defeatedSalmonRunBosses, /*defeatedSalmonRunBossesYesterday, */salmonrunWeaponsYesterday);
+			countSalmonRunEnemyDefeatAndWeaponResults(game, directory, defeatedSalmonRunBosses, salmonRunWeaponsYesterday);
 		}
 
 		sendSalmonRunStatsToDiscord(defeatedSalmonRunBosses, yesterdayStats, account);
 
-		if (salmonrunWeaponsYesterday.size() > 0) {
-//			sendStatsToDiscord(defeatedSalmonRunBossesYesterday, "**Yesterday Salmon Run Boss Kill statistics:**", account);
-			sendStatsToDiscord(salmonrunWeaponsYesterday, String.format("**Yesterday, you played a total of __%d__ different weapons in Salmon Run**", salmonrunWeaponsYesterday.size()), account);
+		if (salmonRunWeaponsYesterday.size() > 0) {
+			sendStatsToDiscord(salmonRunWeaponsYesterday, String.format("**Yesterday, you played a total of __%d__ different weapons in Salmon Run**", salmonRunWeaponsYesterday.size()), account);
 		}
 
 		refreshYesterdayStats(yesterdayStats);
@@ -192,7 +197,34 @@ public class S3DailyStatsSender {
 		}
 	}
 
-	private void sendGearStatsToDiscord(Map<String, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
+	private void sendWeaponLevelNumbersToDiscord(Map<String, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
+		var sortedStats = new ArrayList<Map.Entry<String, Integer>>();
+
+		stats.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(Integer.parseInt(b.getKey()), Integer.parseInt(a.getKey())))
+				.forEach(sortedStats::add);
+
+		StringBuilder winBuilder = new StringBuilder("**Current statistics about Stars on Weapons:**");
+
+		for (var gearStat : sortedStats) {
+			int yesterdayStarCount = yesterdayStats.getPreviousWeaponStarsCount().getOrDefault(gearStat.getKey(), gearStat.getValue());
+
+			// build message
+			winBuilder.append("\n- ").append(gearStat.getKey()).append(" stars: **").append(gearStat.getValue()).append("**");
+			if (yesterdayStarCount != gearStat.getValue()) {
+				winBuilder.append(" (")
+						.append(yesterdayStarCount < gearStat.getValue() ? "+" : "-")
+						.append(Math.abs(yesterdayStarCount - gearStat.getValue()))
+						.append(")");
+			}
+
+			yesterdayStats.getPreviousWeaponStarsCount().put(gearStat.getKey(), gearStat.getValue());
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
+	}
+
+	private void sendGearStatsToDiscord (Map<String, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
 		var sortedStats = new ArrayList<Map.Entry<String, Integer>>();
 
 		stats.entrySet().stream()
@@ -410,6 +442,15 @@ public class S3DailyStatsSender {
 		for (Gear gear : allOwnedGear) {
 			int currentBrandStarCount = brandsWithStars.getOrDefault(gear.getBrand().getName(), 0);
 			brandsWithStars.put(gear.getBrand().getName(), currentBrandStarCount + gear.getRarity());
+		}
+	}
+
+	private void countWeaponNumberForEveryStarLevel(Map<String, Integer> weaponsWithStars) {
+		List<Weapon> weapons = weaponDownloader.getWeapons();
+		for (Weapon weapon : weapons) {
+			String levelName = String.format("%d", weapon.getStats().getLevel());
+			int currentWeaponNumberCount = weaponsWithStars.getOrDefault(levelName, 0);
+			weaponsWithStars.put(levelName, currentWeaponNumberCount + 1);
 		}
 	}
 

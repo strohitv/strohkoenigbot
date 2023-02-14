@@ -15,4 +15,7 @@ public class WeaponDetail implements Serializable {
 
 	private Image image;
 	private MaskingImage maskingImage;
+
+	private Integer subWeaponId;
+	private Integer specialWeaponId;
 }

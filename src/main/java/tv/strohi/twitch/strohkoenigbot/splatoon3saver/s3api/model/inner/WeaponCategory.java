@@ -13,4 +13,6 @@ public class WeaponCategory implements Serializable {
 	private String id;
 	private String name;
 	private Image image;
+
+	private Integer weaponCategoryId;
 }
