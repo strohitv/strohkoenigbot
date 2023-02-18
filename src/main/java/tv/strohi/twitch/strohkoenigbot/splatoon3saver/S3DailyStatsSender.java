@@ -150,14 +150,24 @@ public class S3DailyStatsSender {
 
 		Map<String, Integer> defeatedSalmonRunBosses = new HashMap<>();
 		Map<String, Integer> salmonRunWeaponsYesterday = new HashMap<>();
+		Map<String, Integer> yesterdayWaves = new HashMap<>();
+		Map<String, Integer> yesterdayTides = new HashMap<>();
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getSalmon_games().entrySet()) {
-			countSalmonRunEnemyDefeatAndWeaponResults(game, directory, defeatedSalmonRunBosses, salmonRunWeaponsYesterday);
+			countSalmonRunEnemyDefeatAndWeaponResults(game, directory, defeatedSalmonRunBosses, salmonRunWeaponsYesterday, yesterdayWaves, yesterdayTides);
 		}
 
 		sendSalmonRunStatsToDiscord(defeatedSalmonRunBosses, yesterdayStats, account);
 
 		if (salmonRunWeaponsYesterday.size() > 0) {
 			sendStatsToDiscord(salmonRunWeaponsYesterday, String.format("**Yesterday, you played a total of __%d__ different weapons in Salmon Run**", salmonRunWeaponsYesterday.size()), account);
+		}
+
+		if (yesterdayWaves.size() > 0) {
+			sendStatsToDiscord(yesterdayWaves, String.format("**Yesterday, you played a total of __%d__ different waves in Salmon Run**", yesterdayWaves.size()), account);
+		}
+
+		if (yesterdayTides.size() > 0) {
+			sendStatsToDiscord(yesterdayTides, String.format("**Yesterday, you played a total of __%d__ different tides in Salmon Run**", yesterdayTides.size()), account);
 		}
 
 		refreshYesterdayStats(yesterdayStats);
@@ -395,7 +405,8 @@ public class S3DailyStatsSender {
 		discordBot.sendPrivateMessage(account.getDiscordId(), statMessageBuilder.toString());
 	}
 
-	private void countSalmonRunEnemyDefeatAndWeaponResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses, /*Map<String, Integer> defeatedSalmonRunBossesYesterday, */ Map<String, Integer> receivedWeaponsYesterday) {
+	private void countSalmonRunEnemyDefeatAndWeaponResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses,
+			/*Map<String, Integer> defeatedSalmonRunBossesYesterday, */ Map<String, Integer> receivedWeaponsYesterday, Map<String, Integer> waves, Map<String, Integer> tides) {
 		String filename = directory.resolve(game.getValue().getFilename()).toAbsolutePath().toString();
 
 		try {
@@ -429,6 +440,27 @@ public class S3DailyStatsSender {
 				for (var weapon : result.getData().getCoopHistoryDetail().getMyResult().getWeapons()) {
 					int countYesterday = receivedWeaponsYesterday.getOrDefault(weapon.getName(), 0);
 					receivedWeaponsYesterday.put(weapon.getName(), countYesterday + 1);
+				}
+
+				for (var wave : result.getData().getCoopHistoryDetail().getWaveResults()) {
+					if (wave.getEventWave() != null) {
+						int countYesterday = waves.getOrDefault(wave.getEventWave().getName(), 0);
+						waves.put(wave.getEventWave().getName(), countYesterday + 1);
+					} else {
+						String name = "No Event";
+						int countYesterday = waves.getOrDefault(name, 0);
+						waves.put(name, countYesterday + 1);
+					}
+
+					String tideName = "Normal Tide";
+					if (wave.getWaterLevel() == 0) {
+						tideName = "Low Tide";
+					} else if (wave.getWaterLevel() == 2) {
+						tideName = "High Tide";
+					}
+
+					int tideCountYesterday = tides.getOrDefault(tideName, 0);
+					tides.put(tideName, tideCountYesterday + 1);
 				}
 			}
 		} catch (IOException e) {
