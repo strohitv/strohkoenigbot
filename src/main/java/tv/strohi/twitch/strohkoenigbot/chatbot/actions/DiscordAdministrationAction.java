@@ -443,7 +443,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				} else {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No cookie for you tsk tsk tsk");
 				}
-			} else if (message.startsWith("!debug reimport s3")) {
+			} else if (message.startsWith("!reimport s3")) {
 				s3Downloader.downloadBattles();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
 			} else if (message.startsWith("!tryparse")) {
@@ -452,11 +452,11 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Attempting to parse for uuid '%s'", uuid));
 				s3Downloader.tryParseAllBattles(uuid);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished parse");
-			} else if (message.startsWith("!debug repost rotations s3")) {
+			} else if (message.startsWith("!repost rotations s3")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing rotation posts");
 				s3RotationSender.refreshRotations(true);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting forced rotation posts");
-			} else if (message.startsWith("!debug repost stats s3")) {
+			} else if (message.startsWith("!repost stats s3")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing daily stats messages");
 				s3DailyStatsSender.sendStats(true);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting daily stats messages");
