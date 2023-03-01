@@ -444,6 +444,17 @@ public class DiscordAdministrationAction extends ChatAction {
 				} else {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No cookie for you tsk tsk tsk");
 				}
+			}  else if (message.startsWith("!gtoken retrieve")) {
+				Account account = accountRepository.findAll().stream()
+						.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+						.findFirst()
+						.orElse(null);
+
+				if (account != null) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("GToken: `%s`", account.getGTokenSplatoon3()));
+				} else {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No gToken for you tsk tsk tsk");
+				}
 			} else if (message.startsWith("!reimport s3")) {
 				s3Downloader.downloadBattles();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
