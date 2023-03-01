@@ -28,9 +28,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -166,301 +164,317 @@ public class DiscordAdministrationAction extends ChatAction {
 			return;
 		}
 
-		message = message.toLowerCase().trim();
+		try {
+			message = message.toLowerCase().trim();
 
-		if (message.startsWith("!setbottoken")) {
-			String newBotToken = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!setbottoken".length()).trim();
+			if (message.startsWith("!setbottoken")) {
+				String newBotToken = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!setbottoken".length()).trim();
 
-			TwitchAuth auth = authRepository.findAll().stream().findFirst().orElse(null);
-			if (auth != null) {
-				auth.setToken(newBotToken);
-				authRepository.save(auth);
+				TwitchAuth auth = authRepository.findAll().stream().findFirst().orElse(null);
+				if (auth != null) {
+					auth.setToken(newBotToken);
+					authRepository.save(auth);
 
-				twitchBotClient.initializeClient();
+					twitchBotClient.initializeClient();
 
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Token was set successfully.");
-			}
-		} else if (message.startsWith("!start")) {
-			Account account = accountRepository.findAll().stream()
-					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
-					.findFirst()
-					.orElse(null);
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Token was set successfully.");
+				}
+			} else if (message.startsWith("!start")) {
+				Account account = accountRepository.findAll().stream()
+						.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+						.findFirst()
+						.orElse(null);
 
-			if (account != null && !twitchBotClient.isLive(account.getTwitchUserId())) {
-				twitchBotClient.setFakeDebug(true);
-				resultsExporter.start(account);
-			}
+				if (account != null && !twitchBotClient.isLive(account.getTwitchUserId())) {
+					twitchBotClient.setFakeDebug(true);
+					resultsExporter.start(account);
+				}
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export started successfully.");
-		} else if (message.startsWith("!stop")) {
-			Account account = accountRepository.findAll().stream()
-					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
-					.findFirst()
-					.orElse(null);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export started successfully.");
+			} else if (message.startsWith("!stop")) {
+				Account account = accountRepository.findAll().stream()
+						.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+						.findFirst()
+						.orElse(null);
 
-			if (account != null && twitchBotClient.isLive(account.getTwitchUserId())) {
-				twitchBotClient.setFakeDebug(false);
-				resultsExporter.stop(account);
-			}
+				if (account != null && twitchBotClient.isLive(account.getTwitchUserId())) {
+					twitchBotClient.setFakeDebug(false);
+					resultsExporter.stop(account);
+				}
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export stopped successfully.");
-		} else if (message.startsWith("!config set") && message.contains("=")) {
-			String commandToSet = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config set".length()).trim();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export stopped successfully.");
+			} else if (message.startsWith("!config set") && message.contains("=")) {
+				String commandToSet = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config set".length()).trim();
 
-			String propertyName = commandToSet.split("=")[0];
-			String propertyValue = commandToSet.substring(propertyName.length() + 1).trim();
+				String propertyName = commandToSet.split("=")[0];
+				String propertyValue = commandToSet.substring(propertyName.length() + 1).trim();
 
-			Configuration config = new Configuration();
-			config.setConfigName(propertyName);
-			List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
-			if (configs.size() > 0) {
-				config = configs.get(0);
-			}
+				Configuration config = new Configuration();
+				config.setConfigName(propertyName);
+				List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
+				if (configs.size() > 0) {
+					config = configs.get(0);
+				}
 
-			config.setConfigValue(propertyValue);
+				config.setConfigValue(propertyValue);
 
-			config = configurationRepository.save(config);
+				config = configurationRepository.save(config);
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was stored into database.", config.getId()));
-		} else if (message.startsWith("!config add") && message.contains("=")) {
-			String commandToSet = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config add".length()).trim();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was stored into database.", config.getId()));
+			} else if (message.startsWith("!config add") && message.contains("=")) {
+				String commandToSet = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config add".length()).trim();
 
-			String propertyName = commandToSet.split("=")[0];
-			String propertyValue = commandToSet.substring(propertyName.length() + 1).trim();
+				String propertyName = commandToSet.split("=")[0];
+				String propertyValue = commandToSet.substring(propertyName.length() + 1).trim();
 
-			Configuration config = new Configuration();
-			config.setConfigName(propertyName);
-			config.setConfigValue(propertyValue);
+				Configuration config = new Configuration();
+				config.setConfigName(propertyName);
+				config.setConfigValue(propertyValue);
 
-			config = configurationRepository.save(config);
+				config = configurationRepository.save(config);
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was added into database.", config.getId()));
-		} else if (message.startsWith("!config get") && !message.toLowerCase().contains("pass")) {
-			String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config get".length()).trim();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was added into database.", config.getId()));
+			} else if (message.startsWith("!config get") && !message.toLowerCase().contains("pass")) {
+				String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config get".length()).trim();
 
-			Configuration config = null;
-			List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
-			if (configs.size() > 0) {
-				config = configs.get(0);
-			}
+				Configuration config = null;
+				List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
+				if (configs.size() > 0) {
+					config = configs.get(0);
+				}
 
-			if (config != null) {
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d: `%s`", config.getId(), config.getConfigValue()));
-			} else {
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Such a configuration does not exist.");
-			}
-		} else if (message.startsWith("!config remove")) {
-			String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config remove".length()).trim();
+				if (config != null) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d: `%s`", config.getId(), config.getConfigValue()));
+				} else {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Such a configuration does not exist.");
+				}
+			} else if (message.startsWith("!config remove")) {
+				String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config remove".length()).trim();
 
-			List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
-			if (configs.size() > 0) {
-				configurationRepository.deleteAll(configs);
-			}
+				List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
+				if (configs.size() > 0) {
+					configurationRepository.deleteAll(configs);
+				}
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Configurations were removed from database.");
-		} else if (message.startsWith("!platform")) {
-			String streamPrefix = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
-					.substring("!platform".length()).toLowerCase().trim();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Configurations were removed from database.");
+			} else if (message.startsWith("!platform")) {
+				String streamPrefix = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
+						.substring("!platform".length()).toLowerCase().trim();
 
-			Configuration config = new Configuration();
-			config.setConfigName(ConfigurationRepository.streamPrefix);
-			List<Configuration> configs = configurationRepository.findByConfigName(ConfigurationRepository.streamPrefix);
-			if (configs.size() > 0) {
-				config = configs.get(0);
-			}
+				Configuration config = new Configuration();
+				config.setConfigName(ConfigurationRepository.streamPrefix);
+				List<Configuration> configs = configurationRepository.findByConfigName(ConfigurationRepository.streamPrefix);
+				if (configs.size() > 0) {
+					config = configs.get(0);
+				}
 
-			config.setConfigValue(streamPrefix);
+				config.setConfigValue(streamPrefix);
 
-			config = configurationRepository.save(config);
+				config = configurationRepository.save(config);
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was stored into database.", config.getId()));
-		} else if (message.startsWith("!stream ranked")) {
-			String startOrStop = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
-					.substring("!stream ranked".length()).toLowerCase().trim();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was stored into database.", config.getId()));
+			} else if (message.startsWith("!stream ranked")) {
+				String startOrStop = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
+						.substring("!stream ranked".length()).toLowerCase().trim();
 
-			resultsExporter.setRankedRunning("start".equals(startOrStop));
+				resultsExporter.setRankedRunning("start".equals(startOrStop));
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Ranked running was set to " + "start".equals(startOrStop));
-		} else if (message.startsWith("!so add")) {
-			String accountToAdd = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
-					.substring("!so add".length()).toLowerCase().trim();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Ranked running was set to " + "start".equals(startOrStop));
+			} else if (message.startsWith("!so add")) {
+				String accountToAdd = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
+						.substring("!so add".length()).toLowerCase().trim();
 
-			Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
+				Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
-			if (twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToAdd) == null) {
-				TwitchSoAccount soAccount = new TwitchSoAccount();
-				soAccount.setUsername(accountToAdd);
-				twitchSoAccountRepository.save(soAccount);
-			}
+				if (twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToAdd) == null) {
+					TwitchSoAccount soAccount = new TwitchSoAccount();
+					soAccount.setUsername(accountToAdd);
+					twitchSoAccountRepository.save(soAccount);
+				}
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will trigger an **!so** message whenever **" + accountToAdd + "** raids or writes the first message in stream.");
-		} else if (message.startsWith("!so list")) {
-			String answer = "You didn't tell me who to !so yet.";
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will trigger an **!so** message whenever **" + accountToAdd + "** raids or writes the first message in stream.");
+			} else if (message.startsWith("!so list")) {
+				String answer = "You didn't tell me who to !so yet.";
 
-			Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
+				Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
-			List<TwitchSoAccount> accounts = twitchSoAccountRepository.findAllByAccountId(account.getId());
+				List<TwitchSoAccount> accounts = twitchSoAccountRepository.findAllByAccountId(account.getId());
 
-			if (accounts.size() > 0) {
-				StringBuilder builder = new StringBuilder("**I send an !so command whenever one of the following accounts raids or writes their first message**:\n");
-				twitchSoAccountRepository.findAll().forEach(soa -> builder.append("- ").append(soa.getUsername()).append("\n"));
+				if (accounts.size() > 0) {
+					StringBuilder builder = new StringBuilder("**I send an !so command whenever one of the following accounts raids or writes their first message**:\n");
+					twitchSoAccountRepository.findAll().forEach(soa -> builder.append("- ").append(soa.getUsername()).append("\n"));
 
-				answer = builder.toString().trim();
-			}
+					answer = builder.toString().trim();
+				}
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), answer);
-		} else if (message.startsWith("!so remove")) {
-			String accountToRemove = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
-					.substring("!so remove".length()).toLowerCase().trim();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), answer);
+			} else if (message.startsWith("!so remove")) {
+				String accountToRemove = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
+						.substring("!so remove".length()).toLowerCase().trim();
 
-			Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
+				Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
-			TwitchSoAccount soAccount = twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToRemove);
-			if (soAccount != null) {
-				twitchSoAccountRepository.delete(soAccount);
-			}
+				TwitchSoAccount soAccount = twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToRemove);
+				if (soAccount != null) {
+					twitchSoAccountRepository.delete(soAccount);
+				}
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will not trigger an **!so** message anymore whenever **" + accountToRemove + "** raids or writes the first message in stream.");
-		} else if (message.startsWith("!file")) {
-			String filepath = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!file".length()).trim();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will not trigger an **!so** message anymore whenever **" + accountToRemove + "** raids or writes the first message in stream.");
+			} else if (message.startsWith("!file")) {
+				String filepath = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!file".length()).trim();
 
 //			Path path = Paths.get(Paths.get(String.format("%s\\src\\main\\resources\\html\\template-example.html", Paths.get(".").toAbsolutePath().normalize().toString())).getParent().toString(), String.format("%s/win.txt", "/../../shared/woomydx-powers"));
-			Path path = Paths.get(filepath);
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("resolved path: %s", path));
+				Path path = Paths.get(filepath);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("resolved path: %s", path));
 
-			if (Files.exists(path)) {
-				try (InputStream isPowerGain = new FileInputStream(path.toString())) {
-					String result = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
+				if (Files.exists(path)) {
+					try (InputStream isPowerGain = new FileInputStream(path.toString())) {
+						String result = new String(isPowerGain.readAllBytes(), StandardCharsets.UTF_8);
 
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "File contents:");
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), result);
-				} catch (IOException e) {
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), e.getMessage());
-				}
-			} else {
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "This file does not exist.");
-			}
-		} else if (message.startsWith("!colors reset")) {
-			splatoonMatchColorComponent.reset();
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Color reset done.");
-		} else if (message.startsWith("!reload matches")) {
-			resultsExporter.forceReload();
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Alright, I will force reload the last 50 matches soon.");
-		} else if (message.startsWith("!reload stats")) {
-			statsExporter.refreshStageAndWeaponStats();
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reloading weapon and stage stats successfully.");
-		} else if (message.startsWith("!obs disconnect")) {
-			obsSceneSwitcher.disconnect();
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Disconnected from obs");
-		} else if (message.startsWith("!obs")) {
-			String scene = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!obs".length()).trim();
-			obsSceneSwitcher.switchScene(scene);
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Switched to obs scene '%s'", scene));
-		} else if (message.startsWith("!twitch")) {
-			String command = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!twitch".length()).trim();
-			if (command.toLowerCase().startsWith("join")) {
-				String user = command.substring("join".length()).trim();
-				twitchBotClient.joinChannel(user);
-
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Joined the channel");
-			} else if (command.toLowerCase().startsWith("leave")) {
-				String user = command.substring("leave".length()).trim();
-				twitchBotClient.leaveChannel(user);
-
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Left the channel");
-			} else if (command.toLowerCase().startsWith("send")) {
-				String content = command.substring("send".length()).trim();
-				String[] contentArray = content.split(" ");
-
-				if (contentArray.length > 1) {
-					String user = contentArray[0];
-					String messageToSend = content.substring(user.length()).trim();
-
-					if (twitchBotClient.isChannelJoined(user)) {
-						twitchMessageSender.send(user, messageToSend.length() > 500 ? messageToSend.substring(0, 500) : messageToSend);
-
-						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Message sent");
-					} else {
-						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Bot has not joined the chat of that channel, please join it first");
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "File contents:");
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), result);
+					} catch (IOException e) {
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), e.getMessage());
 					}
 				} else {
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Please provide a user and a message");
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "This file does not exist.");
 				}
-			} else {
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "you need to either use !twitch join or !twitch leave or !twitch send - wrong command, I did nothing");
-			}
-		} else if (message.startsWith("!users")) {
-			List<Account> allUsers = accountRepository.findAll().stream()
-					.sorted(Comparator.comparingLong(Account::getId))
-					.collect(Collectors.toList());
+			} else if (message.startsWith("!colors reset")) {
+				splatoonMatchColorComponent.reset();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Color reset done.");
+			} else if (message.startsWith("!reload matches")) {
+				resultsExporter.forceReload();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Alright, I will force reload the last 50 matches soon.");
+			} else if (message.startsWith("!reload stats")) {
+				statsExporter.refreshStageAndWeaponStats();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reloading weapon and stage stats successfully.");
+			} else if (message.startsWith("!obs disconnect")) {
+				obsSceneSwitcher.disconnect();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Disconnected from obs");
+			} else if (message.startsWith("!obs")) {
+				String scene = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!obs".length()).trim();
+				obsSceneSwitcher.switchScene(scene);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Switched to obs scene '%s'", scene));
+			} else if (message.startsWith("!twitch")) {
+				String command = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!twitch".length()).trim();
+				if (command.toLowerCase().startsWith("join")) {
+					String user = command.substring("join".length()).trim();
+					twitchBotClient.joinChannel(user);
 
-			StringBuilder builder = new StringBuilder("This bot currently has **").append(allUsers.size()).append("** users");
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Joined the channel");
+				} else if (command.toLowerCase().startsWith("leave")) {
+					String user = command.substring("leave".length()).trim();
+					twitchBotClient.leaveChannel(user);
 
-			if (message.startsWith("!users list")) {
-				builder.append("\n\nList of all users:");
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Left the channel");
+				} else if (command.toLowerCase().startsWith("send")) {
+					String content = command.substring("send".length()).trim();
+					String[] contentArray = content.split(" ");
 
-				for (Account account : allUsers) {
-					builder.append("\n- id: **").append(account.getId()).append("** - name: **").append(discordBot.loadUserNameFromServer(account.getDiscordId())).append("**");
-				}
-			}
+					if (contentArray.length > 1) {
+						String user = contentArray[0];
+						String messageToSend = content.substring(user.length()).trim();
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
-		} else if (message.startsWith("!local_stats")) {
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats requested");
-			if (DiscordChannelDecisionMaker.isLocalDebug()) {
-				Long accountId;
-				String messageWithoutCommand = message.trim().substring("!local_stats".length()).trim();
-				if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("is local - sending for account Id %d...", accountId));
-					dailyStatsSender.sendDailyStatsToAccount(accountId);
+						if (twitchBotClient.isChannelJoined(user)) {
+							twitchMessageSender.send(user, messageToSend.length() > 500 ? messageToSend.substring(0, 500) : messageToSend);
+
+							discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Message sent");
+						} else {
+							discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Bot has not joined the chat of that channel, please join it first");
+						}
+					} else {
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Please provide a user and a message");
+					}
 				} else {
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "is local - sending - sending...");
-					dailyStatsSender.sendDailyStatsToDiscord();
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "you need to either use !twitch join or !twitch leave or !twitch send - wrong command, I did nothing");
 				}
-			}
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats done");
-		} else if (message.startsWith("!daily_stats")) {
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats requested");
-			if (!DiscordChannelDecisionMaker.isLocalDebug()) {
-				Long accountId;
-				String messageWithoutCommand = message.trim().substring("!daily_stats".length()).trim();
-				if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("is server - sending for account Id %d...", accountId));
-					dailyStatsSender.sendDailyStatsToAccount(accountId);
+			} else if (message.startsWith("!users")) {
+				List<Account> allUsers = accountRepository.findAll().stream()
+						.sorted(Comparator.comparingLong(Account::getId))
+						.collect(Collectors.toList());
+
+				StringBuilder builder = new StringBuilder("This bot currently has **").append(allUsers.size()).append("** users");
+
+				if (message.startsWith("!users list")) {
+					builder.append("\n\nList of all users:");
+
+					for (Account account : allUsers) {
+						builder.append("\n- id: **").append(account.getId()).append("** - name: **").append(discordBot.loadUserNameFromServer(account.getDiscordId())).append("**");
+					}
+				}
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
+			} else if (message.startsWith("!local_stats")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats requested");
+				if (DiscordChannelDecisionMaker.isLocalDebug()) {
+					Long accountId;
+					String messageWithoutCommand = message.trim().substring("!local_stats".length()).trim();
+					if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("is local - sending for account Id %d...", accountId));
+						dailyStatsSender.sendDailyStatsToAccount(accountId);
+					} else {
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "is local - sending - sending...");
+						dailyStatsSender.sendDailyStatsToDiscord();
+					}
+				}
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "debug stats done");
+			} else if (message.startsWith("!daily_stats")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats requested");
+				if (!DiscordChannelDecisionMaker.isLocalDebug()) {
+					Long accountId;
+					String messageWithoutCommand = message.trim().substring("!daily_stats".length()).trim();
+					if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("is server - sending for account Id %d...", accountId));
+						dailyStatsSender.sendDailyStatsToAccount(accountId);
+					} else {
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "is server - sending...");
+						dailyStatsSender.sendDailyStatsToDiscord();
+					}
+				}
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats done");
+			} else if (message.startsWith("!cookie retrieve")) {
+				Account account = accountRepository.findAll().stream()
+						.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+						.findFirst()
+						.orElse(null);
+
+				if (account != null) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Cookie: `%s`", account.getSplatoonCookie()));
 				} else {
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "is server - sending...");
-					dailyStatsSender.sendDailyStatsToDiscord();
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No cookie for you tsk tsk tsk");
 				}
-			}
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats done");
-		} else if (message.startsWith("!cookie retrieve")) {
-			Account account = accountRepository.findAll().stream()
-					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
-					.findFirst()
-					.orElse(null);
+			} else if (message.startsWith("!debug reimport s3")) {
+				s3Downloader.downloadBattles();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
+			} else if (message.startsWith("!tryparse")) {
+				String uuid = message.substring("!tryparse".length()).trim();
 
-			if (account != null) {
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Cookie: `%s`", account.getSplatoonCookie()));
-			} else {
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No cookie for you tsk tsk tsk");
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Attempting to parse for uuid '%s'", uuid));
+				s3Downloader.tryParseAllBattles(uuid);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished parse");
+			} else if (message.startsWith("!debug repost rotations s3")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing rotation posts");
+				s3RotationSender.refreshRotations(true);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting forced rotation posts");
+			} else if (message.startsWith("!debug repost stats s3")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing daily stats messages");
+				s3DailyStatsSender.sendStats(true);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting daily stats messages");
 			}
-		} else if (message.startsWith("!reimport s3")) {
-			s3Downloader.downloadBattles();
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
-		} else if (message.startsWith("!tryparse")) {
-			String uuid = message.substring("!tryparse".length()).trim();
+		} catch (Exception ex) {
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "An error occured during admin command execution");
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("**Message**: '%s'", ex.getMessage()));
 
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Attempting to parse for uuid '%s'", uuid));
-			s3Downloader.tryParseAllBattles(uuid);
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished parse");
-		} else if (message.startsWith("!repost rotations s3")) {
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing rotation posts");
-			s3RotationSender.refreshRotations(true);
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting forced rotation posts");
-		} else if (message.startsWith("!repost stats s3")) {
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing daily stats messages");
-			s3DailyStatsSender.sendStats(true);
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting daily stats messages");
+			StringWriter stringWriter = new StringWriter();
+			PrintWriter printWriter = new PrintWriter(stringWriter);
+			ex.printStackTrace(printWriter);
+
+			String stacktrace = stringWriter.toString();
+			if (stacktrace.length() > 1900) {
+				stacktrace = stacktrace.substring(0, 1900);
+			}
+
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("**Stacktrace**: ```\n%s\n```", stacktrace));
 		}
 	}
 
