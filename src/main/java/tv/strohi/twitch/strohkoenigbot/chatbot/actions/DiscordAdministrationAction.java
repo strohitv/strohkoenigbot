@@ -2,6 +2,7 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
@@ -460,6 +461,10 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing daily stats messages");
 				s3DailyStatsSender.sendStats(true);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting daily stats messages");
+			} else if (message.startsWith("!restart bot")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Issuing restart");
+				StrohkoenigbotApplication.restart();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Issued restart");
 			}
 		} catch (Exception ex) {
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "An error occured during admin command execution");

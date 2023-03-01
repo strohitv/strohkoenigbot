@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -48,6 +49,18 @@ public class StrohkoenigbotApplication {
 		arguments = Arrays.stream(args).collect(Collectors.toUnmodifiableList());
 
 		app = SpringApplication.run(StrohkoenigbotApplication.class, args);
+	}
+
+	public static void restart() {
+		ApplicationArguments args = app.getBean(ApplicationArguments.class);
+
+		Thread thread = new Thread(() -> {
+			app.close();
+			app = SpringApplication.run(StrohkoenigbotApplication.class, args.getSourceArgs());
+		});
+
+		thread.setDaemon(false);
+		thread.start();
 	}
 
 	@PreDestroy
