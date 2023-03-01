@@ -68,7 +68,6 @@ public class S3Downloader {
 		logger.info("Loading Splatoon 3 games...");
 		try {
 			doDownloadBattles();
-			throw new ClassNotFoundException("Dingense", new NullPointerException());
 		} catch (Exception e) {
 			try {
 				logSender.sendLogs(logger, "An exception occurred during S3 download\nSee logs for details!");
