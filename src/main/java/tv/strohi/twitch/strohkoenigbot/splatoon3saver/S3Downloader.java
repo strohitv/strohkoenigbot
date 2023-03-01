@@ -22,10 +22,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -71,9 +68,31 @@ public class S3Downloader {
 		logger.info("Loading Splatoon 3 games...");
 		try {
 			doDownloadBattles();
+			throw new ClassNotFoundException("Dingense", new NullPointerException());
 		} catch (Exception e) {
 			try {
-				logSender.sendLogs(logger, String.format("An exception occurred during S3 download: '%s'\nSee logs for details!", e.getMessage()));
+				logSender.sendLogs(logger, "An exception occurred during S3 download\nSee logs for details!");
+
+				var sentExs = new ArrayList<Throwable>();
+				Throwable currentEx = e;
+
+				while (!sentExs.contains(currentEx) && currentEx != null) {
+					logSender.sendLogs(logger, String.format("**Message**: '%s'", currentEx.getMessage()));
+
+					StringWriter stringWriter = new StringWriter();
+					PrintWriter printWriter = new PrintWriter(stringWriter);
+					currentEx.printStackTrace(printWriter);
+
+					String stacktrace = stringWriter.toString();
+					if (stacktrace.length() > 1900) {
+						stacktrace = stacktrace.substring(0, 1900);
+					}
+
+					logSender.sendLogs(logger, String.format("**Stacktrace**: ```\n%s\n```", stacktrace));
+
+					sentExs.add(currentEx);
+					currentEx = currentEx.getCause();
+				}
 			} catch (Exception ignored) {
 			}
 
