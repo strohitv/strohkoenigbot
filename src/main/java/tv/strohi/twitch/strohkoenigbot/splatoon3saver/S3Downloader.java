@@ -17,6 +17,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ConfigFileConnector;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
@@ -49,6 +50,7 @@ public class S3Downloader {
 	private final S3ApiQuerySender requestSender;
 	private final S3GTokenRefresher gTokenRefresher;
 	private final ConfigFileConnector configFileConnector;
+	private final ExceptionLogger exceptionLogger;
 
 	private SchedulingService schedulingService;
 
@@ -71,27 +73,7 @@ public class S3Downloader {
 		} catch (Exception e) {
 			try {
 				logSender.sendLogs(logger, "An exception occurred during S3 download\nSee logs for details!");
-
-				var sentExs = new ArrayList<Throwable>();
-				Throwable currentEx = e;
-
-				while (!sentExs.contains(currentEx) && currentEx != null) {
-					logSender.sendLogs(logger, String.format("**Message**: '%s'", currentEx.getMessage()));
-
-					StringWriter stringWriter = new StringWriter();
-					PrintWriter printWriter = new PrintWriter(stringWriter);
-					currentEx.printStackTrace(printWriter);
-
-					String stacktrace = stringWriter.toString();
-					if (stacktrace.length() > 1900) {
-						stacktrace = stacktrace.substring(0, 1900);
-					}
-
-					logSender.sendLogs(logger, String.format("**Stacktrace**: ```\n%s\n```", stacktrace));
-
-					sentExs.add(currentEx);
-					currentEx = currentEx.getCause();
-				}
+				exceptionLogger.logException(logger, e);
 			} catch (Exception ignored) {
 			}
 

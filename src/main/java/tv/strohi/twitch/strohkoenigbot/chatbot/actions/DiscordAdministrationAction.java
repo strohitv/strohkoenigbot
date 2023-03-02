@@ -1,5 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
+import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
@@ -22,6 +25,8 @@ import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3DailyStatsSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3RotationSender;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
@@ -40,7 +45,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class DiscordAdministrationAction extends ChatAction {
+	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
+
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
 		return EnumSet.of(TriggerReason.DiscordPrivateMessage);
@@ -477,20 +487,9 @@ public class DiscordAdministrationAction extends ChatAction {
 				StrohkoenigbotApplication.restart();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Issued restart");
 			}
-		} catch (Exception ex) {
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "An error occured during admin command execution");
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("**Message**: '%s'", ex.getMessage()));
-
-			StringWriter stringWriter = new StringWriter();
-			PrintWriter printWriter = new PrintWriter(stringWriter);
-			ex.printStackTrace(printWriter);
-
-			String stacktrace = stringWriter.toString();
-			if (stacktrace.length() > 1900) {
-				stacktrace = stacktrace.substring(0, 1900);
-			}
-
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("**Stacktrace**: ```\n%s\n```", stacktrace));
+		} catch (Exception e) {
+			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
+			exceptionLogger.logException(logger, e);
 		}
 	}
 

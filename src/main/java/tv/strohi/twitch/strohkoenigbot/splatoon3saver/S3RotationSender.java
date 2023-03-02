@@ -15,6 +15,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopGrou
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Rotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.RotationMatchSetting;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
@@ -35,6 +36,7 @@ public class S3RotationSender {
 	private final AccountRepository accountRepository;
 	private final S3ApiQuerySender requestSender;
 	private final DiscordBot discordBot;
+	private final ExceptionLogger exceptionLogger;
 
 	private SchedulingService schedulingService;
 
@@ -75,8 +77,10 @@ public class S3RotationSender {
 
 			sendSalmonRotations(rotationSchedulesResult.getData().getCoopGroupingSchedule(), force);
 		} catch (JsonProcessingException e) {
-			logSender.sendLogs(logger, String.format("exception during rotation refresh!! %s", e.getMessage()));
+//			logSender.sendLogs(logger, String.format("exception during rotation refresh!! %s", e.getMessage()));
 			logger.error(e);
+			logSender.sendLogs(logger, "An exception occurred during S3 rotation posting\nSee logs for details!");
+			exceptionLogger.logException(logger, e);
 		}
 
 		logger.info("Done posting rotations to discord");

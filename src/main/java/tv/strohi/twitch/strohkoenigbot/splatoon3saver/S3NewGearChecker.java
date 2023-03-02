@@ -13,6 +13,8 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.OwnedGearAndWe
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.SplatNetShopResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.GearOffer;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
@@ -28,6 +30,9 @@ public class S3NewGearChecker {
 //	private static final String SPLATNET_SHOP_GRAPHQL_KEY = "a43dd44899a09013bcfd29b4b13314ff";
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
+
 
 	private final List<Gear> allOwnedGear = new ArrayList<>();
 
@@ -152,8 +157,9 @@ public class S3NewGearChecker {
 				}
 
 				System.out.println(allGearResponse);
-			} catch (Exception ex) {
-				ex.printStackTrace();
+			} catch (Exception e) {
+				logSender.sendLogs(logger, "An exception occurred during S3 gear download\nSee logs for details!");
+				exceptionLogger.logException(logger, e);
 			}
 		}
 	}
