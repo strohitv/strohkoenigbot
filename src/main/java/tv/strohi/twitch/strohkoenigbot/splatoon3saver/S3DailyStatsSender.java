@@ -211,7 +211,7 @@ public class S3DailyStatsSender {
 		var sortedStats = new ArrayList<Map.Entry<String, Integer>>();
 
 		stats.entrySet().stream()
-				.sorted((a, b) -> Integer.compare(Integer.parseInt(b.getKey()), Integer.parseInt(a.getKey())))
+				.sorted((a, b) -> orderLevelNumbersDescendingButPutLettersLast(a.getKey(), b.getKey()))
 				.forEach(sortedStats::add);
 
 		StringBuilder winBuilder = new StringBuilder("**Current statistics about Stars on Weapons:**");
@@ -234,7 +234,19 @@ public class S3DailyStatsSender {
 		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
 	}
 
-	private void sendGearStatsToDiscord (Map<String, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
+	private int orderLevelNumbersDescendingButPutLettersLast(String a, String b) {
+		if (!a.matches("^\\d+$")) {
+			return 1;
+		}
+
+		if (!b.matches("^\\d+$")) {
+			return -1;
+		}
+
+		return String.CASE_INSENSITIVE_ORDER.compare(b, a);
+	}
+
+	private void sendGearStatsToDiscord(Map<String, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
 		var sortedStats = new ArrayList<Map.Entry<String, Integer>>();
 
 		stats.entrySet().stream()
@@ -480,7 +492,12 @@ public class S3DailyStatsSender {
 	private void countWeaponNumberForEveryStarLevel(Map<String, Integer> weaponsWithStars) {
 		List<Weapon> weapons = weaponDownloader.getWeapons();
 		for (Weapon weapon : weapons) {
-			String levelName = String.format("%d", weapon.getStats().getLevel());
+			String levelName = "not yet obtained";
+
+			if (weapon != null && weapon.getStats() != null && weapon.getStats().getLevel() != null) {
+				levelName = String.format("%d", weapon.getStats().getLevel());
+			}
+
 			int currentWeaponNumberCount = weaponsWithStars.getOrDefault(levelName, 0);
 			weaponsWithStars.put(levelName, currentWeaponNumberCount + 1);
 		}
