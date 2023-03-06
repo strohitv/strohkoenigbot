@@ -113,7 +113,7 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 				if (alert != null) {
 					twitchGoingLiveAlertRepository.delete(alert);
 					twitchBotClient.reinitializeClient();
-					args.getReplySender().send(String.format("Alright! I'm not gonna send notifications to this channel whenever `%s` goes live on Twitch anymore!", message));
+					args.getReplySender().send(String.format("Alright! I'm not gonna send notifications to this channel anymore whenever `%s` goes live on Twitch!", message));
 				} else {
 					args.getReplySender().send(String.format("There is no alert for `%s` in this channel...", message));
 				}
