@@ -118,7 +118,7 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 					args.getReplySender().send(String.format("There is no alert for `%s` in this channel...", message));
 				}
 			} else {
-				args.getReplySender().send("Sorry, but I don't understand whatever you're trying to do.\n" +
+				args.getReplySender().send("Sorry, but I don't understand what you're trying to do.\n" +
 						"You can either use `notify` to add a new channel or `remove` to remove an existing notification.");
 			}
 		}
