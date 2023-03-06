@@ -255,6 +255,41 @@ public class DiscordBot {
 		return result;
 	}
 
+	public boolean sendServerMessageWithImages(long guildId, long channelId, String message, String... imageUrls) {
+		if (getGateway() == null) {
+			return false;
+		}
+
+		if (message == null) {
+			message = "ERROR: Message was NULL!";
+		}
+
+		boolean result = false;
+
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
+		if (guilds != null && guilds.size() > 0) {
+			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
+					.filter(g -> g.getId().asLong() == guildId)
+					.flatMap(g -> Optional.ofNullable(g.getChannels().retry().collectList().block()).orElse(new ArrayList<>()).stream())
+					.collect(Collectors.toList());
+
+			List<TextChannel> allChannels = allChannelsOfAllServers.stream()
+					.filter(c -> c.getId().asLong() == channelId)
+					.filter(c -> c instanceof TextChannel)
+					.map(c -> (TextChannel) c)
+					.collect(Collectors.toList());
+
+			for (TextChannel channel : allChannels) {
+				if (channel != null) {
+					result = sendMessage(channel, message, imageUrls);
+					logger.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
+				}
+			}
+		}
+
+		return result;
+	}
+
 	public boolean sendPrivateMessageWithImages(Long userId, String message, String... imageUrls) {
 		if (userId == null || getGateway() == null) {
 			return false;

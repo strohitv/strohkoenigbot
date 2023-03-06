@@ -9,7 +9,10 @@ import com.github.twitch4j.chat.events.channel.RaidEvent;
 import com.github.twitch4j.common.events.user.PrivateMessageEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.github.twitch4j.events.ChannelGoOfflineEvent;
-import com.github.twitch4j.helix.domain.*;
+import com.github.twitch4j.helix.domain.Clip;
+import com.github.twitch4j.helix.domain.ClipList;
+import com.github.twitch4j.helix.domain.CreateClipList;
+import com.github.twitch4j.helix.domain.User;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +30,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchGoingLiveAlertRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 
 import javax.annotation.PreDestroy;
@@ -35,10 +39,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Component
 public class TwitchBotClient {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
+	private final List<Consumer<String>> goingLiveAlertConsumers = new ArrayList<>();
 
 	private static Instant lastClipCreatedTime = Instant.now();
 
@@ -87,11 +94,23 @@ public class TwitchBotClient {
 	}
 
 	private final TwitchAuthRepository twitchAuthRepository;
+	private final TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository;
 
 	@Autowired
-	public TwitchBotClient(TwitchAuthRepository twitchAuthRepository) {
+	public TwitchBotClient(TwitchAuthRepository twitchAuthRepository, TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository) {
 		this.twitchAuthRepository = twitchAuthRepository;
+		this.twitchGoingLiveAlertRepository = twitchGoingLiveAlertRepository;
 		initializeClient();
+	}
+
+	public void addGoingLiveAlertConsumer(Consumer<String> consumer) {
+		if (!goingLiveAlertConsumers.contains(consumer)) {
+			goingLiveAlertConsumers.add(consumer);
+		}
+	}
+
+	public void removeGoingLiveAlertConsumer(Consumer<String> consumer) {
+		goingLiveAlertConsumers.remove(consumer);
 	}
 
 	IDisposable goLiveListener;
@@ -111,9 +130,6 @@ public class TwitchBotClient {
 
 			client = builder.build();
 
-			client.getClientHelper().enableStreamEventListener(channelName);
-			client.getClientHelper().enableFollowEventListener(channelName);
-
 			client.getChat().joinChannel(channelName);
 			if (client.getChat().isChannelJoined(channelName)) {
 				client.getChat().sendMessage(channelName, "Bot started. Hi! strohk2PogFree");
@@ -121,22 +137,41 @@ public class TwitchBotClient {
 
 			client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, "38502044");
 
+			// strohkoenig
+			client.getClientHelper().enableStreamEventListener(channelName);
+			client.getClientHelper().enableFollowEventListener(channelName);
+
+			var allAlerts = twitchGoingLiveAlertRepository.findAll();
+
+			for (var alert : allAlerts) {
+				client.getClientHelper().enableStreamEventListener(alert.getTwitchChannelName());
+				client.getClientHelper().enableFollowEventListener(alert.getTwitchChannelName());
+			}
+
 			goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
-				if (resultsExporter != null) {
-					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
-					resultsExporter.start(account);
+				for (var consumer : goingLiveAlertConsumers) {
+					consumer.accept(event.getChannel().getName());
 				}
 
-				autoSoAction.startStream();
+				if (event.getChannel().getName().equals(channelName)) {
+					if (resultsExporter != null) {
+						Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
+						resultsExporter.start(account);
+					}
+
+					autoSoAction.startStream();
+				}
 			});
 
 			goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
-				if (resultsExporter != null) {
-					Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
-					resultsExporter.stop(account);
-				}
+				if (event.getChannel().getName().equals(channelName)) {
+					if (resultsExporter != null) {
+						Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
+						resultsExporter.stop(account);
+					}
 
-				autoSoAction.endStream();
+					autoSoAction.endStream();
+				}
 			});
 
 			client.getEventManager().onEvent(RaidEvent.class, new RaidEventConsumer(botActions));
@@ -273,6 +308,11 @@ public class TwitchBotClient {
 		}
 
 		return clip;
+	}
+
+	public void reinitializeClient() {
+		stop();
+		initializeClient();
 	}
 
 	@PreDestroy

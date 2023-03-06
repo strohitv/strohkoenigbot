@@ -3305,6 +3305,68 @@
           }
         ]
       }
+    },
+    {
+      "changeSet": {
+        "id": "29-add-going-live-notifications",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "twitch_going_live_alert",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "twitch_channel_name",
+                    "type": "varchar(30)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "guild_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "channel_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "notification_message",
+                    "type": "varchar(1800)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }
