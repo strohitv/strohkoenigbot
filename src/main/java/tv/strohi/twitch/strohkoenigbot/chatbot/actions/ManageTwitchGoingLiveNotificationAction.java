@@ -44,13 +44,16 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 	public void execute(ActionArgs args) {
 		var channel = (TextChannel) args.getArguments().get(ArgumentKey.ChannelObject);
 
-		// access management
 		var guild = channel.getGuild().block();
 		if (guild == null) return;
-		var member = guild.getOwner().block();
-		if (member == null) return;
-		var ownerTag = member.getTag();
-		if (!args.getUser().equals(ownerTag)) return;
+
+		// access management
+		if (!"strohkoenig#8058".equals(args.getUser())) {
+			var owner = guild.getOwner().block();
+			if (owner == null) return;
+			var ownerTag = owner.getTag();
+			if (!args.getUser().equals(ownerTag)) return;
+		}
 
 		var message = (String) args.getArguments().get(ArgumentKey.Message);
 		final var prefix = "!twitch alert";
@@ -125,7 +128,7 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 		var allAlerts = twitchGoingLiveAlertRepository.findByTwitchChannelName(channel);
 
 		for (var alert : allAlerts) {
-		    discordBot.sendServerMessageWithImages(alert.getGuildId(), alert.getChannelId(), alert.getNotificationMessage());
+			discordBot.sendServerMessageWithImages(alert.getGuildId(), alert.getChannelId(), alert.getNotificationMessage());
 		}
 	}
 }
