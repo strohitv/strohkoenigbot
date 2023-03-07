@@ -145,7 +145,6 @@ public class TwitchBotClient {
 
 			for (var alert : allAlerts) {
 				client.getClientHelper().enableStreamEventListener(alert.getTwitchChannelName());
-				client.getClientHelper().enableFollowEventListener(alert.getTwitchChannelName());
 			}
 
 			goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
@@ -206,6 +205,20 @@ public class TwitchBotClient {
 
 				client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, user.getId());
 			}
+		}
+	}
+
+	public void enableGoingLiveEvent(String channelName) {
+		if (client == null) {
+			initializeClient();
+		}
+
+		client.getClientHelper().enableStreamEventListener(channelName);
+	}
+
+	public void disableGoingLiveEvent(String channelName) {
+		if (client != null) {
+			client.getClientHelper().disableStreamEventListener(channelName);
 		}
 	}
 
@@ -308,11 +321,6 @@ public class TwitchBotClient {
 		}
 
 		return clip;
-	}
-
-	public void reinitializeClient() {
-		stop();
-		initializeClient();
 	}
 
 	@PreDestroy
