@@ -16,6 +16,7 @@ public class DailyStatsSaveModel {
 	private List<String> ignoredBrands = new ArrayList<>(List.of("amiibo", "Cuttlegear", "Grizzco"));
 	private List<String> doneBrands = new ArrayList<>(List.of());
 	private Map<String, Integer> previousStarCount = new HashMap<>();
+	private Map<Integer, Integer> previousNumbersOfGearStars = new HashMap<>();
 
 	private List<String> ignoredModes = new ArrayList<>(List.of("Tricolor Turf War (Defender)", "Tricolor Turf War (Attacker)"));
 	private Map<String, Integer> previousModeWinCount = new HashMap<>();

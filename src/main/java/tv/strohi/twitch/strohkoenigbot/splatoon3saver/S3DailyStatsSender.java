@@ -141,8 +141,10 @@ public class S3DailyStatsSender {
 		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
 
 		Map<String, Integer> gearStars = new HashMap<>();
-		countStarsOnGear(gearStars);
+		Map<Integer, Integer> gearStarCounts = new HashMap<>();
+		countStarsOnGear(gearStars, gearStarCounts);
 		sendGearStatsToDiscord(gearStars, yesterdayStats, account);
+		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
 
 		Map<String, Integer> weaponLevelNumbers = new HashMap<>();
 		countWeaponNumberForEveryStarLevel(weaponLevelNumbers);
@@ -295,6 +297,30 @@ public class S3DailyStatsSender {
 		}
 
 		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
+	}
+
+	private void sendGearStarCountStatsToDiscord(Map<Integer, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
+		var sortedStats = stats.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getKey(), a.getKey()))
+				.collect(Collectors.toList());
+		StringBuilder statMessageBuilder = new StringBuilder("**Current statistics about numbers of Gear with Stars**:");
+
+		for (var singleStat : sortedStats) {
+			statMessageBuilder.append("\n- ").append(singleStat.getKey()).append(" stars: **").append(singleStat.getValue()).append("**");
+
+			int yesterdayStatCount = yesterdayStats.getPreviousNumbersOfGearStars().getOrDefault(singleStat.getKey(), singleStat.getValue());
+
+			if (yesterdayStatCount != singleStat.getValue()) {
+				statMessageBuilder.append(" (")
+						.append(yesterdayStatCount < singleStat.getValue() ? "+" : "-")
+						.append(Math.abs(yesterdayStatCount - singleStat.getValue()))
+						.append(")");
+			}
+
+			yesterdayStats.getPreviousNumbersOfGearStars().put(singleStat.getKey(), singleStat.getValue());
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), statMessageBuilder.toString());
 	}
 
 	private void sendModeWinStatsToDiscord(Map<String, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
@@ -481,11 +507,14 @@ public class S3DailyStatsSender {
 		}
 	}
 
-	private void countStarsOnGear(Map<String, Integer> brandsWithStars) {
+	private void countStarsOnGear(Map<String, Integer> brandsWithStars, Map<Integer, Integer> starCounts) {
 		List<Gear> allOwnedGear = newGearChecker.getAllOwnedGear();
 		for (Gear gear : allOwnedGear) {
 			int currentBrandStarCount = brandsWithStars.getOrDefault(gear.getBrand().getName(), 0);
 			brandsWithStars.put(gear.getBrand().getName(), currentBrandStarCount + gear.getRarity());
+
+			int currentStarCount = starCounts.getOrDefault(gear.getRarity(), 0);
+			starCounts.put(gear.getRarity(), currentStarCount + 1);
 		}
 	}
 
