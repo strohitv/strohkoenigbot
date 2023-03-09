@@ -99,11 +99,15 @@ public class S3RandomWeaponAction extends ChatAction {
 						.replace(" ", "");
 
 				long number = Integer.parseInt(foundFilter.replaceAll("\\D*", ""));
-				String prefix = foundFilter.replaceAll("[^<>=]*", "");
+				String prefix = foundFilter.replaceAll("[^!<>=]*", "");
 
 				switch (prefix) {
 					case "=":
 						kits = kits.stream().filter(k -> (k.getStats() != null ? k.getStats().getPaint() : 0) == number).collect(Collectors.toList());
+						break;
+					case "!=":
+					case "<>":
+						kits = kits.stream().filter(k -> (k.getStats() != null ? k.getStats().getPaint() : 0) != number).collect(Collectors.toList());
 						break;
 					case ">":
 						kits = kits.stream().filter(k -> (k.getStats() != null ? k.getStats().getPaint() : 0) > number).collect(Collectors.toList());
@@ -129,11 +133,15 @@ public class S3RandomWeaponAction extends ChatAction {
 						.replace(" ", "");
 
 				long number = Integer.parseInt(foundFilter.replaceAll("[^0-5]*", ""));
-				String prefix = foundFilter.replaceAll("[^<>=]*", "");
+				String prefix = foundFilter.replaceAll("[^!<>=]*", "");
 
 				switch (prefix) {
 					case "=":
 						kits = kits.stream().filter(k -> (k.getStats() != null ? k.getStats().getLevel() : 0) == number).collect(Collectors.toList());
+						break;
+					case "!=":
+					case "<>":
+						kits = kits.stream().filter(k -> (k.getStats() != null ? k.getStats().getLevel() : 0) != number).collect(Collectors.toList());
 						break;
 					case ">":
 						kits = kits.stream().filter(k -> (k.getStats() != null ? k.getStats().getLevel() : 0) > number).collect(Collectors.toList());
@@ -214,7 +222,7 @@ public class S3RandomWeaponAction extends ChatAction {
 	}
 
 	private String[] extractTurfFilterGroups(String message) {
-		return Pattern.compile("((<|<=|>|>=|=) *[0-9_]+([kKmM])? *p(aint)?)")
+		return Pattern.compile("((<|<=|>|>=|!=|<>|=) *[0-9_]+([kKmM])? *p(aint)?)")
 				.matcher(message)
 				.results()
 				.map(mr -> mr.group(1))
@@ -222,7 +230,7 @@ public class S3RandomWeaponAction extends ChatAction {
 	}
 
 	private String[] extractStarsFilterGroups(String message) {
-		return Pattern.compile("((<|<=|>|>=|=) *[0-5] *s(tars)?)")
+		return Pattern.compile("((<|<=|>|>=|!=|<>|=) *[0-5] *s(tars)?)")
 				.matcher(message)
 				.results()
 				.map(mr -> mr.group(1))
