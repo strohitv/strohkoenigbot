@@ -55,7 +55,7 @@ public class TwitchBotClient {
 
 	private String accessToken;
 
-	private final String channelName = "strohkoenig";
+	private final List<String> channelNames = List.of("strohkoenig", "stroh_ohne_i");
 
 	private boolean fakeDebug = false;
 
@@ -109,10 +109,6 @@ public class TwitchBotClient {
 		}
 	}
 
-	public void removeGoingLiveAlertConsumer(Consumer<String> consumer) {
-		goingLiveAlertConsumers.remove(consumer);
-	}
-
 	IDisposable goLiveListener;
 	IDisposable goOfflineListener;
 
@@ -130,16 +126,18 @@ public class TwitchBotClient {
 
 			client = builder.build();
 
-			client.getChat().joinChannel(channelName);
-			if (client.getChat().isChannelJoined(channelName)) {
-				client.getChat().sendMessage(channelName, "Bot started. Hi! strohk2PogFree");
+			for (var channelName : channelNames) {
+				client.getChat().joinChannel(channelName);
+				if (client.getChat().isChannelJoined(channelName)) {
+					client.getChat().sendMessage(channelName, "Bot started. Hi! GlitchCat");
+				}
+
+				client.getClientHelper().enableStreamEventListener(channelName);
+				client.getClientHelper().enableFollowEventListener(channelName);
 			}
 
+			// todo also do it for the German one
 			client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, "38502044");
-
-			// strohkoenig
-			client.getClientHelper().enableStreamEventListener(channelName);
-			client.getClientHelper().enableFollowEventListener(channelName);
 
 			var allAlerts = twitchGoingLiveAlertRepository.findAll();
 
@@ -152,7 +150,7 @@ public class TwitchBotClient {
 					consumer.accept(event.getChannel().getName());
 				}
 
-				if (event.getChannel().getName().equals(channelName)) {
+				if (channelNames.contains(event.getChannel().getName())) {
 					if (resultsExporter != null) {
 						Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
 						resultsExporter.start(account);
@@ -163,7 +161,7 @@ public class TwitchBotClient {
 			});
 
 			goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
-				if (event.getChannel().getName().equals(channelName)) {
+				if (channelNames.contains(event.getChannel().getName())) {
 					if (resultsExporter != null) {
 						Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
 						resultsExporter.stop(account);
@@ -196,7 +194,7 @@ public class TwitchBotClient {
 	public void joinChannel(String channelName) {
 		if (!client.getChat().isChannelJoined(channelName)) {
 			client.getChat().joinChannel(channelName);
-			client.getChat().sendMessage(channelName, "I'm here now, hi! :D");
+			client.getChat().sendMessage(channelName, "I'm here now, hi! GlitchCat");
 
 			User user = client.getHelix().getUsers(null, null, Collections.singletonList(channelName)).execute().getUsers().stream().findFirst().orElse(null);
 			if (user != null) {
@@ -224,7 +222,7 @@ public class TwitchBotClient {
 
 	public void leaveChannel(String channelName) {
 		if (client.getChat().isChannelJoined(channelName)) {
-			client.getChat().sendMessage(channelName, "I'm leaving now, bye! :D");
+			client.getChat().sendMessage(channelName, "I'm leaving now, bye! GlitchCat");
 			client.getChat().leaveChannel(channelName);
 		}
 	}
@@ -346,9 +344,11 @@ public class TwitchBotClient {
 		}
 
 		if (client != null) {
-			if (client.getChat().isChannelJoined(channelName)) {
-				client.getChat().sendMessage(channelName, "Stopping Bot. Bye! strohk2UwuFree");
-				client.getChat().leaveChannel(channelName);
+			for (var channelName : channelNames) {
+				if (client.getChat().isChannelJoined(channelName)) {
+					client.getChat().sendMessage(channelName, "Stopping Bot. Bye! GlitchCat");
+					client.getChat().leaveChannel(channelName);
+				}
 			}
 
 			client.getEventManager().getActiveSubscriptions().forEach(IDisposable::dispose);
