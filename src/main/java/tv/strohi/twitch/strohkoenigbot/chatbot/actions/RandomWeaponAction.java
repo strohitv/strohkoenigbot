@@ -61,7 +61,7 @@ public class RandomWeaponAction extends ChatAction {
 
 		message = message.toLowerCase().trim();
 
-		if (message.startsWith("!rw")) {
+		if (message.startsWith("!s2rw")) {
 			Account account = accountRepository.findAll().stream()
 					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.findFirst()

@@ -13,6 +13,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.OwnedGearAndWe
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.SplatNetShopResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.GearOffer;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
@@ -22,6 +23,7 @@ import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -36,7 +38,7 @@ public class S3NewGearChecker {
 
 	private final List<Gear> allOwnedGear = new ArrayList<>();
 
-	public void setGear(List<Gear> allGear) {
+	private void setAllOwnedGear(List<Gear> allGear) {
 		allOwnedGear.clear();
 		allOwnedGear.addAll(allGear);
 	}
@@ -44,6 +46,19 @@ public class S3NewGearChecker {
 	public List<Gear> getAllOwnedGear() {
 		return List.copyOf(allOwnedGear);
 	}
+
+
+	private final List<Weapon> allOwnedWeapons = new ArrayList<>();
+
+	private void setAllOwnedWeapons(List<Weapon> allGear) {
+		allOwnedWeapons.clear();
+		allOwnedWeapons.addAll(allGear);
+	}
+
+	public List<Weapon> getAllOwnedWeapons() {
+		return List.copyOf(allOwnedWeapons);
+	}
+
 
 	private final DiscordBot discordBot;
 
@@ -92,7 +107,9 @@ public class S3NewGearChecker {
 					allGear.addAll(List.of(ownedGear.getData().getHeadGears().getNodes()));
 					allGear.addAll(List.of(ownedGear.getData().getClothingGears().getNodes()));
 					allGear.addAll(List.of(ownedGear.getData().getShoesGears().getNodes()));
-					setGear(allGear);
+					setAllOwnedGear(allGear);
+
+					setAllOwnedWeapons(Arrays.stream(ownedGear.getData().getWeapons().getNodes()).collect(Collectors.toList()));
 				}
 
 				if (skipPosts) {

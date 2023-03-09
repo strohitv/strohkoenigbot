@@ -2,11 +2,13 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serializable;
 
 @Getter
 @Setter
+@ToString
 // @Accessors(fluent = true)
 public class WeaponDetail implements Serializable {
 	private String __typename;
