@@ -15,6 +15,7 @@ import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
 import discord4j.core.spec.MessageCreateMono;
 import discord4j.core.spec.MessageCreateSpec;
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,9 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 
@@ -41,10 +44,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class DiscordBot {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final ConfigurationRepository configurationRepository;
+	private final AccountRepository accountRepository;
 	private final List<IChatAction> botActions = new ArrayList<>();
 
 	private GatewayDiscordClient gateway = null;
@@ -62,11 +67,6 @@ public class DiscordBot {
 		this.resourcesDownloader = resourcesDownloader;
 	}
 
-	@Autowired
-	public DiscordBot(ConfigurationRepository configurationRepository) {
-		this.configurationRepository = configurationRepository;
-	}
-
 	private final List<ConnectionAccepted> subscribers = new ArrayList<>();
 
 	public void subscribe(ConnectionAccepted callback) {
@@ -77,10 +77,10 @@ public class DiscordBot {
 		List<Configuration> tokens = configurationRepository.findByConfigName("discordToken");
 		if (gateway == null && tokens.size() > 0) {
 			DiscordClient client = DiscordClient.create(tokens.get(0).getConfigValue());
-			gateway = client.login().retry().block();
+			gateway = client.login().retry(5).block();
 
 			if (gateway != null) {
-				gateway.on(MessageCreateEvent.class).retry().doOnError(err -> logger.error("HARR HARR HARR DISCORD ERROR LOL", err)).subscribe(event -> {
+				gateway.on(MessageCreateEvent.class).retry(5).doOnError(err -> logger.error("HARR HARR HARR DISCORD ERROR LOL", err)).subscribe(event -> {
 					final Message message = event.getMessage();
 					final MessageChannel channel = getChannelOfMessageWithRetries(message);
 
@@ -155,7 +155,7 @@ public class DiscordBot {
 		while (attempts++ < 10 && channel == null) {
 			try {
 				logger.info("attempt number {}", attempts);
-				channel = message.getChannel().retry().block();
+				channel = message.getChannel().retry(5).block();
 			} catch (Exception ex) {
 				lastException = ex;
 
@@ -182,10 +182,10 @@ public class DiscordBot {
 
 		Long result = null;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<Member> allMembersOfAllServers = guilds.stream()
-					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry().collectList().block()).orElse(new ArrayList<>()).stream())
+					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 					.collect(Collectors.toList());
 
 			result = allMembersOfAllServers.stream()
@@ -205,10 +205,10 @@ public class DiscordBot {
 
 		String result = null;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<Member> allMembersOfAllServers = guilds.stream()
-					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry().collectList().block()).orElse(new ArrayList<>()).stream())
+					.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 					.collect(Collectors.toList());
 
 			result = allMembersOfAllServers.stream()
@@ -232,10 +232,10 @@ public class DiscordBot {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
-					.flatMap(g -> Optional.ofNullable(g.getChannels().retry().collectList().block()).orElse(new ArrayList<>()).stream())
+					.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 					.collect(Collectors.toList());
 
 			List<TextChannel> allChannels = allChannelsOfAllServers.stream()
@@ -266,11 +266,11 @@ public class DiscordBot {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 					.filter(g -> g.getId().asLong() == guildId)
-					.flatMap(g -> Optional.ofNullable(g.getChannels().retry().collectList().block()).orElse(new ArrayList<>()).stream())
+					.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 					.collect(Collectors.toList());
 
 			List<TextChannel> allChannels = allChannelsOfAllServers.stream()
@@ -297,7 +297,7 @@ public class DiscordBot {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 
@@ -341,14 +341,14 @@ public class DiscordBot {
 			e.printStackTrace();
 		}
 
-		Message msg = createMono.retry().block();
+		Message msg = createMono.retry(5).block();
 		logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
 		return msg != null;
 	}
 
 	private PrivateChannel getPrivateChannelForUserInGuild(Long userId, List<Guild> guilds) {
 		List<Member> allMembersOfAllServers = guilds.stream()
-				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry().collectList().block()).orElse(new ArrayList<>()).stream())
+				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 				.collect(Collectors.toList());
 
 		return allMembersOfAllServers.stream()
@@ -356,10 +356,10 @@ public class DiscordBot {
 				.findFirst()
 				.flatMap(member -> getGateway()
 						.getUserById(member.getId())
-						.retry()
+						.retry(5)
 						.onErrorResume(e -> Mono.empty())
 						.blockOptional()
-						.flatMap(u -> u.getPrivateChannel().retry().onErrorResume(e -> Mono.empty()).blockOptional()))
+						.flatMap(u -> u.getPrivateChannel().retry(5).onErrorResume(e -> Mono.empty()).blockOptional()))
 				.stream()
 				.findFirst()
 				.orElse(null);
@@ -372,11 +372,11 @@ public class DiscordBot {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry().onErrorResume(e -> Mono.empty()).block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
-				Message msg = channel.createMessage(message).retry().onErrorResume(e -> Mono.empty()).block();
+				Message msg = channel.createMessage(message).retry(5).onErrorResume(e -> Mono.empty()).block();
 				result = msg != null;
 				logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
 			}
@@ -390,18 +390,28 @@ public class DiscordBot {
 			return;
 		}
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry().block();
+		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).block();
 		if (guilds != null && guilds.size() > 0) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
-				channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).retry().onErrorResume(e -> Mono.empty()).block();
+				channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).retry(5).onErrorResume(e -> Mono.empty()).block();
 				logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
 			}
 		}
 	}
 
 	public void reply(String message, TextChannel channel, Snowflake reference) {
-		channel.createMessage(MessageCreateSpec.create().withMessageReference(reference).withContent(message)).retry().onErrorResume(e -> Mono.empty()).block();
+		channel.createMessage(MessageCreateSpec.create().withMessageReference(reference).withContent(message))
+				.retry(5)
+				.doOnError(e -> {
+					logger.error(e);
+					accountRepository.findAll().stream()
+							.filter(Account::getIsMainAccount)
+							.findFirst()
+							.ifPresent(account -> sendPrivateMessage(account.getDiscordId(), String.format("**Error when sending a discord message**! %s", e.getMessage())));
+				})
+				.onErrorResume(e -> Mono.empty())
+				.block();
 	}
 
 	private static class Tuple<X, Y> {
