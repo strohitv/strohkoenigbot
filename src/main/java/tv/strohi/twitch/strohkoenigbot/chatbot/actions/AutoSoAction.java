@@ -44,10 +44,10 @@ public class AutoSoAction extends ChatAction {
 	public void execute(ActionArgs args) {
 		if (args.getReason() == TriggerReason.Raid) {
 			accountsToShoutOut.put(args.getUser().toLowerCase(), false);
-			new Thread(() -> sendTwitchSoMessage(args.getUser(), (String) args.getArguments().get(ArgumentKey.ChannelId), 15_000)).start();
+			new Thread(() -> sendTwitchSoMessage(args.getUser(), (String) args.getArguments().get(ArgumentKey.ChannelName), 15_000)).start();
 		} else if (accountsToShoutOut.getOrDefault(args.getUser().toLowerCase(), false)) {
 			accountsToShoutOut.put(args.getUser().toLowerCase(), false);
-			new Thread(() -> sendTwitchSoMessage(args.getUser(), (String) args.getArguments().get(ArgumentKey.ChannelId), 15_000)).start();
+			new Thread(() -> sendTwitchSoMessage(args.getUser(), (String) args.getArguments().get(ArgumentKey.ChannelName), 15_000)).start();
 		}
 	}
 
