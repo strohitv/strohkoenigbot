@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
@@ -43,14 +44,14 @@ public class AutoSoAction extends ChatAction {
 	public void execute(ActionArgs args) {
 		if (args.getReason() == TriggerReason.Raid) {
 			accountsToShoutOut.put(args.getUser().toLowerCase(), false);
-			new Thread(() -> sendTwitchSoMessage(args.getUser(), 15_000)).start();
+			new Thread(() -> sendTwitchSoMessage(args.getUser(), (String) args.getArguments().get(ArgumentKey.ChannelId), 15_000)).start();
 		} else if (accountsToShoutOut.getOrDefault(args.getUser().toLowerCase(), false)) {
 			accountsToShoutOut.put(args.getUser().toLowerCase(), false);
-			new Thread(() -> sendTwitchSoMessage(args.getUser(), 15_000)).start();
+			new Thread(() -> sendTwitchSoMessage(args.getUser(), (String) args.getArguments().get(ArgumentKey.ChannelId), 15_000)).start();
 		}
 	}
 
-	private void sendTwitchSoMessage(String user, int waitTime) {
+	private void sendTwitchSoMessage(String user, String channel, int waitTime) {
 		if (waitTime > 0) {
 			try {
 				Thread.sleep(waitTime);
@@ -59,7 +60,7 @@ public class AutoSoAction extends ChatAction {
 			}
 		}
 
-		twitchMessageSender.send("strohkoenig", String.format("!so %s", user));
+		twitchMessageSender.send(channel, String.format("!so %s", user));
 	}
 
 	public void startStream() {
