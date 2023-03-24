@@ -9,6 +9,7 @@ public class CoopGroupingSchedule {
 	private Image bannerImage;
 	private CoopSchedule regularSchedules;
 	private CoopSchedule bigRunSchedules;
+	private CoopSchedule teamContestSchedules;
 
 	@Getter
 	@Setter
