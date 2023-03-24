@@ -24,6 +24,7 @@ public class DiscordChannelDecisionMaker {
 	private final static String s3LeagueChannel = "s3-league-rotations";
 	private final static String s3SalmonRunChannel = "s3-salmon-run-rotations";
 	private final static String s3SalmonRunBigRunChannel = "s3-big-run-rotations";
+	private final static String s3SalmonRunEggstraWorkChannel = "s3-eggstra-work-rotations";
 
 	private static boolean isLocalDebug = false;
 
@@ -173,6 +174,14 @@ public class DiscordChannelDecisionMaker {
 			return debugTempChannel;
 		} else {
 			return s3SalmonRunBigRunChannel;
+		}
+	}
+
+	public static String getS3SalmonRunEggstraWorkChannelName() {
+		if (isLocalDebug) {
+			return debugTempChannel;
+		} else {
+			return s3SalmonRunEggstraWorkChannel;
 		}
 	}
 }

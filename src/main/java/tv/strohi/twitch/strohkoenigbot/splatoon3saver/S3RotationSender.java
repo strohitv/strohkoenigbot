@@ -71,7 +71,7 @@ public class S3RotationSender {
 					rotationSchedulesResult.getData().getRegularSchedules(),
 					rotationSchedulesResult.getData().getBankaraSchedules(),
 					rotationSchedulesResult.getData().getXSchedules(),
-					rotationSchedulesResult.getData().getLeagueSchedules(),
+//					rotationSchedulesResult.getData().getLeagueSchedules(),
 					rotationSchedulesResult.getData().getFestSchedules()
 			), force);
 
@@ -89,6 +89,7 @@ public class S3RotationSender {
 	private void sendSalmonRotations(CoopGroupingSchedule coopGroupingSchedule, boolean force) {
 		String regularChannelName = DiscordChannelDecisionMaker.getS3SalmonRunChannel();
 		String bigRunChannelName = DiscordChannelDecisionMaker.getS3SalmonRunBigRunChannel();
+		String eggstraWorkChannelName = DiscordChannelDecisionMaker.getS3SalmonRunEggstraWorkChannelName();
 
 		CoopRotation regularRotation = Arrays.stream(coopGroupingSchedule.getRegularSchedules().getNodes())
 				.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
@@ -98,12 +99,20 @@ public class S3RotationSender {
 				.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
 				.orElse(null);
 
+		CoopRotation eggstraWorkRotation = Arrays.stream(coopGroupingSchedule.getTeamContestSchedules().getNodes())
+				.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
+				.orElse(null);
+
 		if (regularRotation != null) {
 			sendSalmonRotationToDiscord(regularChannelName, "Salmon Run", regularRotation, force);
 		}
 
 		if (bigRunRotation != null) {
 			sendSalmonRotationToDiscord(bigRunChannelName, "Big Run", bigRunRotation, force);
+		}
+
+		if (eggstraWorkRotation != null) {
+			sendSalmonRotationToDiscord(eggstraWorkChannelName, "Eggstra Work", eggstraWorkRotation, force);
 		}
 	}
 
