@@ -38,6 +38,8 @@ public class S3ApiQuerySender {
 	}
 
 	public String queryS3Api(Account account, String actionHash, String additionalHeader, String additionalContent) {
+		logger.info("Sending request for hash '{}', additional header  '{}' and additional content '{}'", actionHash, additionalHeader, additionalContent);
+
 		String result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, additionalHeader, additionalContent);
 
 		if (result == null) {
