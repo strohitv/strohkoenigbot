@@ -116,7 +116,7 @@ public class S3Downloader {
 				continue;
 			}
 
-			String homeResponse = requestSender.queryS3Api(account, S3RequestKey.Home.getKey());
+			String homeResponse = requestSender.queryS3Api(account, S3RequestKey.Home.getKey(), "naCountry", "US");
 			logger.debug(homeResponse);
 
 			if (!homeResponse.contains("currentPlayer")) {
@@ -441,7 +441,7 @@ public class S3Downloader {
 			}
 
 			for (String salmonShiftId : salmonShiftsToDownload) {
-				String salmonShiftJson = requestSender.queryS3Api(account, S3RequestKey.SalmonDetail.getKey(), salmonShiftId);
+				String salmonShiftJson = requestSender.queryS3Api(account, S3RequestKey.SalmonDetail.getKey(), "coopHistoryDetailId", salmonShiftId);
 				logger.debug(salmonShiftJson);
 
 				if (!salmonShiftJson.contains("coopHistoryDetail")) {
@@ -465,7 +465,7 @@ public class S3Downloader {
 	}
 
 	private void storeOnlineGame(Account account, String filenamePrefix, Path directory, Map<String, ConfigFile.StoredGame> games, String matchId) {
-		String matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail.getKey(), matchId);
+		String matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail.getKey(), "vsResultId", matchId);
 		logger.debug(matchJson);
 
 		if (!matchJson.contains("vsHistoryDetail")) {

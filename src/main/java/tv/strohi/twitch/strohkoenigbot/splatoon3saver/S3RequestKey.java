@@ -8,23 +8,23 @@ import java.util.EnumSet;
 @AllArgsConstructor
 @Getter
 public enum S3RequestKey {
-	Home("dba47124d5ec3090c97ba17db5d2f4b3"),
+	Home("22e2fa8294168003c21b00c333c35384"),
 
-	Latest("4f5f26e64bca394b45345a65a2f383bd"),
-	Regular("d5b795d09e67ce153e622a184b7e7dfa"),
-	Anarchy("de4754588109b77dbcb90fbe44b612ee"),
-	XRank("45c74fefb45a49073207229ca65f0a62"),
-	Private("1d6ed57dc8b801863126ad4f351dfb9a"),
+	Latest("0176a47218d830ee447e10af4a287b3f"),
+	Regular("3baef04b095ad8975ea679d722bc17de"),
+	Anarchy("0438ea6978ae8bd77c5d1250f4f84803"),
+	XRank("6796e3cd5dc3ebd51864dc709d899fc5"),
+	Private("8e5ae78b194264a6c230e262d069bd28"),
 	GameDetail("291295ad311b99a6288fc95a5c4cb2d2"),
 
-	Salmon("6ed02537e4a65bbb5e7f4f23092f6154"),
-	SalmonDetail("3cc5f826a6646b85f3ae45db51bd0707"),
+	Salmon("91b917becd2fa415890f5b47e15ffb15"),
+	SalmonDetail("379f0d9b78b531be53044bcac031b34b"),
 
 	SplatNetShop("a43dd44899a09013bcfd29b4b13314ff"),
 	OwnedWeaponsAndGear("d29cd0c2b5e6bac90dd5b817914832f8"),
 	Weapons("5f279779e7081f2d14ae1ddca0db2b6e"),
 
-	RotationSchedules("730cd98e84f1030d3e9ac86b6f1aae13");
+	RotationSchedules("011e394c0e384d77a0701474c8c11a20");
 
 	@Getter
 	private final static EnumSet<S3RequestKey> onlineBattles = EnumSet.of(Regular, Anarchy, XRank, Private); // EnumSet.of(Latest, Regular, Anarchy, Private); //

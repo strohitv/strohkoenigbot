@@ -34,11 +34,11 @@ public class S3ApiQuerySender {
 	private final S3Authenticator authenticator;
 
 	public String queryS3Api(Account account, String actionHash) {
-		return queryS3Api(account, actionHash, null);
+		return queryS3Api(account, actionHash, null, null);
 	}
 
-	public String queryS3Api(Account account, String actionHash, String matchId) {
-		String result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, matchId);
+	public String queryS3Api(Account account, String actionHash, String additionalHeader, String additionalContent) {
+		String result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, additionalHeader, additionalContent);
 
 		if (result == null) {
 			if (DiscordChannelDecisionMaker.isLocalDebug()) logSender.sendLogs(logger, "Didn't receive a result, retrying after refreshing tokens...");
@@ -49,23 +49,18 @@ public class S3ApiQuerySender {
 			account.setBulletTokenSplatoon3(authenticationData.getBulletToken());
 
 			account = accountRepository.save(account);
-			result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, matchId);
+			result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, additionalHeader, additionalContent);
 			if (DiscordChannelDecisionMaker.isLocalDebug()) logSender.sendLogs(logger, String.format("is result null again? %b", result == null));
 		}
 
 		return result;
 	}
 
-	private String doRequest(String gToken, String bulletToken, String actionHash, String matchId) {
+	private String doRequest(String gToken, String bulletToken, String actionHash, String additionalHeader, String additionalContent) {
 		String body = String.format("{\"variables\":{},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", actionHash);
 
-		if (matchId != null) {
-			if (S3RequestKey.GameDetail.getKey().equals(actionHash)) {
-				body = String.format("{\"variables\":{\"vsResultId\":\"%s\"},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", matchId, actionHash);
-			} else {
-				// salmon run
-				body = String.format("{\"variables\":{\"coopHistoryDetailId\":\"%s\"},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", matchId, actionHash);
-			}
+		if (additionalHeader != null && additionalContent != null) {
+			body = String.format("{\"variables\":{\"%s\":\"%s\"},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", additionalHeader, additionalContent, actionHash);
 		}
 
 		String webViewVersion = configurationRepository.findByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
