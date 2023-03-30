@@ -87,7 +87,7 @@ public class S3RandomWeaponAction extends ChatAction {
 						.collect(Collectors.toList());
 			}
 
-			boolean forceDistinctFirst = message.contains("distinct");
+			boolean forceDistinct = message.contains("distinct");
 			boolean forceDistinctRepeat = message.contains("repeat");
 
 			// exact point filters
@@ -164,19 +164,23 @@ public class S3RandomWeaponAction extends ChatAction {
 			}
 
 			int maxRepetitions = Arrays.stream(extractMaxRepetitionsFilter(message))
-					.map(m -> m.replace("max", "").trim())
+					.map(msg -> msg
+							.replace("max", "")
+							.replace("occurrences", "")
+							.replace("o", "")
+							.trim())
 					.filter(this::tryParseInt)
 					.map(Integer::parseInt)
 					.filter(i -> i >= 1)
 					.findFirst()
-					.orElse(Integer.MAX_VALUE);
+					.orElse(-1);
 
 			int foundWeaponNumberFilter = Arrays.stream(extractWeaponNumberFilter(message))
 					.filter(this::tryParseInt)
 					.map(Integer::parseInt)
 					.filter(i -> i >= 1)
 					.findFirst()
-					.orElse(1);
+					.orElse((forceDistinct || maxRepetitions >= 1) ? Integer.MAX_VALUE : 1);
 
 			List<String> chosenClasses = new ArrayList<>();
 			for (String weaponClass : allWeaponClasses) {
@@ -261,13 +265,13 @@ public class S3RandomWeaponAction extends ChatAction {
 
 					// max occurrences
 					occurrences.put(chosenWeapon, occurrences.getOrDefault(chosenWeapon, 0) + 1);
-					if (occurrences.get(chosenWeapon) >= maxRepetitions) {
+					if (maxRepetitions >= 1 && occurrences.get(chosenWeapon) >= maxRepetitions) {
 						savedKits.remove(chosenWeapon);
 						kits.remove(chosenWeapon);
 					}
 
 					// distinct kits
-					if (forceDistinctFirst) {
+					if (forceDistinct) {
 						kits.remove(chosenWeapon);
 
 						if (kits.size() == 0) {
@@ -314,7 +318,7 @@ public class S3RandomWeaponAction extends ChatAction {
 	}
 
 	private String[] extractMaxRepetitionsFilter(String message) {
-		return Pattern.compile("(max *\\d+)")
+		return Pattern.compile("(max *\\d+ *o(ccurrences)?)")
 				.matcher(message
 						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-5] *s(tars)?)", "")
 						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-9_]+([kKmM])? *p(aint)?)", ""))
@@ -328,7 +332,7 @@ public class S3RandomWeaponAction extends ChatAction {
 				.matcher(message
 						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-5] *s(tars)?)", "")
 						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-9_]+([kKmM])? *p(aint)?)", "")
-						.replaceAll("(max *\\d+)", ""))
+						.replaceAll("(max *\\d+ *o(ccurrences)?)", ""))
 				.results()
 				.map(mr -> mr.group(1))
 				.toArray(String[]::new);
