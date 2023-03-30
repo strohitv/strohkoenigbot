@@ -8,6 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3NewGearChecker;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3WeaponDownloader;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 
 import java.text.DecimalFormat;
 import java.time.Instant;
@@ -47,7 +48,7 @@ public class S3RandomWeaponAction extends ChatAction {
 				lastUsed = Instant.now();
 			}
 
-			var kits = weaponDownloader.getWeapons();
+			List<Weapon> kits = new ArrayList<>(weaponDownloader.getWeapons());
 
 			for (var weapon : newGearChecker.getAllOwnedWeapons()) {
 				kits.stream()
