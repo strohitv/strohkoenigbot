@@ -86,6 +86,9 @@ public class S3RandomWeaponAction extends ChatAction {
 						.collect(Collectors.toList());
 			}
 
+			boolean forceDistinctFirst = message.contains("distinct");
+			boolean forceDistinctRepeat = message.contains("repeat");
+
 			// exact point filters
 			String[] foundTurfFilters = extractTurfFilterGroups(message);
 			for (String matchedRegex : foundTurfFilters) {
@@ -159,6 +162,13 @@ public class S3RandomWeaponAction extends ChatAction {
 				}
 			}
 
+			int foundWeaponNumberFilter = Arrays.stream(extractWeaponNumberFilter(message))
+					.filter(this::tryParseInt)
+					.map(Integer::parseInt)
+					.filter(i -> i >= 1)
+					.findFirst()
+					.orElse(1);
+
 			List<String> chosenClasses = new ArrayList<>();
 			for (String weaponClass : allWeaponClasses) {
 				if (message.contains(weaponClass.toLowerCase(Locale.ROOT))) {
@@ -192,32 +202,77 @@ public class S3RandomWeaponAction extends ChatAction {
 				kits = kits.stream().filter(k -> chosenSpecials.contains(k.getSpecialWeapon().getName())).collect(Collectors.toList());
 			}
 
+			int maxMessageSize = args.getReplySender().isDiscordMessage() ? 2000 : 500;
+
+			var savedKits = List.copyOf(kits);
 			if (kits.size() > 0) {
-				var chosenWeapon = kits.get(random.nextInt(kits.size()));
+				String replyMessage = "";
 
-				String weaponPoints = "";
-				if (filteredByPointsOrLevel) {
-					DecimalFormat df = new DecimalFormat("#,###");
-					weaponPoints = String.format(" -> %s points",
-							df.format(chosenWeapon.getStats() != null ? chosenWeapon.getStats().getPaint() : 0)
-									.replace(',', ' ')
-									.replace('.', ' '));
+				for (int i = 0; i < foundWeaponNumberFilter; i++) {
+					var chosenWeapon = kits.get(random.nextInt(kits.size()));
+
+					String countPrefix = foundWeaponNumberFilter > 1 ? String.format("%d: ", i + 1) : "";
+
+					String commaPrefix;
+					String discordBoldChars = "";
+					if (args.getReplySender().isDiscordMessage()) {
+						commaPrefix = i > 0 ? "\n" : "";
+						discordBoldChars = "**";
+					} else {
+						commaPrefix = i > 0 ? ", " : "";
+					}
+
+					String weaponPoints = "";
+					String weaponLevel = "";
+					if (filteredByPointsOrLevel) {
+						DecimalFormat df = new DecimalFormat("#,###");
+
+						weaponPoints = String.format(" -> %s points",
+								df.format(chosenWeapon.getStats() != null ? chosenWeapon.getStats().getPaint() : 0)
+										.replace(',', ' ')
+										.replace('.', ' '));
+
+						weaponLevel = String.format(", %s stars",
+								df.format(chosenWeapon.getStats() != null ? chosenWeapon.getStats().getLevel() : 0)
+										.replace(',', ' ')
+										.replace('.', ' '));
+					}
+
+					String newReplyMessage = String.format("%s%s%s%s%s%s (%s, %s)%s%s", replyMessage, commaPrefix, countPrefix, discordBoldChars, chosenWeapon.getName(), discordBoldChars, chosenWeapon.getSubWeapon().getName(), chosenWeapon.getSpecialWeapon().getName(), weaponPoints, weaponLevel);
+
+					if (newReplyMessage.length() < maxMessageSize) {
+						replyMessage = newReplyMessage;
+					} else {
+						break;
+					}
+
+					if (forceDistinctFirst) {
+						kits.remove(chosenWeapon);
+
+						if (kits.size() == 0) {
+							if (forceDistinctRepeat) {
+								// repeat all weapons
+								kits.addAll(savedKits);
+							} else {
+								break;
+							}
+						}
+					}
 				}
 
-				String weaponLevel = "";
-				if (filteredByPointsOrLevel) {
-					DecimalFormat df = new DecimalFormat("#,###");
-					weaponLevel = String.format(", %s stars",
-							df.format(chosenWeapon.getStats() != null ? chosenWeapon.getStats().getLevel() : 0)
-									.replace(',', ' ')
-									.replace('.', ' '));
-				}
-
-				String replyMessage = String.format("%s (%s, %s)%s%s", chosenWeapon.getName(), chosenWeapon.getSubWeapon().getName(), chosenWeapon.getSpecialWeapon().getName(), weaponPoints, weaponLevel);
 				args.getReplySender().send(replyMessage);
 			} else {
 				args.getReplySender().send("No weapon kit matches your criteria. Please note that combining 'not owned' with a weapon class does not work.");
 			}
+		}
+	}
+
+	public boolean tryParseInt(String value) {
+		try {
+			Integer.parseInt(value);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
 		}
 	}
 
@@ -232,6 +287,16 @@ public class S3RandomWeaponAction extends ChatAction {
 	private String[] extractStarsFilterGroups(String message) {
 		return Pattern.compile("((<|<=|>|>=|!=|<>|=) *[0-5] *s(tars)?)")
 				.matcher(message)
+				.results()
+				.map(mr -> mr.group(1))
+				.toArray(String[]::new);
+	}
+
+	private String[] extractWeaponNumberFilter(String message) {
+		return Pattern.compile("(\\d+)")
+				.matcher(message
+						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-5] *s(tars)?)", "")
+						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-9_]+([kKmM])? *p(aint)?)", ""))
 				.results()
 				.map(mr -> mr.group(1))
 				.toArray(String[]::new);

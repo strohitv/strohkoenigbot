@@ -4,6 +4,7 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.channel.TextChannel;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 
@@ -48,5 +49,9 @@ public class TwitchDiscordMessageSender {
 			default:
 				break;
 		}
+	}
+
+	public boolean isDiscordMessage() {
+		return TriggerReason.Discord.contains(args.getReason());
 	}
 }
