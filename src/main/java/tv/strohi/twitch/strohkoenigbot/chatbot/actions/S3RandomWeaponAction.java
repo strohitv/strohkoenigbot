@@ -163,6 +163,14 @@ public class S3RandomWeaponAction extends ChatAction {
 				}
 			}
 
+			int maxRepetitions = Arrays.stream(extractMaxRepetitionsFilter(message))
+					.map(m -> m.replace("max", "").trim())
+					.filter(this::tryParseInt)
+					.map(Integer::parseInt)
+					.filter(i -> i >= 1)
+					.findFirst()
+					.orElse(Integer.MAX_VALUE);
+
 			int foundWeaponNumberFilter = Arrays.stream(extractWeaponNumberFilter(message))
 					.filter(this::tryParseInt)
 					.map(Integer::parseInt)
@@ -205,11 +213,15 @@ public class S3RandomWeaponAction extends ChatAction {
 
 			int maxMessageSize = args.getReplySender().isDiscordMessage() ? 2000 : 500;
 
-			var savedKits = List.copyOf(kits);
+			var savedKits = new ArrayList<>(kits);
+			var occurrences = new HashMap<Weapon, Integer>();
+
 			if (kits.size() > 0) {
 				String replyMessage = "";
 
 				for (int i = 0; i < foundWeaponNumberFilter; i++) {
+					if (kits.size() < 1) break;
+
 					var chosenWeapon = kits.get(random.nextInt(kits.size()));
 
 					String countPrefix = foundWeaponNumberFilter > 1 ? String.format("%d: ", i + 1) : "";
@@ -247,6 +259,14 @@ public class S3RandomWeaponAction extends ChatAction {
 						break;
 					}
 
+					// max occurrences
+					occurrences.put(chosenWeapon, occurrences.getOrDefault(chosenWeapon, 0) + 1);
+					if (occurrences.get(chosenWeapon) >= maxRepetitions) {
+						savedKits.remove(chosenWeapon);
+						kits.remove(chosenWeapon);
+					}
+
+					// distinct kits
 					if (forceDistinctFirst) {
 						kits.remove(chosenWeapon);
 
@@ -293,11 +313,22 @@ public class S3RandomWeaponAction extends ChatAction {
 				.toArray(String[]::new);
 	}
 
+	private String[] extractMaxRepetitionsFilter(String message) {
+		return Pattern.compile("(max *\\d+)")
+				.matcher(message
+						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-5] *s(tars)?)", "")
+						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-9_]+([kKmM])? *p(aint)?)", ""))
+				.results()
+				.map(mr -> mr.group(1))
+				.toArray(String[]::new);
+	}
+
 	private String[] extractWeaponNumberFilter(String message) {
 		return Pattern.compile("(\\d+)")
 				.matcher(message
 						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-5] *s(tars)?)", "")
-						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-9_]+([kKmM])? *p(aint)?)", ""))
+						.replaceAll("((<|<=|>|>=|!=|<>|=) *[0-9_]+([kKmM])? *p(aint)?)", "")
+						.replaceAll("(max *\\d+)", ""))
 				.results()
 				.map(mr -> mr.group(1))
 				.toArray(String[]::new);
