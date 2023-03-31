@@ -564,8 +564,21 @@ public class S3DailyStatsSender {
 							.map(p -> p.getWeapon().getSpecialWeapon().getName())
 							.findFirst().orElse("UNKOWN");
 				}
-				int currentSpecialWinCount = specialWinResults.getOrDefault(specialWeapon, 0);
-				specialWinResults.put(specialWeapon, currentSpecialWinCount + 1);
+
+				var player = result.getData().getVsHistoryDetail().getMyTeam().getPlayers().stream()
+						.filter(m -> m.getIsMyself() != null && m.getIsMyself())
+						.findFirst()
+						.orElse(
+								result.getData().getVsHistoryDetail().getPlayer() != null
+										&& result.getData().getVsHistoryDetail().getPlayer().getResult() != null
+										&& result.getData().getVsHistoryDetail().getPlayer().getResult().getSpecial() != null
+										? result.getData().getVsHistoryDetail().getPlayer()
+										: null);
+
+				if (player != null && player.getResult().getSpecial() > 0) {
+					int currentSpecialWinCount = specialWinResults.getOrDefault(specialWeapon, 0);
+					specialWinResults.put(specialWeapon, currentSpecialWinCount + 1);
+				}
 			}
 		} catch (IOException e) {
 			logSender.sendLogs(logger, String.format("Couldn't parse salmon run result json file '%s' OH OH", filename));
