@@ -9,6 +9,8 @@ public class CoopSetting {
 	private String __typename;
 	private String __isCoopSetting;
 
+	private String rule;
+
 	private CoopStage coopStage;
 	private NameAndImage[] weapons;
 }
