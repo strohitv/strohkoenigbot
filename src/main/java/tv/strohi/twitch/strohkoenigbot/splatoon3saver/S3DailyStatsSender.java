@@ -123,56 +123,57 @@ public class S3DailyStatsSender {
 			return;
 		}
 
-		DailyStatsSaveModel yesterdayStats = loadYesterdayStats();
-
-		Map<String, Integer> wonOnlineGames = new HashMap<>();
-		Map<String, Integer> winCountSpecialWeapons = new HashMap<>();
-		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getRegular_games().entrySet()) {
-			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
-		}
-		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getAnarchy_games().entrySet()) {
-			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
-		}
-		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getX_rank_games().entrySet()) {
-			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
-		}
-
-		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
-		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
-
-		Map<String, Integer> gearStars = new HashMap<>();
-		Map<Integer, Integer> gearStarCounts = new HashMap<>();
-		countStarsOnGear(gearStars, gearStarCounts);
-		sendGearStatsToDiscord(gearStars, yesterdayStats, account);
-		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
-
-		Map<String, Integer> weaponLevelNumbers = new HashMap<>();
-		countWeaponNumberForEveryStarLevel(weaponLevelNumbers);
-		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
+//		DailyStatsSaveModel yesterdayStats = loadYesterdayStats();
+//
+//		Map<String, Integer> wonOnlineGames = new HashMap<>();
+//		Map<String, Integer> winCountSpecialWeapons = new HashMap<>();
+//		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getRegular_games().entrySet()) {
+//			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
+//		}
+//		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getAnarchy_games().entrySet()) {
+//			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
+//		}
+//		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getX_rank_games().entrySet()) {
+//			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
+//		}
+//
+//		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
+//		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
+//
+//		Map<String, Integer> gearStars = new HashMap<>();
+//		Map<Integer, Integer> gearStarCounts = new HashMap<>();
+//		countStarsOnGear(gearStars, gearStarCounts);
+//		sendGearStatsToDiscord(gearStars, yesterdayStats, account);
+//		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
+//
+//		Map<String, Integer> weaponLevelNumbers = new HashMap<>();
+//		countWeaponNumberForEveryStarLevel(weaponLevelNumbers);
+//		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
 
 		Map<String, Integer> defeatedSalmonRunBosses = new HashMap<>();
 		Map<String, Integer> salmonRunWeaponsYesterday = new HashMap<>();
 		Map<String, Integer> yesterdayWaves = new HashMap<>();
 		Map<String, Integer> yesterdayTides = new HashMap<>();
+		accountId = account.getDiscordId();
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getSalmon_games().entrySet()) {
 			countSalmonRunEnemyDefeatAndWeaponResults(game, directory, defeatedSalmonRunBosses, salmonRunWeaponsYesterday, yesterdayWaves, yesterdayTides);
 		}
 
-		sendSalmonRunStatsToDiscord(defeatedSalmonRunBosses, yesterdayStats, account);
-
-		if (salmonRunWeaponsYesterday.size() > 0) {
-			sendStatsToDiscord(salmonRunWeaponsYesterday, String.format("**Yesterday, you played a total of __%d__ different weapons in Salmon Run**", salmonRunWeaponsYesterday.size()), account);
-		}
-
-		if (yesterdayWaves.size() > 0) {
-			sendStatsToDiscord(yesterdayWaves, String.format("**Yesterday, you played a total of __%d__ different waves in Salmon Run**", yesterdayWaves.size()), account);
-		}
-
-		if (yesterdayTides.size() > 0) {
-			sendStatsToDiscord(yesterdayTides, String.format("**Yesterday, you played a total of __%d__ different tides in Salmon Run**", yesterdayTides.size()), account);
-		}
-
-		refreshYesterdayStats(yesterdayStats);
+//		sendSalmonRunStatsToDiscord(defeatedSalmonRunBosses, yesterdayStats, account);
+//
+//		if (salmonRunWeaponsYesterday.size() > 0) {
+//			sendStatsToDiscord(salmonRunWeaponsYesterday, String.format("**Yesterday, you played a total of __%d__ different weapons in Salmon Run**", salmonRunWeaponsYesterday.size()), account);
+//		}
+//
+//		if (yesterdayWaves.size() > 0) {
+//			sendStatsToDiscord(yesterdayWaves, String.format("**Yesterday, you played a total of __%d__ different waves in Salmon Run**", yesterdayWaves.size()), account);
+//		}
+//
+//		if (yesterdayTides.size() > 0) {
+//			sendStatsToDiscord(yesterdayTides, String.format("**Yesterday, you played a total of __%d__ different tides in Salmon Run**", yesterdayTides.size()), account);
+//		}
+//
+//		refreshYesterdayStats(yesterdayStats);
 
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
 	}
@@ -194,19 +195,19 @@ public class S3DailyStatsSender {
 	}
 
 	private void refreshYesterdayStats(DailyStatsSaveModel yesterdayStats) {
-		String json;
-		try {
-			json = objectMapper.writeValueAsString(yesterdayStats);
-
-			Configuration config = configurationRepository.findByConfigName(YESTERDAY_CONFIG_NAME).stream().findFirst().orElse(new Configuration());
-			config.setConfigName(YESTERDAY_CONFIG_NAME);
-			config.setConfigValue(json);
-
-			configurationRepository.save(config);
-		} catch (JsonProcessingException e) {
-			logSender.sendLogs(logger, "yesterday stats saving failed!!!");
-			logger.error(e);
-		}
+//		String json;
+//		try {
+//			json = objectMapper.writeValueAsString(yesterdayStats);
+//
+//			Configuration config = configurationRepository.findByConfigName(YESTERDAY_CONFIG_NAME).stream().findFirst().orElse(new Configuration());
+//			config.setConfigName(YESTERDAY_CONFIG_NAME);
+//			config.setConfigValue(json);
+//
+//			configurationRepository.save(config);
+//		} catch (JsonProcessingException e) {
+//			logSender.sendLogs(logger, "yesterday stats saving failed!!!");
+//			logger.error(e);
+//		}
 	}
 
 	private void sendWeaponLevelNumbersToDiscord(Map<String, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
@@ -443,6 +444,10 @@ public class S3DailyStatsSender {
 		discordBot.sendPrivateMessage(account.getDiscordId(), statMessageBuilder.toString());
 	}
 
+	private long accountId = 0;
+	private int mawMatches = 0;
+	private int mawKills = 0;
+
 	private void countSalmonRunEnemyDefeatAndWeaponResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses,
 			/*Map<String, Integer> defeatedSalmonRunBossesYesterday, */ Map<String, Integer> receivedWeaponsYesterday, Map<String, Integer> waves, Map<String, Integer> tides) {
 		String filename = directory.resolve(game.getValue().getFilename()).toAbsolutePath().toString();
@@ -467,6 +472,16 @@ public class S3DailyStatsSender {
 			for (EnemyResults enemyResult : result.getData().getCoopHistoryDetail().getEnemyResults()) {
 				int currentCount = defeatedSalmonRunBosses.getOrDefault(enemyResult.getEnemy().getName(), 0);
 				defeatedSalmonRunBosses.put(enemyResult.getEnemy().getName(), currentCount + enemyResult.getDefeatCount());
+
+				if (enemyResult.getEnemy().getName().equalsIgnoreCase("maws")) {
+					mawMatches++;
+					mawKills += enemyResult.getDefeatCount();
+
+					if (mawKills > 1000) {
+						discordBot.sendPrivateMessage(accountId, String.format("%d maw kills after %d games", mawKills, mawMatches));
+						mawKills = Integer.MIN_VALUE;
+					}
+				}
 
 //				if (wasToday) {
 //					int currentCountYesterday = defeatedSalmonRunBossesYesterday.getOrDefault(enemyResult.getEnemy().getName(), 0);
