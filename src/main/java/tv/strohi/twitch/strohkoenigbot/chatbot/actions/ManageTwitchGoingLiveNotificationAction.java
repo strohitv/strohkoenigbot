@@ -133,7 +133,7 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 		var allAlerts = twitchGoingLiveAlertRepository.findByTwitchChannelName(channel);
 
 		for (var alert : allAlerts) {
-			discordBot.sendServerMessageWithImages(alert.getGuildId(), alert.getChannelId(), alert.getNotificationMessage());
+			discordBot.sendServerMessageWithImageUrls(alert.getGuildId(), alert.getChannelId(), alert.getNotificationMessage());
 		}
 	}
 }

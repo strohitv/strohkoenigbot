@@ -148,7 +148,7 @@ public class SalmonWatcher {
 
 	private void sendDiscordMessageToChannel(String channelName, String message, String stageImageUrl) {
 		logger.info("Sending out discord notifications to server channel '{}'", channelName);
-		discordBot.sendServerMessageWithImages(channelName,
+		discordBot.sendServerMessageWithImageUrls(channelName,
 				message,
 				String.format("https://app.splatoon2.nintendo.net%s", stageImageUrl));
 		logger.info("Finished sending out discord notifications to server channel '{}'", channelName);
@@ -214,7 +214,7 @@ public class SalmonWatcher {
 		}
 
 		for (Account account : accountsToNotify) {
-			discordBot.sendPrivateMessageWithImages(account.getDiscordId(),
+			discordBot.sendPrivateMessageWithImageUrls(account.getDiscordId(),
 					message,
 					String.format("https://app.splatoon2.nintendo.net%s", stageImageUrl));
 			logger.info("Finished sending out discord notifications to discord user '{}'", account.getDiscordId());

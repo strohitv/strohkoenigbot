@@ -51,6 +51,7 @@ public class S3Authenticator {
 		logger.debug(fTokenNso);
 
 
+		// TODO manchmal ist hier fTokenNSO null... dann gabs nen 500er von der imink api
 		String idToken = splatoonTokenRetriever.doSplatoonAppLogin(userInfo, fTokenNso, accountAccessToken);
 		logger.debug("gameWebToken");
 		logger.debug(idToken);

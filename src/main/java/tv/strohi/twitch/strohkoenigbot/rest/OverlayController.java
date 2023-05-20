@@ -1,29 +1,22 @@
 package tv.strohi.twitch.strohkoenigbot.rest;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3BadgeSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ExtendedStatisticsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.Statistics;
 
 @RequestMapping("overlay")
 @Controller
+@RequiredArgsConstructor
 public class OverlayController {
-	private Statistics statistics;
+	private final Statistics statistics;
+	private final ExtendedStatisticsExporter fullscreenExporter;
 
-	@Autowired
-	public void setExporter(Statistics statistics) {
-		this.statistics = statistics;
-	}
-
-	private ExtendedStatisticsExporter fullscreenExporter;
-
-	@Autowired
-	public void setFullscreenExporter(ExtendedStatisticsExporter fullscreenExporter) {
-		this.fullscreenExporter = fullscreenExporter;
-	}
+	private final S3BadgeSender badgeSender;
 
 	@GetMapping("")
 	public @ResponseBody String getOverlay() {
@@ -33,5 +26,10 @@ public class OverlayController {
 	@GetMapping("/fullscreen")
 	public @ResponseBody String getFullscreenOverlay() {
 		return fullscreenExporter.getFinishedHtml();
+	}
+
+	@GetMapping(value = "/badges", produces = "text/html")
+	public @ResponseBody String getBadgesOverlayHtml() {
+		return badgeSender.getBadgesAsHtml();
 	}
 }

@@ -53,7 +53,7 @@ public class BadgeAction extends ChatAction {
 
 		message = message.toLowerCase().trim();
 
-		if (message.startsWith("!badges")) {
+		if (message.startsWith("!s2 badges")) {
 			Account account = accountRepository.findAll().stream()
 					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.findFirst()

@@ -166,7 +166,7 @@ public class S3NewGearChecker {
 						}
 
 						logger.info("Sending notification to discord account: {}", account.getDiscordId());
-						discordBot.sendPrivateMessageWithImages(account.getDiscordId(),
+						discordBot.sendPrivateMessageWithImageUrls(account.getDiscordId(),
 								discordMessage,
 								images.toArray(String[]::new));
 						logger.info("Done sending notification to discord account: {}", account.getDiscordId());

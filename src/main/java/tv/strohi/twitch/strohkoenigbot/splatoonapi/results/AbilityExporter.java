@@ -36,7 +36,7 @@ public class AbilityExporter {
 
 			ability = abilityRepository.save(ability);
 
-			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
+			discordBot.sendServerMessageWithImageUrls(DiscordChannelDecisionMaker.getDebugChannelName(),
 					String.format("New Ability with id **%d** and name **%s** was stored into Database!",
 							ability.getId(),
 							ability.getName()),

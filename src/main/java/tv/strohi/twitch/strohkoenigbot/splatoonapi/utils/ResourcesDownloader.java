@@ -63,7 +63,7 @@ public class ResourcesDownloader {
 					}
 
 					String newPath = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
-					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "I downloaded an image!", newPath);
+					discordBot.sendServerMessageWithImageUrls(DiscordChannelDecisionMaker.getDebugChannelName(), "I downloaded an image!", newPath);
 
 					logger.info("image download successful, path: '{}'", path);
 

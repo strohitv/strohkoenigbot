@@ -389,7 +389,7 @@ public class RotationWatcher {
 
 	private void sendDiscordMessageToChannel(String channelName, String message, String firstStageImageUrl, String SecondStageImageUrl) {
 		logger.info("Sending out discord notifications to server channel '{}'", channelName);
-		discordBot.sendServerMessageWithImages(channelName,
+		discordBot.sendServerMessageWithImageUrls(channelName,
 				message,
 				String.format("https://app.splatoon2.nintendo.net%s", firstStageImageUrl),
 				String.format("https://app.splatoon2.nintendo.net%s", SecondStageImageUrl));
@@ -398,7 +398,7 @@ public class RotationWatcher {
 
 	private void sendDiscordMessageToUser(long discordId, String message, String firstStageImageUrl, String SecondStageImageUrl) {
 		logger.info("Sending out discord notifications to server channel '{}'", discordId);
-		discordBot.sendPrivateMessageWithImages(discordId,
+		discordBot.sendPrivateMessageWithImageUrls(discordId,
 				message,
 				String.format("https://app.splatoon2.nintendo.net%s", firstStageImageUrl),
 				String.format("https://app.splatoon2.nintendo.net%s", SecondStageImageUrl));

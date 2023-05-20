@@ -21,7 +21,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
-import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
+import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3DailyStatsSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3RotationSender;
@@ -133,11 +133,11 @@ public class DiscordAdministrationAction extends ChatAction {
 		this.splatoonMatchColorComponent = splatoonMatchColorComponent;
 	}
 
-	private ObsSceneSwitcher obsSceneSwitcher;
+	private ObsController obsController;
 
 	@Autowired
-	public void setObsSceneSwitcher(ObsSceneSwitcher obsSceneSwitcher) {
-		this.obsSceneSwitcher = obsSceneSwitcher;
+	public void setObsController(ObsController obsController) {
+		this.obsController = obsController;
 	}
 
 	private DailyStatsSender dailyStatsSender;
@@ -359,13 +359,10 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else if (message.startsWith("!reload stats")) {
 				statsExporter.refreshStageAndWeaponStats();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reloading weapon and stage stats successfully.");
-			} else if (message.startsWith("!obs disconnect")) {
-				obsSceneSwitcher.disconnect();
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Disconnected from obs");
 			} else if (message.startsWith("!obs")) {
 				String scene = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!obs".length()).trim();
-				obsSceneSwitcher.switchScene(scene);
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Switched to obs scene '%s'", scene));
+				obsController.switchScene(scene, result ->
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Switch to obs scene '%s' successful: %b", scene, result)));
 			} else if (message.startsWith("!twitch")) {
 				String command = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!twitch".length()).trim();
 				if (command.toLowerCase().startsWith("join")) {

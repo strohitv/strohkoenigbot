@@ -12,7 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2MatchRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2RotationRepository;
-import tv.strohi.twitch.strohkoenigbot.obs.ObsSceneSwitcher;
+import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetXRankLeaderBoard;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.PeaksExporter;
 
@@ -21,7 +21,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Component
-public class ObsController {
+public class Splatoon2ObsController {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private Splatoon2MatchRepository matchRepository;
@@ -52,15 +52,11 @@ public class ObsController {
 		this.peaksExporter = peaksExporter;
 	}
 
-	private ObsSceneSwitcher obsSceneSwitcher;
+	private ObsController obsController;
 
 	@Autowired
-	public void setObsSceneSwitcher(ObsSceneSwitcher obsSceneSwitcher) {
-		this.obsSceneSwitcher = obsSceneSwitcher;
-	}
-
-	public void disconnect() {
-		obsSceneSwitcher.disconnect();
+	public void setObsSceneSwitcher(ObsController obsController) {
+		this.obsController = obsController;
 	}
 
 	public void controlOBS(Account account, long startedAt) {
@@ -96,15 +92,15 @@ public class ObsController {
 							.findByAccountIdAndStartTimeGreaterThanEqualAndMode(account.getId(), startedAt > rotation.getStartTime() ? startedAt : rotation.getStartTime(), Splatoon2Mode.Ranked)
 							.size() == 0) {
 						logger.info("1 trying to switch to scene: {}", gameSceneName);
-						obsSceneSwitcher.switchScene(gameSceneName);
+						obsController.switchScene(gameSceneName, result -> logger.info("switch successful: {}", result));
 					} else {
 						logger.info("2 trying to switch to scene: {}", resultsSceneName);
-						obsSceneSwitcher.switchScene(resultsSceneName);
+						obsController.switchScene(resultsSceneName, result -> logger.info("switch successful: {}", result));
 					}
 				}
 			} else {
 				logger.info("3 trying to switch to scene: {}", gameSceneName);
-				obsSceneSwitcher.switchScene(gameSceneName);
+				obsController.switchScene(gameSceneName, result -> logger.info("switch successful: {}", result));
 			}
 		}
 	}

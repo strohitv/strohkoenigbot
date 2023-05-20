@@ -38,7 +38,7 @@ public class GearExporter {
 
 			gear = gearRepository.save(gear);
 
-			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
+			discordBot.sendServerMessageWithImageUrls(DiscordChannelDecisionMaker.getDebugChannelName(),
 					String.format("New Gear with id **%d** and Name **%s** was stored into Database!",
 							gear.getId(),
 							gear.getName()),

@@ -182,7 +182,7 @@ public class SplatNetStoreWatcher {
 		}
 
 		logger.debug("Sending out discord notifications to server channel");
-		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS2SplatNetGearChannel(),
+		discordBot.sendServerMessageWithImageUrls(DiscordChannelDecisionMaker.getS2SplatNetGearChannel(),
 				discordMessage,
 				images.toArray(String[]::new));
 		logger.debug("Finished sending out discord notifications to server channel");
@@ -195,7 +195,7 @@ public class SplatNetStoreWatcher {
 				accountRepository.findById(notification.getDiscordId())
 						.ifPresent(discordAccount -> {
 									logger.info("Sending notification to discord account: {}", discordAccount.getDiscordId());
-									discordBot.sendPrivateMessageWithImages(discordAccount.getDiscordId(),
+									discordBot.sendPrivateMessageWithImageUrls(discordAccount.getDiscordId(),
 											discordMessage,
 											images.toArray(String[]::new));
 								}

@@ -31,6 +31,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoo
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchGoingLiveAlertRepository;
+import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 
 import javax.annotation.PreDestroy;
@@ -95,11 +96,13 @@ public class TwitchBotClient {
 
 	private final TwitchAuthRepository twitchAuthRepository;
 	private final TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository;
+	private final ObsController obsController;
 
 	@Autowired
-	public TwitchBotClient(TwitchAuthRepository twitchAuthRepository, TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository) {
+	public TwitchBotClient(TwitchAuthRepository twitchAuthRepository, TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository, ObsController obsController) {
 		this.twitchAuthRepository = twitchAuthRepository;
 		this.twitchGoingLiveAlertRepository = twitchGoingLiveAlertRepository;
+		this.obsController = obsController;
 		initializeClient();
 	}
 
@@ -151,6 +154,8 @@ public class TwitchBotClient {
 				}
 
 				if (channelNames.contains(event.getChannel().getName())) {
+					ObsController.setIsLive(true);
+
 					if (resultsExporter != null) {
 						Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
 						resultsExporter.start(account);
@@ -162,6 +167,8 @@ public class TwitchBotClient {
 
 			goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
 				if (channelNames.contains(event.getChannel().getName())) {
+					ObsController.setIsLive(false);
+
 					if (resultsExporter != null) {
 						Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
 						resultsExporter.stop(account);

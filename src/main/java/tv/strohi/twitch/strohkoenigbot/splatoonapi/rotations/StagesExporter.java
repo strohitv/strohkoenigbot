@@ -36,7 +36,7 @@ public class StagesExporter {
 
 			stage = stageRepository.save(stage);
 
-			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
+			discordBot.sendServerMessageWithImageUrls(DiscordChannelDecisionMaker.getDebugChannelName(),
 					String.format("New Stage with id **%d** and Name **%s** was stored into Database!",
 							stage.getId(),
 							stage.getName()),
