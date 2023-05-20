@@ -44,7 +44,7 @@ public class WeaponExporter {
 
 			weapon = weaponRepository.save(weapon);
 
-			discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
+			discordBot.sendServerMessageWithImageUrls(DiscordChannelDecisionMaker.getDebugChannelName(),
 					String.format("New Weapon with id **%d** and Name **%s** was stored into Database!",
 							weapon.getId(),
 							weapon.getName()),

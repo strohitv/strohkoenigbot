@@ -43,11 +43,11 @@ public class ResultsExporter {
 	private final WeaponStatsFiller weaponStatsFiller;
 	private final AbilityMatchFiller abilityMatchFiller;
 	private final ClipRefresher clipRefresher;
-	private final ObsController obsController;
+	private final Splatoon2ObsController splatoon2ObsController;
 	private final ExceptionSender exceptionSender;
 
 	@Autowired
-	public ResultsExporter(AccountRepository accountRepository, Splatoon2MatchRepository matchRepository, MatchFiller matchFiller, MatchReloader matchReloader, WeaponStatsFiller weaponStatsFiller, AbilityMatchFiller abilityMatchFiller, ClipRefresher clipRefresher, ObsController obsController, ExceptionSender exceptionSender) {
+	public ResultsExporter(AccountRepository accountRepository, Splatoon2MatchRepository matchRepository, MatchFiller matchFiller, MatchReloader matchReloader, WeaponStatsFiller weaponStatsFiller, AbilityMatchFiller abilityMatchFiller, ClipRefresher clipRefresher, Splatoon2ObsController splatoon2ObsController, ExceptionSender exceptionSender) {
 		this.accountRepository = accountRepository;
 		this.matchRepository = matchRepository;
 		this.matchFiller = matchFiller;
@@ -55,7 +55,7 @@ public class ResultsExporter {
 		this.weaponStatsFiller = weaponStatsFiller;
 		this.abilityMatchFiller = abilityMatchFiller;
 		this.clipRefresher = clipRefresher;
-		this.obsController = obsController;
+		this.splatoon2ObsController = splatoon2ObsController;
 		this.exceptionSender = exceptionSender;
 
 		TwitchBotClient.setResultsExporter(this);
@@ -171,8 +171,6 @@ public class ResultsExporter {
 		extendedStatisticsExporter.end();
 
 		weaponRequestRankingAction.stop();
-
-		obsController.disconnect();
 	}
 
 	private final List<Account> blockedAccounts = new ArrayList<>();
@@ -265,7 +263,7 @@ public class ResultsExporter {
 					}
 
 					if (forceRefresh && isRankedRunning) {
-						obsController.controlOBS(account, extendedStatisticsExporter.getStarted().getEpochSecond());
+						splatoon2ObsController.controlOBS(account, extendedStatisticsExporter.getStarted().getEpochSecond());
 					}
 				} catch (Exception ex) {
 					logger.error(ex);

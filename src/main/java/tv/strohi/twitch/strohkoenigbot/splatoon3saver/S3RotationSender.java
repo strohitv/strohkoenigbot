@@ -131,7 +131,7 @@ public class S3RotationSender {
 					.append((int) Duration.between(rotation.getStartTimeAsInstant(), rotation.getEndTimeAsInstant()).toHours())
 					.append("** hours!");
 
-			discordBot.sendServerMessageWithImages(channelName, builder.toString(), rotation.getSetting().getCoopStage().getImage().getUrl());
+			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getSetting().getCoopStage().getImage().getUrl());
 		}
 	}
 
@@ -203,7 +203,7 @@ public class S3RotationSender {
 								.append("**")
 				);
 
-		discordBot.sendServerMessageWithImages(channelName, builder.toString(), image1, image2);
+		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1, image2);
 	}
 
 

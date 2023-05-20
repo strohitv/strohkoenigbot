@@ -9,5 +9,6 @@ import java.io.Serializable;
 @Setter
 // @Accessors(fluent = true)
 public class Id implements Serializable {
+	private String __typename;
 	private String id;
 }

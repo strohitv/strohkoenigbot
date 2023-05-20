@@ -1,0 +1,68 @@
+<html lang="de">
+<head>
+	<title>Badges</title>
+	<style>
+		body {
+			margin: 0 auto;
+			padding: 0;
+			width: fit-content;
+			background: transparent;
+			overflow: hidden;
+		}
+
+		.imageContainer {
+			margin: 10px;
+			background: rgba(255, 255, 255, 0.5);
+		}
+
+		.image {
+			margin: 0;
+			width: 128px;
+			height: 128px;
+		}
+
+		.imageText {
+			text-align: center;
+			font-size: 42px;
+			font-family: "Arial", sans-serif;
+			font-weight: bold;
+			width: 100%;
+			margin: 0;
+		}
+
+		.container {
+			overflow: hidden;
+			margin-left: auto;
+			margin-right: 0;
+			max-width: 888px;
+		}
+
+		.container1 {
+			margin-left: auto;
+			margin-right: auto;
+			display: flex;
+			flex-wrap: wrap;
+			animation: slide1 90s linear infinite;
+		}
+
+		@keyframes slide1 {
+			0% {
+				transform: translate3d(0, 100vh, 0);
+			}
+			100% {
+				transform: translate3d(0, -100%, 0); /* The image width */
+			}
+			/*100% {*/
+			/*	transform: translate3d(0, 100vh, 0);*/
+			/*}*/
+		}
+	</style>
+</head>
+<body>
+<div class="container">
+	<div class="container1">
+		%img-div%
+	</div>
+</div>
+</body>
+</html>

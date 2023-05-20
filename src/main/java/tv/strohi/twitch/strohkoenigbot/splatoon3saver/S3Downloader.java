@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
@@ -304,25 +305,9 @@ public class S3Downloader {
 			}
 		}
 
-		File battleOverviewFile = directory.resolve("Already_Downloaded_Battles.json").toFile();
-		ConfigFile.DownloadedGameList allDownloadedGames;
-		try {
-			if (battleOverviewFile.exists() && Files.size(battleOverviewFile.toPath()) > 0) { // if file already exists will do nothing
-				allDownloadedGames = objectMapper.readValue(battleOverviewFile, ConfigFile.DownloadedGameList.class);
-			} else if (battleOverviewFile.exists() || battleOverviewFile.createNewFile()) {
-				allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
-				objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
-			} else {
-				logSender.sendLogs(logger, "COULD NOT OPEN FILE!!!");
-				return;
-			}
-		} catch (IOException e) {
-			logSender.sendLogs(logger, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
-			logger.error(e);
-			return;
-		}
+		ConfigFile.DownloadedGameList allDownloadedGames = getAllDownloadedGames(directory);
 
-		preventNullFields(allDownloadedGames);
+		if (allDownloadedGames == null) return;
 
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getAnarchy_games().entrySet()) {
 			parseBattleResult(game, directory);
@@ -345,6 +330,30 @@ public class S3Downloader {
 		}
 
 		logSender.sendLogs(logger, String.format("Done with loading Splatoon 3 games for account with folder name '%s'...", folderName));
+	}
+
+	@Nullable
+	private ConfigFile.DownloadedGameList getAllDownloadedGames(Path directory) {
+		File battleOverviewFile = directory.resolve("Already_Downloaded_Battles.json").toFile();
+		ConfigFile.DownloadedGameList allDownloadedGames;
+		try {
+			if (battleOverviewFile.exists() && Files.size(battleOverviewFile.toPath()) > 0) { // if file already exists will do nothing
+				allDownloadedGames = objectMapper.readValue(battleOverviewFile, ConfigFile.DownloadedGameList.class);
+			} else if (battleOverviewFile.exists() || battleOverviewFile.createNewFile()) {
+				allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+				objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
+			} else {
+				logSender.sendLogs(logger, "COULD NOT OPEN FILE!!!");
+				return null;
+			}
+		} catch (IOException e) {
+			logSender.sendLogs(logger, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
+			logger.error(e);
+			return null;
+		}
+
+		preventNullFields(allDownloadedGames);
+		return allDownloadedGames;
 	}
 
 	private void parseBattleResult(Map.Entry<String, ConfigFile.StoredGame> game, Path directory) {
