@@ -1,0 +1,212 @@
+[
+  {
+    "level": -13,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/2/24/S3_Emote_Flip_Out.png"
+      },
+      "kind": "EMOTE",
+      "name": "Flip Out",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzoa"
+    }
+  },
+  {
+    "level": -12,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/3/36/S3_Emote_Card_Shark.png"
+      },
+      "kind": "EMOTE",
+      "name": "Card Shark",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzob"
+    }
+  },
+  {
+    "level": -11,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/c/cb/S3_Emote_The_Lowdown.png"
+      },
+      "kind": "EMOTE",
+      "name": "The Lowdown",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzoc"
+    }
+  },
+  {
+    "level": -10,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/3/30/S3_Emote_No_Chill.png"
+      },
+      "kind": "EMOTE",
+      "name": "No Chill",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzod"
+    }
+  },
+  {
+    "level": -9,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/a/ae/S3_Emote_Stuntin%27.png"
+      },
+      "kind": "EMOTE",
+      "name": "Stuntin'",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzoe"
+    }
+  },
+  {
+    "level": -8,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/2/27/S3_Emote_Breakin%27.png"
+      },
+      "kind": "EMOTE",
+      "name": "Breakin'",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzof"
+    }
+  },
+  {
+    "level": -7,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/2/20/S3_Emote_Victory_Strut.png"
+      },
+      "kind": "EMOTE",
+      "name": "Victory Strut",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzog"
+    }
+  },
+  {
+    "level": -6,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/9/90/S3_Emote_Double-Cross_Dab.png"
+      },
+      "kind": "EMOTE",
+      "name": "Double-Cross Dab",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzoh"
+    }
+  },
+  {
+    "level": -5,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/6/69/S3_Emote_You%27re_Welcome.png"
+      },
+      "kind": "EMOTE",
+      "name": "You're Welcome",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzoi"
+    }
+  },
+  {
+    "level": -4,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/b/b7/S3_Emote_All_Chill.png"
+      },
+      "kind": "EMOTE",
+      "name": "All Chill",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzoj"
+    }
+  },
+  {
+    "level": -3,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/2/25/S3_Emote_Wave_%27Em_Off.png"
+      },
+      "kind": "EMOTE",
+      "name": "Wave 'Em Off",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzok"
+    }
+  },
+  {
+    "level": -2,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/5/5d/S3_Emote_Who%27s_Next%3F.png"
+      },
+      "kind": "EMOTE",
+      "name": "Who's Next?",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzol"
+    }
+  },
+  {
+    "level": -1,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/6/60/S3_Emote_Robo_Steppin%27.png"
+      },
+      "kind": "EMOTE",
+      "name": "Robo Steppin'",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzom"
+    }
+  },
+  {
+    "level": 0,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/f/f1/S3_Emote_Your_Move.png"
+      },
+      "kind": "EMOTE",
+      "name": "Your Move",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzo5"
+    }
+  }
+]

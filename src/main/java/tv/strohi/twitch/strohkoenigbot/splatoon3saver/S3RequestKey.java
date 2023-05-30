@@ -10,6 +10,7 @@ import java.util.EnumSet;
 public enum S3RequestKey {
 	Home("22e2fa8294168003c21b00c333c35384"),
 	History("d997d8e3875d50d3a1dc7e8a756e9e07"),
+	Catalog("ff12098bad4989a813201b00ff22ac4e"),
 
 	Latest("0176a47218d830ee447e10af4a287b3f"),
 	Regular("3baef04b095ad8975ea679d722bc17de"),

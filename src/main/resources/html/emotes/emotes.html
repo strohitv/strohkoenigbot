@@ -1,0 +1,79 @@
+<html lang="de">
+<head>
+	<title>Badges</title>
+	<style>
+		body {
+			margin: 0 auto;
+			padding: 0;
+			width: fit-content;
+			background: transparent;
+			overflow: hidden;
+		}
+
+		.imageContainer {
+			margin: 10px;
+			background: rgba(255, 255, 255, 0.5);
+			display: flex;
+			flex-direction: row;
+		}
+
+		.image {
+			margin: 0;
+			width: 158px;
+			height: 184px;
+			padding: 10px;
+		}
+
+		.imageText {
+			text-align: center;
+			font-size: 42px;
+			font-family: "Arial", sans-serif;
+			font-weight: bold;
+			width: 474px;
+			margin: 0;
+		}
+
+		.emotename {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			height: 100%;
+		}
+
+		.container {
+			overflow: hidden;
+			margin-left: auto;
+			margin-right: 0;
+			max-width: 1344px;
+		}
+
+		.container1 {
+			margin-left: auto;
+			margin-right: auto;
+			display: flex;
+			flex-wrap: wrap;
+			animation: slide1 90s linear infinite;
+		}
+
+		@keyframes slide1 {
+			0% {
+				transform: translate3d(0, 100vh, 0);
+			}
+			100% {
+				transform: translate3d(0, -100%, 0); /* The image width */
+			}
+			/*100% {*/
+			/*	transform: translate3d(0, 100vh, 0);*/
+			/*}*/
+		}
+	</style>
+</head>
+<body>
+<div class="container">
+	<div class="container1">
+		%img-div%
+	</div>
+</div>
+</body>
+</html>
