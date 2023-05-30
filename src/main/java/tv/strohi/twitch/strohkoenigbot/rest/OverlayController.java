@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3BadgeSender;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3EmoteSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ExtendedStatisticsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.Statistics;
 
@@ -17,6 +18,8 @@ public class OverlayController {
 	private final ExtendedStatisticsExporter fullscreenExporter;
 
 	private final S3BadgeSender badgeSender;
+
+	private final S3EmoteSender emoteSender;
 
 	@GetMapping("")
 	public @ResponseBody String getOverlay() {
@@ -31,5 +34,10 @@ public class OverlayController {
 	@GetMapping(value = "/badges", produces = "text/html")
 	public @ResponseBody String getBadgesOverlayHtml() {
 		return badgeSender.getBadgesAsHtml();
+	}
+
+	@GetMapping(value = "/emotes", produces = "text/html")
+	public @ResponseBody String getEmotesOverlayHtml() {
+		return emoteSender.getEmotesAsHtml();
 	}
 }

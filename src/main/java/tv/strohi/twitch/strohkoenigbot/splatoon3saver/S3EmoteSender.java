@@ -1,7 +1,10 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +14,7 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.HistoryResult;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Badge;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.CatalogResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
@@ -37,22 +39,23 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class S3BadgeSender {
-	private final static String BADGES_FILE_PATH = "resources/bot/all-badges.json";
+public class S3EmoteSender {
+	private final static String EMOTES_FILE_PATH = "resources/bot/all-emotes.json";
+	private final static String EMOTES_PATH = "resources/prod/v1/emote_img";
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
-	private final List<Badge> allOwnedBadges = new ArrayList<>();
+	private final List<CatalogResult.Reward> allOwnedEmotes = new ArrayList<>();
 
-	private void setAllOwnedBadges(List<Badge> allBadges) {
-		allOwnedBadges.clear();
-		allOwnedBadges.addAll(allBadges);
+	private void setAllOwnedEmotes(List<CatalogResult.Reward> allEmotes) {
+		allOwnedEmotes.clear();
+		allOwnedEmotes.addAll(allEmotes);
 	}
 
-	public List<Badge> getAllOwnedBadges() {
-		return List.copyOf(allOwnedBadges);
+	public List<CatalogResult.Reward> getAllOwnedEmotes() {
+		return List.copyOf(allOwnedEmotes);
 	}
 
 	private final ObjectMapper mapper = new ObjectMapper();
@@ -66,11 +69,14 @@ public class S3BadgeSender {
 
 	private SchedulingService schedulingService;
 
-	@Value("classpath:html/badges/badges.html")
-	Resource mainBadgeHtml;
+	@Value("classpath:html/emotes/emotes.html")
+	Resource mainEmoteHtml;
 
-	@Value("classpath:html/badges/singlebadge.html")
+	@Value("classpath:html/emotes/singleemote.html")
 	Resource imageContainerHtml;
+
+	@Value("classpath:already-unlocked-emotes.json")
+	Resource alreadyUnlockedEmotesJSON;
 
 	@Autowired
 	public void setSchedulingService(SchedulingService schedulingService) {
@@ -79,95 +85,112 @@ public class S3BadgeSender {
 
 	@PostConstruct
 	public void registerSchedule() {
-		schedulingService.register("S3BadgeLoader_schedule", CronSchedule.getScheduleString("45 2 * * * *"), this::reloadBadges);
+		schedulingService.register("S3EmoteLoader_schedule", CronSchedule.getScheduleString("0 3 * * * *"), this::reloadEmotes);
 	}
 
-	public void reloadBadges() {
+	public void reloadEmotes() {
 		List<Account> accounts = accountRepository.findByEnableSplatoon3(true).stream().filter(Account::getIsMainAccount).collect(Collectors.toList());
 
 		for (Account account : accounts) {
 			try {
-				String historyResponse = requestSender.queryS3Api(account, S3RequestKey.History.getKey());
-				HistoryResult history = mapper.readValue(historyResponse, HistoryResult.class);
+				String catalogResponse = requestSender.queryS3Api(account, S3RequestKey.Catalog.getKey());
+				var catalogResult = mapper.readValue(catalogResponse, CatalogResult.class);
 
 				if (account.getIsMainAccount()) {
-					var allBadges = history.getData().getPlayHistory().getAllBadges();
-					setAllOwnedBadges(allBadges);
+					var allEmotes = new ArrayList<CatalogResult.Reward>();
+
+					try {
+						String alreadyUnlockedEmotesContent = new String(Files.readAllBytes(alreadyUnlockedEmotesJSON.getFile().toPath()));
+						allEmotes.addAll(Arrays.asList(mapper.readValue(alreadyUnlockedEmotesContent, CatalogResult.Reward[].class)));
+					} catch (IOException e) {
+						logger.error("could not read already unlocked emotes!!");
+					}
+
+					allEmotes.addAll(Arrays.stream(catalogResult.getData().getCatalog().getProgress().getRewards())
+							.filter(reward -> reward.isAchieved() && reward.isEmote())
+							.collect(Collectors.toList()));
+
+					setAllOwnedEmotes(allEmotes);
 				}
 
-				var allBadgesYesterday = loadBadgesFailsafe();
+				var allEmotesYesterday = loadEmotesFailsafe();
 
-				var list = new ArrayList<>(allOwnedBadges);
-				list.removeAll(allBadgesYesterday);
+				var list = new ArrayList<>(allOwnedEmotes);
+				list.removeAll(allEmotesYesterday);
 
 				if (list.size() > 0) {
-					var badgeImages = new ArrayList<BufferedImage>();
-					for (var badge : allOwnedBadges) {
-						String imageLocationString = resourcesDownloader.ensureExistsLocally(badge.getImage().getUrl());
+					var emoteImages = new ArrayList<EmoteWithImage>();
+					for (var emote : allOwnedEmotes) {
+						String imageLocationString = resourcesDownloader.ensureExistsLocally(emote.getItem().getImage().getUrl(), EMOTES_PATH);
 						String path = Paths.get(imageLocationString).toString();
 
 						if (imageLocationString.startsWith("https://")) {
 							URL url = new URL(imageLocationString);
-							badgeImages.add(ImageIO.read(url));
+							emoteImages.add(new EmoteWithImage(emote, ImageIO.read(url)));
 						} else {
 							var stream = new FileInputStream(Paths.get(System.getProperty("user.dir"), path).toString());
-							badgeImages.add(ImageIO.read(stream));
+							emoteImages.add(new EmoteWithImage(emote, ImageIO.read(stream)));
 						}
 					}
 
-					int columns = 10;
-					int lines = (int) Math.ceil(badgeImages.size() / (double) columns);
+					int columns = 3;
+					int lines = (int) Math.ceil(emoteImages.size() / (double) columns);
 
-					int size = 128;
-					int fontHeight = size / 3;
-					int spacing = 20;
+					int sizeX = 158;
+					int sizeY = 184;
+					int fontWidth = 4 * sizeX;
+					int fontHeight = sizeY / 4;
+					int margin = 20;
+					int padding = 10;
 
-					var allBadgesImage = new BufferedImage(columns * (size + spacing) - spacing, lines * (size + fontHeight + spacing) - spacing, BufferedImage.TYPE_INT_ARGB);
+					var allEmotesImage = new BufferedImage(columns * (sizeX + 2 * padding + fontWidth + margin) - margin,
+							lines * (sizeY + 2 * padding + margin) - margin,
+							BufferedImage.TYPE_INT_ARGB);
 
 					// make transparent
-					var graphics = allBadgesImage.createGraphics();
+					var graphics = allEmotesImage.createGraphics();
 					graphics.setPaint(new Color(0, 0, 0, 0));
-					graphics.fillRect(0, 0, allBadgesImage.getWidth(), allBadgesImage.getHeight());
+					graphics.fillRect(0, 0, allEmotesImage.getWidth(), allEmotesImage.getHeight());
 
 					int posX = 0;
 					int posY = 0;
 					int index = 0;
 					var font = new Font(new JLabel().getFont().getName(), Font.BOLD, fontHeight);
-					for (var badgeImage : badgeImages) {
+					for (var emoteWithImage : emoteImages) {
 						graphics.setPaint(new Color(255, 255, 255, 255));
-						graphics.fillRect(posX, posY, size, size + fontHeight);
+						graphics.fillRect(posX, posY, sizeX + 2 * padding + fontWidth, sizeY + 2 * padding);
 
 						graphics.setPaint(new Color(0, 0, 0, 0));
-						graphics.drawImage(badgeImage, posX, posY, size, size, null);
+						graphics.drawImage(emoteWithImage.getImage(), posX + padding, posY + padding, sizeX, sizeY, null);
 
 						graphics.setPaint(new Color(0, 0, 0, 255));
-						drawCenteredString(graphics, String.format("%d", index + 1), new Rectangle(posX, posY + size, size, fontHeight), font);
+						drawCenteredString(graphics, String.format("%d: %s", index + 1, emoteWithImage.emote.getItem().getName()), new Rectangle(posX + sizeX + padding, posY, fontWidth + padding, sizeY + 2 * padding), font);
 
 						index++;
-						posX = (size + spacing) * (index % columns);
-						posY = (size + fontHeight + spacing) * (index / columns);
+						posX = (sizeX + 2 * padding + fontWidth + margin) * (index % columns);
+						posY = (sizeY + 2 * padding + margin) * (index / columns);
 					}
 
 //				var outputfile = new File("C:\\Users\\marco\\Desktop\\testimage.png");
-//				ImageIO.write(allBadgesImage, "png", outputfile);
+//				ImageIO.write(allEmotesImage, "png", outputfile);
 
-					var builder = new StringBuilder("Found new badges:");
-					for (var badge : list) {
-						var indexStr = String.format("#**%03d**: ", allOwnedBadges.indexOf(badge) + 1);
+					var builder = new StringBuilder("Found new Emotes:");
+					for (var emote : list) {
+						var indexStr = String.format("#**%03d**: ", allOwnedEmotes.indexOf(emote) + 1);
 
-						if (builder.length() + badge.getDescription().length() + indexStr.length() + "\n- ".length() > 2000) {
-							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3BadgesChannel(), builder.toString());
+						if (builder.length() + emote.getItem().getName().length() + indexStr.length() + "\n- ".length() > 2000) {
+							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3EmotesChannel(), builder.toString());
 							builder = new StringBuilder();
 						}
 
-						builder.append("\n- ").append(indexStr).append(badge.getDescription());
+						builder.append("\n- ").append(indexStr).append(emote.getItem().getName());
 					}
 
 					logger.info("Sending notification to discord account: {}", account.getDiscordId());
-					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3BadgesChannel(), builder.toString(), allBadgesImage);
+					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3EmotesChannel(), builder.toString(), allEmotesImage);
 					logger.info("Done sending notification to discord account: {}", account.getDiscordId());
 
-					saveBadgesFailsafe(allOwnedBadges);
+					saveEmotesFailsafe(allOwnedEmotes);
 				}
 			} catch (Exception e) {
 				logSender.sendLogs(logger, "An exception occurred during S3 gear download\nSee logs for details!");
@@ -176,9 +199,9 @@ public class S3BadgeSender {
 		}
 	}
 
-	public String getBadgesAsHtml() {
-		if (allOwnedBadges.size() == 0) {
-			reloadBadges();
+	public String getEmotesAsHtml() {
+		if (allOwnedEmotes.size() == 0) {
+			reloadEmotes();
 		}
 
 		String result = "";
@@ -188,23 +211,26 @@ public class S3BadgeSender {
 			StringBuilder imageContainerHtmlBuilder = new StringBuilder();
 
 			int index = 1;
-			for (var badge : allOwnedBadges) {
-				String imageLocationString = resourcesDownloader.ensureExistsLocally(badge.getImage().getUrl());
+			for (var emote : allOwnedEmotes) {
+				String imageLocationString = resourcesDownloader.ensureExistsLocally(emote.getItem().getImage().getUrl());
 				String path = Paths.get(imageLocationString).toString();
 
 				var stream = new FileInputStream(Paths.get(System.getProperty("user.dir"), path).toString());
 
 				imageContainerHtmlBuilder.append(imageTemplate
 						.replace("%image%", imgToBase64String(ImageIO.read(stream)))
-						.replace("%number%", String.format("%d", index)));
+						.replace("%index%", String.format("%d", index))
+						.replace("%name%", emote.getItem().getName()));
 
 				index++;
 			}
 
-			String htmlTemplate = new String(Files.readAllBytes(mainBadgeHtml.getFile().toPath()));
+			String htmlTemplate = new String(Files.readAllBytes(mainEmoteHtml.getFile().toPath()));
 			result = htmlTemplate.replace("%img-div%", imageContainerHtmlBuilder.toString());
 		} catch (IOException e) {
 			logger.error("could not read image template!!");
+		} catch (Exception e) {
+			logger.error("general error", e);
 		}
 
 		return result;
@@ -241,18 +267,18 @@ public class S3BadgeSender {
 		g.drawString(text, x, y);
 	}
 
-	private void saveBadgesFailsafe(List<Badge> badges) {
-		String path = Paths.get(System.getProperty("user.dir"), BADGES_FILE_PATH).toString();
+	private void saveEmotesFailsafe(List<CatalogResult.Reward> Emotes) {
+		String path = Paths.get(System.getProperty("user.dir"), EMOTES_FILE_PATH).toString();
 		logger.debug("path '{}'", path);
 
 		File file = Paths.get(path).toFile();
 		if (file.getParentFile().exists() || file.getParentFile().mkdirs()) {
 			try {
-				mapper.writeValue(file, badges);
+				mapper.writeValue(file, Emotes);
 
-				logger.info("badges write successful, path: '{}'", path);
+				logger.info("Emotes write successful, path: '{}'", path);
 			} catch (IOException e) {
-				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not save badges because of an Exception!");
+				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not save Emotes because of an Exception!");
 				logger.error("exception occured!!!");
 				logger.error(e);
 			}
@@ -261,24 +287,32 @@ public class S3BadgeSender {
 		}
 	}
 
-	private List<Badge> loadBadgesFailsafe() {
-		String path = Paths.get(System.getProperty("user.dir"), BADGES_FILE_PATH).toString();
+	private List<CatalogResult.Reward> loadEmotesFailsafe() {
+		String path = Paths.get(System.getProperty("user.dir"), EMOTES_FILE_PATH).toString();
 		logger.debug("path '{}'", path);
 
 		File file = Paths.get(path).toFile();
 		if (file.exists()) {
 			try {
-				return Arrays.stream(mapper.readValue(file, Badge[].class))
+				return Arrays.stream(mapper.readValue(file, CatalogResult.Reward[].class))
 						.collect(Collectors.toCollection(ArrayList::new));
 			} catch (IOException e) {
-				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not load badges because of an Exception!");
+				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not load Emotes because of an Exception!");
 				logger.error("exception occured!!!");
 				logger.error(e);
 			}
 		} else {
-			logger.warn("file for badges does not exist!");
+			logger.warn("file for Emotes does not exist!");
 		}
 
 		return List.of();
+	}
+
+	@Getter
+	@Setter
+	@AllArgsConstructor
+	private static class EmoteWithImage {
+		private CatalogResult.Reward emote;
+		private BufferedImage image;
 	}
 }

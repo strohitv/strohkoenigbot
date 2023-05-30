@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,13 +28,23 @@ public class ResourcesDownloader {
 	}
 
 	public String ensureExistsLocally(String splatNetResourceUrl) {
+		return ensureExistsLocally(splatNetResourceUrl, null);
+	}
+
+	public String ensureExistsLocally(String splatNetResourceUrl, String forcePath) {
 		logger.debug("downloading a resource '{}'", splatNetResourceUrl);
 
 		String imageUrl = splatNetResourceUrl;
 		if (isValidURL(imageUrl)) {
 //			imageUrl = imageUrl.replace("https://app.splatoon2.nintendo.net", "");
 			try {
-				imageUrl = new URL(splatNetResourceUrl).getPath();
+				if (forcePath != null) {
+					var url = new URL(splatNetResourceUrl);
+
+					imageUrl = new URL(String.format("%s://%s/%s/%s", url.getProtocol(), url.getHost(), forcePath, FilenameUtils.getName(url.getPath()))).getPath();
+				} else {
+					imageUrl = new URL(splatNetResourceUrl).getPath();
+				}
 			} catch (MalformedURLException ignored) {
 				// won't happen
 			}

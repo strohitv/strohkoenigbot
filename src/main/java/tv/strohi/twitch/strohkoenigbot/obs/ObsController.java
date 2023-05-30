@@ -81,27 +81,34 @@ public class ObsController {
 						obsController.setSceneItemEnabled(scene.getCurrentProgramSceneName(), idResponse.getSceneItemId(), enabled,
 								result -> callback.accept(result.isSuccessful()));
 					} else {
-						obsController.getGroupList(groups -> {
-							if (groups.isSuccessful()) {
-								for (var group : groups.getGroups()) {
-								    controller.getGroupSceneItemList(group, list -> {
-										if (list.isSuccessful()) {
-											for (var groupScene : list.getSceneItems()) {
-											    if (groupScene.getSourceName().equals(sourceName)) {
-													obsController.setSceneItemEnabled(group, groupScene.getSceneItemId(), enabled,
-															result -> callback.accept(result.isSuccessful()));
-													break;
+						obsController.getSceneItemList(scene.getCurrentProgramSceneName(), sceneItemResponse -> {
+									if (sceneItemResponse.isSuccessful()) {
+										obsController.getGroupList(groups -> {
+											if (groups.isSuccessful()) {
+												for (var group : groups.getGroups()) {
+													if (sceneItemResponse.getSceneItems().stream().anyMatch(sc -> sc.getSourceName().equals(group))) {
+														controller.getGroupSceneItemList(group, list -> {
+															if (list.isSuccessful()) {
+																for (var groupScene : list.getSceneItems()) {
+																	if (groupScene.getSourceName().equals(sourceName)) {
+																		obsController.setSceneItemEnabled(group, groupScene.getSceneItemId(), enabled,
+																				result -> callback.accept(result.isSuccessful()));
+																		break;
+																	}
+																}
+															} else {
+																callback.accept(false);
+															}
+														});
+													}
 												}
+											} else {
+												callback.accept(false);
 											}
-										} else {
-											callback.accept(false);
-										}
-									});
+										});
+									}
 								}
-							} else {
-								callback.accept(false);
-							}
-						});
+						);
 					}
 				})));
 	}
