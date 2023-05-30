@@ -1,9 +1,12 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.GearPower;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.IdAndNameAndImage;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Image;
+
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -65,19 +68,37 @@ public class CatalogResult {
 	@Setter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@EqualsAndHashCode
 	public static class Reward {
 		private Integer level;
 		private Integer currentPoint;
 		private String state;
 		private RewardItem item;
 
+		@JsonIgnore
 		public boolean isAchieved() {
 			return state != null && state.equals("ACCEPTED");
 		}
 
+		@JsonIgnore
 		public boolean isEmote() {
 			return item != null && item.kind != null && item.kind.equals("EMOTE");
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof Reward) {
+				var otherReward = (Reward) obj;
+
+				return Objects.equals(level, otherReward.level)
+						&& Objects.equals(item, otherReward.item);
+			}
+
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(level, item);
 		}
 	}
 
