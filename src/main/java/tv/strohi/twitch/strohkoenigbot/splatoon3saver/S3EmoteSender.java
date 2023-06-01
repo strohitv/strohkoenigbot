@@ -96,6 +96,12 @@ public class S3EmoteSender {
 				String catalogResponse = requestSender.queryS3Api(account, S3RequestKey.Catalog.getKey());
 				var catalogResult = mapper.readValue(catalogResponse, CatalogResult.class);
 
+				if (catalogResult.getData().getCatalog().getProgress() == null) {
+					// new season: catalog not yet started
+					catalogResult.getData().getCatalog().setProgress(new CatalogResult.ProgressStatistics());
+					catalogResult.getData().getCatalog().getProgress().setRewards(new CatalogResult.Reward[0]);
+				}
+
 				if (account.getIsMainAccount()) {
 					var allEmotes = new ArrayList<CatalogResult.Reward>();
 
@@ -190,7 +196,8 @@ public class S3EmoteSender {
 					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3EmotesChannel(), builder.toString(), allEmotesImage);
 					logger.info("Done sending notification to discord account: {}", account.getDiscordId());
 
-					saveEmotesFailsafe(allOwnedEmotes);
+					allEmotesYesterday.addAll(list);
+					saveEmotesFailsafe(allEmotesYesterday);
 				}
 			} catch (Exception e) {
 				logSender.sendLogs(logger, "An exception occurred during S3 gear download\nSee logs for details!");
