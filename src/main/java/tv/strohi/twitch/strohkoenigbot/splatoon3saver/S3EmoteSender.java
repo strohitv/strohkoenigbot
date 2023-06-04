@@ -119,14 +119,17 @@ public class S3EmoteSender {
 					setAllOwnedEmotes(allEmotes);
 				}
 
-				var allEmotesYesterday = loadEmotesFailsafe();
+				var allOwnedEmotesSoFar = loadEmotesFailsafe();
 
 				var list = new ArrayList<>(allOwnedEmotes);
-				list.removeAll(allEmotesYesterday);
+				list.removeAll(allOwnedEmotesSoFar);
 
 				if (list.size() > 0) {
+					allOwnedEmotesSoFar.addAll(list);
+					saveEmotesFailsafe(allOwnedEmotesSoFar);
+
 					var emoteImages = new ArrayList<EmoteWithImage>();
-					for (var emote : allOwnedEmotes) {
+					for (var emote : allOwnedEmotesSoFar) {
 						String imageLocationString = resourcesDownloader.ensureExistsLocally(emote.getItem().getImage().getUrl(), EMOTES_PATH);
 						String path = Paths.get(imageLocationString).toString();
 
@@ -195,9 +198,6 @@ public class S3EmoteSender {
 					logger.info("Sending notification to discord account: {}", account.getDiscordId());
 					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3EmotesChannel(), builder.toString(), allEmotesImage);
 					logger.info("Done sending notification to discord account: {}", account.getDiscordId());
-
-					allEmotesYesterday.addAll(list);
-					saveEmotesFailsafe(allEmotesYesterday);
 				}
 			} catch (Exception e) {
 				logSender.sendLogs(logger, "An exception occurred during S3 gear download\nSee logs for details!");
