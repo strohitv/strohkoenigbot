@@ -53,7 +53,7 @@ public class ObsController {
 		if ((!controllerIsReady || controller == null) && (isLive || openCalls.size() > 0)) {
 			logger.info("connecting to controller...");
 			connectToController();
-		} else if (controllerIsReady && isLive && openCalls.size() > 0) {
+		} else if (controllerIsReady && openCalls.size() > 0) {
 			logger.info("executing open controller calls...");
 			while (openCalls.size() > 0) {
 				var call = openCalls.get(0);
