@@ -68,7 +68,7 @@ public class StrohkoenigbotApplication {
 		logger.info("stopping application");
 
 		logger.info("sending shutdown message to strohkoenig");
-		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "Bot gets shut down!");
+		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, "Bot gets shut down!");
 
 		if (dataSource != null && !dataSource.isClosed()) {
 			logger.info("closing datasource");
@@ -82,7 +82,7 @@ public class StrohkoenigbotApplication {
 		logger.info("restarting application");
 
 		logger.info("sending message about triggered shutdown to strohkoenig");
-		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "Bot will shut itself down!");
+		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, "Bot will shut itself down!");
 
 		if (dataSource != null && !dataSource.isClosed()) {
 			dataSource.close();
@@ -98,7 +98,7 @@ public class StrohkoenigbotApplication {
 	//	@Scheduled(cron = "0 53 4 * * *")
 	public void sendHello() {
 		logger.info("sending hello message to strohkoenig");
-		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "Bot is started and ready to go!");
+		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, "Bot is started and ready to go!");
 	}
 
 	@Bean

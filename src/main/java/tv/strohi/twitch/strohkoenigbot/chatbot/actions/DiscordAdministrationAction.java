@@ -171,7 +171,7 @@ public class DiscordAdministrationAction extends ChatAction {
 	@Override
 	protected void execute(ActionArgs args) {
 		String message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
-		if (message == null || !"strohkoenig#8058".equals(args.getUser())) {
+		if (message == null || !Long.toString(DiscordBot.ADMIN_ID).equals(args.getUserId())) {
 			return;
 		}
 

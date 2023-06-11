@@ -50,7 +50,7 @@ public class SchedulingService {
 					schedule.increaseErrorCount();
 
 					if (schedule.isFailed(MAX_ERRORS_SINGLE)) {
-						discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
+						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
 								String.format("**ERROR**: Single Runnable failed **%d** times and got removed from Scheduler!! Schedule: `%s`", MAX_ERRORS_SINGLE, schedule));
 						singleRunSchedules.remove(i);
 						i--;
@@ -68,13 +68,13 @@ public class SchedulingService {
 				schedule.run();
 
 				if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
-					discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
+					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
 							String.format("**ERROR**: Repeated Runnable '**%s**' failed **%d** times and got removed from Scheduler!! Schedule: `%s`", schedule.getName(), MAX_ERRORS_REPEATED, schedule));
 
 					List<Exception> exceptions = schedule.getErrors();
 					Exception exception = exceptions.get(exceptions.size() - 1);
 
-					Long discordId = discordBot.loadUserIdFromDiscordServer("strohkoenig#8058");
+					Long discordId = DiscordBot.ADMIN_ID;
 
 					discordBot.sendPrivateMessage(discordId, String.format("**Message of last exception**: '%s'", exception.getMessage()));
 
@@ -109,7 +109,7 @@ public class SchedulingService {
 
 		if (config == null) {
 			config = configurationRepository.save(new Configuration(0, configName, defaultValue));
-			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
+			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
 					String.format("Added new Schedule: id = **%d**, name = **%s**, value = **%s**", config.getId(), configName, defaultValue));
 		}
 

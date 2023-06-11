@@ -52,6 +52,8 @@ public class DiscordBot {
 	private final AccountRepository accountRepository;
 	private final List<IChatAction> botActions = new ArrayList<>();
 
+	public static final long ADMIN_ID = 256536949756657664L;
+
 	private GatewayDiscordClient gateway = null;
 
 	@Autowired
@@ -176,6 +178,7 @@ public class DiscordBot {
 	}
 
 	public Long loadUserIdFromDiscordServer(String username) {
+		// TODO needs to be rewritten for the new username system!
 		if (getGateway() == null) {
 			return null;
 		}

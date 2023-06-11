@@ -48,11 +48,11 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 		if (guild == null) return;
 
 		// access management
-		if (!"strohkoenig#8058".equals(args.getUser())) {
+		if (!Long.toString(DiscordBot.ADMIN_ID).equals(args.getUserId())) {
 			var owner = guild.getOwner().block();
 			if (owner == null) return;
-			var ownerTag = owner.getTag();
-			if (!args.getUser().equals(ownerTag)) return;
+			var ownerTag = owner.getId().asString();
+			if (!args.getUserId().equals(ownerTag)) return;
 		}
 
 		var message = (String) args.getArguments().get(ArgumentKey.Message);

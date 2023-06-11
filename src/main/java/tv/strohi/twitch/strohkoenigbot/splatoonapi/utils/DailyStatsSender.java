@@ -311,7 +311,7 @@ public class DailyStatsSender {
 				ObjectMapper mapper = new ObjectMapper();
 
 				try {
-					discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"),
+					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
 							String.format("weapon.getName(): %s, weapon: %s",
 									weapon.getName(), mapper.writeValueAsString(weaponStats)));
 				} catch (Exception ex) {
@@ -345,7 +345,7 @@ public class DailyStatsSender {
 			StringBuilder weaponNameBuilder = new StringBuilder();
 			for (WeaponKit kit : WeaponKit.All) {
 				if (weaponNameBuilder.length() + kit.getName().length() + 1 >= 2000) {
-					discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), weaponNameBuilder.toString().trim());
+					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, weaponNameBuilder.toString().trim());
 					weaponNameBuilder = new StringBuilder();
 				}
 
@@ -353,7 +353,7 @@ public class DailyStatsSender {
 			}
 
 			if (weaponNameBuilder.length() > 0) {
-				discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), weaponNameBuilder.toString().trim());
+				discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, weaponNameBuilder.toString().trim());
 			}
 		}
 

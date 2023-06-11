@@ -24,8 +24,8 @@ public class ExceptionSender {
 
 	public void send(Exception ex) {
 		try {
-			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), "Exception occured while refreshing results!!!");
-			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), ex.getMessage());
+			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, "Exception occured while refreshing results!!!");
+			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, ex.getMessage());
 
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
@@ -36,7 +36,7 @@ public class ExceptionSender {
 				stacktrace = stacktrace.substring(0, 1999);
 			}
 
-			discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), stacktrace);
+			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, stacktrace);
 
 			ObjectMapper mapper = new ObjectMapper();
 			try {
@@ -46,7 +46,7 @@ public class ExceptionSender {
 					serializedEx = serializedEx.substring(0, 1999);
 				}
 
-				discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), serializedEx);
+				discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, serializedEx);
 			} catch (JsonProcessingException ignored) {
 				// ignored
 			}

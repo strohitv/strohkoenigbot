@@ -110,6 +110,6 @@ public class SplatoonCookieHandler extends CookieHandler {
 
 	private void sendLogs(String message) {
 		logger.debug(message);
-		discordBot.sendPrivateMessage(discordBot.loadUserIdFromDiscordServer("strohkoenig#8058"), message);
+		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, message);
 	}
 }
