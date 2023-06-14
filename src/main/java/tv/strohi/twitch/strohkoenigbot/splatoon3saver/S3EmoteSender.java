@@ -156,8 +156,8 @@ public class S3EmoteSender {
 					int padding = 10;
 
 					var allEmotesImage = new BufferedImage(columns * (sizeX + 2 * padding + fontWidth + margin) - margin,
-							lines * (sizeY + 2 * padding + margin) - margin,
-							BufferedImage.TYPE_INT_ARGB);
+						lines * (sizeY + 2 * padding + margin) - margin,
+						BufferedImage.TYPE_INT_ARGB);
 
 					// make transparent
 					var graphics = allEmotesImage.createGraphics();
@@ -195,8 +195,11 @@ public class S3EmoteSender {
 							builder = new StringBuilder();
 						}
 
-						builder.append("\n- ").append(indexStr).append(emote.getItem().getName())
-							.append(" (").append(emote.getSeasonName() != null ? emote.getSeasonName() : "").append(")");
+						builder.append("\n- ").append(indexStr).append(emote.getItem().getName());
+
+						if (emote.getSeasonName() != null) {
+							builder.append(" (").append(emote.getSeasonName()).append(")");
+						}
 					}
 
 					logger.info("Sending notification to discord account: {}", account.getDiscordId());
@@ -229,9 +232,9 @@ public class S3EmoteSender {
 				var stream = new FileInputStream(Paths.get(System.getProperty("user.dir"), path).toString());
 
 				imageContainerHtmlBuilder.append(imageTemplate
-						.replace("%image%", imgToBase64String(ImageIO.read(stream)))
-						.replace("%index%", String.format("%d", index))
-						.replace("%name%", emote.getItem().getName()));
+					.replace("%image%", imgToBase64String(ImageIO.read(stream)))
+					.replace("%index%", String.format("%d", index))
+					.replace("%name%", emote.getItem().getName()));
 
 				index++;
 			}
@@ -306,7 +309,7 @@ public class S3EmoteSender {
 		if (file.exists()) {
 			try {
 				return Arrays.stream(mapper.readValue(file, CatalogResult.Reward[].class))
-						.collect(Collectors.toCollection(ArrayList::new));
+					.collect(Collectors.toCollection(ArrayList::new));
 			} catch (IOException e) {
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not load Emotes because of an Exception!");
 				logger.error("exception occured!!!");
