@@ -16,6 +16,7 @@ public enum S3RequestKey {
 	Regular("3baef04b095ad8975ea679d722bc17de"),
 	Anarchy("0438ea6978ae8bd77c5d1250f4f84803"),
 	XRank("6796e3cd5dc3ebd51864dc709d899fc5"),
+	Challenge("9744fcf676441873c7c8a51285b6aa4d"),
 	Private("8e5ae78b194264a6c230e262d069bd28"),
 	GameDetail("291295ad311b99a6288fc95a5c4cb2d2"),
 
@@ -29,7 +30,7 @@ public enum S3RequestKey {
 	RotationSchedules("011e394c0e384d77a0701474c8c11a20");
 
 	@Getter
-	private final static EnumSet<S3RequestKey> onlineBattles = EnumSet.of(Regular, Anarchy, XRank, Private); // EnumSet.of(Latest, Regular, Anarchy, Private); //
+	private final static EnumSet<S3RequestKey> onlineBattles = EnumSet.of(Regular, Anarchy, XRank, Challenge, Private); // EnumSet.of(Latest, Regular, Anarchy, Private); //
 
 	private final String key;
 }

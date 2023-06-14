@@ -30,6 +30,7 @@ public class BattleResults {
 		private BattleHistories bankaraBattleHistories;
 		@JsonProperty("xBattleHistories")
 		private BattleHistories xBattleHistories;
+		private BattleHistories eventBattleHistories;
 		private BattleHistories privateBattleHistories;
 		private BattleHistories coopResult;
 		private Nothing currentFest;
@@ -75,6 +76,9 @@ public class BattleResults {
 		@JsonProperty("xMatchMeasurement")
 		private XMatchMeasurement xMatchMeasurement;
 
+		// challenge
+		private LeagueMatchHistoryGroup leagueMatchHistoryGroup;
+
 		// Salmon run
 		private String startTime;
 		private String endTime;
@@ -93,6 +97,18 @@ public class BattleResults {
 		public Instant getEndTimeAsInstant() {
 			return Instant.parse(endTime);
 		}
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+//	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class LeagueMatchHistoryGroup {
+		private IdAndName leagueMatchEvent;
+		private VsRule vsRule;
+		private String teamComposition;
+		private Double myLeaguePower;
 	}
 
 	@Getter
@@ -251,7 +267,7 @@ public class BattleResults {
 
 		private FestMatch festMatch;
 
-		private Nothing leagueMatch;
+		private LeagueMatchDetails leagueMatch;
 
 		// Salmon Run
 		private Weapon[] weapons;

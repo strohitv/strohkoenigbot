@@ -27,6 +27,7 @@ public class ConfigFile {
 		private Map<String, StoredGame> regular_games;
 		private Map<String, StoredGame> anarchy_games;
 		private Map<String, StoredGame> x_rank_games;
+		private Map<String, StoredGame> challenge_games;
 		private Map<String, StoredGame> private_games;
 		private Map<String, StoredGame> salmon_games;
 	}

@@ -111,7 +111,7 @@ public class S3DailyStatsSender {
 			if (battleOverviewFile.exists() && Files.size(battleOverviewFile.toPath()) > 0) { // if file already exists will do nothing
 				allDownloadedGames = objectMapper.readValue(battleOverviewFile, ConfigFile.DownloadedGameList.class);
 			} else if (battleOverviewFile.exists() || battleOverviewFile.createNewFile()) {
-				allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+				allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
 				objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
 			} else {
 				logSender.sendLogs(logger, "COULD NOT OPEN SR FILE!!!");
@@ -134,6 +134,9 @@ public class S3DailyStatsSender {
 			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
 		}
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getX_rank_games().entrySet()) {
+			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
+		}
+		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getChallenge_games().entrySet()) {
 			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons);
 		}
 

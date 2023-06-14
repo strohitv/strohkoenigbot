@@ -1,0 +1,818 @@
+{
+  "data": {
+    "eventBattleHistories": {
+      "summary": {
+        "assistAverage": 0.5632543585158695,
+        "deathAverage": 2.02503352704515,
+        "killAverage": 2.9637907912382655,
+        "perUnitTimeMinute": 1,
+        "specialAverage": 1.3276709879302637,
+        "win": 10,
+        "lose": 8
+      },
+      "historyGroupsOnlyFirst": {
+        "nodes": [
+          {
+            "historyDetails": {
+              "nodes": [
+                {
+                  "player": {
+                    "weapon": {
+                      "specialWeapon": {
+                        "maskingImage": {
+                          "width": 100,
+                          "height": 100,
+                          "maskImageUrl": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/special_img/mask/7269f1fa71d746d7b86ca2a71fc24c6ea4c764077ee50d692f80eddeaff90f1d_4.png?Expires=1704844800\u0026Signature=qR~9SW6WQGJ56lAjFUcphPJzPZYvfqfBu4PciZ27e-k5huxt2uZiasYXQgSAml9368xPrjzFHgukoqQYRBarSHrKGU00lQ4IyYkfBQc8WJr0b5TNZhOTY357KWkGc9pS8A22sjyR7I8ZaDZwztQm-nso6NPyTNk8cGUgNDKkbJ0hm7AHRXnKnuiR24Y-M-9OCnrhoyvC8L8cVZJHiyEZmNGJx~je4J-E99rhBJs6D~gmgPnoVpWGgDAAfJUimGG6nDOvIwldV0zId~xXGNHyq6X4ahJZxQKRvuIjjYTnQMqrO4O52AXGsG2Jb~FgjkqwF0sHUOY1Hfq~1yibWODdew__\u0026Key-Pair-Id=KNBS2THMRC385",
+                          "overlayImageUrl": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/special_img/overlay/7269f1fa71d746d7b86ca2a71fc24c6ea4c764077ee50d692f80eddeaff90f1d_5.png?Expires=1704844800\u0026Signature=P1bvV2yCEpw5woTRCxrttSL2eoKAKAZYaHMk8hgQC3AozghFrt6zs0WOdGOskpLt1FXhFaXYNIhd0o1If84GJ76hseeEmHyD3TtD~qTNZELP58JJqCEVjlQlTTxDZMT5XmI3JSsSGzW8k2cSQTgaQ9T6qW1R7wWKr6QWmC8xdpMUCHSpyo57Fj6KmjeM9TE9F3vDnglIohKAM9Hu~Ox1SRrwpkVqnPZITzRWVlKNeHiV9gekr2yIYRABLSlVdP5Dt222hkF6uk4Zc2RRUXC16TQ3wcYbGONOxJHc0~Locb~3WRv5GSqcG1xXe3kXgkhrN-kL8jZ7lrhURuV4G3K~eQ__\u0026Key-Pair-Id=KNBS2THMRC385"
+                        },
+                        "id": "U3BlY2lhbFdlYXBvbi0x"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTk1NjM1XzljZjZkNGVmLTNlM2EtNGJmZC1hZTM2LTkxZTYyYjhiODI0Njp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NTYzNV85Y2Y2ZDRlZi0zZTNhLTRiZmQtYWUzNi05MWU2MmI4YjgyNDY="
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "historyGroups": {
+        "nodes": [
+          {
+            "leagueMatchHistoryGroup": {
+              "leagueMatchEvent": {
+                "name": "Too Many Trizookas!",
+                "id": "TGVhZ3VlTWF0Y2hFdmVudC1TcGVjaWFsUnVzaF9VbHRyYVNob3Q="
+              },
+              "vsRule": {
+                "name": "Tower Control",
+                "rule": "LOFT",
+                "id": "VnNSdWxlLTI="
+              },
+              "teamComposition": "PAIR",
+              "myLeaguePower": 2043.3600600047723
+            },
+            "historyDetails": {
+              "nodes": [
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NTYzNV85Y2Y2ZDRlZi0zZTNhLTRiZmQtYWUzNi05MWU2MmI4YjgyNDY=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Humpback Pump Track",
+                    "id": "VnNTdGFnZS0xNw==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/7b3cf118bd9f45d141cd6db0ee75b06e697fa83945c7fe1e6f8483de6a591f5f_3.png?Expires=1704844800\u0026Signature=GsZkra4gcGhveyMlMXccb1e3L3WkZ3ILbD5jlh1tb5N6UHoQ9JwjvmreW3FjtUXqV8JM7PVNu3Sgz1mpVBvaN6j5c80BvGT5LJ9EcdfDdByNhYhayt0MRt2iPtzdjG0I3VvpsqQOgnLo~7SjPldJVGuMHP7z2O8L0NBwL~~AzFwCt1t5kKnVLJPgad0IBL6L0trh6xvn41uRUF~KE4~CspO9G4dFrDE76FZmC9mFBBEtdoem-G3SRXA6U-DAh2IK3Uvy4lQgpARfOOulzV3y0fT57X~7SOUhkVO24AB6d3fxkOyitO3-DxdMr~ldAV6mFKz36S8rbAf1Yr-myke3Ww__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "LOSE",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTk1NjM1XzljZjZkNGVmLTNlM2EtNGJmZC1hZTM2LTkxZTYyYjhiODI0Njp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "LOSE",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 0
+                    }
+                  },
+                  "nextHistoryDetail": null,
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NTMzNV83ZTc2MGJjYi02OTg0LTRlNGMtYjM2Mi1lNzEwZDEwOWZhNTg="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NTMzNV83ZTc2MGJjYi02OTg0LTRlNGMtYjM2Mi1lNzEwZDEwOWZhNTg=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Museum d'Alfonsino",
+                    "id": "VnNTdGFnZS0xMQ==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/b9d8cfa186d197a27e075600a107c99d9e21646d116730f0843e0fff0aaba7dd_3.png?Expires=1704844800\u0026Signature=E8xzyNAMakGu8yRArGp0vClOVd0C0q8LSc8jp4h-Om2qGK-SQWU1mD4fEwtIK55EfRSbevmxwVHxpgl0mxAaV8r3iq2a1bUFSN7NtFykv6lMTxWQ~FCwbRgp4uCzseTtlFN0QaDWrLMMdaaIjLrI8XXTlTWXdunxaqjA5XNcSzEXtM4gLYz~GZShihV1Fx-1QAzvxIRV~YvCxgWLWL07aqheEFm7sZA3e6w1c-MsyHG8K9P~j8Wq30FjH6Vvl36m167G~xcg6CQC~W6zoOXg76woeAaM85S2EFb2vWtRRdcmMUS6KRLc8Fd9rmVCG2v1Vgi~C~jtM9NjRKOqSRiMyg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "WIN",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTk1MzM1XzdlNzYwYmNiLTY5ODQtNGU0Yy1iMzYyLWU3MTBkMTA5ZmE1ODp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "WIN",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 100
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NTYzNV85Y2Y2ZDRlZi0zZTNhLTRiZmQtYWUzNi05MWU2MmI4YjgyNDY="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NDczNl82MDhiZjc3OS1kZDE3LTQxMTUtYmU0Mi00ZDk3OGJkZWY0Y2Y="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NDczNl82MDhiZjc3OS1kZDE3LTQxMTUtYmU0Mi00ZDk3OGJkZWY0Y2Y=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Museum d'Alfonsino",
+                    "id": "VnNTdGFnZS0xMQ==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/b9d8cfa186d197a27e075600a107c99d9e21646d116730f0843e0fff0aaba7dd_3.png?Expires=1704844800\u0026Signature=E8xzyNAMakGu8yRArGp0vClOVd0C0q8LSc8jp4h-Om2qGK-SQWU1mD4fEwtIK55EfRSbevmxwVHxpgl0mxAaV8r3iq2a1bUFSN7NtFykv6lMTxWQ~FCwbRgp4uCzseTtlFN0QaDWrLMMdaaIjLrI8XXTlTWXdunxaqjA5XNcSzEXtM4gLYz~GZShihV1Fx-1QAzvxIRV~YvCxgWLWL07aqheEFm7sZA3e6w1c-MsyHG8K9P~j8Wq30FjH6Vvl36m167G~xcg6CQC~W6zoOXg76woeAaM85S2EFb2vWtRRdcmMUS6KRLc8Fd9rmVCG2v1Vgi~C~jtM9NjRKOqSRiMyg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "WIN",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTk0NzM2XzYwOGJmNzc5LWRkMTctNDExNS1iZTQyLTRkOTc4YmRlZjRjZjp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "WIN",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 100
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NTMzNV83ZTc2MGJjYi02OTg0LTRlNGMtYjM2Mi1lNzEwZDEwOWZhNTg="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NDEwMF82ZmVkNmZiNi1iOGVlLTQ4ZjYtOGI5MS02ZGRjYTVkNTIzNWE="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NDEwMF82ZmVkNmZiNi1iOGVlLTQ4ZjYtOGI5MS02ZGRjYTVkNTIzNWE=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Humpback Pump Track",
+                    "id": "VnNTdGFnZS0xNw==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/7b3cf118bd9f45d141cd6db0ee75b06e697fa83945c7fe1e6f8483de6a591f5f_3.png?Expires=1704844800\u0026Signature=GsZkra4gcGhveyMlMXccb1e3L3WkZ3ILbD5jlh1tb5N6UHoQ9JwjvmreW3FjtUXqV8JM7PVNu3Sgz1mpVBvaN6j5c80BvGT5LJ9EcdfDdByNhYhayt0MRt2iPtzdjG0I3VvpsqQOgnLo~7SjPldJVGuMHP7z2O8L0NBwL~~AzFwCt1t5kKnVLJPgad0IBL6L0trh6xvn41uRUF~KE4~CspO9G4dFrDE76FZmC9mFBBEtdoem-G3SRXA6U-DAh2IK3Uvy4lQgpARfOOulzV3y0fT57X~7SOUhkVO24AB6d3fxkOyitO3-DxdMr~ldAV6mFKz36S8rbAf1Yr-myke3Ww__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "LOSE",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTk0MTAwXzZmZWQ2ZmI2LWI4ZWUtNDhmNi04YjkxLTZkZGNhNWQ1MjM1YTp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 72
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NDczNl82MDhiZjc3OS1kZDE3LTQxMTUtYmU0Mi00ZDk3OGJkZWY0Y2Y="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MzgyMl9iM2M0YTc2Ni0wNmVmLTQxYjEtOTNiYi0zYzBlZjU3MWEzNTE="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MzgyMl9iM2M0YTc2Ni0wNmVmLTQxYjEtOTNiYi0zYzBlZjU3MWEzNTE=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Museum d'Alfonsino",
+                    "id": "VnNTdGFnZS0xMQ==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/b9d8cfa186d197a27e075600a107c99d9e21646d116730f0843e0fff0aaba7dd_3.png?Expires=1704844800\u0026Signature=E8xzyNAMakGu8yRArGp0vClOVd0C0q8LSc8jp4h-Om2qGK-SQWU1mD4fEwtIK55EfRSbevmxwVHxpgl0mxAaV8r3iq2a1bUFSN7NtFykv6lMTxWQ~FCwbRgp4uCzseTtlFN0QaDWrLMMdaaIjLrI8XXTlTWXdunxaqjA5XNcSzEXtM4gLYz~GZShihV1Fx-1QAzvxIRV~YvCxgWLWL07aqheEFm7sZA3e6w1c-MsyHG8K9P~j8Wq30FjH6Vvl36m167G~xcg6CQC~W6zoOXg76woeAaM85S2EFb2vWtRRdcmMUS6KRLc8Fd9rmVCG2v1Vgi~C~jtM9NjRKOqSRiMyg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "WIN",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTkzODIyX2IzYzRhNzY2LTA2ZWYtNDFiMS05M2JiLTNjMGVmNTcxYTM1MTp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "WIN",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 100
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5NDEwMF82ZmVkNmZiNi1iOGVlLTQ4ZjYtOGI5MS02ZGRjYTVkNTIzNWE="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MzEzN185MGFlNmIyNS0xODQwLTQxNzgtODI0ZC1kM2NjMzdhZWM4MDA="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MzEzN185MGFlNmIyNS0xODQwLTQxNzgtODI0ZC1kM2NjMzdhZWM4MDA=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Museum d'Alfonsino",
+                    "id": "VnNTdGFnZS0xMQ==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/b9d8cfa186d197a27e075600a107c99d9e21646d116730f0843e0fff0aaba7dd_3.png?Expires=1704844800\u0026Signature=E8xzyNAMakGu8yRArGp0vClOVd0C0q8LSc8jp4h-Om2qGK-SQWU1mD4fEwtIK55EfRSbevmxwVHxpgl0mxAaV8r3iq2a1bUFSN7NtFykv6lMTxWQ~FCwbRgp4uCzseTtlFN0QaDWrLMMdaaIjLrI8XXTlTWXdunxaqjA5XNcSzEXtM4gLYz~GZShihV1Fx-1QAzvxIRV~YvCxgWLWL07aqheEFm7sZA3e6w1c-MsyHG8K9P~j8Wq30FjH6Vvl36m167G~xcg6CQC~W6zoOXg76woeAaM85S2EFb2vWtRRdcmMUS6KRLc8Fd9rmVCG2v1Vgi~C~jtM9NjRKOqSRiMyg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "WIN",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTkzMTM3XzkwYWU2YjI1LTE4NDAtNDE3OC04MjRkLWQzY2MzN2FlYzgwMDp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 83
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MzgyMl9iM2M0YTc2Ni0wNmVmLTQxYjEtOTNiYi0zYzBlZjU3MWEzNTE="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MjY1NF8wNjFjNWFiNS1jNmQ1LTQwOWYtYThkMC1lN2M3NmIyYTNlNTI="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MjY1NF8wNjFjNWFiNS1jNmQ1LTQwOWYtYThkMC1lN2M3NmIyYTNlNTI=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Humpback Pump Track",
+                    "id": "VnNTdGFnZS0xNw==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/7b3cf118bd9f45d141cd6db0ee75b06e697fa83945c7fe1e6f8483de6a591f5f_3.png?Expires=1704844800\u0026Signature=GsZkra4gcGhveyMlMXccb1e3L3WkZ3ILbD5jlh1tb5N6UHoQ9JwjvmreW3FjtUXqV8JM7PVNu3Sgz1mpVBvaN6j5c80BvGT5LJ9EcdfDdByNhYhayt0MRt2iPtzdjG0I3VvpsqQOgnLo~7SjPldJVGuMHP7z2O8L0NBwL~~AzFwCt1t5kKnVLJPgad0IBL6L0trh6xvn41uRUF~KE4~CspO9G4dFrDE76FZmC9mFBBEtdoem-G3SRXA6U-DAh2IK3Uvy4lQgpARfOOulzV3y0fT57X~7SOUhkVO24AB6d3fxkOyitO3-DxdMr~ldAV6mFKz36S8rbAf1Yr-myke3Ww__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "WIN",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTkyNjU0XzA2MWM1YWI1LWM2ZDUtNDA5Zi1hOGQwLWU3Yzc2YjJhM2U1Mjp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "WIN",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 100
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MzEzN185MGFlNmIyNS0xODQwLTQxNzgtODI0ZC1kM2NjMzdhZWM4MDA="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MjIxMl8zZDcxYTY3Ny0yOTNhLTQ0ZjAtYjljOC04YTA1ZjNlMGRhMTE="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MjIxMl8zZDcxYTY3Ny0yOTNhLTQ0ZjAtYjljOC04YTA1ZjNlMGRhMTE=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Museum d'Alfonsino",
+                    "id": "VnNTdGFnZS0xMQ==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/b9d8cfa186d197a27e075600a107c99d9e21646d116730f0843e0fff0aaba7dd_3.png?Expires=1704844800\u0026Signature=E8xzyNAMakGu8yRArGp0vClOVd0C0q8LSc8jp4h-Om2qGK-SQWU1mD4fEwtIK55EfRSbevmxwVHxpgl0mxAaV8r3iq2a1bUFSN7NtFykv6lMTxWQ~FCwbRgp4uCzseTtlFN0QaDWrLMMdaaIjLrI8XXTlTWXdunxaqjA5XNcSzEXtM4gLYz~GZShihV1Fx-1QAzvxIRV~YvCxgWLWL07aqheEFm7sZA3e6w1c-MsyHG8K9P~j8Wq30FjH6Vvl36m167G~xcg6CQC~W6zoOXg76woeAaM85S2EFb2vWtRRdcmMUS6KRLc8Fd9rmVCG2v1Vgi~C~jtM9NjRKOqSRiMyg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "LOSE",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTkyMjEyXzNkNzFhNjc3LTI5M2EtNDRmMC1iOWM4LThhMDVmM2UwZGExMTp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "LOSE",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 0
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MjY1NF8wNjFjNWFiNS1jNmQ1LTQwOWYtYThkMC1lN2M3NmIyYTNlNTI="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MTUwOF83Y2M5MDEzMy02ZTUyLTRmODItYmUwNy1mOGI3OWFhNWIyNDQ="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MTUwOF83Y2M5MDEzMy02ZTUyLTRmODItYmUwNy1mOGI3OWFhNWIyNDQ=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Museum d'Alfonsino",
+                    "id": "VnNTdGFnZS0xMQ==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/b9d8cfa186d197a27e075600a107c99d9e21646d116730f0843e0fff0aaba7dd_3.png?Expires=1704844800\u0026Signature=E8xzyNAMakGu8yRArGp0vClOVd0C0q8LSc8jp4h-Om2qGK-SQWU1mD4fEwtIK55EfRSbevmxwVHxpgl0mxAaV8r3iq2a1bUFSN7NtFykv6lMTxWQ~FCwbRgp4uCzseTtlFN0QaDWrLMMdaaIjLrI8XXTlTWXdunxaqjA5XNcSzEXtM4gLYz~GZShihV1Fx-1QAzvxIRV~YvCxgWLWL07aqheEFm7sZA3e6w1c-MsyHG8K9P~j8Wq30FjH6Vvl36m167G~xcg6CQC~W6zoOXg76woeAaM85S2EFb2vWtRRdcmMUS6KRLc8Fd9rmVCG2v1Vgi~C~jtM9NjRKOqSRiMyg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "WIN",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTkxNTA4XzdjYzkwMTMzLTZlNTItNGY4Mi1iZTA3LWY4Yjc5YWE1YjI0NDp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 86
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MjIxMl8zZDcxYTY3Ny0yOTNhLTQ0ZjAtYjljOC04YTA1ZjNlMGRhMTE="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MDgyM19kMWZmZjYzZS00NThhLTQ1MjMtODJmZS1kZTc0MTcwY2RjN2U="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MDgyM19kMWZmZjYzZS00NThhLTQ1MjMtODJmZS1kZTc0MTcwY2RjN2U=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Museum d'Alfonsino",
+                    "id": "VnNTdGFnZS0xMQ==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/b9d8cfa186d197a27e075600a107c99d9e21646d116730f0843e0fff0aaba7dd_3.png?Expires=1704844800\u0026Signature=E8xzyNAMakGu8yRArGp0vClOVd0C0q8LSc8jp4h-Om2qGK-SQWU1mD4fEwtIK55EfRSbevmxwVHxpgl0mxAaV8r3iq2a1bUFSN7NtFykv6lMTxWQ~FCwbRgp4uCzseTtlFN0QaDWrLMMdaaIjLrI8XXTlTWXdunxaqjA5XNcSzEXtM4gLYz~GZShihV1Fx-1QAzvxIRV~YvCxgWLWL07aqheEFm7sZA3e6w1c-MsyHG8K9P~j8Wq30FjH6Vvl36m167G~xcg6CQC~W6zoOXg76woeAaM85S2EFb2vWtRRdcmMUS6KRLc8Fd9rmVCG2v1Vgi~C~jtM9NjRKOqSRiMyg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "WIN",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTkwODIzX2QxZmZmNjNlLTQ1OGEtNDUyMy04MmZlLWRlNzQxNzBjZGM3ZTp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 88
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MTUwOF83Y2M5MDEzMy02ZTUyLTRmODItYmUwNy1mOGI3OWFhNWIyNDQ="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MDE0NV8wYzhiMzcwNS00MTAyLTRlNzMtYTA1YS04NTMzYmUxNzY1ZjE="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MDE0NV8wYzhiMzcwNS00MTAyLTRlNzMtYTA1YS04NTMzYmUxNzY1ZjE=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Humpback Pump Track",
+                    "id": "VnNTdGFnZS0xNw==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/7b3cf118bd9f45d141cd6db0ee75b06e697fa83945c7fe1e6f8483de6a591f5f_3.png?Expires=1704844800\u0026Signature=GsZkra4gcGhveyMlMXccb1e3L3WkZ3ILbD5jlh1tb5N6UHoQ9JwjvmreW3FjtUXqV8JM7PVNu3Sgz1mpVBvaN6j5c80BvGT5LJ9EcdfDdByNhYhayt0MRt2iPtzdjG0I3VvpsqQOgnLo~7SjPldJVGuMHP7z2O8L0NBwL~~AzFwCt1t5kKnVLJPgad0IBL6L0trh6xvn41uRUF~KE4~CspO9G4dFrDE76FZmC9mFBBEtdoem-G3SRXA6U-DAh2IK3Uvy4lQgpARfOOulzV3y0fT57X~7SOUhkVO24AB6d3fxkOyitO3-DxdMr~ldAV6mFKz36S8rbAf1Yr-myke3Ww__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "WIN",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTkwMTQ1XzBjOGIzNzA1LTQxMDItNGU3My1hMDVhLTg1MzNiZTE3NjVmMTp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 52
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MDgyM19kMWZmZjYzZS00NThhLTQ1MjMtODJmZS1kZTc0MTcwY2RjN2U="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4NTUwM19mNjNhMmMyMC1kNDAzLTRmODMtYjE1ZC1hYjllNjNlYmM4Njc="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4NTUwM19mNjNhMmMyMC1kNDAzLTRmODMtYjE1ZC1hYjllNjNlYmM4Njc=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Museum d'Alfonsino",
+                    "id": "VnNTdGFnZS0xMQ==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/b9d8cfa186d197a27e075600a107c99d9e21646d116730f0843e0fff0aaba7dd_3.png?Expires=1704844800\u0026Signature=E8xzyNAMakGu8yRArGp0vClOVd0C0q8LSc8jp4h-Om2qGK-SQWU1mD4fEwtIK55EfRSbevmxwVHxpgl0mxAaV8r3iq2a1bUFSN7NtFykv6lMTxWQ~FCwbRgp4uCzseTtlFN0QaDWrLMMdaaIjLrI8XXTlTWXdunxaqjA5XNcSzEXtM4gLYz~GZShihV1Fx-1QAzvxIRV~YvCxgWLWL07aqheEFm7sZA3e6w1c-MsyHG8K9P~j8Wq30FjH6Vvl36m167G~xcg6CQC~W6zoOXg76woeAaM85S2EFb2vWtRRdcmMUS6KRLc8Fd9rmVCG2v1Vgi~C~jtM9NjRKOqSRiMyg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "WIN",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTg1NTAzX2Y2M2EyYzIwLWQ0MDMtNGY4My1iMTVkLWFiOWU2M2ViYzg2Nzp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 53
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE5MDE0NV8wYzhiMzcwNS00MTAyLTRlNzMtYTA1YS04NTMzYmUxNzY1ZjE="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4NDgyMF8wMGMzZDgxNS0yNWI4LTRjZWEtYWUyYS05NWRkZmJjMDJhNjE="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4NDgyMF8wMGMzZDgxNS0yNWI4LTRjZWEtYWUyYS05NWRkZmJjMDJhNjE=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Humpback Pump Track",
+                    "id": "VnNTdGFnZS0xNw==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/7b3cf118bd9f45d141cd6db0ee75b06e697fa83945c7fe1e6f8483de6a591f5f_3.png?Expires=1704844800\u0026Signature=GsZkra4gcGhveyMlMXccb1e3L3WkZ3ILbD5jlh1tb5N6UHoQ9JwjvmreW3FjtUXqV8JM7PVNu3Sgz1mpVBvaN6j5c80BvGT5LJ9EcdfDdByNhYhayt0MRt2iPtzdjG0I3VvpsqQOgnLo~7SjPldJVGuMHP7z2O8L0NBwL~~AzFwCt1t5kKnVLJPgad0IBL6L0trh6xvn41uRUF~KE4~CspO9G4dFrDE76FZmC9mFBBEtdoem-G3SRXA6U-DAh2IK3Uvy4lQgpARfOOulzV3y0fT57X~7SOUhkVO24AB6d3fxkOyitO3-DxdMr~ldAV6mFKz36S8rbAf1Yr-myke3Ww__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "LOSE",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTg0ODIwXzAwYzNkODE1LTI1YjgtNGNlYS1hZTJhLTk1ZGRmYmMwMmE2MTp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 20
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4NTUwM19mNjNhMmMyMC1kNDAzLTRmODMtYjE1ZC1hYjllNjNlYmM4Njc="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4NDEyM18xMjU2ODYxZC0yMDU1LTQ3MDktOTYyYy0yOGU0ODdkYzAzOGM="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4NDEyM18xMjU2ODYxZC0yMDU1LTQ3MDktOTYyYy0yOGU0ODdkYzAzOGM=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Humpback Pump Track",
+                    "id": "VnNTdGFnZS0xNw==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/7b3cf118bd9f45d141cd6db0ee75b06e697fa83945c7fe1e6f8483de6a591f5f_3.png?Expires=1704844800\u0026Signature=GsZkra4gcGhveyMlMXccb1e3L3WkZ3ILbD5jlh1tb5N6UHoQ9JwjvmreW3FjtUXqV8JM7PVNu3Sgz1mpVBvaN6j5c80BvGT5LJ9EcdfDdByNhYhayt0MRt2iPtzdjG0I3VvpsqQOgnLo~7SjPldJVGuMHP7z2O8L0NBwL~~AzFwCt1t5kKnVLJPgad0IBL6L0trh6xvn41uRUF~KE4~CspO9G4dFrDE76FZmC9mFBBEtdoem-G3SRXA6U-DAh2IK3Uvy4lQgpARfOOulzV3y0fT57X~7SOUhkVO24AB6d3fxkOyitO3-DxdMr~ldAV6mFKz36S8rbAf1Yr-myke3Ww__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "LOSE",
+                  "player": {
+                    "weapon": {
+                      "name": "Clash Blaster",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/be8ba95bd3017a83876e7f769ee37ee459ee4b2d6eca03fceeb058c510adbb61_1.png?Expires=1704844800\u0026Signature=hP3sBMOgafa0jErYDL7qCnTTsqTWR1gNAm28kh0TFsgSEhGEI31BJL-MOy200yafbwYYACa7gbgh4BDGFkEgASu8JSwImF~E5~QNRNf9mBocm1ELwuQzKJ~cnperaDjmIupvBuN6jSyCUFmJP8AQx6nacG0Q12PgB~S~hJZ9fhpGn9lzvUKFLsTyx9Rd1zO-gEo2~-mye94853DxP9LRl5MmoGxnAypdfMn6Hk0jPuFYRzw9Xm71OGRQsy~-mvoWhHMCQUBSrcvsauao-JemdCX5uKiTs~rxSgf8L~qBM2tTMmdu1bOVPi2~P8SRqBzDxIBzOD8ttpV4m7Ugu~~Yjg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTIzMA=="
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTg0MTIzXzEyNTY4NjFkLTIwNTUtNDcwOS05NjJjLTI4ZTQ4N2RjMDM4Yzp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 75
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4NDgyMF8wMGMzZDgxNS0yNWI4LTRjZWEtYWUyYS05NWRkZmJjMDJhNjE="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4MzQ1MV84NTY5YTY2OC05MWFmLTQ1Y2UtODI4Yy03NzcyYTA5YzQ1N2Y="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4MzQ1MV84NTY5YTY2OC05MWFmLTQ1Y2UtODI4Yy03NzcyYTA5YzQ1N2Y=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Museum d'Alfonsino",
+                    "id": "VnNTdGFnZS0xMQ==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/b9d8cfa186d197a27e075600a107c99d9e21646d116730f0843e0fff0aaba7dd_3.png?Expires=1704844800\u0026Signature=E8xzyNAMakGu8yRArGp0vClOVd0C0q8LSc8jp4h-Om2qGK-SQWU1mD4fEwtIK55EfRSbevmxwVHxpgl0mxAaV8r3iq2a1bUFSN7NtFykv6lMTxWQ~FCwbRgp4uCzseTtlFN0QaDWrLMMdaaIjLrI8XXTlTWXdunxaqjA5XNcSzEXtM4gLYz~GZShihV1Fx-1QAzvxIRV~YvCxgWLWL07aqheEFm7sZA3e6w1c-MsyHG8K9P~j8Wq30FjH6Vvl36m167G~xcg6CQC~W6zoOXg76woeAaM85S2EFb2vWtRRdcmMUS6KRLc8Fd9rmVCG2v1Vgi~C~jtM9NjRKOqSRiMyg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "LOSE",
+                  "player": {
+                    "weapon": {
+                      "name": "Hero Shot Replica",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/763c0d53dad2161860eee315d1f0a9975043bf8228a1f29aaa845def83849f4f_1.png?Expires=1704844800\u0026Signature=tDtY8bDePgp4EEgNeQYPyliudvY2EREXfZ10emDwlv0gc9pFqRinEOjVuCZ1nzu6nyTDRxPbcxuWAJWuHIJfFsa21KQLTtoVWYdHu3jGd-cZclAeExSCcmrdU2llQE0o8ySTlogETVxxc9WpzjjJflW-N5Alvce86R4rC9IxpGvU3Qe4UFdVBhJLpbZXBPihwtOucx69K448QZjF5A8SmyK86BerpTE7n32XynhGRPARe5CKFhRwhV89D5cKIgMN4nNOHMYX9tel7nz4KYRnto~maMHLy7KU~uUBBMxYseFMF0Qbj2WT1JxXp6kCyAzINiqU8fFm8HemfUveRcrKeg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTQ1"
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTgzNDUxXzg1NjlhNjY4LTkxYWYtNDVjZS04MjhjLTc3NzJhMDljNDU3Zjp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 20
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4NDEyM18xMjU2ODYxZC0yMDU1LTQ3MDktOTYyYy0yOGU0ODdkYzAzOGM="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4Mjk0MV84MTY5Mjc0MC1lMTY0LTRjNDAtYTA0OC1jYzZlNGU5MjBmMjk="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4Mjk0MV84MTY5Mjc0MC1lMTY0LTRjNDAtYTA0OC1jYzZlNGU5MjBmMjk=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Humpback Pump Track",
+                    "id": "VnNTdGFnZS0xNw==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/7b3cf118bd9f45d141cd6db0ee75b06e697fa83945c7fe1e6f8483de6a591f5f_3.png?Expires=1704844800\u0026Signature=GsZkra4gcGhveyMlMXccb1e3L3WkZ3ILbD5jlh1tb5N6UHoQ9JwjvmreW3FjtUXqV8JM7PVNu3Sgz1mpVBvaN6j5c80BvGT5LJ9EcdfDdByNhYhayt0MRt2iPtzdjG0I3VvpsqQOgnLo~7SjPldJVGuMHP7z2O8L0NBwL~~AzFwCt1t5kKnVLJPgad0IBL6L0trh6xvn41uRUF~KE4~CspO9G4dFrDE76FZmC9mFBBEtdoem-G3SRXA6U-DAh2IK3Uvy4lQgpARfOOulzV3y0fT57X~7SOUhkVO24AB6d3fxkOyitO3-DxdMr~ldAV6mFKz36S8rbAf1Yr-myke3Ww__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "WIN",
+                  "player": {
+                    "weapon": {
+                      "name": "Hero Shot Replica",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/763c0d53dad2161860eee315d1f0a9975043bf8228a1f29aaa845def83849f4f_1.png?Expires=1704844800\u0026Signature=tDtY8bDePgp4EEgNeQYPyliudvY2EREXfZ10emDwlv0gc9pFqRinEOjVuCZ1nzu6nyTDRxPbcxuWAJWuHIJfFsa21KQLTtoVWYdHu3jGd-cZclAeExSCcmrdU2llQE0o8ySTlogETVxxc9WpzjjJflW-N5Alvce86R4rC9IxpGvU3Qe4UFdVBhJLpbZXBPihwtOucx69K448QZjF5A8SmyK86BerpTE7n32XynhGRPARe5CKFhRwhV89D5cKIgMN4nNOHMYX9tel7nz4KYRnto~maMHLy7KU~uUBBMxYseFMF0Qbj2WT1JxXp6kCyAzINiqU8fFm8HemfUveRcrKeg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTQ1"
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTgyOTQxXzgxNjkyNzQwLWUxNjQtNGM0MC1hMDQ4LWNjNmU0ZTkyMGYyOTp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "WIN",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 100
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4MzQ1MV84NTY5YTY2OC05MWFmLTQ1Y2UtODI4Yy03NzcyYTA5YzQ1N2Y="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4MjIyNl9mNTliMWRhNy05NTQzLTQ2NjQtODI2Ny1lYmE0ZTJhYjc4YzE="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4MjIyNl9mNTliMWRhNy05NTQzLTQ2NjQtODI2Ny1lYmE0ZTJhYjc4YzE=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Humpback Pump Track",
+                    "id": "VnNTdGFnZS0xNw==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/7b3cf118bd9f45d141cd6db0ee75b06e697fa83945c7fe1e6f8483de6a591f5f_3.png?Expires=1704844800\u0026Signature=GsZkra4gcGhveyMlMXccb1e3L3WkZ3ILbD5jlh1tb5N6UHoQ9JwjvmreW3FjtUXqV8JM7PVNu3Sgz1mpVBvaN6j5c80BvGT5LJ9EcdfDdByNhYhayt0MRt2iPtzdjG0I3VvpsqQOgnLo~7SjPldJVGuMHP7z2O8L0NBwL~~AzFwCt1t5kKnVLJPgad0IBL6L0trh6xvn41uRUF~KE4~CspO9G4dFrDE76FZmC9mFBBEtdoem-G3SRXA6U-DAh2IK3Uvy4lQgpARfOOulzV3y0fT57X~7SOUhkVO24AB6d3fxkOyitO3-DxdMr~ldAV6mFKz36S8rbAf1Yr-myke3Ww__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "LOSE",
+                  "player": {
+                    "weapon": {
+                      "name": "Hero Shot Replica",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/763c0d53dad2161860eee315d1f0a9975043bf8228a1f29aaa845def83849f4f_1.png?Expires=1704844800\u0026Signature=tDtY8bDePgp4EEgNeQYPyliudvY2EREXfZ10emDwlv0gc9pFqRinEOjVuCZ1nzu6nyTDRxPbcxuWAJWuHIJfFsa21KQLTtoVWYdHu3jGd-cZclAeExSCcmrdU2llQE0o8ySTlogETVxxc9WpzjjJflW-N5Alvce86R4rC9IxpGvU3Qe4UFdVBhJLpbZXBPihwtOucx69K448QZjF5A8SmyK86BerpTE7n32XynhGRPARe5CKFhRwhV89D5cKIgMN4nNOHMYX9tel7nz4KYRnto~maMHLy7KU~uUBBMxYseFMF0Qbj2WT1JxXp6kCyAzINiqU8fFm8HemfUveRcrKeg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTQ1"
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTgyMjI2X2Y1OWIxZGE3LTk1NDMtNDY2NC04MjY3LWViYTRlMmFiNzhjMTp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 83
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4Mjk0MV84MTY5Mjc0MC1lMTY0LTRjNDAtYTA0OC1jYzZlNGU5MjBmMjk="
+                  },
+                  "previousHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4MTUzOV8zNDU1YzExZi1kYjBlLTRkMDgtODVhMC1iMmI4YzYwNzYzODY="
+                  }
+                },
+                {
+                  "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4MTUzOV8zNDU1YzExZi1kYjBlLTRkMDgtODVhMC1iMmI4YzYwNzYzODY=",
+                  "vsMode": {
+                    "mode": "LEAGUE",
+                    "id": "VnNNb2RlLTQ="
+                  },
+                  "vsRule": {
+                    "name": "Tower Control",
+                    "id": "VnNSdWxlLTI="
+                  },
+                  "vsStage": {
+                    "name": "Museum d'Alfonsino",
+                    "id": "VnNTdGFnZS0xMQ==",
+                    "image": {
+                      "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/stage_img/banner/low_resolution/b9d8cfa186d197a27e075600a107c99d9e21646d116730f0843e0fff0aaba7dd_3.png?Expires=1704844800\u0026Signature=E8xzyNAMakGu8yRArGp0vClOVd0C0q8LSc8jp4h-Om2qGK-SQWU1mD4fEwtIK55EfRSbevmxwVHxpgl0mxAaV8r3iq2a1bUFSN7NtFykv6lMTxWQ~FCwbRgp4uCzseTtlFN0QaDWrLMMdaaIjLrI8XXTlTWXdunxaqjA5XNcSzEXtM4gLYz~GZShihV1Fx-1QAzvxIRV~YvCxgWLWL07aqheEFm7sZA3e6w1c-MsyHG8K9P~j8Wq30FjH6Vvl36m167G~xcg6CQC~W6zoOXg76woeAaM85S2EFb2vWtRRdcmMUS6KRLc8Fd9rmVCG2v1Vgi~C~jtM9NjRKOqSRiMyg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                    }
+                  },
+                  "judgement": "LOSE",
+                  "player": {
+                    "weapon": {
+                      "name": "Hero Shot Replica",
+                      "image": {
+                        "url": "https://api.lp1.av5ja.srv.nintendo.net/resources/prod/v1/weapon_illust/763c0d53dad2161860eee315d1f0a9975043bf8228a1f29aaa845def83849f4f_1.png?Expires=1704844800\u0026Signature=tDtY8bDePgp4EEgNeQYPyliudvY2EREXfZ10emDwlv0gc9pFqRinEOjVuCZ1nzu6nyTDRxPbcxuWAJWuHIJfFsa21KQLTtoVWYdHu3jGd-cZclAeExSCcmrdU2llQE0o8ySTlogETVxxc9WpzjjJflW-N5Alvce86R4rC9IxpGvU3Qe4UFdVBhJLpbZXBPihwtOucx69K448QZjF5A8SmyK86BerpTE7n32XynhGRPARe5CKFhRwhV89D5cKIgMN4nNOHMYX9tel7nz4KYRnto~maMHLy7KU~uUBBMxYseFMF0Qbj2WT1JxXp6kCyAzINiqU8fFm8HemfUveRcrKeg__\u0026Key-Pair-Id=KNBS2THMRC385"
+                      },
+                      "id": "V2VhcG9uLTQ1"
+                    },
+                    "id": "VnNQbGF5ZXItdS1hZWtwdGpiZ3o3eG92Z3d6a29tbTpMRUFHVUU6MjAyMzA2MDZUMTgxNTM5XzM0NTVjMTFmLWRiMGUtNGQwOC04NWEwLWIyYjhjNjA3NjM4Njp1LWFla3B0amJnejd4b3Znd3prb21t"
+                  },
+                  "knockout": "NEITHER",
+                  "myTeam": {
+                    "result": {
+                      "paintPoint": null,
+                      "score": 28
+                    }
+                  },
+                  "nextHistoryDetail": {
+                    "id": "VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06TEVBR1VFOjIwMjMwNjA2VDE4MjIyNl9mNTliMWRhNy05NTQzLTQ2NjQtODI2Ny1lYmE0ZTJhYjc4YzE="
+                  },
+                  "previousHistoryDetail": null
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

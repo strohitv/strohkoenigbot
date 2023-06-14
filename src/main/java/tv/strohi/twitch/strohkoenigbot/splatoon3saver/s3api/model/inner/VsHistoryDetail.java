@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 
 import java.io.Serializable;
 import java.util.List;
@@ -34,7 +35,8 @@ public class VsHistoryDetail implements Serializable {
 	private VsMode vsMode;
 	private VsRule vsRule;
 
-	private Nothing leagueMatch;
+	private LeagueMatchDetails leagueMatch;
+
 	@JsonProperty("xMatch")
 	private Match xMatch;
 }

@@ -105,7 +105,7 @@ public class S3Downloader {
 				if (battleOverviewFile.exists() && Files.size(battleOverviewFile.toPath()) > 0) { // if file already exists will do nothing
 					allDownloadedGames = objectMapper.readValue(battleOverviewFile, ConfigFile.DownloadedGameList.class);
 				} else if (battleOverviewFile.exists() || battleOverviewFile.createNewFile()) {
-					allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+					allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
 					objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
 				} else {
 					logSender.sendLogs(logger, "COULD NOT OPEN FILE!!!");
@@ -133,10 +133,11 @@ public class S3Downloader {
 			List<String> onlineRegularGamesToDownload = new ArrayList<>();
 			List<String> onlineAnarchyGamesToDownload = new ArrayList<>();
 			List<String> onlineXRankGamesToDownload = new ArrayList<>();
+			List<String> onlineChallengeGamesToDownload = new ArrayList<>();
 			List<String> onlinePrivateGamesToDownload = new ArrayList<>();
 
 			for (S3RequestKey key : S3RequestKey.getOnlineBattles()) {
-				downloadPvPGames(account, directory, allDownloadedGames, timeString, onlineRegularGamesToDownload, onlineAnarchyGamesToDownload, onlineXRankGamesToDownload, onlinePrivateGamesToDownload, key);
+				downloadPvPGames(account, directory, allDownloadedGames, timeString, onlineRegularGamesToDownload, onlineAnarchyGamesToDownload, onlineXRankGamesToDownload, onlineChallengeGamesToDownload, onlinePrivateGamesToDownload, key);
 			}
 
 			for (String matchId : onlineRegularGamesToDownload) {
@@ -149,6 +150,10 @@ public class S3Downloader {
 
 			for (String matchId : onlineXRankGamesToDownload) {
 				storeOnlineGame(account, "XRank", directory, allDownloadedGames.getX_rank_games(), matchId);
+			}
+
+			for (String matchId : onlineChallengeGamesToDownload) {
+				storeOnlineGame(account, "Challenge", directory, allDownloadedGames.getChallenge_games(), matchId);
 			}
 
 			for (String matchId : onlinePrivateGamesToDownload) {
@@ -175,6 +180,7 @@ public class S3Downloader {
 			if (onlineRegularGamesToDownload.size() > 0
 					|| onlineAnarchyGamesToDownload.size() > 0
 					|| onlineXRankGamesToDownload.size() > 0
+					|| onlineChallengeGamesToDownload.size() > 0
 					|| onlinePrivateGamesToDownload.size() > 0
 					|| salmonShiftsToDownload.size() > 0) {
 				String message = "Found new Splatoon 3 results:";
@@ -189,6 +195,10 @@ public class S3Downloader {
 
 				if (onlineXRankGamesToDownload.size() > 0) {
 					message = String.format("%s\n- **%d** new x rank battles", message, onlineXRankGamesToDownload.size());
+				}
+
+				if (onlineChallengeGamesToDownload.size() > 0) {
+					message = String.format("%s\n- **%d** new challenge battles", message, onlineChallengeGamesToDownload.size());
 				}
 
 				if (onlinePrivateGamesToDownload.size() > 0) {
@@ -222,6 +232,10 @@ public class S3Downloader {
 
 		if (allDownloadedGames.getX_rank_games() == null) {
 			allDownloadedGames.setX_rank_games(new HashMap<>());
+		}
+
+		if (allDownloadedGames.getChallenge_games() == null) {
+			allDownloadedGames.setChallenge_games(new HashMap<>());
 		}
 
 		if (allDownloadedGames.getPrivate_games() == null) {
@@ -321,6 +335,10 @@ public class S3Downloader {
 			parseBattleResult(game, directory);
 		}
 
+		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getChallenge_games().entrySet()) {
+			parseBattleResult(game, directory);
+		}
+
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getPrivate_games().entrySet()) {
 			parseBattleResult(game, directory);
 		}
@@ -340,7 +358,7 @@ public class S3Downloader {
 			if (battleOverviewFile.exists() && Files.size(battleOverviewFile.toPath()) > 0) { // if file already exists will do nothing
 				allDownloadedGames = objectMapper.readValue(battleOverviewFile, ConfigFile.DownloadedGameList.class);
 			} else if (battleOverviewFile.exists() || battleOverviewFile.createNewFile()) {
-				allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+				allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
 				objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
 			} else {
 				logSender.sendLogs(logger, "COULD NOT OPEN FILE!!!");
@@ -369,7 +387,7 @@ public class S3Downloader {
 		}
 	}
 
-	private void downloadPvPGames(Account account, Path directory, ConfigFile.DownloadedGameList allDownloadedGames, String timeString, List<String> onlineRegularGamesToDownload, List<String> onlineAnarchyGamesToDownload, List<String> onlineXRankGamesToDownload, List<String> onlinePrivateGamesToDownload, S3RequestKey key) {
+	private void downloadPvPGames(Account account, Path directory, ConfigFile.DownloadedGameList allDownloadedGames, String timeString, List<String> onlineRegularGamesToDownload, List<String> onlineAnarchyGamesToDownload, List<String> onlineXRankGamesToDownload, List<String> onlineChallengeGamesToDownload, List<String> onlinePrivateGamesToDownload, S3RequestKey key) {
 		String gameListResponse = requestSender.queryS3Api(account, key.getKey());
 		logger.debug(gameListResponse);
 		if (!gameListResponse.contains("assistAverage")) {
@@ -419,6 +437,16 @@ public class S3Downloader {
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
 			logger.debug(onlineXRankGamesToDownload);
+		}
+
+		if (parsedResult.getData().getEventBattleHistories() != null) {
+			storeIdsOfMatchesToDownload(allDownloadedGames.getChallenge_games(), onlineChallengeGamesToDownload, parsedResult.getData().getEventBattleHistories());
+
+			if (onlineChallengeGamesToDownload.size() > 0) {
+				String filename = String.format("%s_List_%s.json", key, timeString);
+				saveFile(directory.resolve(filename), gameListResponse);
+			}
+			logger.debug(onlineChallengeGamesToDownload);
 		}
 
 		if (parsedResult.getData().getPrivateBattleHistories() != null) {
