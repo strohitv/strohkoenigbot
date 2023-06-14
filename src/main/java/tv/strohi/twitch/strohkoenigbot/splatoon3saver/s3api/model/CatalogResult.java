@@ -74,6 +74,9 @@ public class CatalogResult {
 		private String state;
 		private RewardItem item;
 
+		// custom properties
+		private String seasonName;
+
 		@JsonIgnore
 		public boolean isAchieved() {
 			return state != null && state.equals("ACCEPTED");

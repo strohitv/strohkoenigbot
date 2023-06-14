@@ -112,10 +112,13 @@ public class S3EmoteSender {
 						logger.error("could not read already unlocked emotes!!");
 					}
 
-					allEmotes.addAll(Arrays.stream(catalogResult.getData().getCatalog().getProgress().getRewards())
-							.filter(reward -> reward.isAchieved() && reward.isEmote())
-							.collect(Collectors.toList()));
+					var catalogEmotes = Arrays.stream(catalogResult.getData().getCatalog().getProgress().getRewards())
+						.filter(reward -> reward.isAchieved() && reward.isEmote())
+						.collect(Collectors.toList());
 
+					catalogEmotes.forEach(emote -> emote.setSeasonName(catalogResult.getData().getCatalog().getSeasonName()));
+
+					allEmotes.addAll(catalogEmotes);
 					setAllOwnedEmotes(allEmotes);
 				}
 
@@ -185,14 +188,15 @@ public class S3EmoteSender {
 
 					var builder = new StringBuilder("Found new Emotes:");
 					for (var emote : list) {
-						var indexStr = String.format("#**%03d**: ", allOwnedEmotes.indexOf(emote) + 1);
+						var indexStr = String.format("#**%03d**: ", allOwnedEmotesSoFar.indexOf(emote) + 1);
 
 						if (builder.length() + emote.getItem().getName().length() + indexStr.length() + "\n- ".length() > 2000) {
 							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3EmotesChannel(), builder.toString());
 							builder = new StringBuilder();
 						}
 
-						builder.append("\n- ").append(indexStr).append(emote.getItem().getName());
+						builder.append("\n- ").append(indexStr).append(emote.getItem().getName())
+							.append(" (").append(emote.getSeasonName() != null ? emote.getSeasonName() : "").append(")");
 					}
 
 					logger.info("Sending notification to discord account: {}", account.getDiscordId());
@@ -312,7 +316,7 @@ public class S3EmoteSender {
 			logger.warn("file for Emotes does not exist!");
 		}
 
-		return List.of();
+		return new ArrayList<>();
 	}
 
 	@Getter
