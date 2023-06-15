@@ -1,11 +1,12 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 
 @Getter
@@ -39,4 +40,9 @@ public class VsHistoryDetail implements Serializable {
 
 	@JsonProperty("xMatch")
 	private Match xMatch;
+
+	@JsonIgnore
+	public Instant getPlayedTimeAsInstant() {
+		return Instant.parse(playedTime);
+	}
 }
