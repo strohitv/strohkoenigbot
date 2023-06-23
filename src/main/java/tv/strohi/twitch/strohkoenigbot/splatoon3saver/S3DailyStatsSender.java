@@ -195,6 +195,8 @@ public class S3DailyStatsSender {
 	private void sendWeaponUsageStatsToDiscord(Map<String, Integer> ownUsedWeapons, Map<String, Integer> ownTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeapons,
 											   Map<String, Integer> ownUsedWeaponsTotal, Map<String, Integer> ownTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedWeaponsTotal,
 											   Account account) {
+		int maxLimit = 15;
+
 		var sortedOwnWeaponsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
 		var sortedOwnTeamWeaponsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
 		var sortedEnemyTeamWeaponsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
@@ -239,7 +241,8 @@ public class S3DailyStatsSender {
 
 			StringBuilder ownTeamWeaponUsageBuilder = new StringBuilder("Yesterday, my teams used a total of **").append(sortedOwnTeamWeaponsUsageStats.size()).append("** different weapons:");
 
-			for (var gearStat : sortedOwnTeamWeaponsUsageStats) {
+			var list = sortedOwnTeamWeaponsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+			for (var gearStat : list) {
 				// build message
 				ownTeamWeaponUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 			}
@@ -248,7 +251,8 @@ public class S3DailyStatsSender {
 
 			StringBuilder enemyTeamWeaponUsageBuilder = new StringBuilder("Yesterday, my enemy teams used a total of **").append(sortedEnemyTeamWeaponsUsageStats.size()).append("** different weapons:");
 
-			for (var gearStat : sortedEnemyTeamWeaponsUsageStats) {
+			list = sortedEnemyTeamWeaponsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+			for (var gearStat : list) {
 				// build message
 				enemyTeamWeaponUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 			}
@@ -259,7 +263,8 @@ public class S3DailyStatsSender {
 		// Total
 		StringBuilder ownWeaponUsageTotalBuilder = new StringBuilder("In total, I used a total of **").append(sortedOwnWeaponsUsageStatsTotal.size()).append("** different weapons:");
 
-		for (var gearStat : sortedOwnWeaponsUsageStatsTotal) {
+		var list = sortedOwnWeaponsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
+		for (var gearStat : list) {
 			// build message
 			ownWeaponUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 		}
@@ -268,7 +273,8 @@ public class S3DailyStatsSender {
 
 		StringBuilder ownTeamWeaponUsageTotalBuilder = new StringBuilder("In total, my teams used a total of **").append(sortedOwnTeamWeaponsUsageStatsTotal.size()).append("** different weapons:");
 
-		for (var gearStat : sortedOwnTeamWeaponsUsageStatsTotal) {
+		list = sortedOwnTeamWeaponsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
+		for (var gearStat : list) {
 			// build message
 			ownTeamWeaponUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 		}
@@ -277,7 +283,8 @@ public class S3DailyStatsSender {
 
 		StringBuilder enemyTeamWeaponUsageTotalBuilder = new StringBuilder("In total, my enemy teams used a total of **").append(sortedEnemyTeamWeaponsUsageStatsTotal.size()).append("** different weapons:");
 
-		for (var gearStat : sortedEnemyTeamWeaponsUsageStatsTotal) {
+		list = sortedEnemyTeamWeaponsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
+		for (var gearStat : list) {
 			// build message
 			enemyTeamWeaponUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 		}
