@@ -214,9 +214,7 @@ public class S3EmoteSender {
 	}
 
 	public String getEmotesAsHtml() {
-		if (allOwnedEmotes.size() == 0) {
-			reloadEmotes();
-		}
+		var allOwnedEmotesSoFar = loadEmotesFailsafe();
 
 		String result = "";
 
@@ -225,7 +223,7 @@ public class S3EmoteSender {
 			StringBuilder imageContainerHtmlBuilder = new StringBuilder();
 
 			int index = 1;
-			for (var emote : allOwnedEmotes) {
+			for (var emote : allOwnedEmotesSoFar) {
 				String imageLocationString = resourcesDownloader.ensureExistsLocally(emote.getItem().getImage().getUrl());
 				String path = Paths.get(imageLocationString).toString();
 
