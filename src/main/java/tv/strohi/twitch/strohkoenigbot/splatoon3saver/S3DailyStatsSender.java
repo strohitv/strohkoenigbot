@@ -741,13 +741,16 @@ public class S3DailyStatsSender {
 							? result.getData().getVsHistoryDetail().getPlayer()
 							: null);
 
-				if (player != null && player.getResult().getSpecial() > 0) {
+				if (player != null && player.getResult() != null && player.getResult().getSpecial() > 0) {
 					int currentSpecialWinCount = specialWinResults.getOrDefault(specialWeapon, 0);
 					specialWinResults.put(specialWeapon, currentSpecialWinCount + 1);
 				}
 			}
+		} catch (NullPointerException e) {
+			logSender.sendLogs(logger, String.format("Couldn't parse result json file '%s' because of an NULLPOINTER OH OH", filename));
+			logger.error(e);
 		} catch (IOException e) {
-			logSender.sendLogs(logger, String.format("Couldn't parse salmon run result json file '%s' OH OH", filename));
+			logSender.sendLogs(logger, String.format("Couldn't parse result json file '%s' OH OH", filename));
 			logger.error(e);
 		}
 	}
