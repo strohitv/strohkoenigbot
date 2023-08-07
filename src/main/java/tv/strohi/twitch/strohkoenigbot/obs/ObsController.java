@@ -82,50 +82,50 @@ public class ObsController {
 
 	public void switchScene(String newSceneName, Consumer<Boolean> callback) {
 		openCalls.add((obsController) ->
-				controller.getSceneList((sceneList) ->
-						sceneList.getScenes().stream()
-								.filter(scene -> scene.getSceneName().equals(newSceneName))
-								.findFirst()
-								.ifPresent(scene -> controller.setCurrentProgramScene(newSceneName, result -> callback.accept(result.isSuccessful())))));
+			controller.getSceneList((sceneList) ->
+				sceneList.getScenes().stream()
+					.filter(scene -> scene.getSceneName().equals(newSceneName))
+					.findFirst()
+					.ifPresent(scene -> controller.setCurrentProgramScene(newSceneName, result -> callback.accept(result.isSuccessful())))));
 	}
 
 	public void changeSourceEnabled(String sourceName, boolean enabled, Consumer<Boolean> callback) {
 		openCalls.add((obsController) -> obsController.getCurrentProgramScene((scene) ->
-				obsController.getSceneItemId(scene.getCurrentProgramSceneName(), sourceName, 0, idResponse -> {
-					if (idResponse.isSuccessful()) {
-						obsController.setSceneItemEnabled(scene.getCurrentProgramSceneName(), idResponse.getSceneItemId(), enabled,
-								result -> callback.accept(result.isSuccessful()));
-					} else {
-						obsController.getSceneItemList(scene.getCurrentProgramSceneName(), sceneItemResponse -> {
-									if (sceneItemResponse.isSuccessful()) {
-										obsController.getGroupList(groups -> {
-											if (groups.isSuccessful()) {
-												for (var group : groups.getGroups()) {
-													if (sceneItemResponse.getSceneItems().stream().anyMatch(sc -> sc.getSourceName().equals(group))) {
-														controller.getGroupSceneItemList(group, list -> {
-															if (list.isSuccessful()) {
-																for (var groupScene : list.getSceneItems()) {
-																	if (groupScene.getSourceName().equals(sourceName)) {
-																		obsController.setSceneItemEnabled(group, groupScene.getSceneItemId(), enabled,
-																				result -> callback.accept(result.isSuccessful()));
-																		break;
-																	}
-																}
-															} else {
-																callback.accept(false);
+			obsController.getSceneItemId(scene.getCurrentProgramSceneName(), sourceName, 0, idResponse -> {
+				if (idResponse.isSuccessful()) {
+					obsController.setSceneItemEnabled(scene.getCurrentProgramSceneName(), idResponse.getSceneItemId(), enabled,
+						result -> callback.accept(result.isSuccessful()));
+				} else {
+					obsController.getSceneItemList(scene.getCurrentProgramSceneName(), sceneItemResponse -> {
+							if (sceneItemResponse.isSuccessful()) {
+								obsController.getGroupList(groups -> {
+									if (groups.isSuccessful()) {
+										for (var group : groups.getGroups()) {
+											if (sceneItemResponse.getSceneItems().stream().anyMatch(sc -> sc.getSourceName().equals(group))) {
+												controller.getGroupSceneItemList(group, list -> {
+													if (list.isSuccessful()) {
+														for (var groupScene : list.getSceneItems()) {
+															if (groupScene.getSourceName().equals(sourceName)) {
+																obsController.setSceneItemEnabled(group, groupScene.getSceneItemId(), enabled,
+																	result -> callback.accept(result.isSuccessful()));
+																break;
 															}
-														});
+														}
+													} else {
+														callback.accept(false);
 													}
-												}
-											} else {
-												callback.accept(false);
+												});
 											}
-										});
+										}
+									} else {
+										callback.accept(false);
 									}
-								}
-						);
-					}
-				})));
+								});
+							}
+						}
+					);
+				}
+			})));
 	}
 
 	public void setObsEnabled(boolean enabled) {
@@ -152,16 +152,17 @@ public class ObsController {
 			var port = obsUrl.split(":")[1];
 
 			controller = OBSRemoteController.builder()
-					.host(host)
-					.port(Integer.parseInt(port))
-					.password(obsPassword)
-					.lifecycle()
-					.onReady(() -> controllerIsReady = true)
-					.onClose(event -> controllerIsReady = false)
-					.onDisconnect(() -> controllerIsReady = false)
-					.onCommunicatorError(problem -> shouldResetController = true)
-					.and()
-					.build();
+				.host(host)
+				.port(Integer.parseInt(port))
+				.password(obsPassword)
+				.connectionTimeout(10)
+				.lifecycle()
+				.onReady(() -> controllerIsReady = true)
+				.onClose(event -> controllerIsReady = false)
+				.onDisconnect(() -> controllerIsReady = false)
+				.onCommunicatorError(problem -> shouldResetController = true)
+				.and()
+				.build();
 
 			controller.connect();
 
