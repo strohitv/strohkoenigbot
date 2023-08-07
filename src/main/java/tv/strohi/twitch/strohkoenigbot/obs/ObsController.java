@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class ObsController {
 	private static final Logger logger = LogManager.getLogger(ObsController.class.getSimpleName());
+	private static final String OBS_SWITCH_NAME = "obsControllerEnabled";
 
 	private static boolean isLive = false;
 
@@ -40,6 +41,20 @@ public class ObsController {
 	}
 
 	private void doControllerCommunication() {
+		var obsEnabled = configurationRepository.findByConfigName(OBS_SWITCH_NAME).stream()
+			.map(config -> "1".equals(config.getConfigValue()))
+			.findFirst()
+			.orElse(false);
+
+		if (!obsEnabled) {
+			if (controller != null) {
+				controller.disconnect();
+				controller = null;
+			}
+
+			return;
+		}
+
 		if (shouldResetController) {
 			logger.info("resetting controller...");
 			if (controller != null) {
@@ -111,6 +126,16 @@ public class ObsController {
 						);
 					}
 				})));
+	}
+
+	public void setObsEnabled(boolean enabled) {
+		var obsEnabledConfig = configurationRepository.findByConfigName(OBS_SWITCH_NAME).stream()
+			.findFirst()
+			.orElse(Configuration.builder().configName(OBS_SWITCH_NAME).build());
+
+		obsEnabledConfig.setConfigValue(enabled ? "1" : "0");
+
+		configurationRepository.save(obsEnabledConfig);
 	}
 
 	private void connectToController() {

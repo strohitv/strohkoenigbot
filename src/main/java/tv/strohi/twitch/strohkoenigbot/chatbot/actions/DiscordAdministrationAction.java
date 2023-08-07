@@ -359,8 +359,16 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else if (message.startsWith("!reload stats")) {
 				statsExporter.refreshStageAndWeaponStats();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reloading weapon and stage stats successfully.");
-			} else if (message.startsWith("!obs")) {
-				String scene = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!obs".length()).trim();
+			} else if (message.startsWith("!obs enable")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Enabling Obs Controller...");
+				obsController.setObsEnabled(true);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Obs Controller is now enabled");
+			} else if (message.startsWith("!obs disable")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Disabling Obs Controller...");
+				obsController.setObsEnabled(false);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Obs Controller is now disabled");
+			} else if (message.startsWith("!obs scene")) {
+				String scene = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!obs scene".length()).trim();
 				obsController.switchScene(scene, result ->
 						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Switch to obs scene '%s' successful: %b", scene, result)));
 			} else if (message.startsWith("!twitch")) {
