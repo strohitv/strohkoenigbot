@@ -367,6 +367,10 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Disabling Obs Controller...");
 				obsController.setObsEnabled(false);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Obs Controller is now disabled");
+			} else if (message.startsWith("!obs reset counter")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Resetting Obs Controller fail counter...");
+				obsController.resetFailedCounter();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Obs Controller fail counter is now reset");
 			} else if (message.startsWith("!obs scene")) {
 				String scene = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!obs scene".length()).trim();
 				obsController.switchScene(scene, result ->

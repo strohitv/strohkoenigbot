@@ -11,6 +11,8 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import javax.annotation.PostConstruct;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -22,6 +24,9 @@ public class ObsController {
 	private static final String OBS_SWITCH_NAME = "obsControllerEnabled";
 
 	private static boolean isLive = false;
+
+	private long failedCount = 1L;
+	private Instant nextConnectionAttempt = Instant.now();
 
 	public static void setIsLive(boolean isLive) {
 		ObsController.isLive = isLive;
@@ -138,7 +143,16 @@ public class ObsController {
 		configurationRepository.save(obsEnabledConfig);
 	}
 
+	public void resetFailedCounter() {
+		failedCount = 1L;
+		nextConnectionAttempt = Instant.now();
+	}
+
 	private void connectToController() {
+		if (Instant.now().isBefore(nextConnectionAttempt)) {
+			return;
+		}
+
 		String obsUrl = configurationRepository.findByConfigName("obsUrl").stream().map(Configuration::getConfigValue).findFirst().orElse(null);
 		String obsPassword = configurationRepository.findByConfigName("obsPassword").stream().map(Configuration::getConfigValue).findFirst().orElse(null);
 
@@ -150,6 +164,17 @@ public class ObsController {
 		try {
 			var host = obsUrl.split(":")[0];
 			var port = obsUrl.split(":")[1];
+
+			if (controller != null) {
+				try {
+					controller.disconnect();
+					controller.stop();
+					controller = null;
+				} catch (RuntimeException e) {
+					logger.error("Obs Controller was != null but could not be stopped or disconnected!");
+					logger.error(e);
+				}
+			}
 
 			controller = OBSRemoteController.builder()
 				.host(host)
@@ -166,8 +191,14 @@ public class ObsController {
 
 			controller.connect();
 
+			failedCount = 1L;
+			nextConnectionAttempt = Instant.now();
+
 			logger.info("issued connection to OBS");
 		} catch (Exception e) {
+			failedCount *= 2;
+			nextConnectionAttempt = Instant.now().plus(failedCount, ChronoUnit.SECONDS);
+			logger.error("obs connection failed, setting failedCount to {} seconds, next attempt not before: {}", failedCount, nextConnectionAttempt);
 			logger.error(e);
 		}
 	}
