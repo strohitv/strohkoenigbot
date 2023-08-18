@@ -27,7 +27,7 @@ public enum S3RequestKey {
 	OwnedWeaponsAndGear("d29cd0c2b5e6bac90dd5b817914832f8"),
 	Weapons("5f279779e7081f2d14ae1ddca0db2b6e"),
 
-	RotationSchedules("011e394c0e384d77a0701474c8c11a20");
+	RotationSchedules("f76dd61e08f4ce1d5d5b17762a243fec");
 
 	@Getter
 	private final static EnumSet<S3RequestKey> onlineBattles = EnumSet.of(Regular, Anarchy, XRank, Challenge, Private); // EnumSet.of(Latest, Regular, Anarchy, Private); //

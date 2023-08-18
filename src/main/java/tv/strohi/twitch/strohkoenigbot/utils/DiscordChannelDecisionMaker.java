@@ -21,7 +21,7 @@ public class DiscordChannelDecisionMaker {
 	private final static String s3AnarchySeriesChannel = "s3-anarchy-series-rotations";
 	private final static String s3AnarchyOpenChannel = "s3-anarchy-open-rotations";
 	private final static String s3XRankChannel = "s3-x-rank-rotations";
-	private final static String s3LeagueChannel = "s3-league-rotations";
+	private final static String s3ChallengeChannel = "s3-challenge-rotations";
 	private final static String s3SalmonRunChannel = "s3-salmon-run-rotations";
 	private final static String s3SalmonRunBigRunChannel = "s3-big-run-rotations";
 	private final static String s3SalmonRunEggstraWorkChannel = "s3-eggstra-work-rotations";
@@ -156,11 +156,11 @@ public class DiscordChannelDecisionMaker {
 		}
 	}
 
-	public static String getS3LeagueChannel() {
+	public static String getS3ChallengeChannel() {
 		if (isLocalDebug) {
 			return debugTempChannel;
 		} else {
-			return s3LeagueChannel;
+			return s3ChallengeChannel;
 		}
 	}
 

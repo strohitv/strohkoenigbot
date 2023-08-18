@@ -12,6 +12,7 @@ public class Stats {
 	private Long paint;
 
 	// stage stats
+	private Double winRateTw;
 	private Double winRateAr;
 	private Double winRateLf;
 	private Double winRateGl;

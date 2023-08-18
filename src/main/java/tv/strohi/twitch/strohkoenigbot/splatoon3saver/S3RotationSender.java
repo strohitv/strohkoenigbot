@@ -68,12 +68,13 @@ public class S3RotationSender {
 			RotationSchedulesResult rotationSchedulesResult = new ObjectMapper().readValue(allRotationsResponse, RotationSchedulesResult.class);
 
 			sendRotations(List.of(
-					rotationSchedulesResult.getData().getRegularSchedules(),
-					rotationSchedulesResult.getData().getBankaraSchedules(),
-					rotationSchedulesResult.getData().getXSchedules(),
-//					rotationSchedulesResult.getData().getLeagueSchedules(),
-					rotationSchedulesResult.getData().getFestSchedules()
+				rotationSchedulesResult.getData().getRegularSchedules(),
+				rotationSchedulesResult.getData().getBankaraSchedules(),
+				rotationSchedulesResult.getData().getXSchedules(),
+				rotationSchedulesResult.getData().getFestSchedules()
 			), force);
+
+			sendEventRotations(rotationSchedulesResult.getData().getEventSchedules(), force);
 
 			sendSalmonRotations(rotationSchedulesResult.getData().getCoopGroupingSchedule(), force);
 		} catch (JsonProcessingException e) {
@@ -92,16 +93,16 @@ public class S3RotationSender {
 		String eggstraWorkChannelName = DiscordChannelDecisionMaker.getS3SalmonRunEggstraWorkChannelName();
 
 		CoopRotation regularRotation = Arrays.stream(coopGroupingSchedule.getRegularSchedules().getNodes())
-				.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
-				.orElse(null);
+			.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
+			.orElse(null);
 
 		CoopRotation bigRunRotation = Arrays.stream(coopGroupingSchedule.getBigRunSchedules().getNodes())
-				.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
-				.orElse(null);
+			.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
+			.orElse(null);
 
 		CoopRotation eggstraWorkRotation = Arrays.stream(coopGroupingSchedule.getTeamContestSchedules().getNodes())
-				.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
-				.orElse(null);
+			.min(Comparator.comparing(CoopRotation::getStartTimeAsInstant))
+			.orElse(null);
 
 		if (regularRotation != null) {
 			sendSalmonRotationToDiscord(regularChannelName, "Salmon Run", regularRotation, force);
@@ -118,18 +119,18 @@ public class S3RotationSender {
 
 	private void sendSalmonRotationToDiscord(String channelName, String typeName, CoopRotation rotation, boolean force) {
 		if ((force && rotation.getStartTimeAsInstant().isBefore(Instant.now()))
-				|| (rotation.getStartTimeAsInstant().isBefore(Instant.now()) && rotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
+			|| (rotation.getStartTimeAsInstant().isBefore(Instant.now()) && rotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
 		) {
 			StringBuilder builder = new StringBuilder(String.format("**Current %s rotation**\n\n**Stage**:\n- ", typeName))
-					.append(rotation.getSetting().getCoopStage().getName())
-					.append("\n\n**Weapons**:\n");
+				.append(rotation.getSetting().getCoopStage().getName())
+				.append("\n\n**Weapons**:\n");
 
 			Arrays.stream(rotation.getSetting().getWeapons()).forEach(w ->
-					builder.append("- ").append(w.getName()).append("\n"));
+				builder.append("- ").append(w.getName()).append("\n"));
 
 			builder.append("\nRotation will be running for **")
-					.append((int) Duration.between(rotation.getStartTimeAsInstant(), rotation.getEndTimeAsInstant()).toHours())
-					.append("** hours!");
+				.append((int) Duration.between(rotation.getStartTimeAsInstant(), rotation.getEndTimeAsInstant()).toHours())
+				.append("** hours!");
 
 			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getSetting().getCoopStage().getImage().getUrl());
 		}
@@ -139,8 +140,8 @@ public class S3RotationSender {
 		for (var schedule : rotationSchedulesResult) {
 			Rotation currentRotation = schedule.getNodes()[0];
 			if (force || (
-					currentRotation.getStartTimeAsInstant().isBefore(Instant.now())
-							&& currentRotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
+				currentRotation.getStartTimeAsInstant().isBefore(Instant.now())
+					&& currentRotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
 			) {
 				// new rotation -> send notifications
 				List<Rotation> rotations = Arrays.stream(schedule.getNodes()).collect(Collectors.toList());
@@ -168,6 +169,22 @@ public class S3RotationSender {
 		}
 	}
 
+	private void sendEventRotations(RotationSchedulesResult.EventNodes eventSchedules, boolean force) {
+		var nextRotation = eventSchedules.getNodes()[0];
+		if (force || (
+			Arrays.stream(nextRotation.getTimePeriods()).anyMatch(c ->
+				c.getStartTimeAsInstant().isBefore(Instant.now())
+					&& c.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES))))
+		) {
+			// new rotation -> send notifications
+			String channelName = DiscordChannelDecisionMaker.getS3ChallengeChannel();
+
+			if (channelName != null) {
+				sendChallengeRotationToDiscord(channelName, eventSchedules.getNodes());
+			}
+		}
+	}
+
 	private void sendRotationToDiscord(String channelName, List<RotationMatchSettingWithTime> rotations) {
 		RotationMatchSettingWithTime firstRotation = rotations.stream().min(Comparator.comparing(RotationMatchSettingWithTime::getStartTime)).orElseThrow();
 
@@ -180,28 +197,81 @@ public class S3RotationSender {
 		String image2 = firstRotation.getRotationMatchSetting().getVsStages()[1].getImage().getUrl();
 
 		StringBuilder builder = new StringBuilder("**Current rotation**\n")
-				.append("- Rule: **").append(getEmoji(firstRotation.getRotationMatchSetting().getVsRule().getName())).append(firstRotation.getRotationMatchSetting().getVsRule().getName()).append("**\n")
-				.append("- Stage A: **").append(firstRotation.getRotationMatchSetting().getVsStages()[0].getName()).append("**\n")
-				.append("- Stage B: **").append(firstRotation.getRotationMatchSetting().getVsStages()[1].getName()).append("**\n\n")
-				.append("**Next rotations**");
+			.append("- Rule: **").append(getEmoji(firstRotation.getRotationMatchSetting().getVsRule().getName())).append(firstRotation.getRotationMatchSetting().getVsRule().getName()).append("**\n")
+			.append("- Stage A: **").append(firstRotation.getRotationMatchSetting().getVsStages()[0].getName()).append("**\n")
+			.append("- Stage B: **").append(firstRotation.getRotationMatchSetting().getVsStages()[1].getName()).append("**\n\n")
+			.append("**Next rotations**");
 
 		rotations.stream()
-				.filter(Objects::nonNull)
-				.sorted(Comparator.comparing(RotationMatchSettingWithTime::getStartTime))
-				.filter(r -> r.getRotationMatchSetting() != null && r.getRotationMatchSetting().getVsRule() != null && r.getRotationMatchSetting().getVsStages() != null)
-				.skip(1)
-				.forEach(r ->
-						builder.append("\n- in **")
-								.append(getHourDifference(Instant.now(), r.getStartTime()))
-								.append("** hours: ")
-								.append(getEmoji(r.getRotationMatchSetting().getVsRule().getName()))
-								.append(r.getRotationMatchSetting().getVsRule().getName())
-								.append(" --- **")
-								.append(r.getRotationMatchSetting().getVsStages()[0].getName())
-								.append("** --- **")
-								.append(r.getRotationMatchSetting().getVsStages()[1].getName())
-								.append("**")
-				);
+			.filter(Objects::nonNull)
+			.sorted(Comparator.comparing(RotationMatchSettingWithTime::getStartTime))
+			.filter(r -> r.getRotationMatchSetting() != null && r.getRotationMatchSetting().getVsRule() != null && r.getRotationMatchSetting().getVsStages() != null)
+			.skip(1)
+			.forEach(r ->
+				builder.append("\n- in **")
+					.append(getHourDifference(Instant.now(), r.getStartTime()))
+					.append("** hours: ")
+					.append(getEmoji(r.getRotationMatchSetting().getVsRule().getName()))
+					.append(r.getRotationMatchSetting().getVsRule().getName())
+					.append(" --- **")
+					.append(r.getRotationMatchSetting().getVsStages()[0].getName())
+					.append("** --- **")
+					.append(r.getRotationMatchSetting().getVsStages()[1].getName())
+					.append("**")
+			);
+
+		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1, image2);
+	}
+
+	private void sendChallengeRotationToDiscord(String channelName, RotationSchedulesResult.EventNode[] challenges) {
+		var firstRotation = Arrays.stream(challenges).findFirst().orElseThrow();
+
+		String image1 = firstRotation.getLeagueMatchSetting().getVsStages()[0].getImage().getUrl();
+		String image2 = firstRotation.getLeagueMatchSetting().getVsStages()[1].getImage().getUrl();
+
+		StringBuilder builder = new StringBuilder("**Current rotation**\n")
+			.append("- Event: **").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getName()).append("**\n")
+			.append("- Description: **").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getDesc()).append("**\n")
+			.append("- Rules:\n```\n").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getRegulation().replace("<br />", "\n")).append("\n```\n")
+			.append("**Rotation details**\n- Game Rule: **").append(getEmoji(firstRotation.getLeagueMatchSetting().getVsRule().getName())).append(firstRotation.getLeagueMatchSetting().getVsRule().getName()).append("**\n")
+			.append("- Stage A: **").append(firstRotation.getLeagueMatchSetting().getVsStages()[0].getName()).append("**\n")
+			.append("- Stage B: **").append(firstRotation.getLeagueMatchSetting().getVsStages()[1].getName()).append("**\n\n");
+
+		var futureSlots = Arrays.stream(firstRotation.getTimePeriods())
+			.filter(t -> t.getStartTimeAsInstant().isAfter(Instant.now()))
+			.sorted(Comparator.comparing(RotationSchedulesResult.TimePeriod::getStartTimeAsInstant))
+			.collect(Collectors.toList());
+		if (futureSlots.size() > 0) {
+			builder.append("**Future Slots**");
+
+			futureSlots.forEach(fs -> builder.append("\n- in ")
+				.append(getTimeDifference(Instant.now(), fs.getStartTimeAsInstant()))
+			);
+
+			builder.append("\n\n");
+		}
+
+		builder.append("**Next challenges**");
+
+		Arrays.stream(challenges)
+			.filter(Objects::nonNull)
+			.sorted(Comparator.comparing(RotationSchedulesResult.EventNode::getEarliestOccurrence))
+			.filter(r -> r.getLeagueMatchSetting() != null && r.getLeagueMatchSetting().getVsRule() != null && r.getLeagueMatchSetting().getVsStages() != null)
+			.skip(1)
+			.forEach(r ->
+				builder.append("\n- in ")
+					.append(getTimeDifference(Instant.now(), r.getEarliestOccurrence()))
+					.append("** --- ")
+					.append(r.getLeagueMatchSetting().getLeagueMatchEvent().getName())
+					.append("** --- ")
+					.append(getEmoji(r.getLeagueMatchSetting().getVsRule().getName()))
+					.append(r.getLeagueMatchSetting().getVsRule().getName())
+					.append(" --- **")
+					.append(r.getLeagueMatchSetting().getVsStages()[0].getName())
+					.append("** --- **")
+					.append(r.getLeagueMatchSetting().getVsStages()[1].getName())
+					.append("**")
+			);
 
 		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1, image2);
 	}
@@ -235,6 +305,13 @@ public class S3RotationSender {
 		return Duration.between(now, startTime).toHoursPart() + 1;
 	}
 
+	private String getTimeDifference(Instant now, Instant startTime) {
+		var days = Duration.between(now, startTime).toDaysPart();
+		var hours = Duration.between(now, startTime).toHoursPart() + 1;
+
+		return String.format("**%d** days **%d** hours", days, hours);
+	}
+
 	private List<RotationMatchSettingWithTime> getRotationSettingsWithTimes(List<Rotation> rotationSchedulesResult) {
 		return getRotationSettingsWithTimes(rotationSchedulesResult, null);
 	}
@@ -244,17 +321,17 @@ public class S3RotationSender {
 
 		if (anarchyMode != null) {
 			list.addAll(rotationSchedulesResult.stream()
-					.filter(rsr -> rsr.getBankaraMatchSettings() != null)
-					.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(),
-							Arrays.stream(rsr.getBankaraMatchSettings())
-									.filter(bms -> anarchyMode.equals(bms.getMode()))
-									.findFirst()
-									.orElse(null)))
-					.collect(Collectors.toList()));
+				.filter(rsr -> rsr.getBankaraMatchSettings() != null)
+				.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(),
+					Arrays.stream(rsr.getBankaraMatchSettings())
+						.filter(bms -> anarchyMode.equals(bms.getMode()))
+						.findFirst()
+						.orElse(null)))
+				.collect(Collectors.toList()));
 		} else {
 			list.addAll(rotationSchedulesResult.stream()
-					.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(), getRotation(rsr)))
-					.collect(Collectors.toList()));
+				.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(), getRotation(rsr)))
+				.collect(Collectors.toList()));
 		}
 
 		return list;
@@ -284,7 +361,7 @@ public class S3RotationSender {
 		} else if (currentRotation.getXMatchSetting() != null) {
 			channelName = DiscordChannelDecisionMaker.getS3XRankChannel();
 		} else if (currentRotation.getLeagueMatchSetting() != null) {
-			channelName = DiscordChannelDecisionMaker.getS3LeagueChannel();
+			channelName = DiscordChannelDecisionMaker.getS3ChallengeChannel();
 		} else if (currentRotation.getFestMatchSetting() != null && currentRotation.getFestMatchSetting().getVsStages() == null) {
 			// other game mode DURING splatfest
 			channelName = null;

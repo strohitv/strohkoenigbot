@@ -8,6 +8,9 @@ import lombok.Setter;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
 
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Comparator;
 
 @Getter
 @Setter
@@ -26,7 +29,7 @@ public class RotationSchedulesResult implements Serializable {
 		private Node bankaraSchedules;
 		@JsonProperty("xSchedules")
 		private Node xSchedules;
-		private Node leagueSchedules;
+		private EventNodes eventSchedules;
 		private CoopGroupingSchedule coopGroupingSchedule;
 		private Node festSchedules;
 
@@ -43,6 +46,80 @@ public class RotationSchedulesResult implements Serializable {
 	// @Accessors(fluent = true)
 	public static class Node implements Serializable {
 		private Rotation[] nodes;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	// @Accessors(fluent = true)
+	public static class EventNodes implements Serializable {
+		private EventNode[] nodes;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	// @Accessors(fluent = true)
+	public static class EventNode implements Serializable {
+		private LeagueMatchSetting leagueMatchSetting;
+		private TimePeriod[] timePeriods;
+
+		public Instant getEarliestOccurrence() {
+			return Arrays.stream(timePeriods)
+				.sorted(Comparator.comparing(TimePeriod::getStartTimeAsInstant))
+				.map(TimePeriod::getStartTimeAsInstant)
+				.findFirst()
+				.orElse(Instant.now());
+		}
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	// @Accessors(fluent = true)
+	public static class LeagueMatchSetting implements Serializable {
+		private String __isVsSetting;
+		private String __typename;
+
+		private LeagueMatchEvent leagueMatchEvent;
+
+		private VsStage[] vsStages;
+		private VsRule vsRule;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	// @Accessors(fluent = true)
+	public static class LeagueMatchEvent implements Serializable {
+		private String leagueMatchEventId;
+		private String name;
+		private String desc;
+		private String regulationUrl;
+		private String regulation;
+		private String id;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	// @Accessors(fluent = true)
+	public static class TimePeriod implements Serializable {
+		private String startTime;
+		private String endTime;
+
+		public Instant getStartTimeAsInstant() {
+			return Instant.parse(startTime);
+		}
+
+		public Instant getEndTimeAsInstant() {
+			return Instant.parse(endTime);
+		}
 	}
 
 	@Getter
