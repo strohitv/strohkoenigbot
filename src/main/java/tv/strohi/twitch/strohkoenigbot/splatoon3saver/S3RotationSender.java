@@ -261,7 +261,7 @@ public class S3RotationSender {
 			.forEach(r ->
 				builder.append("\n- in ")
 					.append(getTimeDifference(Instant.now(), r.getEarliestOccurrence()))
-					.append("** --- ")
+					.append(" --- **")
 					.append(r.getLeagueMatchSetting().getLeagueMatchEvent().getName())
 					.append("** --- ")
 					.append(getEmoji(r.getLeagueMatchSetting().getVsRule().getName()))
