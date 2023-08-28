@@ -8,29 +8,30 @@ import java.util.EnumSet;
 @AllArgsConstructor
 @Getter
 public enum S3RequestKey {
-	Home("22e2fa8294168003c21b00c333c35384"),
-	History("d997d8e3875d50d3a1dc7e8a756e9e07"),
-	Catalog("ff12098bad4989a813201b00ff22ac4e"),
+	Home("7dcc64ea27a08e70919893a0d3f708710", "/"),
+	History("67921048c4af8e2b201a12f13ad0ddae", "/history_record/summary"),
+	Catalog("ff12098bad4989a813201b00ff22ac4e", "/catalog_record"),
 
-	Latest("0176a47218d830ee447e10af4a287b3f"),
-	Regular("3baef04b095ad8975ea679d722bc17de"),
-	Anarchy("0438ea6978ae8bd77c5d1250f4f84803"),
-	XRank("6796e3cd5dc3ebd51864dc709d899fc5"),
-	Challenge("9744fcf676441873c7c8a51285b6aa4d"),
-	Private("8e5ae78b194264a6c230e262d069bd28"),
-	GameDetail("291295ad311b99a6288fc95a5c4cb2d2"),
+	Latest("6b74405ca9b43ee77eb8c327c3c1a317", "/history/latest"),
+	Regular("4c95233c8d55e7c8cc23aae06109a2e8", "/history/regular"),
+	Anarchy("92b56403c0d9b1e63566ec98fef52eb3", "/history/bankara"),
+	XRank("94711fc9f95dd78fc640909f02d09215", "/history/xmatch"),
+	Challenge("5650c7abd4e377e74f95e30031864208", "/history/event"),
+	Private("89bc61012dcf170d9253f406ebebee67", "/history/private"),
+	GameDetail("9ee0099fbe3d8db2a838a75cf42856dd", "/history/detail/VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06QkFOS0FSQToyMDIzMDgyN1QyMTQ5NTBfYWY0MmRjYTItODY2ZC00YTY1LTg5ZDUtY2U3OGY1Y2U4YmQ4"),
 
-	Salmon("91b917becd2fa415890f5b47e15ffb15"),
-	SalmonDetail("379f0d9b78b531be53044bcac031b34b"),
+	Salmon("01fb9793ad92f91892ea713410173260", "/coop"),
+	SalmonDetail("379f0d9b78b531be53044bcac031b34b", ""),
 
-	SplatNetShop("a43dd44899a09013bcfd29b4b13314ff"),
-	OwnedWeaponsAndGear("d29cd0c2b5e6bac90dd5b817914832f8"),
-	Weapons("5f279779e7081f2d14ae1ddca0db2b6e"),
+	SplatNetShop("a43dd44899a09013bcfd29b4b13314ff", "/gesotown"),
+	OwnedWeaponsAndGear("d29cd0c2b5e6bac90dd5b817914832f8", "/my_outfits/create"),
+	Weapons("ebd88adbba13f09100f9326b1ec4c348", "/weapon_record"),
 
-	RotationSchedules("f76dd61e08f4ce1d5d5b17762a243fec");
+	RotationSchedules("f76dd61e08f4ce1d5d5b17762a243fec", "/schedule/bankara");
 
 	@Getter
 	private final static EnumSet<S3RequestKey> onlineBattles = EnumSet.of(Regular, Anarchy, XRank, Challenge, Private); // EnumSet.of(Latest, Regular, Anarchy, Private); //
 
 	private final String key;
+	private final String path;
 }
