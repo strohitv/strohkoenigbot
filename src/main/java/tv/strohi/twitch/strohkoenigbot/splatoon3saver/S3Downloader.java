@@ -117,13 +117,13 @@ public class S3Downloader {
 				continue;
 			}
 
-			String homeResponse = requestSender.queryS3Api(account, S3RequestKey.Home.getKey(), "naCountry", "US");
-			logger.debug(homeResponse);
-
-			if (!homeResponse.contains("currentPlayer")) {
-				logSender.sendLogs(logger, "Could not load homepage from SplatNet3");
-				continue;
-			}
+//			String homeResponse = requestSender.queryS3Api(account, S3RequestKey.Home.getKey(), "naCountry", "US");
+//			logger.debug(homeResponse);
+//
+//			if (!homeResponse.contains("currentPlayer")) {
+//				logSender.sendLogs(logger, "Could not load homepage from SplatNet3");
+//				continue;
+//			}
 
 			preventNullFields(allDownloadedGames);
 
