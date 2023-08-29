@@ -48,7 +48,22 @@ public class PlayHistory implements Serializable {
 	@JsonProperty("xMatchSeasonHistory")
 	private Object xMatchSeasonHistory;
 
+	private MatchPlayHistory bankaraMatchOpenPlayHistory;
+	private MatchPlayHistory leagueMatchPlayHistory;
+
 	private List<Id> badges;
 	private List<Badge> recentBadges;
 	private List<Badge> allBadges;
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+//	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class MatchPlayHistory {
+		private Integer attend;
+		private Integer bronze;
+		private Integer silver;
+		private Integer gold;
+	}
 }
