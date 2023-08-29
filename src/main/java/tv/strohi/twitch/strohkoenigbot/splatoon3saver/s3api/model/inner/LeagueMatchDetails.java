@@ -13,4 +13,5 @@ import lombok.Setter;
 public class LeagueMatchDetails {
 	private String teamId;
 	private IdAndNameAndDescription leagueMatchEvent;
+	private Double myLeaguePower;
 }

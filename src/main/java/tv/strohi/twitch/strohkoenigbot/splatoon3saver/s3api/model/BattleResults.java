@@ -88,6 +88,8 @@ public class BattleResults {
 
 		private SalmonRunHighestResult highestResult;
 
+		private Integer playCount;
+
 		@JsonIgnore
 		public Instant getStartTimeAsInstant() {
 			return Instant.parse(startTime);
@@ -109,6 +111,7 @@ public class BattleResults {
 		private VsRule vsRule;
 		private String teamComposition;
 		private Double myLeaguePower;
+		private String measurementState;
 	}
 
 	@Getter
