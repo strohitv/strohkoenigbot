@@ -170,7 +170,7 @@ public class S3BadgeSender {
 					saveBadgesFailsafe(allOwnedBadges);
 				}
 			} catch (Exception e) {
-				logSender.sendLogs(logger, "An exception occurred during S3 gear download\nSee logs for details!");
+				logSender.sendLogs(logger, "An exception occurred during S3 badge download\nSee logs for details!");
 				exceptionLogger.logException(logger, e);
 			}
 		}

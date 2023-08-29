@@ -207,7 +207,7 @@ public class S3EmoteSender {
 					logger.info("Done sending notification to discord account: {}", account.getDiscordId());
 				}
 			} catch (Exception e) {
-				logSender.sendLogs(logger, "An exception occurred during S3 gear download\nSee logs for details!");
+				logSender.sendLogs(logger, "An exception occurred during S3 emote download\nSee logs for details!");
 				exceptionLogger.logException(logger, e);
 			}
 		}
