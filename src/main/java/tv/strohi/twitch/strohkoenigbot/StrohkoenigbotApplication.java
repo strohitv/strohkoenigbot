@@ -76,10 +76,14 @@ public class StrohkoenigbotApplication {
 		}
 	}
 
-	// let the reboot be done via crontab
+	// let the reboot be done via crontab0
 //	@Scheduled(cron = "0 43 4 * * *")
+
+	/**
+	 * This method will trigger a shutdown, which will lead to a reboot in combination with the refresh-strohkoenibot.sh script
+	 */
 	public void shutdown() {
-		logger.info("restarting application");
+		logger.info("stopping application");
 
 		logger.info("sending message about triggered shutdown to strohkoenig");
 		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, "Bot will shut itself down!");

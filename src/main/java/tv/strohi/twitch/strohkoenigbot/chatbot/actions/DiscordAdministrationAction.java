@@ -50,6 +50,7 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
+	private final StrohkoenigbotApplication strohkoenigbotApplication;
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
@@ -495,6 +496,10 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Issuing restart");
 				StrohkoenigbotApplication.restart();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Issued restart");
+			} else if (message.startsWith("!shutdown bot")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Issuing shutdown");
+				strohkoenigbotApplication.shutdown();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Issued shutdown");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
