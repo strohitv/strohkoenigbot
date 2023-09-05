@@ -2,6 +2,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.GearPower;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.IdAndNameAndImage;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Image;
@@ -117,6 +118,9 @@ public class CatalogResult {
 		private Integer amount;
 		private GearPower primaryGearPower;
 		private String id;
+		private Gear headGear;
+		private Gear clothingGear;
+		private Gear shoesGear;
 	}
 
 	@Getter
