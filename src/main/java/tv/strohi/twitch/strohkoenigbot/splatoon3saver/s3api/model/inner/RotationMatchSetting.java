@@ -14,4 +14,7 @@ public class RotationMatchSetting {
 
 	// not in turf war
 	private String mode;
+
+	// only in Anarchy, distinction between series ("CHALLENGE") and open ("OPEN")
+	private String bankaraMode;
 }

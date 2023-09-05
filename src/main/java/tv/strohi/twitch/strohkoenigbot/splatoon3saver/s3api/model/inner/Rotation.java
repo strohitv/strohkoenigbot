@@ -19,6 +19,7 @@ public class Rotation {
 	private RotationMatchSetting leagueMatchSetting;
 
 	private RotationMatchSetting festMatchSetting;
+	private RotationMatchSetting[] festMatchSettings;
 
 	public Instant getStartTimeAsInstant() {
 		return Instant.parse(startTime);
