@@ -496,7 +496,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing rotation posts");
 				s3RotationSender.refreshRotations(true);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting forced rotation posts");
-			} else if (message.startsWith("!debug reload gear s3")) {
+			} else if (message.startsWith("!reload gear s3")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing new gear reload");
 				s3NewGearChecker.checkForNewGearInSplatNetShop(false);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reloading new gear");
