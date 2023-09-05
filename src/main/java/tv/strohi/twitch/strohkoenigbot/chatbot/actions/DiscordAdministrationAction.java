@@ -24,6 +24,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3DailyStatsSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3NewGearChecker;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3RotationSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
@@ -167,6 +168,13 @@ public class DiscordAdministrationAction extends ChatAction {
 	@Autowired
 	public void setS3DailyStatsSender(S3DailyStatsSender s3DailyStatsSender) {
 		this.s3DailyStatsSender = s3DailyStatsSender;
+	}
+
+	private S3NewGearChecker s3NewGearChecker;
+
+	@Autowired
+	public void setS3NewGearChecker(S3NewGearChecker s3NewGearChecker) {
+		this.s3NewGearChecker = s3NewGearChecker;
 	}
 
 	@Override
@@ -488,6 +496,10 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing rotation posts");
 				s3RotationSender.refreshRotations(true);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished posting forced rotation posts");
+			} else if (message.startsWith("!debug reload gear s3")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing new gear reload");
+				s3NewGearChecker.checkForNewGearInSplatNetShop(false);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reloading new gear");
 			} else if (message.startsWith("!repost stats s3")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing daily stats messages");
 				s3DailyStatsSender.sendStats(true);
