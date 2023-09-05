@@ -113,7 +113,7 @@ public class S3EmoteSender {
 					}
 
 					var catalogEmotes = Arrays.stream(catalogResult.getData().getCatalog().getProgress().getRewards())
-						.filter(reward -> reward.isAchieved() && reward.isEmote())
+						.filter(reward -> reward.isAccepted() && reward.isEmote())
 						.collect(Collectors.toList());
 
 					catalogEmotes.forEach(emote -> emote.setSeasonName(catalogResult.getData().getCatalog().getSeasonName()));

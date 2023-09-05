@@ -79,7 +79,7 @@ public class CatalogResult {
 		private String seasonName;
 
 		@JsonIgnore
-		public boolean isAchieved() {
+		public boolean isAccepted() {
 			return state != null && state.equals("ACCEPTED");
 		}
 
