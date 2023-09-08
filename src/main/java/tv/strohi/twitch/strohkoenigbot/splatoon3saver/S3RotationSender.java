@@ -128,9 +128,11 @@ public class S3RotationSender {
 			Arrays.stream(rotation.getSetting().getWeapons()).forEach(w ->
 				builder.append("- ").append(w.getName()).append("\n"));
 
-			builder.append("\nRotation will be running for **")
-				.append((int) Duration.between(rotation.getStartTimeAsInstant(), rotation.getEndTimeAsInstant()).toHours())
-				.append("** hours!");
+			builder.append("\nRotation will be running until **<t:")
+				.append(rotation.getEndTimeAsInstant().getEpochSecond())
+				.append(":f>** (<t:")
+				.append(rotation.getEndTimeAsInstant().getEpochSecond())
+				.append(":R>)");
 
 			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getSetting().getCoopStage().getImage().getUrl());
 		}
@@ -151,10 +153,19 @@ public class S3RotationSender {
 					String seriesChannelName = DiscordChannelDecisionMaker.getS3AnarchySeriesChannel();
 					String openChannelName = DiscordChannelDecisionMaker.getS3AnarchyOpenChannel();
 
-					List<RotationMatchSettingWithTime> seriesRotations = getRotationSettingsWithTimes(rotations, "CHALLENGE");
-					List<RotationMatchSettingWithTime> openRotations = getRotationSettingsWithTimes(rotations, "OPEN");
+					List<RotationMatchSettingWithTime> seriesRotations = getAnarchyRotationSettingsWithTimes(rotations, "CHALLENGE");
+					List<RotationMatchSettingWithTime> openRotations = getAnarchyRotationSettingsWithTimes(rotations, "OPEN");
 
 					sendRotationToDiscord(seriesChannelName, seriesRotations);
+					sendRotationToDiscord(openChannelName, openRotations);
+				} else if (currentRotation.getFestMatchSettings() != null) {
+					String proChannelName = DiscordChannelDecisionMaker.getS3SplatfestProChannel();
+					String openChannelName = DiscordChannelDecisionMaker.getS3SplatfestOpenChannel();
+
+					List<RotationMatchSettingWithTime> proRotations = getSplatFestRotationSettingsWithTimes(rotations, "CHALLENGE");
+					List<RotationMatchSettingWithTime> openRotations = getSplatFestRotationSettingsWithTimes(rotations, "REGULAR");
+
+					sendRotationToDiscord(proChannelName, proRotations);
 					sendRotationToDiscord(openChannelName, openRotations);
 				} else {
 					String channelName = decideChannelToPostIn(currentRotation);
@@ -208,9 +219,9 @@ public class S3RotationSender {
 			.filter(r -> r.getRotationMatchSetting() != null && r.getRotationMatchSetting().getVsRule() != null && r.getRotationMatchSetting().getVsStages() != null)
 			.skip(1)
 			.forEach(r ->
-				builder.append("\n- in **")
-					.append(getHourDifference(Instant.now(), r.getStartTime()))
-					.append("** hours: ")
+				builder.append("\n- **<t:")
+					.append(r.getStartTime().getEpochSecond())
+					.append(":R>**: ")
 					.append(getEmoji(r.getRotationMatchSetting().getVsRule().getName()))
 					.append(r.getRotationMatchSetting().getVsRule().getName())
 					.append(" --- **")
@@ -244,8 +255,8 @@ public class S3RotationSender {
 		if (futureSlots.size() > 0) {
 			builder.append("**Future Slots**");
 
-			futureSlots.forEach(fs -> builder.append("\n- in ")
-				.append(getTimeDifference(Instant.now(), fs.getStartTimeAsInstant()))
+			futureSlots.forEach(fs -> builder.append("\n- <t:")
+				.append(fs.getStartTimeAsInstant().getEpochSecond()).append(":R>")
 			);
 
 			builder.append("\n\n");
@@ -259,9 +270,11 @@ public class S3RotationSender {
 			.filter(r -> r.getLeagueMatchSetting() != null && r.getLeagueMatchSetting().getVsRule() != null && r.getLeagueMatchSetting().getVsStages() != null)
 			.skip(1)
 			.forEach(r ->
-				builder.append("\n- in ")
-					.append(getTimeDifference(Instant.now(), r.getEarliestOccurrence()))
-					.append(" --- **")
+				builder.append("\n- **<t:")
+					.append(r.getEarliestOccurrence().getEpochSecond())
+					.append(":f>** (<t:")
+					.append(r.getEarliestOccurrence().getEpochSecond())
+					.append(":R>) --- **")
 					.append(r.getLeagueMatchSetting().getLeagueMatchEvent().getName())
 					.append("** --- ")
 					.append(getEmoji(r.getLeagueMatchSetting().getVsRule().getName()))
@@ -313,18 +326,39 @@ public class S3RotationSender {
 	}
 
 	private List<RotationMatchSettingWithTime> getRotationSettingsWithTimes(List<Rotation> rotationSchedulesResult) {
-		return getRotationSettingsWithTimes(rotationSchedulesResult, null);
+		return rotationSchedulesResult.stream()
+			.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(), getRotation(rsr)))
+			.collect(Collectors.toList());
 	}
-
-	private List<RotationMatchSettingWithTime> getRotationSettingsWithTimes(List<Rotation> rotationSchedulesResult, String anarchyMode) {
+	private List<RotationMatchSettingWithTime> getAnarchyRotationSettingsWithTimes(List<Rotation> rotationSchedulesResult, String mode) {
 		var list = new ArrayList<RotationMatchSettingWithTime>();
 
-		if (anarchyMode != null) {
+		if (mode != null) {
 			list.addAll(rotationSchedulesResult.stream()
 				.filter(rsr -> rsr.getBankaraMatchSettings() != null)
 				.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(),
 					Arrays.stream(rsr.getBankaraMatchSettings())
-						.filter(bms -> anarchyMode.equals(bms.getMode()))
+						.filter(bms -> mode.equals(bms.getMode()))
+						.findFirst()
+						.orElse(null)))
+				.collect(Collectors.toList()));
+		} else {
+			list.addAll(rotationSchedulesResult.stream()
+				.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(), getRotation(rsr)))
+				.collect(Collectors.toList()));
+		}
+
+		return list;
+	}
+	private List<RotationMatchSettingWithTime> getSplatFestRotationSettingsWithTimes(List<Rotation> rotationSchedulesResult, String mode) {
+		var list = new ArrayList<RotationMatchSettingWithTime>();
+
+		if (mode != null) {
+			list.addAll(rotationSchedulesResult.stream()
+				.filter(rsr -> rsr.getFestMatchSettings() != null)
+				.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(),
+					Arrays.stream(rsr.getFestMatchSettings())
+						.filter(bms -> mode.equals(bms.getFestMode()))
 						.findFirst()
 						.orElse(null)))
 				.collect(Collectors.toList()));
@@ -365,9 +399,6 @@ public class S3RotationSender {
 		} else if (currentRotation.getFestMatchSetting() != null && currentRotation.getFestMatchSetting().getVsStages() == null) {
 			// other game mode DURING splatfest
 			channelName = null;
-		} else if (currentRotation.getFestMatchSetting() != null) {
-			// real splatfest game mode
-			channelName = DiscordChannelDecisionMaker.getS3SplatfestChannel();
 		}
 
 		return channelName;

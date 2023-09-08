@@ -17,7 +17,8 @@ public class DiscordChannelDecisionMaker {
 	private final static String s3SplatNetGearChannel = "s3-splatnet-gear";
 	private final static String s3SplatNetDailyGearChannel = "s3-splatnet-daily";
 	private final static String s3TurfWarChannel = "s3-turf-war-rotations";
-	private final static String s3SplatfestChannel = "s3-splatfest-rotations";
+	private final static String s3SplatfestProChannel = "s3-splatfest-pro-rotations";
+	private final static String s3SplatfestOpenChannel = "s3-splatfest-open-rotations";
 	private final static String s3AnarchySeriesChannel = "s3-anarchy-series-rotations";
 	private final static String s3AnarchyOpenChannel = "s3-anarchy-open-rotations";
 	private final static String s3XRankChannel = "s3-x-rank-rotations";
@@ -124,11 +125,19 @@ public class DiscordChannelDecisionMaker {
 		}
 	}
 
-	public static String getS3SplatfestChannel() {
+	public static String getS3SplatfestProChannel() {
 		if (isLocalDebug) {
 			return debugTempChannel;
 		} else {
-			return s3SplatfestChannel;
+			return s3SplatfestProChannel;
+		}
+	}
+
+	public static String getS3SplatfestOpenChannel() {
+		if (isLocalDebug) {
+			return debugTempChannel;
+		} else {
+			return s3SplatfestOpenChannel;
 		}
 	}
 

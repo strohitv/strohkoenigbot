@@ -17,4 +17,7 @@ public class RotationMatchSetting {
 
 	// only in Anarchy, distinction between series ("CHALLENGE") and open ("OPEN")
 	private String bankaraMode;
+
+	// only in Anarchy, distinction between series ("CHALLENGE") and open ("REGULAR")
+	private String festMode;
 }
