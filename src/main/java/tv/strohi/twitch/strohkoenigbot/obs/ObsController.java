@@ -54,6 +54,7 @@ public class ObsController {
 		if (!obsEnabled) {
 			if (controller != null) {
 				controller.disconnect();
+				controller.stop();
 				controller = null;
 			}
 
@@ -64,6 +65,7 @@ public class ObsController {
 			logger.info("resetting controller...");
 			if (controller != null) {
 				controller.disconnect();
+				controller.stop();
 				controller = null;
 			}
 
