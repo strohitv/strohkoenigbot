@@ -96,13 +96,11 @@ public class TwitchBotClient {
 
 	private final TwitchAuthRepository twitchAuthRepository;
 	private final TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository;
-	private final ObsController obsController;
 
 	@Autowired
-	public TwitchBotClient(TwitchAuthRepository twitchAuthRepository, TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository, ObsController obsController) {
+	public TwitchBotClient(TwitchAuthRepository twitchAuthRepository, TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository) {
 		this.twitchAuthRepository = twitchAuthRepository;
 		this.twitchGoingLiveAlertRepository = twitchGoingLiveAlertRepository;
-		this.obsController = obsController;
 		initializeClient();
 	}
 
@@ -137,10 +135,10 @@ public class TwitchBotClient {
 
 				client.getClientHelper().enableStreamEventListener(channelName);
 				client.getClientHelper().enableFollowEventListener(channelName);
-			}
 
-			// todo also do it for the German one
-			client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, "38502044");
+				client.getHelix().getUsers(null, null, Collections.singletonList(channelName)).execute().getUsers().stream().findFirst()
+					.ifPresent(user -> client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, user.getId()));
+			}
 
 			var allAlerts = twitchGoingLiveAlertRepository.findAll();
 
