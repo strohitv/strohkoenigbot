@@ -22,7 +22,6 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
 import javax.annotation.PostConstruct;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -314,22 +313,12 @@ public class S3RotationSender {
 		return emoji;
 	}
 
-	private int getHourDifference(Instant now, Instant startTime) {
-		return Duration.between(now, startTime).toHoursPart() + 1;
-	}
-
-	private String getTimeDifference(Instant now, Instant startTime) {
-		var days = Duration.between(now, startTime).toDaysPart();
-		var hours = Duration.between(now, startTime).toHoursPart() + 1;
-
-		return String.format("**%d** days **%d** hours", days, hours);
-	}
-
 	private List<RotationMatchSettingWithTime> getRotationSettingsWithTimes(List<Rotation> rotationSchedulesResult) {
 		return rotationSchedulesResult.stream()
 			.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(), getRotation(rsr)))
 			.collect(Collectors.toList());
 	}
+
 	private List<RotationMatchSettingWithTime> getAnarchyRotationSettingsWithTimes(List<Rotation> rotationSchedulesResult, String mode) {
 		var list = new ArrayList<RotationMatchSettingWithTime>();
 
@@ -338,7 +327,7 @@ public class S3RotationSender {
 				.filter(rsr -> rsr.getBankaraMatchSettings() != null)
 				.map(rsr -> new RotationMatchSettingWithTime(rsr.getStartTimeAsInstant(),
 					Arrays.stream(rsr.getBankaraMatchSettings())
-						.filter(bms -> mode.equals(bms.getMode()))
+						.filter(bms -> mode.equals(bms.getBankaraMode()))
 						.findFirst()
 						.orElse(null)))
 				.collect(Collectors.toList()));
@@ -350,6 +339,7 @@ public class S3RotationSender {
 
 		return list;
 	}
+
 	private List<RotationMatchSettingWithTime> getSplatFestRotationSettingsWithTimes(List<Rotation> rotationSchedulesResult, String mode) {
 		var list = new ArrayList<RotationMatchSettingWithTime>();
 
