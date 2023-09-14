@@ -155,8 +155,8 @@ public class S3RotationSender {
 					List<RotationMatchSettingWithTime> seriesRotations = getAnarchyRotationSettingsWithTimes(rotations, "CHALLENGE");
 					List<RotationMatchSettingWithTime> openRotations = getAnarchyRotationSettingsWithTimes(rotations, "OPEN");
 
-					sendRotationToDiscord(seriesChannelName, seriesRotations);
-					sendRotationToDiscord(openChannelName, openRotations);
+					sendRotationToDiscord(seriesChannelName, "Anarchy Series", seriesRotations);
+					sendRotationToDiscord(openChannelName, "Anarchy Open", openRotations);
 				} else if (currentRotation.getFestMatchSettings() != null) {
 					String proChannelName = DiscordChannelDecisionMaker.getS3SplatfestProChannel();
 					String openChannelName = DiscordChannelDecisionMaker.getS3SplatfestOpenChannel();
@@ -164,15 +164,15 @@ public class S3RotationSender {
 					List<RotationMatchSettingWithTime> proRotations = getSplatFestRotationSettingsWithTimes(rotations, "CHALLENGE");
 					List<RotationMatchSettingWithTime> openRotations = getSplatFestRotationSettingsWithTimes(rotations, "REGULAR");
 
-					sendRotationToDiscord(proChannelName, proRotations);
-					sendRotationToDiscord(openChannelName, openRotations);
+					sendRotationToDiscord(proChannelName, "Splatfest Pro", proRotations);
+					sendRotationToDiscord(openChannelName, "Splatfest Open", openRotations);
 				} else {
 					String channelName = decideChannelToPostIn(currentRotation);
 
 					if (channelName != null) {
 						List<RotationMatchSettingWithTime> rotationMatchSettingsWithTimes = getRotationSettingsWithTimes(rotations);
 
-						sendRotationToDiscord(channelName, rotationMatchSettingsWithTimes);
+						sendRotationToDiscord(channelName, getGameModeName(channelName), rotationMatchSettingsWithTimes);
 					}
 				}
 			}
@@ -195,7 +195,7 @@ public class S3RotationSender {
 		}
 	}
 
-	private void sendRotationToDiscord(String channelName, List<RotationMatchSettingWithTime> rotations) {
+	private void sendRotationToDiscord(String channelName, String mode, List<RotationMatchSettingWithTime> rotations) {
 		RotationMatchSettingWithTime firstRotation = rotations.stream().min(Comparator.comparing(RotationMatchSettingWithTime::getStartTime)).orElseThrow();
 
 		if (firstRotation.getRotationMatchSetting() == null) {
@@ -206,8 +206,8 @@ public class S3RotationSender {
 		String image1 = firstRotation.getRotationMatchSetting().getVsStages()[0].getImage().getUrl();
 		String image2 = firstRotation.getRotationMatchSetting().getVsStages()[1].getImage().getUrl();
 
-		StringBuilder builder = new StringBuilder("**Current rotation**\n")
-			.append("- Rule: **").append(getEmoji(firstRotation.getRotationMatchSetting().getVsRule().getName())).append(firstRotation.getRotationMatchSetting().getVsRule().getName()).append("**\n")
+		StringBuilder builder = new StringBuilder("**Current ").append(mode) .append(" rotation**: ")
+			.append("**").append(getEmoji(firstRotation.getRotationMatchSetting().getVsRule().getName())).append(firstRotation.getRotationMatchSetting().getVsRule().getName()).append("**\n")
 			.append("- Stage A: **").append(firstRotation.getRotationMatchSetting().getVsStages()[0].getName()).append("**\n")
 			.append("- Stage B: **").append(firstRotation.getRotationMatchSetting().getVsStages()[1].getName()).append("**\n\n")
 			.append("**Next rotations**");
@@ -311,6 +311,28 @@ public class S3RotationSender {
 		}
 
 		return emoji;
+	}
+
+	private String getGameModeName(String channelName) {
+		String gameMode;
+
+		if (channelName.equals(DiscordChannelDecisionMaker.getS3TurfWarChannel())) {
+			gameMode = "Turf War";
+		} else if (channelName.equals(DiscordChannelDecisionMaker.getS3AnarchyOpenChannel())) {
+			gameMode = "Anarchy Open";
+		} else if (channelName.equals(DiscordChannelDecisionMaker.getS3AnarchySeriesChannel())) {
+			gameMode = "Anarchy Series";
+		} else if (channelName.equals(DiscordChannelDecisionMaker.getS3SplatfestOpenChannel())) {
+			gameMode = "Splatfest Open";
+		} else if (channelName.equals(DiscordChannelDecisionMaker.getS3SplatfestProChannel())) {
+			gameMode = "Splatfest Pro";
+		} else if (channelName.equals(DiscordChannelDecisionMaker.getS3XRankChannel())) {
+			gameMode = "X Battle";
+		} else {
+			gameMode = "Challenge";
+		}
+
+		return gameMode;
 	}
 
 	private List<RotationMatchSettingWithTime> getRotationSettingsWithTimes(List<Rotation> rotationSchedulesResult) {
