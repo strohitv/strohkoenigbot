@@ -116,11 +116,11 @@ public class S3RotationSender {
 		}
 	}
 
-	private void sendSalmonRotationToDiscord(String channelName, String typeName, CoopRotation rotation, boolean force) {
+	private void sendSalmonRotationToDiscord(String channelName, String srType, CoopRotation rotation, boolean force) {
 		if ((force && rotation.getStartTimeAsInstant().isBefore(Instant.now()))
 			|| (rotation.getStartTimeAsInstant().isBefore(Instant.now()) && rotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
 		) {
-			StringBuilder builder = new StringBuilder(String.format("**Current %s rotation**\n\n**Stage**:\n- ", typeName))
+			StringBuilder builder = new StringBuilder(String.format("**%s**:\n\n**Stage**:\n- ", srType))
 				.append(rotation.getSetting().getCoopStage().getName())
 				.append("\n\n**Weapons**:\n");
 
@@ -206,7 +206,7 @@ public class S3RotationSender {
 		String image1 = firstRotation.getRotationMatchSetting().getVsStages()[0].getImage().getUrl();
 		String image2 = firstRotation.getRotationMatchSetting().getVsStages()[1].getImage().getUrl();
 
-		StringBuilder builder = new StringBuilder("**Current ").append(mode) .append(" rotation**: ")
+		StringBuilder builder = new StringBuilder("**").append(mode).append("**: ")
 			.append("**").append(getEmoji(firstRotation.getRotationMatchSetting().getVsRule().getName())).append(firstRotation.getRotationMatchSetting().getVsRule().getName()).append("**\n")
 			.append("- Stage A: **").append(firstRotation.getRotationMatchSetting().getVsStages()[0].getName()).append("**\n")
 			.append("- Stage B: **").append(firstRotation.getRotationMatchSetting().getVsStages()[1].getName()).append("**\n\n")
@@ -239,7 +239,7 @@ public class S3RotationSender {
 		String image1 = firstRotation.getLeagueMatchSetting().getVsStages()[0].getImage().getUrl();
 		String image2 = firstRotation.getLeagueMatchSetting().getVsStages()[1].getImage().getUrl();
 
-		StringBuilder builder = new StringBuilder("**Current rotation**\n")
+		StringBuilder builder = new StringBuilder("**Challenge**:\n")
 			.append("- Event: **").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getName()).append("**\n")
 			.append("- Description: **").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getDesc()).append("**\n")
 			.append("- Rules:\n```\n").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getRegulation().replace("<br />", "\n")).append("\n```\n")
