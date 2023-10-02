@@ -479,7 +479,7 @@ public class DiscordAdministrationAction extends ChatAction {
 						.orElse(null);
 
 				if (account != null) {
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("GToken: `%s`", account.getGTokenSplatoon3()));
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("GToken: ||`%s`||", account.getGTokenSplatoon3()));
 				} else {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No gToken for you tsk tsk tsk");
 				}
