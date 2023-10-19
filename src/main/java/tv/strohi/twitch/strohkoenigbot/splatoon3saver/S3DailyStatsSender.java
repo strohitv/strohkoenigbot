@@ -131,29 +131,52 @@ public class S3DailyStatsSender {
 		Map<String, Integer> ownUsedWeaponsTotal = new HashMap<>();
 		Map<String, Integer> ownTeamUsedWeaponsTotal = new HashMap<>();
 		Map<String, Integer> enemyTeamUsedWeaponsTotal = new HashMap<>();
+		Map<String, Integer> ownUsedSpecials = new HashMap<>();
+		Map<String, Integer> ownTeamUsedSpecials = new HashMap<>();
+		Map<String, Integer> enemyTeamUsedSpecials = new HashMap<>();
+		Map<String, Integer> ownUsedSpecialsTotal = new HashMap<>();
+		Map<String, Integer> ownTeamUsedSpecialsTotal = new HashMap<>();
+		Map<String, Integer> enemyTeamUsedSpecialsTotal = new HashMap<>();
+		Map<String, Integer> ownUsedSpecialsPrivateBattles = new HashMap<>();
+		Map<String, Integer> ownTeamUsedSpecialsPrivateBattles = new HashMap<>();
+		Map<String, Integer> enemyTeamUsedSpecialsPrivateBattles = new HashMap<>();
+		Map<String, Integer> ownUsedSpecialsTotalPrivateBattles = new HashMap<>();
+		Map<String, Integer> ownTeamUsedSpecialsTotalPrivateBattles = new HashMap<>();
+		Map<String, Integer> enemyTeamUsedSpecialsTotalPrivateBattles = new HashMap<>();
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getRegular_games().entrySet()) {
 			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
-				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons, ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal);
+				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+				ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+				ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
 		}
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getAnarchy_games().entrySet()) {
 			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
-				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons, ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal);
+				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+				ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+				ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
 		}
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getX_rank_games().entrySet()) {
 			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
-				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons, ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal);
+				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+				ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+				ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
 		}
 		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getChallenge_games().entrySet()) {
 			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
-				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons, ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal);
+				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+				ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+				ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
+		}
+		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getPrivate_games().entrySet()) {
+			countOnlineWins(game, directory, new HashMap<>(), new HashMap<>(),
+				new HashMap<>(), new HashMap<>(), new HashMap<>(),
+				new HashMap<>(), new HashMap<>(), new HashMap<>(),
+				ownUsedSpecialsPrivateBattles, ownTeamUsedSpecialsPrivateBattles, enemyTeamUsedSpecialsPrivateBattles,
+				ownUsedSpecialsTotalPrivateBattles, ownTeamUsedSpecialsTotalPrivateBattles, enemyTeamUsedSpecialsTotalPrivateBattles);
 		}
 
 		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
 		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
-
-		sendWeaponUsageStatsToDiscord(ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
-			ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
-			account);
 
 		Map<String, Integer> gearStars = new HashMap<>();
 		Map<Integer, Integer> gearStarCounts = new HashMap<>();
@@ -186,6 +209,14 @@ public class S3DailyStatsSender {
 		if (yesterdayTides.size() > 0) {
 			sendStatsToDiscord(yesterdayTides, String.format("**Yesterday, you played a total of __%d__ different tides in Salmon Run**", yesterdayTides.size()), account);
 		}
+
+		sendSpecialWeaponCountStatsToDiscord(ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal,
+			ownUsedSpecialsPrivateBattles, ownTeamUsedSpecialsPrivateBattles, enemyTeamUsedSpecialsPrivateBattles,
+			account);
+
+		sendWeaponUsageStatsToDiscord(ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+			ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+			account);
 
 		refreshYesterdayStats(yesterdayStats);
 
@@ -290,6 +321,152 @@ public class S3DailyStatsSender {
 		}
 
 		discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamWeaponUsageTotalBuilder.toString());
+	}
+
+	private void sendSpecialWeaponCountStatsToDiscord(Map<String, Integer> ownUsedSpecials, Map<String, Integer> ownTeamUsedSpecials, Map<String, Integer> enemyTeamUsedSpecials,
+													  Map<String, Integer> ownUsedSpecialsTotal, Map<String, Integer> ownTeamUsedSpecialsTotal, Map<String, Integer> enemyTeamUsedSpecialsTotal,
+													  Map<String, Integer> ownUsedSpecialsPbs, Map<String, Integer> ownTeamUsedSpecialsPbs, Map<String, Integer> enemyTeamUsedSpecialsPbs,
+													  Account account) {
+		int maxLimit = 20;
+
+		var sortedOwnSpecialsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
+		var sortedOwnTeamSpecialsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
+		var sortedEnemyTeamSpecialsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
+		var sortedOwnSpecialsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
+		var sortedOwnTeamSpecialsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
+		var sortedEnemyTeamSpecialsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
+		var sortedOwnSpecialsUsageStatsPbs = new ArrayList<Map.Entry<String, Integer>>();
+		var sortedOwnTeamSpecialsUsageStatsPbs = new ArrayList<Map.Entry<String, Integer>>();
+		var sortedEnemyTeamSpecialsUsageStatsPbs = new ArrayList<Map.Entry<String, Integer>>();
+
+		ownUsedSpecials.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+			.forEach(sortedOwnSpecialsUsageStats::add);
+
+		ownTeamUsedSpecials.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+			.forEach(sortedOwnTeamSpecialsUsageStats::add);
+
+		enemyTeamUsedSpecials.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+			.forEach(sortedEnemyTeamSpecialsUsageStats::add);
+
+		ownUsedSpecialsTotal.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+			.forEach(sortedOwnSpecialsUsageStatsTotal::add);
+
+		ownTeamUsedSpecialsTotal.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+			.forEach(sortedOwnTeamSpecialsUsageStatsTotal::add);
+
+		enemyTeamUsedSpecialsTotal.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+			.forEach(sortedEnemyTeamSpecialsUsageStatsTotal::add);
+
+		ownUsedSpecialsPbs.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+			.forEach(sortedOwnSpecialsUsageStatsPbs::add);
+
+		ownTeamUsedSpecialsPbs.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+			.forEach(sortedOwnTeamSpecialsUsageStatsPbs::add);
+
+		enemyTeamUsedSpecialsPbs.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+			.forEach(sortedEnemyTeamSpecialsUsageStatsPbs::add);
+
+		// Yesterday
+		if (sortedOwnSpecialsUsageStats.size() > 0) {
+			StringBuilder ownSpecialUsageBuilder = new StringBuilder("Yesterday, I used a total of **").append(sortedOwnSpecialsUsageStats.size()).append("** different special weapons:");
+
+			for (var gearStat : sortedOwnSpecialsUsageStats) {
+				// build message
+				ownSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			}
+
+			discordBot.sendPrivateMessage(account.getDiscordId(), ownSpecialUsageBuilder.toString());
+
+			StringBuilder ownTeamSpecialUsageBuilder = new StringBuilder("Yesterday, my teams used a total of **").append(sortedOwnTeamSpecialsUsageStats.size()).append("** different special weapons:");
+
+			var list = sortedOwnTeamSpecialsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+			for (var gearStat : list) {
+				// build message
+				ownTeamSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			}
+
+			discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamSpecialUsageBuilder.toString());
+
+			StringBuilder enemyTeamSpecialUsageBuilder = new StringBuilder("Yesterday, my enemy teams used a total of **").append(sortedEnemyTeamSpecialsUsageStats.size()).append("** different special weapons:");
+
+			list = sortedEnemyTeamSpecialsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+			for (var gearStat : list) {
+				// build message
+				enemyTeamSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			}
+
+			discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamSpecialUsageBuilder.toString());
+		}
+
+		// pbs
+		if (sortedOwnSpecialsUsageStats.size() > 0) {
+			StringBuilder ownPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, I used a total of **").append(sortedOwnSpecialsUsageStatsPbs.size()).append("** different special weapons:");
+
+			for (var gearStat : sortedOwnSpecialsUsageStatsPbs) {
+				// build message
+				ownPbsSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			}
+
+			discordBot.sendPrivateMessage(account.getDiscordId(), ownPbsSpecialUsageBuilder.toString());
+
+			StringBuilder ownTeamPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, my teams used a total of **").append(sortedOwnTeamSpecialsUsageStatsPbs.size()).append("** different special weapons:");
+
+			for (var gearStat : sortedOwnTeamSpecialsUsageStatsPbs) {
+				// build message
+				ownTeamPbsSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			}
+
+			discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamPbsSpecialUsageBuilder.toString());
+
+			StringBuilder enemyTeamPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, my enemy teams used a total of **").append(sortedEnemyTeamSpecialsUsageStatsPbs.size()).append("** different special weapons:");
+
+			for (var gearStat : sortedEnemyTeamSpecialsUsageStatsPbs) {
+				// build message
+				enemyTeamPbsSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			}
+
+			discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamPbsSpecialUsageBuilder.toString());
+		}
+
+		// Total
+		StringBuilder ownSpecialUsageTotalBuilder = new StringBuilder("In total, I used a total of **").append(sortedOwnSpecialsUsageStatsTotal.size()).append("** different special weapons:");
+
+		var list = sortedOwnSpecialsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
+		for (var gearStat : list) {
+			// build message
+			ownSpecialUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), ownSpecialUsageTotalBuilder.toString());
+
+		StringBuilder ownTeamSpecialsUsageTotalBuilder = new StringBuilder("In total, my teams used a total of **").append(sortedOwnTeamSpecialsUsageStatsTotal.size()).append("** different special weapons:");
+
+		list = sortedOwnTeamSpecialsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
+		for (var gearStat : list) {
+			// build message
+			ownTeamSpecialsUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamSpecialsUsageTotalBuilder.toString());
+
+		StringBuilder enemyTeamSpecialsUsageTotalBuilder = new StringBuilder("In total, my enemy teams used a total of **").append(sortedEnemyTeamSpecialsUsageStatsTotal.size()).append("** different special weapons:");
+
+		list = sortedEnemyTeamSpecialsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
+		for (var gearStat : list) {
+			// build message
+			enemyTeamSpecialsUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamSpecialsUsageTotalBuilder.toString());
 	}
 
 	private DailyStatsSaveModel loadYesterdayStats() {
@@ -649,7 +826,9 @@ public class S3DailyStatsSender {
 
 	private void countOnlineWins(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> winResults, Map<String, Integer> specialWinResults,
 								 Map<String, Integer> ownUsedWeapons, Map<String, Integer> ownTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeapons,
-								 Map<String, Integer> ownUsedWeaponsTotal, Map<String, Integer> ownTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedWeaponsTotal) {
+								 Map<String, Integer> ownUsedWeaponsTotal, Map<String, Integer> ownTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedWeaponsTotal,
+								 Map<String, Integer> ownUsedSpecials, Map<String, Integer> ownTeamUsedSpecials, Map<String, Integer> enemyTeamUsedSpecials,
+								 Map<String, Integer> ownUsedSpecialsTotal, Map<String, Integer> ownTeamUsedSpecialsTotal, Map<String, Integer> enemyTeamUsedSpecialsTotal) {
 		String filename = directory.resolve(game.getValue().getFilename()).toAbsolutePath().toString();
 
 		try {
@@ -701,11 +880,48 @@ public class S3DailyStatsSender {
 				.flatMap(ot -> ot.getPlayers().stream().map(p -> p.getWeapon().getName()))
 				.collect(Collectors.toList());
 
-			mapUsedWeaponsFromGame(ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal, ownWeapon, ownTeamWeapons, enemyTeamWeapons);
+			var ownSpecials = new HashMap<String, Integer>();
+			var ownTeamSpecials = new HashMap<String, Integer>();
+			var enemyTeamSpecials = new HashMap<String, Integer>();
+			for (var player : result.getData().getVsHistoryDetail().getMyTeam().getPlayers().stream().filter(p -> p.getResult() != null).collect(Collectors.toList())) {
+				ownTeamSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
 
-			if (Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS).isBefore(result.getData().getVsHistoryDetail().getPlayedTimeAsInstant())) {
-				mapUsedWeaponsFromGame(ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons, ownWeapon, ownTeamWeapons, enemyTeamWeapons);
+				if (player.getIsMyself()) {
+					ownSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
+				}
 			}
+
+			if (result.getData().getVsHistoryDetail().getMyTeam().getPlayers().size() > 2) {
+				for (var team : result.getData().getVsHistoryDetail().getOtherTeams()) {
+					for (var player : team.getPlayers().stream().filter(p -> p.getResult() != null).collect(Collectors.toList())) {
+						if (team.getPlayers().size() == 2 && result.getData().getVsHistoryDetail().getMyTeam().getPlayers().size() == 2) {
+							// tricolor
+							ownTeamSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
+						} else {
+							enemyTeamSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
+						}
+					}
+				}
+			}
+
+			mapUsedWeaponsFromGame(ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+				ownWeapon, ownTeamWeapons, enemyTeamWeapons,
+				ownSpecials, ownTeamSpecials, enemyTeamSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
+
+			Instant timeAsInstant = result.getData().getVsHistoryDetail().getPlayedTimeAsInstant();
+			if (timeAsInstant != null) {
+				LocalDateTime time = LocalDateTime.ofInstant(timeAsInstant, ZoneId.systemDefault());
+
+				var wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
+					&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
+
+				if (wasToday) {
+					mapUsedWeaponsFromGame(ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+						ownWeapon, ownTeamWeapons, enemyTeamWeapons,
+						ownSpecials, ownTeamSpecials, enemyTeamSpecials, ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials);
+				}
+			}
+
 
 			if ("WIN".equals(result.getData().getVsHistoryDetail().getJudgement())) {
 				String rule = result.getData().getVsHistoryDetail().getVsRule().getName();
@@ -755,7 +971,10 @@ public class S3DailyStatsSender {
 		}
 	}
 
-	private void mapUsedWeaponsFromGame(Map<String, Integer> ownUsedWeapons, Map<String, Integer> ownTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeapons, String ownWeapon, List<String> ownTeamWeapons, List<String> enemyTeamWeapons) {
+	private void mapUsedWeaponsFromGame(Map<String, Integer> ownUsedWeapons, Map<String, Integer> ownTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeapons,
+										String ownWeapon, List<String> ownTeamWeapons, List<String> enemyTeamWeapons,
+										Map<String, Integer> ownSpecials, Map<String, Integer> ownTeamSpecials, Map<String, Integer> enemyTeamSpecials,
+										Map<String, Integer> ownUsedSpecials, Map<String, Integer> ownTeamUsedSpecialsTotal, Map<String, Integer> enemyTeamUsedSpecialsTotal) {
 		int currentOwnWeaponCountPreviousDay = ownUsedWeapons.getOrDefault(ownWeapon, 0);
 		ownUsedWeapons.put(ownWeapon, currentOwnWeaponCountPreviousDay + 1);
 
@@ -767,6 +986,21 @@ public class S3DailyStatsSender {
 		enemyTeamWeapons.forEach(weapon -> {
 			int currentEnemyTeamWeaponCount = enemyTeamUsedWeapons.getOrDefault(weapon, 0);
 			enemyTeamUsedWeapons.put(weapon, currentEnemyTeamWeaponCount + 1);
+		});
+
+		ownSpecials.forEach((weapon, count) -> {
+			int currentOwnUsedSpecialsCount = ownUsedSpecials.getOrDefault(weapon, 0);
+			ownUsedSpecials.put(weapon, currentOwnUsedSpecialsCount + count);
+		});
+
+		ownTeamSpecials.forEach((weapon, count) -> {
+			int currentOwnTeamSpecialsCount = ownTeamUsedSpecialsTotal.getOrDefault(weapon, 0);
+			ownTeamUsedSpecialsTotal.put(weapon, currentOwnTeamSpecialsCount + count);
+		});
+
+		enemyTeamSpecials.forEach((weapon, count) -> {
+			int currentEnemyTeamSpecialsCount = enemyTeamUsedSpecialsTotal.getOrDefault(weapon, 0);
+			enemyTeamUsedSpecialsTotal.put(weapon, currentEnemyTeamSpecialsCount + count);
 		});
 	}
 }
