@@ -883,7 +883,7 @@ public class S3DailyStatsSender {
 			var ownSpecials = new HashMap<String, Integer>();
 			var ownTeamSpecials = new HashMap<String, Integer>();
 			var enemyTeamSpecials = new HashMap<String, Integer>();
-			for (var player : result.getData().getVsHistoryDetail().getMyTeam().getPlayers().stream().filter(p -> p.getResult() != null).collect(Collectors.toList())) {
+			for (var player : result.getData().getVsHistoryDetail().getMyTeam().getPlayers().stream().filter(p -> p.getResult() != null && !p.getIsMyself()).collect(Collectors.toList())) {
 				ownTeamSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
 
 				if (player.getIsMyself()) {
@@ -891,15 +891,13 @@ public class S3DailyStatsSender {
 				}
 			}
 
-			if (result.getData().getVsHistoryDetail().getMyTeam().getPlayers().size() > 2) {
-				for (var team : result.getData().getVsHistoryDetail().getOtherTeams()) {
-					for (var player : team.getPlayers().stream().filter(p -> p.getResult() != null).collect(Collectors.toList())) {
-						if (team.getPlayers().size() == 2 && result.getData().getVsHistoryDetail().getMyTeam().getPlayers().size() == 2) {
-							// tricolor
-							ownTeamSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
-						} else {
-							enemyTeamSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
-						}
+			for (var team : result.getData().getVsHistoryDetail().getOtherTeams()) {
+				for (var player : team.getPlayers().stream().filter(p -> p.getResult() != null).collect(Collectors.toList())) {
+					if (team.getPlayers().size() == 2 && result.getData().getVsHistoryDetail().getMyTeam().getPlayers().size() == 2) {
+						// tricolor
+						ownTeamSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
+					} else {
+						enemyTeamSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
 					}
 				}
 			}
