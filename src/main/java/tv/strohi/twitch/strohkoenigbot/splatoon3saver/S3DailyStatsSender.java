@@ -408,7 +408,7 @@ public class S3DailyStatsSender {
 		}
 
 		// pbs
-		if (sortedOwnSpecialsUsageStats.size() > 0) {
+		if (sortedOwnSpecialsUsageStatsPbs.size() > 0) {
 			StringBuilder ownPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, I used a total of **").append(sortedOwnSpecialsUsageStatsPbs.size()).append("** different special weapons:");
 
 			for (var gearStat : sortedOwnSpecialsUsageStatsPbs) {
@@ -883,12 +883,22 @@ public class S3DailyStatsSender {
 			var ownSpecials = new HashMap<String, Integer>();
 			var ownTeamSpecials = new HashMap<String, Integer>();
 			var enemyTeamSpecials = new HashMap<String, Integer>();
-			for (var player : result.getData().getVsHistoryDetail().getMyTeam().getPlayers().stream().filter(p -> p.getResult() != null && !p.getIsMyself()).collect(Collectors.toList())) {
-				ownTeamSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
-
+			for (var player : result.getData().getVsHistoryDetail().getMyTeam().getPlayers().stream().filter(p -> p.getResult() != null).collect(Collectors.toList())) {
 				if (player.getIsMyself()) {
 					ownSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
+				} else {
+					ownTeamSpecials.put(player.getWeapon().getSpecialWeapon().getName(), player.getResult().getSpecial());
 				}
+			}
+
+			if (ownSpecials.size() == 0
+				&& result.getData().getVsHistoryDetail().getPlayer() != null
+				&& result.getData().getVsHistoryDetail().getPlayer().getWeapon() != null
+				&& result.getData().getVsHistoryDetail().getPlayer().getResult() != null
+				&& result.getData().getVsHistoryDetail().getPlayer().getResult().getSpecial() != null
+			) {
+				ownSpecials.put(result.getData().getVsHistoryDetail().getPlayer().getWeapon().getSpecialWeapon().getName(),
+					result.getData().getVsHistoryDetail().getPlayer().getResult().getSpecial());
 			}
 
 			for (var team : result.getData().getVsHistoryDetail().getOtherTeams()) {
@@ -972,7 +982,7 @@ public class S3DailyStatsSender {
 	private void mapUsedWeaponsFromGame(Map<String, Integer> ownUsedWeapons, Map<String, Integer> ownTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeapons,
 										String ownWeapon, List<String> ownTeamWeapons, List<String> enemyTeamWeapons,
 										Map<String, Integer> ownSpecials, Map<String, Integer> ownTeamSpecials, Map<String, Integer> enemyTeamSpecials,
-										Map<String, Integer> ownUsedSpecials, Map<String, Integer> ownTeamUsedSpecialsTotal, Map<String, Integer> enemyTeamUsedSpecialsTotal) {
+										Map<String, Integer> ownUsedSpecialsTotal, Map<String, Integer> ownTeamUsedSpecialsTotal, Map<String, Integer> enemyTeamUsedSpecialsTotal) {
 		int currentOwnWeaponCountPreviousDay = ownUsedWeapons.getOrDefault(ownWeapon, 0);
 		ownUsedWeapons.put(ownWeapon, currentOwnWeaponCountPreviousDay + 1);
 
@@ -987,8 +997,8 @@ public class S3DailyStatsSender {
 		});
 
 		ownSpecials.forEach((weapon, count) -> {
-			int currentOwnUsedSpecialsCount = ownUsedSpecials.getOrDefault(weapon, 0);
-			ownUsedSpecials.put(weapon, currentOwnUsedSpecialsCount + count);
+			int currentOwnUsedSpecialsCount = ownUsedSpecialsTotal.getOrDefault(weapon, 0);
+			ownUsedSpecialsTotal.put(weapon, currentOwnUsedSpecialsCount + count);
 		});
 
 		ownTeamSpecials.forEach((weapon, count) -> {
