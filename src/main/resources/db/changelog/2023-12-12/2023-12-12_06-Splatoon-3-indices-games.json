@@ -1,0 +1,57 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2023-12-12_03-Splatoon-3-indices-games",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_player",
+              "indexName": "idx_splatoon_3_player_api_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_result",
+              "indexName": "idx_splatoon_3_vs_result_api_id",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_sr_result",
+              "indexName": "idx_splatoon_3_sr_result_api_id",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

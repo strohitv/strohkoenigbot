@@ -1,0 +1,926 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2023-12-12_04-splatoon-3-sr-games",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_grade",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_event_wave",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_uniform",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(30)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(30)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shortened_image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_uniform_image_shortened",
+                      "references": "shortened_image(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_enemy",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shortened_image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_enemy_image_shortened",
+                      "references": "shortened_image(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_special_weapon",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shortened_image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_special_weapon_image_shortened",
+                      "references": "shortened_image(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_result",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(200)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "played_time",
+                    "type": "timestamp",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rotation_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_rotation",
+                      "references": "splatoon_3_sr_rotation(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "successful",
+                    "type": "boolean",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "boss_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_sr_result_boss",
+                      "references": "splatoon_3_sr_boss(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stage_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_stage",
+                      "references": "splatoon_3_sr_stage(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "after_grade_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_sr_result_grade",
+                      "references": "splatoon_3_sr_grade(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "after_grade_point",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "job_point",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "job_score",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "job_rate",
+                    "type": "double",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "job_bonus",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "earned_gold_scales",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "earned_silver_scales",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "earned_bronze_scales",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "smell_meter",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "danger_rate",
+                    "type": "double",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "scenario_code",
+                    "type": "varchar(150)",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_result_player",
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_player_result",
+                      "references": "splatoon_3_sr_result(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "player_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_player_player",
+                      "references": "splatoon_3_player(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_myself",
+                    "type": "boolean",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },{
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name_id",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "title",
+                    "type": "varchar(150)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "nameplate_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_player_nameplate",
+                      "references": "splatoon_3_nameplate(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "species",
+                    "type": "varchar(20)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "uniform_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_player_uniform",
+                      "references": "splatoon_3_sr_uniform(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "special_weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_player_special_weapon",
+                      "references": "splatoon_3_sr_special_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "enemies_defeated",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "normal_eggs_delivered",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "golden_eggs_delivered",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "golden_eggs_assisted",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rescue_count",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rescued_count",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_result_player_badge",
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_player_badge_result",
+                      "references": "splatoon_3_sr_result(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "player_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_player_badge_player",
+                      "references": "splatoon_3_player(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "badge_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_player_badge_badge",
+                      "references": "splatoon_3_badge(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "position",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_wave",
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_wave_result",
+                      "references": "splatoon_3_sr_result(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "wave_number",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "water_level",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "golden_eggs_required",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "golden_eggs_spawned",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "golden_eggs_delivered",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "event_wave_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_sr_wave_event_wave",
+                      "references": "splatoon_3_sr_event_wave(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "addPrimaryKey":
+            {
+              "columnNames":  "result_id, wave_number",
+              "tableName":  "splatoon_3_sr_wave",
+              "validate":  true
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_wave_used_special_weapon",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "result_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "wave_number",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "special_weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_wave_used_special_weapon_special_weapon",
+                      "references": "splatoon_3_sr_special_weapon(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "result_id, wave_number",
+              "baseTableName": "splatoon_3_sr_wave_used_special_weapon",
+              "referencedColumnNames": "result_id, wave_number",
+              "referencedTableName": "splatoon_3_sr_wave",
+              "constraintName": "fk_sr_wave_used_special_weapon_result_id_wave_number",
+              "validate": true
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_result_enemy",
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_enemy_result",
+                      "references": "splatoon_3_sr_result(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "enemy_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_enemy_enemy",
+                      "references": "splatoon_3_sr_enemy(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "spawn_count",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "team_destroy_count",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "own_destroy_count",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "addPrimaryKey":
+            {
+              "columnNames":  "result_id, enemy_id",
+              "tableName":  "splatoon_3_sr_result_enemy",
+              "validate":  true
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_result_player_wave_weapon",
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "wave_number",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "player_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_player_wave_weapon_player",
+                      "references": "splatoon_3_player(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_result_player_wave_weapon_weapon",
+                      "references": "splatoon_3_sr_weapon(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "result_id, wave_number",
+              "baseTableName": "splatoon_3_sr_result_player_wave_weapon",
+              "referencedColumnNames": "result_id, wave_number",
+              "referencedTableName": "splatoon_3_sr_wave",
+              "constraintName": "fk_sr_result_player_wave_weapon_result_id_wave_number",
+              "validate": true
+            }
+          },
+
+
+          {
+            "addPrimaryKey":
+            {
+              "columnNames":  "result_id, wave_number, player_id, weapon_id",
+              "tableName":  "splatoon_3_sr_result_player_wave_weapon",
+              "validate":  true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

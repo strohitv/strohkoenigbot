@@ -1,0 +1,72 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2023-12-12_03-Splatoon-3-indices-games",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createIndex": {
+              "tableName": "shortened_image",
+              "indexName": "idx_shortened_image_image_url",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "image_url",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_rotation_slot",
+              "indexName": "idx_splatoon_3_vs_rotation_slot_start_time",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "start_time",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_rotation",
+              "indexName": "idx_splatoon_3_vs_rotation_start_time",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "start_time",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_sr_rotation",
+              "indexName": "idx_splatoon_3_sr_rotation_start_time",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "start_time",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
