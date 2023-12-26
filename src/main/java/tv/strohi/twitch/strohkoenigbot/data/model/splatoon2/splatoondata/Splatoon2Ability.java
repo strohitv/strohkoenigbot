@@ -15,7 +15,7 @@ import javax.persistence.Id;
 @AllArgsConstructor
 public class Splatoon2Ability {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
 	private String splatoonApiId;

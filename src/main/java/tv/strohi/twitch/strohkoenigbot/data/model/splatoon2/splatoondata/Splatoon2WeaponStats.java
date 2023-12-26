@@ -15,7 +15,7 @@ import javax.persistence.Id;
 @AllArgsConstructor
 public class Splatoon2WeaponStats {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
 	private Long weaponId;

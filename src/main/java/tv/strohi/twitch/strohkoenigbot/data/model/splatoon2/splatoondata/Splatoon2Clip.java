@@ -14,7 +14,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class Splatoon2Clip {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
 	private Long accountId;
