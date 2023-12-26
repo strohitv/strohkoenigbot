@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.splatoon3saver.repo.model;
+package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

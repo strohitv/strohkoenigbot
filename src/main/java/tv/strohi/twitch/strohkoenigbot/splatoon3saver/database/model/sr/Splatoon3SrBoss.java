@@ -1,10 +1,10 @@
-package tv.strohi.twitch.strohkoenigbot.splatoon3saver.repo.model.sr;
+package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.repo.model.ShortenedImage;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.ShortenedImage;
 
 import javax.persistence.*;
 
