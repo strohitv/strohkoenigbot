@@ -14,7 +14,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3SrBoss {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,17 +22,15 @@ public class Splatoon3SrBoss {
 
 	private String apiId;
 
-	private Long imageId;
-
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "image_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "image_id", nullable = false)
 	private Image image;
 
 	// ---
 
 	@OneToMany(fetch = FetchType.LAZY)
-	@JoinColumn(name = "boss_id", insertable = false, updatable = false)
+	@JoinColumn(name = "boss_id")
 	private List<Splatoon3SrRotation> rotations;
 }

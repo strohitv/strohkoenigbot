@@ -14,58 +14,45 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3SrRotation {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	private Long stageId;
-
-	private Long modeId;
-
-	private Long bossId;
-
 	private Instant startTime;
 
 	private Instant endTime;
 
-	private Long weapon1Id;
-
-	private Long weapon2Id;
-
-	private Long weapon3Id;
-
-	private Long weapon4Id;
-
+	@Lob
 	private String shortenedJson;
 
 	// ---
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "stage_id",nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "stage_id", nullable = false)
 	private Splatoon3SrStage stage;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "mode_id",nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "mode_id", nullable = false)
 	private Splatoon3Mode mode;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "boss_id",nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "boss_id", nullable = false)
 	private Splatoon3SrBoss boss;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "weapon_1_id",nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "weapon_1_id", nullable = false)
 	private Splatoon3SrWeapon weapon1;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "weapon_2_id",nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "weapon_2_id", nullable = false)
 	private Splatoon3SrWeapon weapon2;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "weapon_3_id",nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "weapon_3_id", nullable = false)
 	private Splatoon3SrWeapon weapon3;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "weapon_4_id",nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "weapon_4_id", nullable = false)
 	private Splatoon3SrWeapon weapon4;
 }

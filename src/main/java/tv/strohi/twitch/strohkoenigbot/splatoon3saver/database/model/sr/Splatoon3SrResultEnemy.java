@@ -13,13 +13,14 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@IdClass(ResultEnemyId.class)
+@Builder(toBuilder = true)@IdClass(ResultEnemyId.class)
 public class Splatoon3SrResultEnemy {
 	@Id
+	@Column(name = "result_id")
 	private long resultId;
 
 	@Id
+	@Column(name = "enemy_id")
 	private long enemyId;
 
 	private Integer spawnCount;
@@ -35,6 +36,34 @@ public class Splatoon3SrResultEnemy {
 	private Splatoon3SrResult result;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "enemy_id", insertable = false, updatable = false)
+	@JoinColumn(name = "enemy_id", nullable = false, insertable = false, updatable = false)
 	private Splatoon3SrEnemy enemy;
 }
+
+
+//@Entity
+//@Table(name = "Employee")
+//@IdClass(EmployeeId.class)
+//public class Employee {
+//
+//	@Id
+//	@Column(name = "Name")
+//	private String name;
+//	@Id
+//	@Column(name = "Department")
+//	private String departmentName;
+//	@Column(name = "Designation")
+//	private String designation;
+//	@Id
+//	@Column(name = "DepartmentLocation")
+//	private String departmentLocation;
+//	@ManyToOne
+//	@JoinColumns({
+//		@JoinColumn(name = "Department", referencedColumnName = "Name", insertable = false, updatable = false),
+//		@JoinColumn(name = "DepartmentLocation", referencedColumnName = "Location", insertable = false, updatable = false),
+//	})
+//	@JsonIgnore
+//	private Department department;
+//	@Column(name = "Salary")
+//	private Double salary;
+//}

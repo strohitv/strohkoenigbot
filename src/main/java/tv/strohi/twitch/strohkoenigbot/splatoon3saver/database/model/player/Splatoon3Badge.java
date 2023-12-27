@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3Badge {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,13 +21,11 @@ public class Splatoon3Badge {
 
 	private String apiId;
 
-	private Long imageId;
-
 	private Boolean owned;
 
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "image_id", insertable = false, updatable = false)
+	@JoinColumn(name = "image_id")
 	private Image image;
 }

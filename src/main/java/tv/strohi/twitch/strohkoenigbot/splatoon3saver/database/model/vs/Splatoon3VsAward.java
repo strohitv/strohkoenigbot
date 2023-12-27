@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3VsAward {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,10 +21,4 @@ public class Splatoon3VsAward {
 	private String name;
 
 	private String rank;
-
-	// ---
-
-//	@ManyToMany(fetch = FetchType.LAZY)
-//	@JoinColumn(name = "image_id", insertable = false, updatable = false)
-//	private Image image;
 }

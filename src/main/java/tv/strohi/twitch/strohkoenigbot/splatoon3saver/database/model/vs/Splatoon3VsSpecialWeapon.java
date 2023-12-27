@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3VsSpecialWeapon {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,27 +23,21 @@ public class Splatoon3VsSpecialWeapon {
 
 	private String name;
 
-	private Long imageId;
-
 	private Integer maskingImageWidth;
 
 	private Integer maskingImageHeight;
 
-	private Long maskingImageId;
-
-	private Long overlayImageId;
-
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "image_id", insertable = false, updatable = false)
+	@JoinColumn(name = "image_id")
 	private Image image;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "masking_image_id", insertable = false, updatable = false)
+	@JoinColumn(name = "masking_image_id")
 	private Image maskingImage;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "overlay_image_id", insertable = false, updatable = false)
+	@JoinColumn(name = "overlay_image_id")
 	private Image overlayImage;
 }

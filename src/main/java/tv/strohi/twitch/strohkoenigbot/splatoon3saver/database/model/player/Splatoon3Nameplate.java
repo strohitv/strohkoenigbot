@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3Nameplate {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,14 +21,16 @@ public class Splatoon3Nameplate {
 
 	private String apiId;
 
-	private Long imageId;
-
+	@Column(name = "text_color_r")
 	private Double textColorR;
 
+	@Column(name = "text_color_g")
 	private Double textColorG;
 
+	@Column(name = "text_color_b")
 	private Double textColorB;
 
+	@Column(name = "text_color_a")
 	private Double textColorA;
 
 	private Boolean owned;
@@ -36,6 +38,6 @@ public class Splatoon3Nameplate {
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "image_id", insertable = false, updatable = false)
+	@JoinColumn(name = "image_id")
 	private Image image;
 }

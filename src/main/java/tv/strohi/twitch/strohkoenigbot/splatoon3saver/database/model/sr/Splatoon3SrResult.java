@@ -13,7 +13,7 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3SrResult {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,15 +23,7 @@ public class Splatoon3SrResult {
 
 	private Instant playedTime;
 
-	private Long rotationId;
-
 	private Boolean successful;
-
-	private Long bossId;
-
-	private Long stageId;
-
-	private Long afterGradeId;
 
 	private Integer afterGradePoint;
 
@@ -58,18 +50,18 @@ public class Splatoon3SrResult {
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "rotation_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "rotation_id", nullable = false)
 	private Splatoon3SrRotation rotation;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "boss_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "boss_id", nullable = false)
 	private Splatoon3SrBoss boss;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "stage_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "stage_id", nullable = false)
 	private Splatoon3SrStage stage;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "after_grade_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "after_grade_id", nullable = false)
 	private Splatoon3SrGrade afterGrade;
 }

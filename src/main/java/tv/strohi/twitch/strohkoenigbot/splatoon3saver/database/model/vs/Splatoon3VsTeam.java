@@ -12,22 +12,24 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3VsTeam {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	private Long resultId;
-
 	private Integer order;
 
+	@Column(name = "ink_color_r")
 	private Double inkColorR;
 
+	@Column(name = "ink_color_g")
 	private Double inkColorG;
 
+	@Column(name = "ink_color_b")
 	private Double inkColorB;
 
+	@Column(name = "ink_color_a")
 	private Double inkColorA;
 
 	private String judgement;
@@ -51,6 +53,6 @@ public class Splatoon3VsTeam {
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "result_id", insertable = false, updatable = false)
+	@JoinColumn(name = "result_id")
 	private Splatoon3VsResult result;
 }

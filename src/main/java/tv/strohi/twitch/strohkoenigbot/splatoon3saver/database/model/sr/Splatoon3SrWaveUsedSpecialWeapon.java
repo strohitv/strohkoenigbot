@@ -12,17 +12,11 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3SrWaveUsedSpecialWeapon {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
-
-	private Long resultId;
-
-	private Integer waveNumber;
-
-	private Long specialWeaponId;
 
 	// ---
 
@@ -32,12 +26,12 @@ public class Splatoon3SrWaveUsedSpecialWeapon {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumns({
-		@JoinColumn(name = "result_id", nullable = false, insertable = false, updatable = false),
-		@JoinColumn(name = "wave_number", nullable = false, insertable = false, updatable = false)
+		@JoinColumn(name = "result_id", nullable = false),
+		@JoinColumn(name = "wave_number", nullable = false)
 	})
 	private Splatoon3SrResultWave resultWave;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "special_weapon_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "special_weapon_id", nullable = false)
 	private Splatoon3SrSpecialWeapon specialWeapon;
 }

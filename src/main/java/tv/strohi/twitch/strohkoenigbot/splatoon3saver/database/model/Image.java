@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Image {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

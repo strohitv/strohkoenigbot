@@ -15,53 +15,44 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3VsRotation {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	private Long stage1Id;
-
-	private Long stage2Id;
-
-	private Long modeId;
-
-	private Long ruleId;
-
 	private Instant startTime;
 
 	private Instant endTime;
 
-	private Long eventRegulationId;
-
+	@Lob
 	private String shortenedJson;
 
 	// ---
 
 	@ManyToOne
-	@JoinColumn(name = "stage_1_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "stage_1_id", nullable = false)
 	private Splatoon3VsStage stage1;
 
 	@ManyToOne
-	@JoinColumn(name = "stage_2_id", insertable = false, updatable = false)
+	@JoinColumn(name = "stage_2_id")
 	private Splatoon3VsStage stage2;
 
 	@ManyToOne
-	@JoinColumn(name = "mode_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "mode_id", nullable = false)
 	private Splatoon3Mode mode;
 
 	@ManyToOne
-	@JoinColumn(name = "rule_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "rule_id", nullable = false)
 	private Splatoon3VsRule rule;
 
 	@ManyToOne
-	@JoinColumn(name = "event_regulation_id", insertable = false, updatable = false)
+	@JoinColumn(name = "event_regulation_id")
 	private Splatoon3VsEventRegulation eventRegulation;
 
 	// ---
 
 	@OneToMany
-	@JoinColumn(name = "rotation_id", insertable = false, updatable = false)
+	@JoinColumn(name = "rotation_id")
 	private List<Splatoon3VsRotationSlot> slots;
 }

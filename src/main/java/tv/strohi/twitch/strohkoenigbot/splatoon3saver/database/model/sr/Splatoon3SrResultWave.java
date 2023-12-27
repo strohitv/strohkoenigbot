@@ -13,13 +13,14 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@IdClass(ResultIdWave.class)
+@Builder(toBuilder = true)@IdClass(ResultIdWave.class)
 public class Splatoon3SrResultWave {
 	@Id
+	@Column(name = "result_id")
 	private long resultId;
 
 	@Id
+	@Column(name = "wave_number")
 	private int waveNumber;
 
 	private Integer waterLevel;
@@ -30,8 +31,6 @@ public class Splatoon3SrResultWave {
 
 	private Integer goldenEggsDelivered;
 
-	private Long eventWaveId;
-
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -39,6 +38,6 @@ public class Splatoon3SrResultWave {
 	private Splatoon3SrResult result;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "event_wave_id", insertable = false, updatable = false)
+	@JoinColumn(name = "event_wave_id")
 	private Splatoon3SrEventWave eventWave;
 }

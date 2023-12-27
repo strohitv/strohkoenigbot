@@ -13,13 +13,11 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3VsStageWinRate {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
-
-	private Long stageId;
 
 	private Instant time;
 
@@ -35,6 +33,6 @@ public class Splatoon3VsStageWinRate {
 
 	// ---
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "stage_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "stage_id", nullable = false)
 	private Splatoon3VsStage stage;
 }

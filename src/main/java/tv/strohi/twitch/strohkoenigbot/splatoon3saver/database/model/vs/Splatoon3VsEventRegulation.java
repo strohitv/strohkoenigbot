@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3VsEventRegulation {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,5 +28,6 @@ public class Splatoon3VsEventRegulation {
 
 	private String regulation;
 
+	@Lob
 	private String shortenedJson;
 }

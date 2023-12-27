@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Splatoon3VsResult {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,34 +29,27 @@ public class Splatoon3VsResult {
 
 	private String ownJudgement;
 
-	private String knockOut;
+	private String knockout;
 
-	private Long modeId;
-
-	private Long ruleId;
-
-	private Long rotationId;
-
-	private Long stageId;
-
+	@Lob
 	private String shortenedJson;
 
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "mode_id", insertable = false, updatable = false)
+	@JoinColumn(name = "mode_id")
 	private Splatoon3Mode mode;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "rule_id", insertable = false, updatable = false)
+	@JoinColumn(name = "rule_id")
 	private Splatoon3VsRule rule;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "rotation_id", insertable = false, updatable = false)
+	@JoinColumn(name = "rotation_id")
 	private Splatoon3VsRotation rotation;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "stage_id", insertable = false, updatable = false)
+	@JoinColumn(name = "stage_id")
 	private Splatoon3VsStage stage;
 
 	@ManyToMany(fetch = FetchType.LAZY)
