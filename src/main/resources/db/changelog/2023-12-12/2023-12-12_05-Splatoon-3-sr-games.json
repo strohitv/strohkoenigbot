@@ -610,7 +610,7 @@
 
           {
             "createTable": {
-              "tableName": "splatoon_3_sr_wave",
+              "tableName": "splatoon_3_sr_result_wave",
               "columns": [
                 {
                   "column": {
