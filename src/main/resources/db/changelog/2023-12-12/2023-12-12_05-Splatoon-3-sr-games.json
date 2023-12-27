@@ -828,7 +828,7 @@
 
           {
             "createTable": {
-              "tableName": "splatoon_3_sr_result_player_wave_weapon",
+              "tableName": "splatoon_3_sr_result_wave_player_weapon",
               "columns": [
                 {
                   "column": {
