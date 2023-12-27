@@ -30,7 +30,7 @@ public class Splatoon3VsStage {
 	private String shortenedJson;
 
 	// ---
-	@ManyToOne
-	@JoinColumn(name = "shortened_image_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "shortened_image_id", nullable = false, insertable = false, updatable = false)
 	private ShortenedImage shortenedImage;
 }

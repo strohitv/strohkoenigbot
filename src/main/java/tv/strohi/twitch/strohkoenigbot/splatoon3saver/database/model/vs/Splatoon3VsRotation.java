@@ -8,6 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Splatoon3Mo
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.List;
 
 @Entity(name = "splatoon_3_vs_rotation")
 @Cacheable(false)
@@ -37,23 +38,30 @@ public class Splatoon3VsRotation {
 	private String shortenedJson;
 
 	// ---
+
 	@ManyToOne
-	@JoinColumn(name = "stage_1_id")
+	@JoinColumn(name = "stage_1_id", nullable = false, insertable = false, updatable = false)
 	private Splatoon3VsStage stage1;
 
 	@ManyToOne
-	@JoinColumn(name = "stage_2_id")
+	@JoinColumn(name = "stage_2_id", insertable = false, updatable = false)
 	private Splatoon3VsStage stage2;
 
 	@ManyToOne
-	@JoinColumn(name = "mode_id")
+	@JoinColumn(name = "mode_id", nullable = false, insertable = false, updatable = false)
 	private Splatoon3Mode mode;
 
 	@ManyToOne
-	@JoinColumn(name = "rule_id")
+	@JoinColumn(name = "rule_id", nullable = false, insertable = false, updatable = false)
 	private Splatoon3VsRule rule;
 
 	@ManyToOne
-	@JoinColumn(name = "event_regulation_id")
+	@JoinColumn(name = "event_regulation_id", insertable = false, updatable = false)
 	private Splatoon3VsEventRegulation eventRegulation;
+
+	// ---
+
+	@OneToMany
+	@JoinColumn(name = "rotation_id", insertable = false, updatable = false)
+	private List<Splatoon3VsRotationSlot> slots;
 }

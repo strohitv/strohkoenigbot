@@ -34,7 +34,7 @@
                     "name": "image_file_path",
                     "type": "varchar(1200)",
                     "constraints": {
-                      "nullable": false
+                      "nullable": true
                     }
                   }
                 }

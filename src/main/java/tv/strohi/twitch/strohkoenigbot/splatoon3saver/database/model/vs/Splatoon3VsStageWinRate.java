@@ -34,7 +34,7 @@ public class Splatoon3VsStageWinRate {
 	private Double winRateTurf;
 
 	// ---
-	@ManyToOne
-	@JoinColumn(name = "stage_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "stage_id", nullable = false, insertable = false, updatable = false)
 	private Splatoon3VsStage stage;
 }

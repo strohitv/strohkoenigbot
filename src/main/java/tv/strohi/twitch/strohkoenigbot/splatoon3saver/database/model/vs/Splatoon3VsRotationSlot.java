@@ -26,7 +26,7 @@ public class Splatoon3VsRotationSlot {
 	private Instant endTime;
 
 	// ---
-	@ManyToOne
-	@JoinColumn(name = "rotation_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "rotation_id", nullable = false, insertable = false, updatable = false)
 	private Splatoon3VsRotation rotation;
 }

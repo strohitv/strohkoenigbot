@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.ShortenedImage;
 
 import javax.persistence.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Entity(name = "splatoon_3_sr_weapon")
 @Cacheable(false)
@@ -24,7 +28,33 @@ public class Splatoon3SrWeapon {
 	private Long shortenedImageId;
 
 	// ---
-	@ManyToOne
-	@JoinColumn(name = "shortened_image_id")
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "shortened_image_id", nullable = false, insertable = false, updatable = false)
 	private ShortenedImage shortenedImage;
+
+	// ---
+
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "weapon_1_id", insertable = false, updatable = false)
+	private List<Splatoon3SrRotation> rotationsWeapon1;
+
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "weapon_2_id", insertable = false, updatable = false)
+	private List<Splatoon3SrRotation> rotationsWeapon2;
+
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "weapon_3_id", insertable = false, updatable = false)
+	private List<Splatoon3SrRotation> rotationsWeapon3;
+
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "weapon_4_id", insertable = false, updatable = false)
+	private List<Splatoon3SrRotation> rotationsWeapon4;
+
+	public List<Splatoon3SrRotation> getAllRotations() {
+		return Stream.of(rotationsWeapon1, rotationsWeapon2, rotationsWeapon3, rotationsWeapon4)
+			.flatMap(List::stream)
+			.sorted(Comparator.comparing(Splatoon3SrRotation::getStartTime))
+			.collect(Collectors.toList());
+	}
 }

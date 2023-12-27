@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.ShortenedImage;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity(name = "splatoon_3_sr_boss")
 @Cacheable(false)
@@ -24,7 +25,14 @@ public class Splatoon3SrBoss {
 	private Long shortenedImageId;
 
 	// ---
+
 	@ManyToOne
-	@JoinColumn(name = "shortened_image_id")
+	@JoinColumn(name = "shortened_image_id", nullable = false, insertable = false, updatable = false)
 	private ShortenedImage shortenedImage;
+
+	// ---
+
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "boss_id", insertable = false, updatable = false)
+	private List<Splatoon3SrRotation> rotations;
 }

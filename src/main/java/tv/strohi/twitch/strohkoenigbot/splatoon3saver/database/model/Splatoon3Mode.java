@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity(name = "splatoon_3_mode")
 @Cacheable(false)
@@ -21,4 +22,10 @@ public class Splatoon3Mode {
 	private String apiTypename;
 
 	private String apiBankaraMode;
+
+	// ---
+
+	@OneToMany
+	@JoinColumn(name = "mode_id", insertable = false, updatable = false)
+	private List<Splatoon3ModeDiscordChannel> discordChannels;
 }

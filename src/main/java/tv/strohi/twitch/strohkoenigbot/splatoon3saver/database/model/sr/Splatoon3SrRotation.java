@@ -41,31 +41,31 @@ public class Splatoon3SrRotation {
 	private String shortenedJson;
 
 	// ---
-	@ManyToOne
-	@JoinColumn(name = "stage_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "stage_id",nullable = false, insertable = false, updatable = false)
 	private Splatoon3SrStage stage;
 
-	@ManyToOne
-	@JoinColumn(name = "mode_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "mode_id",nullable = false, insertable = false, updatable = false)
 	private Splatoon3Mode mode;
 
-	@ManyToOne
-	@JoinColumn(name = "boss_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "boss_id",nullable = false, insertable = false, updatable = false)
 	private Splatoon3SrBoss boss;
 
-	@ManyToOne
-	@JoinColumn(name = "weapon_1_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "weapon_1_id",nullable = false, insertable = false, updatable = false)
 	private Splatoon3SrWeapon weapon1;
 
-	@ManyToOne
-	@JoinColumn(name = "weapon_2_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "weapon_2_id",nullable = false, insertable = false, updatable = false)
 	private Splatoon3SrWeapon weapon2;
 
-	@ManyToOne
-	@JoinColumn(name = "weapon_3_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "weapon_3_id",nullable = false, insertable = false, updatable = false)
 	private Splatoon3SrWeapon weapon3;
 
-	@ManyToOne
-	@JoinColumn(name = "weapon_4_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "weapon_4_id",nullable = false, insertable = false, updatable = false)
 	private Splatoon3SrWeapon weapon4;
 }
