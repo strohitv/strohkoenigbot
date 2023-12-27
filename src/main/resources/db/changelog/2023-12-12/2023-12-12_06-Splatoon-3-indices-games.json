@@ -22,6 +22,21 @@
           },
           {
             "createIndex": {
+              "tableName": "splatoon_3_player",
+              "indexName": "idx_splatoon_3_player_api_prefixed_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_prefixed_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
               "tableName": "splatoon_3_vs_result",
               "indexName": "idx_splatoon_3_vs_result_api_id",
               "unique": false,

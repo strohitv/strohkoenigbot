@@ -7,28 +7,6 @@
         "changes": [
           {
             "createTable": {
-              "tableName": "image_download_queue",
-              "columns": [
-                {
-                  "column": {
-                    "name": "image_id",
-                    "type": "bigint",
-                    "autoIncrement": false,
-                    "constraints": {
-                      "primaryKey": true,
-                      "nullable": false,
-                      "foreignKeyName": "fk_image_download_queue_image",
-                      "references": "image(id)"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-
-
-          {
-            "createTable": {
               "tableName": "splatoon_3_player",
               "columns": [
                 {
@@ -45,7 +23,16 @@
                 {
                   "column": {
                     "name": "api_id",
-                    "type": "varchar(250)",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_prefixed_id",
+                    "type": "varchar(42)",
                     "constraints": {
                       "nullable": false
                     }
