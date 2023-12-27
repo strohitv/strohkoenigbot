@@ -113,6 +113,16 @@
                       "nullable": false
                     }
                   }
+                },
+                {
+                  "column": {
+                    "name": "owned",
+                    "type": "boolean",
+                    "defaultOnNull": false,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
                 }
               ]
             }
@@ -151,6 +161,16 @@
                       "nullable": false,
                       "foreignKeyName": "fk_vs_badge_image",
                       "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "owned",
+                    "type": "boolean",
+                    "defaultOnNull": false,
+                    "constraints": {
+                      "nullable": false
                     }
                   }
                 }
