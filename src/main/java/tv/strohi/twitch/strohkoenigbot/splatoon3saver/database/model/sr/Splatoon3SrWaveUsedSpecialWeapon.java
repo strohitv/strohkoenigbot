@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-@Entity(name = "splatoon_3_sr_wave_used_special_weapon")
+@Entity(name = "splatoon_3_sr_result_wave_used_special_weapon")
 @Cacheable(false)
 @Data
 @NoArgsConstructor

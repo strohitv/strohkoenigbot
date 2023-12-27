@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-@Entity(name = "splatoon_3_vs_result")
+@Entity(name = "splatoon_3_vs_team")
 @Cacheable(false)
 @Data
 @NoArgsConstructor

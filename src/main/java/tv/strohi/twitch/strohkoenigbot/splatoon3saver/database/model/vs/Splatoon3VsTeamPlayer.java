@@ -9,7 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.id.TeamP
 
 import javax.persistence.*;
 
-@Entity(name = "splatoon_3_vs_result")
+@Entity(name = "splatoon_3_vs_team_player")
 @Cacheable(false)
 @Data
 @NoArgsConstructor

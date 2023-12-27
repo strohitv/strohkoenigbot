@@ -491,7 +491,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": true,
-                      "foreignKeyName": "fk_vs_team_player_badge_left",
+                      "foreignKeyName": "fk_sr_result_player_badge_left",
                       "references": "splatoon_3_badge(id)"
                     }
                   }
@@ -502,7 +502,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": true,
-                      "foreignKeyName": "fk_vs_team_player_badge_middle",
+                      "foreignKeyName": "fk_sr_result_player_badge_middle",
                       "references": "splatoon_3_badge(id)"
                     }
                   }
@@ -513,7 +513,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": true,
-                      "foreignKeyName": "fk_vs_team_player_badge_right",
+                      "foreignKeyName": "fk_sr_result_player_badge_right",
                       "references": "splatoon_3_badge(id)"
                     }
                   }
@@ -619,7 +619,7 @@
                     "autoIncrement": false,
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_sr_wave_result",
+                      "foreignKeyName": "fk_sr_result_wave_result",
                       "references": "splatoon_3_sr_result(id)"
                     }
                   }
@@ -675,7 +675,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": true,
-                      "foreignKeyName": "fk_sr_wave_event_wave",
+                      "foreignKeyName": "fk_sr_result_wave_event_wave",
                       "references": "splatoon_3_sr_event_wave(id)"
                     }
                   }
@@ -689,7 +689,7 @@
             "addPrimaryKey":
             {
               "columnNames":  "result_id, wave_number",
-              "tableName":  "splatoon_3_sr_wave",
+              "tableName":  "splatoon_3_sr_result_wave",
               "validate":  true
             }
           },
@@ -697,7 +697,7 @@
 
           {
             "createTable": {
-              "tableName": "splatoon_3_sr_wave_used_special_weapon",
+              "tableName": "splatoon_3_sr_result_wave_used_special_weapon",
               "columns": [
                 {
                   "column": {
@@ -734,7 +734,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_sr_wave_used_special_weapon_special_weapon",
+                      "foreignKeyName": "fk_sr_result_wave_used_special_weapon_special_weapon",
                       "references": "splatoon_3_sr_special_weapon(id)"
                     }
                   }
@@ -747,10 +747,10 @@
           {
             "addForeignKeyConstraint": {
               "baseColumnNames": "result_id, wave_number",
-              "baseTableName": "splatoon_3_sr_wave_used_special_weapon",
+              "baseTableName": "splatoon_3_sr_result_wave_used_special_weapon",
               "referencedColumnNames": "result_id, wave_number",
-              "referencedTableName": "splatoon_3_sr_wave",
-              "constraintName": "fk_sr_wave_used_special_weapon_result_id_wave_number",
+              "referencedTableName": "splatoon_3_sr_result_wave",
+              "constraintName": "fk_sr_result_wave_used_special_weapon_result_id_wave_number",
               "validate": true
             }
           },
@@ -878,9 +878,9 @@
           {
             "addForeignKeyConstraint": {
               "baseColumnNames": "result_id, wave_number",
-              "baseTableName": "splatoon_3_sr_result_player_wave_weapon",
+              "baseTableName": "splatoon_3_sr_result_wave_player_weapon",
               "referencedColumnNames": "result_id, wave_number",
-              "referencedTableName": "splatoon_3_sr_wave",
+              "referencedTableName": "splatoon_3_sr_result_wave",
               "constraintName": "fk_sr_result_player_wave_weapon_result_id_wave_number",
               "validate": true
             }
@@ -891,7 +891,7 @@
             "addPrimaryKey":
             {
               "columnNames":  "result_id, wave_number, player_id, weapon_id",
-              "tableName":  "splatoon_3_sr_result_player_wave_weapon",
+              "tableName":  "splatoon_3_sr_result_wave_player_weapon",
               "validate":  true
             }
           }
