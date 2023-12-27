@@ -26,7 +26,7 @@ public class Splatoon3SrBoss {
 
 	// ---
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "image_id", nullable = false, insertable = false, updatable = false)
 	private Image image;
 

@@ -30,11 +30,11 @@ public class Splatoon3SrStage {
 
 	// ---
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "image_id", nullable = false, insertable = false, updatable = false)
 	private Image image;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "thumbnail_image_id", nullable = false, insertable = false, updatable = false)
 	private Image shortenedThumbnailImage;
 
