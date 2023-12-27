@@ -25,7 +25,7 @@ public class Splatoon3SrWeapon {
 
 	private String name;
 
-	private Long shortenedImageId;
+	private Long imageId;
 
 	// ---
 

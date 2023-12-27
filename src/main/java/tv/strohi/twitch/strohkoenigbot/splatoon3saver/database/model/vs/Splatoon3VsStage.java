@@ -25,7 +25,7 @@ public class Splatoon3VsStage {
 
 	private String name;
 
-	private Long shortenedImageId;
+	private Long imageId;
 
 	private String shortenedJson;
 

@@ -22,7 +22,7 @@ public class Splatoon3SrBoss {
 
 	private String apiId;
 
-	private Long shortenedImageId;
+	private Long imageId;
 
 	// ---
 
