@@ -120,7 +120,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_sr_uniform_image_shortened",
+                      "foreignKeyName": "fk_sr_uniform_image",
                       "references": "image(id)"
                     }
                   }
@@ -169,7 +169,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_sr_enemy_image_shortened",
+                      "foreignKeyName": "fk_sr_enemy_image",
                       "references": "image(id)"
                     }
                   }
@@ -209,7 +209,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_sr_special_weapon_image_shortened",
+                      "foreignKeyName": "fk_sr_special_weapon_image",
                       "references": "image(id)"
                     }
                   }

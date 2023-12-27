@@ -91,7 +91,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_stage_image_shortened",
+                      "foreignKeyName": "fk_vs_stage_image",
                       "references": "image(id)"
                     }
                   }

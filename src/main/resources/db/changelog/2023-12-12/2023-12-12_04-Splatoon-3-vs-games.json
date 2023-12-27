@@ -73,7 +73,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_nameplate_image_shortened",
+                      "foreignKeyName": "fk_vs_nameplate_image",
                       "references": "image(id)"
                     }
                   }
@@ -149,7 +149,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_badge_image_shortened",
+                      "foreignKeyName": "fk_vs_badge_image",
                       "references": "image(id)"
                     }
                   }
@@ -236,7 +236,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_ability_image_shortened",
+                      "foreignKeyName": "fk_vs_ability_image",
                       "references": "image(id)"
                     }
                   }
@@ -294,7 +294,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_brand_image_shortened",
+                      "foreignKeyName": "fk_vs_brand_image",
                       "references": "image(id)"
                     }
                   }
@@ -345,7 +345,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_gear_image_shortened",
+                      "foreignKeyName": "fk_vs_gear_image",
                       "references": "image(id)"
                     }
                   }
@@ -414,7 +414,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_special_weapon_image_shortened",
+                      "foreignKeyName": "fk_vs_special_weapon_image",
                       "references": "image(id)"
                     }
                   }
@@ -443,7 +443,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_special_weapon_masking_image_shortened",
+                      "foreignKeyName": "fk_vs_special_weapon_masking_image",
                       "references": "image(id)"
                     }
                   }
@@ -454,7 +454,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_special_weapon_overlay_image_shortened",
+                      "foreignKeyName": "fk_vs_special_weapon_overlay_image",
                       "references": "image(id)"
                     }
                   }
@@ -503,7 +503,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_sub_weapon_image_shortened",
+                      "foreignKeyName": "fk_vs_sub_weapon_image",
                       "references": "image(id)"
                     }
                   }
@@ -574,7 +574,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_weapon_image_shortened",
+                      "foreignKeyName": "fk_vs_weapon_image",
                       "references": "image(id)"
                     }
                   }
@@ -585,7 +585,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_weapon_image_2_d_shortened",
+                      "foreignKeyName": "fk_vs_weapon_image_2_d",
                       "references": "image(id)"
                     }
                   }
@@ -596,7 +596,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_weapon_image_2_d_thumbnail_shortened",
+                      "foreignKeyName": "fk_vs_weapon_image_2_d_thumbnail",
                       "references": "image(id)"
                     }
                   }
@@ -607,7 +607,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_weapon_image_3_d_shortened",
+                      "foreignKeyName": "fk_vs_weapon_image_3_d",
                       "references": "image(id)"
                     }
                   }
@@ -618,7 +618,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_weapon_image_3_d_thumbnail_shortened",
+                      "foreignKeyName": "fk_vs_weapon_image_3_d_thumbnail",
                       "references": "image(id)"
                     }
                   }
