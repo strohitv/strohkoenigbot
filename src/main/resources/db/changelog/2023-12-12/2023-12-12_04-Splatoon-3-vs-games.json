@@ -1012,6 +1012,39 @@
                 },
                 {
                   "column": {
+                    "name": "badge_left_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_vs_team_player_badge_left",
+                      "references": "splatoon_3_badge(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "badge_middle_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_vs_team_player_badge_middle",
+                      "references": "splatoon_3_badge(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "badge_right_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_vs_team_player_badge_right",
+                      "references": "splatoon_3_badge(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
                     "name": "species",
                     "type": "varchar(20)",
                     "constraints": {
@@ -1253,67 +1286,6 @@
             {
               "columnNames":  "team_id, player_id",
               "tableName":  "splatoon_3_vs_team_player",
-              "validate":  true
-            }
-          },
-
-
-          {
-            "createTable": {
-              "tableName": "splatoon_3_vs_team_player_badge",
-              "columns": [
-                {
-                  "column": {
-                    "name": "team_id",
-                    "type": "bigint",
-                    "constraints": {
-                      "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_badge_team",
-                      "references": "splatoon_3_vs_team(id)"
-                    }
-                  }
-                },
-                {
-                  "column": {
-                    "name": "player_id",
-                    "type": "bigint",
-                    "constraints": {
-                      "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_badge_player",
-                      "references": "splatoon_3_player(id)"
-                    }
-                  }
-                },
-                {
-                  "column": {
-                    "name": "badge_id",
-                    "type": "bigint",
-                    "constraints": {
-                      "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_badge_badge",
-                      "references": "splatoon_3_badge(id)"
-                    }
-                  }
-                },
-                {
-                  "column": {
-                    "name": "position",
-                    "type": "int",
-                    "constraints": {
-                      "nullable": false
-                    }
-                  }
-                }
-              ]
-            }
-          },
-
-
-          {
-            "addPrimaryKey":
-            {
-              "columnNames":  "team_id, player_id, badge_id",
-              "tableName":  "splatoon_3_vs_team_player_badge",
               "validate":  true
             }
           }
