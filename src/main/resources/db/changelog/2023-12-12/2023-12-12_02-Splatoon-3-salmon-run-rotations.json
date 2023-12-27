@@ -40,12 +40,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": true,
                       "foreignKeyName": "fk_salmon_run_boss_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }
@@ -89,23 +89,23 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_salmon_run_stage_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
                 {
                   "column": {
-                    "name": "shortened_thumbnail_image_id",
+                    "name": "thumbnail_image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_salmon_run_stage_image_thumbnail_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }
@@ -140,12 +140,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_salmon_run_weapon_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }

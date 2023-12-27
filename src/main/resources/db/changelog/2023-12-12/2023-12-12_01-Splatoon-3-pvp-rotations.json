@@ -7,7 +7,7 @@
         "changes": [
           {
             "createTable": {
-              "tableName": "shortened_image",
+              "tableName": "image",
               "columns": [
                 {
                   "column": {
@@ -22,7 +22,7 @@
                 },
                 {
                   "column": {
-                    "name": "image_url",
+                    "name": "url",
                     "type": "varchar(1200)",
                     "constraints": {
                       "nullable": false
@@ -31,7 +31,7 @@
                 },
                 {
                   "column": {
-                    "name": "image_file_path",
+                    "name": "file_path",
                     "type": "varchar(1200)",
                     "constraints": {
                       "nullable": true
@@ -87,12 +87,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_stage_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },

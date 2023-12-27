@@ -18,7 +18,7 @@
                       "primaryKey": true,
                       "nullable": false,
                       "foreignKeyName": "fk_image_download_queue_image",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }
@@ -82,12 +82,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_nameplate_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
@@ -158,12 +158,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_badge_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }
@@ -245,12 +245,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_ability_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
@@ -303,12 +303,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_brand_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
@@ -354,12 +354,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_gear_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
@@ -423,12 +423,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_special_weapon_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
@@ -452,23 +452,23 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_masking_image_id",
+                    "name": "masking_image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_special_weapon_masking_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
                 {
                   "column": {
-                    "name": "shortened_overlay_image_id",
+                    "name": "overlay_image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_special_weapon_overlay_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }
@@ -512,12 +512,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_sub_weapon_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }
@@ -583,56 +583,56 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_weapon_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
                 {
                   "column": {
-                    "name": "shortened_image_2_d_id",
+                    "name": "image_2_d_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_weapon_image_2_d_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
                 {
                   "column": {
-                    "name": "shortened_image_2_d_thumbnail_id",
+                    "name": "image_2_d_thumbnail_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_weapon_image_2_d_thumbnail_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
                 {
                   "column": {
-                    "name": "shortened_image_3_d_id",
+                    "name": "image_3_d_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_weapon_image_3_d_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 },
                 {
                   "column": {
-                    "name": "shortened_image_3_d_thumbnail_id",
+                    "name": "image_3_d_thumbnail_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_weapon_image_3_d_thumbnail_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }

@@ -7,13 +7,13 @@
         "changes": [
           {
             "createIndex": {
-              "tableName": "shortened_image",
-              "indexName": "idx_shortened_image_image_url",
+              "tableName": "image",
+              "indexName": "idx_image_url",
               "unique": true,
               "columns": [
                 {
                   "column": {
-                    "name": "image_url",
+                    "name": "url",
                     "descending": false
                   }
                 }

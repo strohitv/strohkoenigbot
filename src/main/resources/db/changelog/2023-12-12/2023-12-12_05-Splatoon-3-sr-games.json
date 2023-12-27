@@ -116,12 +116,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_sr_uniform_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }
@@ -165,12 +165,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_sr_enemy_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }
@@ -205,12 +205,12 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_image_id",
+                    "name": "image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_sr_special_weapon_image_shortened",
-                      "references": "shortened_image(id)"
+                      "references": "image(id)"
                     }
                   }
                 }

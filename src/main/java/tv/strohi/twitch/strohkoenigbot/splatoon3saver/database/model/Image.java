@@ -7,18 +7,18 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-@Entity(name = "shortened_image")
+@Entity(name = "image")
 @Cacheable(false)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ShortenedImage {
+public class Image {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	private String imageUrl;
+	private String url;
 
-	private String imageFilePath;
+	private String filePath;
 }

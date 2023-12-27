@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.ShortenedImage;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 
 import javax.persistence.*;
 import java.util.List;
@@ -27,8 +27,8 @@ public class Splatoon3SrBoss {
 	// ---
 
 	@ManyToOne
-	@JoinColumn(name = "shortened_image_id", nullable = false, insertable = false, updatable = false)
-	private ShortenedImage shortenedImage;
+	@JoinColumn(name = "image_id", nullable = false, insertable = false, updatable = false)
+	private Image image;
 
 	// ---
 

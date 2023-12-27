@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.ShortenedImage;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 
 import javax.persistence.*;
 import java.util.List;
@@ -24,19 +24,19 @@ public class Splatoon3SrStage {
 
 	private String name;
 
-	private Long shortenedImageId;
+	private Long imageId;
 
 	private Long shortenedThumbnailImageId;
 
 	// ---
 
 	@ManyToOne
-	@JoinColumn(name = "shortened_image_id", nullable = false, insertable = false, updatable = false)
-	private ShortenedImage shortenedImage;
+	@JoinColumn(name = "image_id", nullable = false, insertable = false, updatable = false)
+	private Image image;
 
 	@ManyToOne
-	@JoinColumn(name = "shortened_thumbnail_image_id", nullable = false, insertable = false, updatable = false)
-	private ShortenedImage shortenedThumbnailImage;
+	@JoinColumn(name = "thumbnail_image_id", nullable = false, insertable = false, updatable = false)
+	private Image shortenedThumbnailImage;
 
 	// ---
 
