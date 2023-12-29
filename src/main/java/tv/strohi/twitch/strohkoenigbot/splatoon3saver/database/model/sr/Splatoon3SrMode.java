@@ -21,6 +21,8 @@ public class Splatoon3SrMode {
 
 	private String apiTypename;
 
+	private String apiMode;
+
 	private String apiRule;
 
 	private String apiSchedulesName;

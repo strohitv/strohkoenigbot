@@ -164,6 +164,39 @@
                 }
               ]
             }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_sr_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "CoopNormalSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "REGULAR"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_rule",
+                    "value": "REGULAR"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_schedules_name",
+                    "value": "regularSchedules"
+                  }
+                }
+              ]
+            }
           }
         ]
       }
