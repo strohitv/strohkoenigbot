@@ -21,13 +21,13 @@ public enum S3RequestKey {
 	GameDetail("f893e1ddcfb8a4fd645fd75ced173f18b2750e5cfba41d2669b9814f6ceaec46", "/history/detail/VnNIaXN0b3J5RGV0YWlsLXUtYWVrcHRqYmd6N3hvdmd3emtvbW06QkFOS0FSQToyMDIzMDgyN1QyMTQ5NTBfYWY0MmRjYTItODY2ZC00YTY1LTg5ZDUtY2U3OGY1Y2U4YmQ4"),
 
 	Salmon("0f8c33970a425683bb1bdecca50a0ca4fb3c3641c0b2a1237aedfde9c0cb2b8f", "/coop"),
-	SalmonDetail("824a1e22c4ad4eece7ad94a9a0343ecd76784be4f77d8f6f563c165afc8cf602", "/coop/Q29vcEhpc3RvcnlEZXRhaWwtdS1hZWtwdGpiZ3o3eG92Z3d6a29tbToyMDIzMDkwM1QyMTQ4NDlfNTI4OWJjY2YtYjUxYS00Yzg4LWJiMDktNjEzMzZlOTA3OGVl"),
+	SalmonDetail("42262d241291d7324649e21413b29da88c0314387d8fdf5f6637a2d9d29954ae", "/coop/Q29vcEhpc3RvcnlEZXRhaWwtdS1hZWtwdGpiZ3o3eG92Z3d6a29tbToyMDIzMDkwM1QyMTQ4NDlfNTI4OWJjY2YtYjUxYS00Yzg4LWJiMDktNjEzMzZlOTA3OGVl"),
 
 	SplatNetShop("d6f94d4c05a111957bcd65f8649d628b02bf32d81f26f1d5b56eaef438e55bab", "/gesotown"),
 	OwnedWeaponsAndGear("45a4c343d973864f7bb9e9efac404182be1d48cf2181619505e9b7cd3b56a6e8", "/my_outfits/create"),
 	Weapons("974fad8a1275b415c3386aa212b07eddc3f6582686e4fef286ec4043cdf17135", "/weapon_record"),
 
-	RotationSchedules("9b6b90568f990b2a14f04c25dd6eb53b35cc12ac815db85ececfccee64215edd", "/schedule/bankara");
+	RotationSchedules("d49fb6adffe15e3e43ca1167397debfc580eede3ad2232d7e32062bc5487e7eb", "/schedule/bankara");
 
 	@Getter
 	private final static EnumSet<S3RequestKey> onlineBattles = EnumSet.of(Regular, Anarchy, XRank, Challenge, Private); // EnumSet.of(Latest, Regular, Anarchy, Private); //
