@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface Splatoon3VsRuleRepository extends CrudRepository<Splatoon3VsRule, Long> {
 	Optional<Splatoon3VsRule> findById(long id);
+	Optional<Splatoon3VsRule> findByApiId(String apiId);
 }
