@@ -7,6 +7,87 @@
         "changes": [
           {
             "createTable": {
+              "tableName": "splatoon_3_sr_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_rule",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_schedules_name",
+                    "type": "varchar(30)"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_mode_discord_channel_mode_id",
+                      "references": "splatoon_3_sr_mode(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "type": "varchar(50)"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
               "tableName": "splatoon_3_sr_boss",
               "columns": [
                 {
@@ -187,7 +268,7 @@
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_salmon_run_rotation_mode_id",
-                      "references": "splatoon_3_mode(id)"
+                      "references": "splatoon_3_sr_mode(id)"
                     }
                   }
                 },

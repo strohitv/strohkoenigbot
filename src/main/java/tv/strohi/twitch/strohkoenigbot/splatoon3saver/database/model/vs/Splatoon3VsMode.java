@@ -6,27 +6,30 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
-@Entity(name = "splatoon_3_vs_event_regulation")
+@Entity(name = "splatoon_3_vs_mode")
 @Cacheable(false)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class Splatoon3VsEventRegulation {
+public class Splatoon3VsMode {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	private String apiId;
 
-	private String apiLeagueMatchEventId;
+	private String apiMode;
 
-	private String name;
+	private String apiTypename;
 
-	private String description;
+	private String apiBankaraMode;
 
-	private String regulation;
+	// ---
 
-	private String regulationUrl;
+	@OneToMany
+	@JoinColumn(name = "mode_id", insertable = false, updatable = false)
+	private List<Splatoon3VsModeDiscordChannel> discordChannels;
 }

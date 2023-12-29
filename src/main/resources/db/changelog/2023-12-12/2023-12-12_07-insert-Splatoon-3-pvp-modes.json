@@ -1,0 +1,172 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2023-12-12_01-splatoon-3-vs-rotations",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTE="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "REGULAR"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "RegularMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTI="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "BANKARA"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "BankaraMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode",
+                    "value": "CHALLENGE"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTUx"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "BANKARA"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "BankaraMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode",
+                    "value": "OPEN"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTM="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "X_MATCH"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "XMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTQ="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "LEAGUE"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "LeagueMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

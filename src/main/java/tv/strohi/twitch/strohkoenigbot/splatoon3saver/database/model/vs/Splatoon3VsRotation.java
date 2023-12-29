@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Splatoon3Mode;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -19,7 +18,7 @@ import java.util.List;
 public class Splatoon3VsRotation {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	private Instant startTime;
 
@@ -40,7 +39,7 @@ public class Splatoon3VsRotation {
 
 	@ManyToOne
 	@JoinColumn(name = "mode_id", nullable = false)
-	private Splatoon3Mode mode;
+	private Splatoon3VsMode mode;
 
 	@ManyToOne
 	@JoinColumn(name = "rule_id", nullable = false)

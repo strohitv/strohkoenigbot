@@ -17,16 +17,11 @@ import javax.persistence.*;
 public class Splatoon3VsStage {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	private String apiId;
 
-	private Integer apiVsStageId;
-
 	private String name;
-
-	@Lob
-	private String shortenedJson;
 
 	// ---
 	@ManyToOne(fetch = FetchType.LAZY)

@@ -69,15 +69,6 @@
                 },
                 {
                   "column": {
-                    "name": "api_vs_stage_id",
-                    "type": "int",
-                    "constraints": {
-                      "nullable": false
-                    }
-                  }
-                },
-                {
-                  "column": {
                     "name": "name",
                     "type": "varchar(50)",
                     "constraints": {
@@ -93,15 +84,6 @@
                       "nullable": false,
                       "foreignKeyName": "fk_vs_stage_image",
                       "references": "image(id)"
-                    }
-                  }
-                },
-                {
-                  "column": {
-                    "name": "shortened_json",
-                    "type": "clob",
-                    "constraints": {
-                      "nullable": false
                     }
                   }
                 }
@@ -182,7 +164,7 @@
 
           {
             "createTable": {
-              "tableName": "splatoon_3_mode",
+              "tableName": "splatoon_3_vs_mode",
               "columns": [
                 {
                   "column": {
@@ -191,6 +173,24 @@
                     "autoIncrement": true,
                     "constraints": {
                       "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(20)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "type": "varchar(40)",
+                    "constraints": {
                       "nullable": false
                     }
                   }
@@ -217,7 +217,7 @@
 
           {
             "createTable": {
-              "tableName": "splatoon_3_mode_discord_channel",
+              "tableName": "splatoon_3_vs_mode_discord_channel",
               "columns": [
                 {
                   "column": {
@@ -236,8 +236,8 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_mode_discord_channel_mode_id",
-                      "references": "splatoon_3_mode(id)"
+                      "foreignKeyName": "fk_vs_mode_discord_channel_mode_id",
+                      "references": "splatoon_3_vs_mode(id)"
                     }
                   }
                 },
@@ -352,11 +352,8 @@
                 },
                 {
                   "column": {
-                    "name": "shortened_json",
-                    "type": "clob",
-                    "constraints": {
-                      "nullable": false
-                    }
+                    "name": "regulation_url",
+                    "type": "varchar(500)"
                   }
                 }
               ]
@@ -408,7 +405,7 @@
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_rotation_mode_id",
-                      "references": "splatoon_3_mode(id)"
+                      "references": "splatoon_3_vs_mode(id)"
                     }
                   }
                 },

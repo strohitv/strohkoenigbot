@@ -715,7 +715,7 @@
                     "constraints": {
                       "nullable": false,
                       "foreignKeyName": "fk_vs_result_mode",
-                      "references": "splatoon_3_mode(id)"
+                      "references": "splatoon_3_vs_mode(id)"
                     }
                   }
                 },
