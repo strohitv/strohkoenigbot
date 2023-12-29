@@ -22,10 +22,12 @@ public class Splatoon3SrBoss {
 
 	private String apiId;
 
+	private String name;
+
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "image_id", nullable = false)
+	@JoinColumn(name = "image_id")
 	private Image image;
 
 	// ---

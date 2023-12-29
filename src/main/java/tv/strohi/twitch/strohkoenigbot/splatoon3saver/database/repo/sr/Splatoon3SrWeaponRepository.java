@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface Splatoon3SrWeaponRepository extends CrudRepository<Splatoon3SrWeapon, Long> {
 	Optional<Splatoon3SrWeapon> findById(long id);
+	Optional<Splatoon3SrWeapon> findByName(String name);
 }
