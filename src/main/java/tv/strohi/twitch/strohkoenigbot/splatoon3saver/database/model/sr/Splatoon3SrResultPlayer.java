@@ -16,7 +16,8 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)@IdClass(ResultPlayerId.class)
+@Builder(toBuilder = true)
+@IdClass(ResultPlayerId.class)
 public class Splatoon3SrResultPlayer {
 	@Id
 	@Column(name = "result_id")

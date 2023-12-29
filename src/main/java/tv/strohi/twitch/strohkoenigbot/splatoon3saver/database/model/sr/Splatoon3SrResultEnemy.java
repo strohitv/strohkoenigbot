@@ -13,7 +13,8 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)@IdClass(ResultEnemyId.class)
+@Builder(toBuilder = true)
+@IdClass(ResultEnemyId.class)
 public class Splatoon3SrResultEnemy {
 	@Id
 	@Column(name = "result_id")

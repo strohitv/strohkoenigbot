@@ -14,7 +14,8 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)@IdClass(TeamPlayerId.class)
+@Builder(toBuilder = true)
+@IdClass(TeamPlayerId.class)
 public class Splatoon3VsTeamPlayer {
 	@Id
 	@Column(name = "team_id")

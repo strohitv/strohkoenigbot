@@ -14,7 +14,8 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)@IdClass(ResultWavePlayerWeaponId.class)
+@Builder(toBuilder = true)
+@IdClass(ResultWavePlayerWeaponId.class)
 public class Splatoon3SrResultWavePlayerWeapon {
 	@Id
 	@Column(name = "result_id")
