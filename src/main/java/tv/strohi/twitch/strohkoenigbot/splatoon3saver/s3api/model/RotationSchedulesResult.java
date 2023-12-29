@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -66,10 +67,20 @@ public class RotationSchedulesResult implements Serializable {
 		private LeagueMatchSetting leagueMatchSetting;
 		private TimePeriod[] timePeriods;
 
+		@JsonIgnore
 		public Instant getEarliestOccurrence() {
 			return Arrays.stream(timePeriods)
 				.sorted(Comparator.comparing(TimePeriod::getStartTimeAsInstant))
 				.map(TimePeriod::getStartTimeAsInstant)
+				.findFirst()
+				.orElse(Instant.now());
+		}
+
+		@JsonIgnore
+		public Instant getLatestEnd() {
+			return Arrays.stream(timePeriods)
+				.sorted((a, b) -> b.getEndTimeAsInstant().compareTo(a.getEndTimeAsInstant()))
+				.map(TimePeriod::getEndTimeAsInstant)
 				.findFirst()
 				.orElse(Instant.now());
 		}
@@ -113,10 +124,12 @@ public class RotationSchedulesResult implements Serializable {
 		private String startTime;
 		private String endTime;
 
+		@JsonIgnore
 		public Instant getStartTimeAsInstant() {
 			return Instant.parse(startTime);
 		}
 
+		@JsonIgnore
 		public Instant getEndTimeAsInstant() {
 			return Instant.parse(endTime);
 		}
