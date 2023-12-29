@@ -16,7 +16,7 @@ import javax.persistence.*;
 public class Splatoon3VsTeam {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	private Integer order;
 

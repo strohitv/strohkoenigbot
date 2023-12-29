@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 public class Splatoon3SrWeapon {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	private String name;
 

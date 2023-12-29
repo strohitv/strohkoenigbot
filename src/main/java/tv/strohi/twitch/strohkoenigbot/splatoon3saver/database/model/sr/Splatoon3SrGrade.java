@@ -16,7 +16,7 @@ import javax.persistence.*;
 public class Splatoon3SrGrade {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	private String apiId;
 

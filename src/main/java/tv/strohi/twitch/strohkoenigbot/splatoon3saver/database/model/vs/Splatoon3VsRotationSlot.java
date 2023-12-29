@@ -17,7 +17,7 @@ import java.time.Instant;
 public class Splatoon3VsRotationSlot {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	private Instant startTime;
 
@@ -25,6 +25,6 @@ public class Splatoon3VsRotationSlot {
 
 	// ---
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "rotation_id", nullable = false, insertable = false, updatable = false)
+	@JoinColumn(name = "rotation_id", nullable = false)
 	private Splatoon3VsRotation rotation;
 }

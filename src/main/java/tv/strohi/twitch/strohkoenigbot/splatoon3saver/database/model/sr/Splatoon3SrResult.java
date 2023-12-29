@@ -17,7 +17,7 @@ import java.time.Instant;
 public class Splatoon3SrResult {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	private String apiId;
 

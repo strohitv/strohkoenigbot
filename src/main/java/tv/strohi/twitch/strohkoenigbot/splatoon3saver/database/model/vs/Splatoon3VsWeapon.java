@@ -17,7 +17,7 @@ import javax.persistence.*;
 public class Splatoon3VsWeapon {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	private String apiId;
 
