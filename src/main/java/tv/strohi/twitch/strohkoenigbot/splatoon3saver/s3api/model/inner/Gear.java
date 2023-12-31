@@ -15,8 +15,8 @@ public class Gear implements Serializable {
 	private String name;
 	private Brand brand;
 
-	private GearPowerGearPage primaryGearPower;
-	private List<GearPowerGearPage> additionalGearPowers;
+	private GearPower primaryGearPower;
+	private List<GearPower> additionalGearPowers;
 
 	private Image image;
 	private Image originalImage;

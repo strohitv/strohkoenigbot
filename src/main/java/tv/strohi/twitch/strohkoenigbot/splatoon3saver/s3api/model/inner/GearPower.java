@@ -10,6 +10,7 @@ import java.io.Serializable;
 @Setter
 @EqualsAndHashCode
 public class GearPower implements Serializable {
+	private String __typename;
 	private String name;
 	private Image image;
 	private String desc;
