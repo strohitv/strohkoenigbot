@@ -10,6 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +32,13 @@ public class ImageService {
 		schedulingService.register("ShortenedImageService_download10Images", TickSchedule.getScheduleString(360), this::downloadUpTo10MissingImages);
 	}
 
+	@Transactional
 	public Image ensureExists(@NonNull String imageUrl) {
 		return imageRepository.findByUrl(imageUrl)
 			.orElseGet(() -> imageRepository.save(Image.builder().url(imageUrl).build()));
 	}
 
+	@Transactional
 	public String shortenJson(@NonNull String json) {
 		var endResult = json;
 		var results = imageUrlPattern.matcher(json).results().collect(Collectors.toList());
@@ -47,6 +50,7 @@ public class ImageService {
 		return endResult;
 	}
 
+	@Transactional
 	public String restoreJson(@NonNull String json) {
 		var endResult = json;
 		var results = imagePlaceholderPattern.matcher(json).results().collect(Collectors.toList());
@@ -63,6 +67,7 @@ public class ImageService {
 
 	private final List<Image> brokenImages = new ArrayList<>();
 
+	@Transactional
 	public void downloadUpTo10MissingImages() {
 		var notDownloadedImages = imageRepository.findByFilePathNull().stream()
 			.filter(i -> !brokenImages.contains(i))

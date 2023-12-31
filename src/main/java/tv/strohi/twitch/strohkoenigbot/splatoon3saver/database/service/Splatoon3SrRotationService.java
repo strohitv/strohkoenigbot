@@ -14,6 +14,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopStag
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.IdAndName;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.NameAndImage;
 
+import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,8 @@ public class Splatoon3SrRotationService {
 	private final Splatoon3SrStageRepository stageRepository;
 	private final Splatoon3SrWeaponRepository weaponRepository;
 
+
+	@Transactional
 	public Splatoon3SrRotation ensureRotationExists(CoopRotation rotation) {
 		var mode = modeRepository.findByApiTypename(rotation.getSetting().get__typename())
 			.orElseThrow();
@@ -61,6 +64,8 @@ public class Splatoon3SrRotationService {
 		);
 	}
 
+
+	@Transactional
 	public Splatoon3SrWeapon ensureWeaponExists(NameAndImage weapon) {
 		return weaponRepository.findByName(weapon.getName())
 			.orElseGet(() -> weaponRepository.save(Splatoon3SrWeapon.builder()
@@ -70,6 +75,8 @@ public class Splatoon3SrRotationService {
 			));
 	}
 
+
+	@Transactional
 	public Splatoon3SrStage ensureStageExists(CoopStage coopStage) {
 		return stageRepository.findByApiId(coopStage.getId())
 			.orElseGet(() -> stageRepository.save(Splatoon3SrStage.builder()
@@ -81,6 +88,8 @@ public class Splatoon3SrRotationService {
 			));
 	}
 
+
+	@Transactional
 	public Splatoon3SrBoss ensureBossExists(IdAndName boss) {
 		return bossRepository.findByName(boss.getName())
 			.orElseGet(() -> bossRepository.save(Splatoon3SrBoss.builder()
