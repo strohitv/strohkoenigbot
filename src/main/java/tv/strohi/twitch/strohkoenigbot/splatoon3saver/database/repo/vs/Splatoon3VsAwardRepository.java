@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface Splatoon3VsAwardRepository extends CrudRepository<Splatoon3VsAward, Long> {
 	Optional<Splatoon3VsAward> findById(long id);
+	Optional<Splatoon3VsAward> findByName(String name);
 }
