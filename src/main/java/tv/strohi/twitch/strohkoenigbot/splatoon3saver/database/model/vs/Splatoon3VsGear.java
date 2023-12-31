@@ -26,8 +26,12 @@ public class Splatoon3VsGear {
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "image_id")
-	private Image image;
+	@JoinColumn(name = "original_image_id")
+	private Image originalImage;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "thumbnail_image_id")
+	private Image thumbnailImage;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "brand_id")

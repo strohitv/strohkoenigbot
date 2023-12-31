@@ -459,7 +459,7 @@
                 {
                   "column": {
                     "name": "name_id",
-                    "type": "int",
+                    "type": "varchar(10)",
                     "constraints": {
                       "nullable": false
                     }

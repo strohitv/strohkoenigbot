@@ -1,24 +1,27 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.id.ResultIdTeamOrder;
 
 import javax.persistence.*;
+import java.util.List;
 
-@Entity(name = "splatoon_3_vs_team")
+@Entity(name = "splatoon_3_vs_result_team")
 @Cacheable(false)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class Splatoon3VsTeam {
+@IdClass(ResultIdTeamOrder.class)
+@ToString(exclude = "teamPlayers")
+public class Splatoon3VsResultTeam {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@Column(name = "result_id")
+	private Long resultId;
 
-	private Integer order;
+	@Id
+	@Column(name = "team_order")
+	private Integer teamOrder;
 
 	@Column(name = "ink_color_r")
 	private Double inkColorR;
@@ -53,6 +56,9 @@ public class Splatoon3VsTeam {
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "result_id")
+	@JoinColumn(name = "result_id", insertable = false, updatable = false)
 	private Splatoon3VsResult result;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "team")
+	private List<Splatoon3VsResultTeamPlayer> teamPlayers;
 }

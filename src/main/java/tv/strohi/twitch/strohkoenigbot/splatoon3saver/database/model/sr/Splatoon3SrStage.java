@@ -1,9 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 
 import javax.persistence.*;
@@ -15,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@ToString(exclude = "rotations")
 public class Splatoon3SrStage {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,7 +34,6 @@ public class Splatoon3SrStage {
 
 	// ---
 
-	@OneToMany(fetch = FetchType.LAZY)
-	@JoinColumn(name = "stage_id", insertable = false, updatable = false)
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "stage")
 	private List<Splatoon3SrRotation> rotations;
 }

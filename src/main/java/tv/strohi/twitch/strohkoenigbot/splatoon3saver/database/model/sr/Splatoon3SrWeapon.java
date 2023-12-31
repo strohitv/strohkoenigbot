@@ -1,9 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 
 import javax.persistence.*;
@@ -18,6 +15,7 @@ import java.util.stream.Stream;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@ToString(exclude = {"rotationsWeapon1","rotationsWeapon2","rotationsWeapon3","rotationsWeapon4"})
 public class Splatoon3SrWeapon {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,20 +31,16 @@ public class Splatoon3SrWeapon {
 
 	// ---
 
-	@OneToMany(fetch = FetchType.LAZY)
-	@JoinColumn(name = "weapon_1_id", insertable = false, updatable = false)
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "weapon1")
 	private List<Splatoon3SrRotation> rotationsWeapon1;
 
-	@OneToMany(fetch = FetchType.LAZY)
-	@JoinColumn(name = "weapon_2_id", insertable = false, updatable = false)
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "weapon2")
 	private List<Splatoon3SrRotation> rotationsWeapon2;
 
-	@OneToMany(fetch = FetchType.LAZY)
-	@JoinColumn(name = "weapon_3_id", insertable = false, updatable = false)
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "weapon3")
 	private List<Splatoon3SrRotation> rotationsWeapon3;
 
-	@OneToMany(fetch = FetchType.LAZY)
-	@JoinColumn(name = "weapon_4_id", insertable = false, updatable = false)
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "weapon4")
 	private List<Splatoon3SrRotation> rotationsWeapon4;
 
 	public List<Splatoon3SrRotation> getAllRotations() {

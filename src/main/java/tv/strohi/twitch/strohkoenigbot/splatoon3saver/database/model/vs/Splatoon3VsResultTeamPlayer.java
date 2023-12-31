@@ -4,22 +4,28 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Badge;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Nameplate;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Player;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.id.TeamPlayerId;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.id.ResultIdTeamOrderPlayerId;
 
 import javax.persistence.*;
 
-@Entity(name = "splatoon_3_vs_team_player")
+@Entity(name = "splatoon_3_vs_result_team_player")
 @Cacheable(false)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@IdClass(TeamPlayerId.class)
-public class Splatoon3VsTeamPlayer {
+@IdClass(ResultIdTeamOrderPlayerId.class)
+public class Splatoon3VsResultTeamPlayer {
 	@Id
-	@Column(name = "team_id")
-	private long teamId;
+	@Column(name = "result_id")
+	private Long resultId;
+
+	@Id
+	@Column(name = "team_order")
+	private Integer teamOrder;
 
 	@Id
 	@Column(name = "player_id")
@@ -29,7 +35,7 @@ public class Splatoon3VsTeamPlayer {
 
 	private String name;
 
-	private Integer nameId;
+	private String nameId;
 
 	private String title;
 
@@ -54,8 +60,11 @@ public class Splatoon3VsTeamPlayer {
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "team_id", insertable = false, updatable = false)
-	private Splatoon3VsTeam team;
+	@JoinColumns({
+		@JoinColumn(name = "result_id", insertable = false, updatable = false),
+		@JoinColumn(name = "team_order", insertable = false, updatable = false)
+	})
+	private Splatoon3VsResultTeam team;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "player_id", insertable = false, updatable = false)
@@ -63,19 +72,19 @@ public class Splatoon3VsTeamPlayer {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "nameplate_id")
-	private Splatoon3Player nameplate;
+	private Splatoon3Nameplate nameplate;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "badge_left_id")
-	private Splatoon3Player badgeLeft;
+	private Splatoon3Badge badgeLeft;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "badge_middle_id")
-	private Splatoon3Player badgeMiddle;
+	private Splatoon3Badge badgeMiddle;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "badge_right_id")
-	private Splatoon3Player badgeRight;
+	private Splatoon3Badge badgeRight;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "weapon_id")

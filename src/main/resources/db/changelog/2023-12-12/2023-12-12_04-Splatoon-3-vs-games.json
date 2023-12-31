@@ -244,10 +244,7 @@
                 {
                   "column": {
                     "name": "description",
-                    "type": "varchar(200)",
-                    "constraints": {
-                      "nullable": false
-                    }
+                    "type": "varchar(200)"
                   }
                 },
                 {
@@ -265,6 +262,7 @@
                   "column": {
                     "name": "is_filler_ability",
                     "type": "boolean",
+                    "defaultOnNull": true,
                     "constraints": {
                       "nullable": false
                     }
@@ -361,11 +359,22 @@
                 },
                 {
                   "column": {
-                    "name": "image_id",
+                    "name": "original_image_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_gear_image",
+                      "foreignKeyName": "fk_vs_gear_original_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "thumbnail_image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_gear_thumbnail_image",
                       "references": "image(id)"
                     }
                   }
@@ -702,10 +711,7 @@
                 {
                   "column": {
                     "name": "knockout",
-                    "type": "varchar(20)",
-                    "constraints": {
-                      "nullable": false
-                    }
+                    "type": "varchar(20)"
                   }
                 },
                 {
@@ -735,7 +741,7 @@
                     "name": "rotation_id",
                     "type": "bigint",
                     "constraints": {
-                      "nullable": false,
+                      "nullable": true,
                       "foreignKeyName": "fk_vs_result_rotation",
                       "references": "splatoon_3_vs_rotation(id)"
                     }
@@ -803,33 +809,22 @@
 
           {
             "createTable": {
-              "tableName": "splatoon_3_vs_team",
+              "tableName": "splatoon_3_vs_result_team",
               "columns": [
-                {
-                  "column": {
-                    "name": "id",
-                    "type": "bigint",
-                    "autoIncrement": true,
-                    "constraints": {
-                      "primaryKey": true,
-                      "nullable": false
-                    }
-                  }
-                },
                 {
                   "column": {
                     "name": "result_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_result",
+                      "foreignKeyName": "fk_vs_result_team_result",
                       "references": "splatoon_3_vs_result(id)"
                     }
                   }
                 },
                 {
                   "column": {
-                    "name": "order",
+                    "name": "team_order",
                     "type": "int",
                     "constraints": {
                       "nullable": false
@@ -875,19 +870,13 @@
                 {
                   "column": {
                     "name": "judgement",
-                    "type": "varchar(20)",
-                    "constraints": {
-                      "nullable": false
-                    }
+                    "type": "varchar(20)"
                   }
                 },
                 {
                   "column": {
                     "name": "paint_ratio",
-                    "type": "double",
-                    "constraints": {
-                      "nullable": false
-                    }
+                    "type": "double"
                   }
                 },
                 {
@@ -938,17 +927,34 @@
 
 
           {
+            "addPrimaryKey":
+            {
+              "columnNames":  "result_id, team_order",
+              "tableName":  "splatoon_3_vs_result_team",
+              "validate":  true
+            }
+          },
+
+
+          {
             "createTable": {
-              "tableName": "splatoon_3_vs_team_player",
+              "tableName": "splatoon_3_vs_result_team_player",
               "columns": [
                 {
                   "column": {
-                    "name": "team_id",
+                    "name": "result_id",
                     "type": "bigint",
                     "constraints": {
-                      "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_team",
-                      "references": "splatoon_3_vs_team(id)"
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "team_order",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
                     }
                   }
                 },
@@ -958,7 +964,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_player",
+                      "foreignKeyName": "fk_vs_result_team_player_player",
                       "references": "splatoon_3_player(id)"
                     }
                   }
@@ -967,6 +973,7 @@
                   "column": {
                     "name": "is_myself",
                     "type": "boolean",
+                    "defaultOnNull": false,
                     "constraints": {
                       "nullable": false
                     }
@@ -984,7 +991,7 @@
                 {
                   "column": {
                     "name": "name_id",
-                    "type": "int",
+                    "type": "varchar(10)",
                     "constraints": {
                       "nullable": false
                     }
@@ -1005,7 +1012,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_nameplate",
+                      "foreignKeyName": "fk_vs_result_team_player_nameplate",
                       "references": "splatoon_3_nameplate(id)"
                     }
                   }
@@ -1016,7 +1023,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": true,
-                      "foreignKeyName": "fk_vs_team_player_badge_left",
+                      "foreignKeyName": "fk_vs_result_team_player_badge_left",
                       "references": "splatoon_3_badge(id)"
                     }
                   }
@@ -1027,7 +1034,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": true,
-                      "foreignKeyName": "fk_vs_team_player_badge_middle",
+                      "foreignKeyName": "fk_vs_result_team_player_badge_middle",
                       "references": "splatoon_3_badge(id)"
                     }
                   }
@@ -1038,7 +1045,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": true,
-                      "foreignKeyName": "fk_vs_team_player_badge_right",
+                      "foreignKeyName": "fk_vs_result_team_player_badge_right",
                       "references": "splatoon_3_badge(id)"
                     }
                   }
@@ -1058,7 +1065,7 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_weapon",
+                      "foreignKeyName": "fk_vs_result_team_player_weapon",
                       "references": "splatoon_3_vs_weapon(id)"
                     }
                   }
@@ -1123,8 +1130,8 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_head_gear",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_head_gear",
+                      "references": "splatoon_3_vs_gear(id)"
                     }
                   }
                 },
@@ -1134,8 +1141,8 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_head_gear_main_ability",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_head_gear_main_ability",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1145,8 +1152,8 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_head_gear_secondary_ability_1",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_head_gear_secondary_ability_1",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1155,8 +1162,8 @@
                     "name": "head_gear_secondary_ability_2_id",
                     "type": "bigint",
                     "constraints": {
-                      "foreignKeyName": "fk_vs_team_player_head_gear_secondary_ability_2",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_head_gear_secondary_ability_2",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1165,8 +1172,8 @@
                     "name": "head_gear_secondary_ability_3_id",
                     "type": "bigint",
                     "constraints": {
-                      "foreignKeyName": "fk_vs_team_player_head_gear_secondary_ability_3",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_head_gear_secondary_ability_3",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1176,8 +1183,8 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_clothing_gear",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_clothing_gear",
+                      "references": "splatoon_3_vs_gear(id)"
                     }
                   }
                 },
@@ -1187,8 +1194,8 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_clothing_gear_main_ability",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_clothing_gear_main_ability",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1198,8 +1205,8 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_clothing_gear_secondary_ability_1",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_clothing_gear_secondary_ability_1",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1208,8 +1215,8 @@
                     "name": "clothing_gear_secondary_ability_2_id",
                     "type": "bigint",
                     "constraints": {
-                      "foreignKeyName": "fk_vs_team_player_clothing_gear_secondary_ability_2",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_clothing_gear_secondary_ability_2",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1218,8 +1225,8 @@
                     "name": "clothing_gear_secondary_ability_3_id",
                     "type": "bigint",
                     "constraints": {
-                      "foreignKeyName": "fk_vs_team_player_clothing_gear_secondary_ability_3",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_clothing_gear_secondary_ability_3",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1229,8 +1236,8 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_shoes_gear",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_shoes_gear",
+                      "references": "splatoon_3_vs_gear(id)"
                     }
                   }
                 },
@@ -1240,8 +1247,8 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_shoes_gear_main_ability",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_shoes_gear_main_ability",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1251,8 +1258,8 @@
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
-                      "foreignKeyName": "fk_vs_team_player_shoes_gear_secondary_ability_1",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_shoes_gear_secondary_ability_1",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1261,8 +1268,8 @@
                     "name": "shoes_gear_secondary_ability_2_id",
                     "type": "bigint",
                     "constraints": {
-                      "foreignKeyName": "fk_vs_team_player_shoes_gear_secondary_ability_2",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_shoes_gear_secondary_ability_2",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 },
@@ -1271,8 +1278,8 @@
                     "name": "shoes_gear_secondary_ability_3_id",
                     "type": "bigint",
                     "constraints": {
-                      "foreignKeyName": "fk_vs_team_player_shoes_gear_secondary_ability_3",
-                      "references": "splatoon_3_vs_weapon(id)"
+                      "foreignKeyName": "fk_vs_result_team_player_shoes_gear_secondary_ability_3",
+                      "references": "splatoon_3_vs_ability(id)"
                     }
                   }
                 }
@@ -1282,10 +1289,22 @@
 
 
           {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "result_id, team_order",
+              "baseTableName": "splatoon_3_vs_result_team_player",
+              "referencedColumnNames": "result_id, team_order",
+              "referencedTableName": "splatoon_3_vs_result_team",
+              "constraintName": "fk_sr_result_team_player_result_id_team_order",
+              "validate": true
+            }
+          },
+
+
+          {
             "addPrimaryKey":
             {
-              "columnNames":  "team_id, player_id",
-              "tableName":  "splatoon_3_vs_team_player",
+              "columnNames":  "result_id, team_order, player_id",
+              "tableName":  "splatoon_3_vs_result_team_player",
               "validate":  true
             }
           }

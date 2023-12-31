@@ -9,7 +9,8 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TeamPlayerId implements Serializable {
-	private long teamId;
+public class ResultIdTeamOrderPlayerId implements Serializable {
+	private long resultId;
+	private int teamOrder;
 	private long playerId;
 }

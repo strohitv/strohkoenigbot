@@ -44,6 +44,134 @@
                 {
                   "column": {
                     "name": "api_id",
+                    "value": "VnNNb2RlLTU="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "PRIVATE"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "DoesNotExists"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTY="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "FEST"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "FestMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTc="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "FEST"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "FestMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTg="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "FEST"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "FestMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
                     "value": "VnNNb2RlLTI="
                   }
                 },

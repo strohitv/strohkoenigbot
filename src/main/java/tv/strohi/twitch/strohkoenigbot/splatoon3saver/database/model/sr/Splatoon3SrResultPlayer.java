@@ -31,7 +31,7 @@ public class Splatoon3SrResultPlayer {
 
 	private String name;
 
-	private Integer nameId;
+	private String nameId;
 
 	private String title;
 

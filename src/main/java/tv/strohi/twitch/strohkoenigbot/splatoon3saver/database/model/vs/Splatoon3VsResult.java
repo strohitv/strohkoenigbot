@@ -1,9 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -15,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@ToString(exclude = "teams")
 public class Splatoon3VsResult {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +35,9 @@ public class Splatoon3VsResult {
 
 	// ---
 
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	private List<Splatoon3VsResultTeam> teams;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "mode_id")
 	private Splatoon3VsMode mode;
@@ -51,7 +54,8 @@ public class Splatoon3VsResult {
 	@JoinColumn(name = "stage_id")
 	private Splatoon3VsStage stage;
 
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany(fetch = FetchType.EAGER)
+	@Fetch(value = FetchMode.SUBSELECT)
 	@JoinTable(
 		name = "splatoon_3_vs_result_award",
 		joinColumns = @JoinColumn(name = "result_id"),
