@@ -275,7 +275,7 @@ public class BattleResults {
 		// Salmon Run
 		private Weapon[] weapons;
 		private Integer resultWave;
-		private VsStage coopStage;
+		private CoopStage coopStage;
 		private IdAndName afterGrade;
 		private Integer afterGradePoint;
 		private String gradePointDiff;
@@ -293,7 +293,7 @@ public class BattleResults {
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class SalmonRunBossResult {
 		private Boolean hasDefeatBoss;
-		private IdAndNameAndImage boss;
+		private IdAndName boss;
 	}
 
 	@Getter

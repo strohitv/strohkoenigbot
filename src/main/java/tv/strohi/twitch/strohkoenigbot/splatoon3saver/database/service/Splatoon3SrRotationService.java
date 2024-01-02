@@ -9,19 +9,24 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrStage;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopStage;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.IdAndName;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.NameAndImage;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class Splatoon3SrRotationService {
+	private final Instant horrorborosIntroductionDate = Instant.parse("2023-03-04T00:00:00Z");
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	private final ImageService imageService;
@@ -65,6 +70,89 @@ public class Splatoon3SrRotationService {
 		);
 	}
 
+	@Transactional
+	public List<Splatoon3SrRotation> ensureDummyRotationsExist(BattleResults rotationOverview) {
+		var rotations = rotationOverview.getData().getCoopResult().getHistoryGroups().getNodes();
+
+		return Arrays.stream(rotations)
+			.map(this::ensureDummyRotationExists)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+	}
+
+	@Transactional
+	public Splatoon3SrRotation ensureDummyRotationExists(BattleResults.HistoryGroupsNodes rotation) {
+		var mode = modeRepository.findByApiModeAndApiRule(rotation.getMode(), rotation.getRule())
+			.orElse(null);
+
+		if (mode == null) return null;
+
+		var weapons = Arrays.stream(rotation.getHistoryDetails().getNodes())
+			.map(BattleResults.HistoryGroupMatch::getWeapons)
+			.map(List::of)
+			.findAny()
+			.orElse(List.of())
+			.stream()
+			.map(w -> NameAndImage.builder()
+				.name(w.getName())
+				.image(w.getImage())
+				.build())
+			.collect(Collectors.toList());
+
+		if (weapons.size() < 4) return null;
+
+		var stage = Arrays.stream(rotation.getHistoryDetails().getNodes())
+			.findAny()
+			.map(BattleResults.HistoryGroupMatch::getCoopStage)
+			.orElse(null);
+
+		if (stage == null) return null;
+
+		var boss = Arrays.stream(rotation.getHistoryDetails().getNodes())
+			.map(BattleResults.HistoryGroupMatch::getBossResult)
+			.filter(Objects::nonNull)
+			.findAny()
+			.map(BattleResults.SalmonRunBossResult::getBoss)
+			.orElse(null);
+
+		return rotationRepository.save(
+			rotationRepository.findByModeAndStartTime(mode, rotation.getStartTimeAsInstant())
+				.orElseGet(() -> rotationRepository.save(
+					Splatoon3SrRotation.builder()
+						.mode(mode)
+						.startTime(rotation.getStartTimeAsInstant())
+						.endTime(rotation.getEndTimeAsInstant())
+						.stage(ensureStageExists(stage))
+						.weapon1(ensureWeaponExists(weapons.get(0)))
+						.weapon2(ensureWeaponExists(weapons.get(1)))
+						.weapon3(ensureWeaponExists(weapons.get(2)))
+						.weapon4(ensureWeaponExists(weapons.get(3)))
+						.boss(tryChooseBoss(boss, rotation.getStartTimeAsInstant()))
+						.shortenedJson(imageService.shortenJson(writeValueAsStringHiddenException(rotation)))
+						.build()))
+				.toBuilder()
+				.stage(ensureStageExists(stage))
+				.weapon1(ensureWeaponExists(weapons.get(0)))
+				.weapon2(ensureWeaponExists(weapons.get(1)))
+				.weapon3(ensureWeaponExists(weapons.get(2)))
+				.weapon4(ensureWeaponExists(weapons.get(3)))
+				.build()
+		);
+	}
+
+	private Splatoon3SrBoss tryChooseBoss(IdAndName boss, Instant startTime) {
+		if (boss != null) return ensureBossExists(boss);
+
+		if (startTime.isBefore(horrorborosIntroductionDate)) {
+			// only cohozuna did exist befor March 4th 2023
+			return bossRepository
+				.findByName("Cohozuna")
+				.orElse(null);
+		}
+
+		return null;
+	}
+
 
 	@Transactional
 	public Splatoon3SrWeapon ensureWeaponExists(NameAndImage weapon) {
@@ -79,14 +167,33 @@ public class Splatoon3SrRotationService {
 
 	@Transactional
 	public Splatoon3SrStage ensureStageExists(CoopStage coopStage) {
-		return stageRepository.findByApiId(coopStage.getId())
+		var stage = stageRepository.findByApiId(coopStage.getId())
 			.orElseGet(() -> stageRepository.save(Splatoon3SrStage.builder()
 				.apiId(coopStage.getId())
 				.name(coopStage.getName())
-				.image(imageService.ensureExists(coopStage.getImage().getUrl()))
-				.shortenedThumbnailImage(imageService.ensureExists(coopStage.getThumbnailImage().getUrl()))
+				.image(coopStage.getImage() != null
+					? imageService.ensureExists(coopStage.getImage().getUrl())
+					: null)
+				.thumbnailImage(coopStage.getThumbnailImage() != null
+					? imageService.ensureExists(coopStage.getThumbnailImage().getUrl())
+					: null)
 				.build()
 			));
+
+		if ((stage.getImage() == null && coopStage.getImage() != null)
+			|| (stage.getThumbnailImage() == null && coopStage.getThumbnailImage() != null)) {
+
+			stage = stageRepository.save(stage.toBuilder()
+				.image(coopStage.getImage() != null
+					? imageService.ensureExists(coopStage.getImage().getUrl())
+					: null)
+				.thumbnailImage(coopStage.getThumbnailImage() != null
+					? imageService.ensureExists(coopStage.getThumbnailImage().getUrl())
+					: null)
+				.build());
+		}
+
+		return stage;
 	}
 
 

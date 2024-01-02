@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface Splatoon3SrModeRepository extends CrudRepository<Splatoon3SrMode, Long> {
 	Optional<Splatoon3SrMode> findById(long id);
 	Optional<Splatoon3SrMode> findByApiTypename(String apiTypename);
+	Optional<Splatoon3SrMode> findByApiModeAndApiRule(String apiMode, String apiRule);
 }

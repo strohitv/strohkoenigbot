@@ -182,7 +182,7 @@
                     "name": "image_id",
                     "type": "bigint",
                     "constraints": {
-                      "nullable": false,
+                      "nullable": true,
                       "foreignKeyName": "fk_salmon_run_stage_image",
                       "references": "image(id)"
                     }
@@ -193,7 +193,7 @@
                     "name": "thumbnail_image_id",
                     "type": "bigint",
                     "constraints": {
-                      "nullable": false,
+                      "nullable": true,
                       "foreignKeyName": "fk_salmon_run_stage_image_thumbnail",
                       "references": "image(id)"
                     }
@@ -286,7 +286,7 @@
                     "name": "boss_id",
                     "type": "bigint",
                     "constraints": {
-                      "nullable": false,
+                      "nullable": true,
                       "foreignKeyName": "fk_salmon_run_rotation_boss_id",
                       "references": "splatoon_3_sr_boss(id)"
                     }
