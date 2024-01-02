@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class Splatoon3SrRotationService {
 	private final ObjectMapper mapper = new ObjectMapper();

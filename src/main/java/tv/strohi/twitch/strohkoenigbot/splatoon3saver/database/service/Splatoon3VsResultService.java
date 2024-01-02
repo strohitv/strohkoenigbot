@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class Splatoon3VsResultService {
 	private final ObjectMapper mapper = new ObjectMapper();

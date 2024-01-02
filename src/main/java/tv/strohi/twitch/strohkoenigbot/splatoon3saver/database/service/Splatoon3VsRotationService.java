@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class Splatoon3VsRotationService {
 	private final Instant challengeSlotExpansionDate = Instant.parse("2023-11-30T00:00:00Z");

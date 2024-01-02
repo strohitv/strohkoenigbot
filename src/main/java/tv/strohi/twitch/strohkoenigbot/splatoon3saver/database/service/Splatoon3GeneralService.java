@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Base64;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class Splatoon3GeneralService {
 	private final ImageService imageService;
