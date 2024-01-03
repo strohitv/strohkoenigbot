@@ -1,0 +1,199 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2023-12-12_08-insert-Splatoon-3-mode-discordChannels",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 1
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-turf-war-rotations"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 2
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-anarchy-series-rotations"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 3
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-anarchy-open-rotations"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 4
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-x-rank-rotations"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 5
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-challenge-rotations"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 6
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-splatfest-open-rotations"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 7
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-splatfest-pro-rotations"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 8
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-splatfest-tricolor-rotations"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_sr_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 1
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-salmon-run-rotations"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

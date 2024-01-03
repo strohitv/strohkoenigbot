@@ -2,7 +2,7 @@
   "databaseChangeLog": [
     {
       "changeSet": {
-        "id": "2023-12-12_04-splatoon-3-sr-games",
+        "id": "2023-12-12_05-splatoon-3-sr-games",
         "author": "strohkoenig",
         "changes": [
           {

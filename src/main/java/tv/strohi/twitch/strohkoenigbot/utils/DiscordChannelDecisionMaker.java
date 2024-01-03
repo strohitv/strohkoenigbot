@@ -212,4 +212,12 @@ public class DiscordChannelDecisionMaker {
 			return s3EmotesChannel;
 		}
 	}
+
+	public static String chooseChannel(String discordChannelName) {
+		if (isLocalDebug) {
+			return debugTempChannel;
+		} else {
+			return discordChannelName;
+		}
+	}
 }

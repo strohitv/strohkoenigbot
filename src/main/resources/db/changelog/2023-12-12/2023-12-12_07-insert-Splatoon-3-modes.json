@@ -2,13 +2,25 @@
   "databaseChangeLog": [
     {
       "changeSet": {
-        "id": "2023-12-12_01-splatoon-3-vs-rotations",
+        "id": "2023-12-12_07-insert-Splatoon-3-modes",
         "author": "strohkoenig",
         "changes": [
           {
             "insert": {
               "tableName": "splatoon_3_vs_mode",
               "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 1
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Regular Battle"
+                  }
+                },
                 {
                   "column": {
                     "name": "api_id",
@@ -43,132 +55,16 @@
               "columns": [
                 {
                   "column": {
-                    "name": "api_id",
-                    "value": "VnNNb2RlLTU="
+                    "name": "id",
+                    "valueNumeric": 2
                   }
                 },
                 {
                   "column": {
-                    "name": "api_mode",
-                    "value": "PRIVATE"
+                    "name": "name",
+                    "value": "Anarchy Series"
                   }
                 },
-                {
-                  "column": {
-                    "name": "api_typename",
-                    "value": "DoesNotExists"
-                  }
-                },
-                {
-                  "column": {
-                    "name": "api_bankara_mode"
-                  }
-                }
-              ]
-            }
-          },
-
-
-          {
-            "insert": {
-              "tableName": "splatoon_3_vs_mode",
-              "columns": [
-                {
-                  "column": {
-                    "name": "api_id",
-                    "value": "VnNNb2RlLTY="
-                  }
-                },
-                {
-                  "column": {
-                    "name": "api_mode",
-                    "value": "FEST"
-                  }
-                },
-                {
-                  "column": {
-                    "name": "api_typename",
-                    "value": "FestMatchSetting"
-                  }
-                },
-                {
-                  "column": {
-                    "name": "api_bankara_mode"
-                  }
-                }
-              ]
-            }
-          },
-
-
-          {
-            "insert": {
-              "tableName": "splatoon_3_vs_mode",
-              "columns": [
-                {
-                  "column": {
-                    "name": "api_id",
-                    "value": "VnNNb2RlLTc="
-                  }
-                },
-                {
-                  "column": {
-                    "name": "api_mode",
-                    "value": "FEST"
-                  }
-                },
-                {
-                  "column": {
-                    "name": "api_typename",
-                    "value": "FestMatchSetting"
-                  }
-                },
-                {
-                  "column": {
-                    "name": "api_bankara_mode"
-                  }
-                }
-              ]
-            }
-          },
-
-
-          {
-            "insert": {
-              "tableName": "splatoon_3_vs_mode",
-              "columns": [
-                {
-                  "column": {
-                    "name": "api_id",
-                    "value": "VnNNb2RlLTg="
-                  }
-                },
-                {
-                  "column": {
-                    "name": "api_mode",
-                    "value": "FEST"
-                  }
-                },
-                {
-                  "column": {
-                    "name": "api_typename",
-                    "value": "FestMatchSetting"
-                  }
-                },
-                {
-                  "column": {
-                    "name": "api_bankara_mode"
-                  }
-                }
-              ]
-            }
-          },
-
-
-          {
-            "insert": {
-              "tableName": "splatoon_3_vs_mode",
-              "columns": [
                 {
                   "column": {
                     "name": "api_id",
@@ -204,6 +100,18 @@
               "columns": [
                 {
                   "column": {
+                    "name": "id",
+                    "valueNumeric": 3
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Anarchy Open"
+                  }
+                },
+                {
+                  "column": {
                     "name": "api_id",
                     "value": "VnNNb2RlLTUx"
                   }
@@ -235,6 +143,18 @@
             "insert": {
               "tableName": "splatoon_3_vs_mode",
               "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 4
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "X Battle"
+                  }
+                },
                 {
                   "column": {
                     "name": "api_id",
@@ -269,6 +189,18 @@
               "columns": [
                 {
                   "column": {
+                    "name": "id",
+                    "valueNumeric": 5
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Challenge"
+                  }
+                },
+                {
+                  "column": {
                     "name": "api_id",
                     "value": "VnNNb2RlLTQ="
                   }
@@ -297,8 +229,196 @@
 
           {
             "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 6
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Splatfest Open"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTY="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "FEST"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "FestMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 7
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Splatfest Pro"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTc="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "FEST"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "FestMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 8
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Splatfest Tricolor"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTg="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "FEST"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "FestMatchSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 9
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Private Battle"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "VnNNb2RlLTU="
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "PRIVATE"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "DoesNotExist"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_bankara_mode"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
               "tableName": "splatoon_3_sr_mode",
               "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 1
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Salmon Run"
+                  }
+                },
                 {
                   "column": {
                     "name": "api_typename",

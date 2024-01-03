@@ -22,6 +22,15 @@
                 },
                 {
                   "column": {
+                    "name": "name",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
                     "name": "api_typename",
                     "type": "varchar(40)",
                     "constraints": {

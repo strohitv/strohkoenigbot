@@ -17,6 +17,8 @@ public class Splatoon3VsMode {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	private String name;
+
 	private String apiId;
 
 	private String apiMode;
@@ -27,7 +29,6 @@ public class Splatoon3VsMode {
 
 	// ---
 
-	@OneToMany
-	@JoinColumn(name = "mode_id", insertable = false, updatable = false)
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "mode")
 	private List<Splatoon3VsModeDiscordChannel> discordChannels;
 }

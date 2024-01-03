@@ -179,6 +179,15 @@
                 },
                 {
                   "column": {
+                    "name": "name",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
                     "name": "api_id",
                     "type": "varchar(20)",
                     "constraints": {

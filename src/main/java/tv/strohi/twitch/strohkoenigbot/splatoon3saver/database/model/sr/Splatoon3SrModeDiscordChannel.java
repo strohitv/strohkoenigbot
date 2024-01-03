@@ -18,8 +18,9 @@ public class Splatoon3SrModeDiscordChannel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "mode_id")
-	private Long modeId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "mode_id", insertable = false, updatable = false)
+	private Splatoon3SrMode mode;
 
 	private String discordChannelName;
 }

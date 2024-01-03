@@ -2,7 +2,7 @@
   "databaseChangeLog": [
     {
       "changeSet": {
-        "id": "2023-12-12_03-Splatoon-3-indices-games",
+        "id": "2023-12-12_06-Splatoon-3-indices-games",
         "author": "strohkoenig",
         "changes": [
           {
