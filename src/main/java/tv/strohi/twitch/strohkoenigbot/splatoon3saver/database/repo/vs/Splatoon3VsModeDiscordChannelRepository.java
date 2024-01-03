@@ -11,6 +11,5 @@ import java.util.Optional;
 @Repository
 public interface Splatoon3VsModeDiscordChannelRepository extends CrudRepository<Splatoon3VsModeDiscordChannel, Long> {
 	@NotNull List<Splatoon3VsModeDiscordChannel> findAll();
-
 	Optional<Splatoon3VsModeDiscordChannel> findById(long id);
 }
