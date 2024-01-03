@@ -421,6 +421,15 @@
                       "nullable": true
                     }
                   }
+                },
+                {
+                  "column": {
+                    "name": "shortened_json",
+                    "type": "clob",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
                 }
               ]
             }

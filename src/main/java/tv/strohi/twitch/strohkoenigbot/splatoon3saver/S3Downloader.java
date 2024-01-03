@@ -3,7 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -13,6 +13,8 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrResultService;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3VsResultService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3GTokenRefresher;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
@@ -24,6 +26,9 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
+import javax.transaction.Transactional;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,10 +40,13 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
 public class S3Downloader {
+	private final EntityManager entityManager;
+
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 
@@ -52,6 +60,10 @@ public class S3Downloader {
 	private final S3GTokenRefresher gTokenRefresher;
 	private final ConfigFileConnector configFileConnector;
 	private final ExceptionLogger exceptionLogger;
+
+	private final Splatoon3VsResultService vsResultService;
+	private final Splatoon3SrResultService srResultService;
+	private final S3RotationSender rotationSender;
 
 	private SchedulingService schedulingService;
 
@@ -178,11 +190,11 @@ public class S3Downloader {
 			}
 
 			if (onlineRegularGamesToDownload.size() > 0
-					|| onlineAnarchyGamesToDownload.size() > 0
-					|| onlineXRankGamesToDownload.size() > 0
-					|| onlineChallengeGamesToDownload.size() > 0
-					|| onlinePrivateGamesToDownload.size() > 0
-					|| salmonShiftsToDownload.size() > 0) {
+				|| onlineAnarchyGamesToDownload.size() > 0
+				|| onlineXRankGamesToDownload.size() > 0
+				|| onlineChallengeGamesToDownload.size() > 0
+				|| onlinePrivateGamesToDownload.size() > 0
+				|| salmonShiftsToDownload.size() > 0) {
 				String message = "Found new Splatoon 3 results:";
 
 				if (onlineRegularGamesToDownload.size() > 0) {
@@ -310,13 +322,9 @@ public class S3Downloader {
 		logSender.sendLogs(logger, String.format("Loading Splatoon 3 games for account with folder name '%s'...", folderName));
 
 		Path directory = Path.of("game-results", folderName);
-		if (!Files.exists(directory)) {
-			try {
-				Files.createDirectories(directory);
-			} catch (IOException e) {
-				logSender.sendLogs(logger, String.format("Could not create game directory!! %s", directory));
-				return;
-			}
+		if (directoryCreationFails(directory)) {
+			logSender.sendLogs(logger, String.format("Folder name '%s' does not exist an could not be created!", folderName));
+			return;
 		}
 
 		ConfigFile.DownloadedGameList allDownloadedGames = getAllDownloadedGames(directory);
@@ -350,6 +358,109 @@ public class S3Downloader {
 		logSender.sendLogs(logger, String.format("Done with loading Splatoon 3 games for account with folder name '%s'...", folderName));
 	}
 
+	@Getter
+	private static class BattleCounter {
+		private int count = 0;
+
+		public void increaseCount() {
+			count++;
+		}
+
+		public void reset() {
+			count = 0;
+		}
+	}
+
+	@Data
+	@AllArgsConstructor
+	private static class ParsedResultWithFilename {
+		private BattleResult parsedResult;
+		private String fileName;
+		private String fileContent;
+	}
+
+	@SneakyThrows
+	@Transactional
+	public void importJsonResultsIntoDatabase(String folderName, boolean shouldDelete) {
+		var oldFLushMode = entityManager.getFlushMode();
+		entityManager.setFlushMode(FlushModeType.COMMIT);
+
+		logSender.sendLogs(logger, String.format("Importing Splatoon 3 games of account with folder name '%s' from json into database...", folderName));
+
+		Path directory = Path.of("game-results", folderName);
+		if (directoryCreationFails(directory)) {
+			logSender.sendLogs(logger, String.format("Folder name '%s' does not exist an could not be created!", folderName));
+			return;
+		}
+
+		rotationSender.importSrRotationsFromGameResultsFolder(folderName, shouldDelete);
+
+		ConfigFile.DownloadedGameList allDownloadedGames = getAllDownloadedGames(directory);
+		if (allDownloadedGames == null) return;
+
+		var battleCounter = new BattleCounter();
+
+		Stream.of(
+				allDownloadedGames.getRegular_games().entrySet(),
+				allDownloadedGames.getAnarchy_games().entrySet(),
+				allDownloadedGames.getX_rank_games().entrySet(),
+				allDownloadedGames.getChallenge_games().entrySet(),
+				allDownloadedGames.getPrivate_games().entrySet(),
+				allDownloadedGames.getSalmon_games().entrySet()
+			)
+			.flatMap(Collection::stream)
+			.map(Map.Entry::getValue)
+			.map(sg -> {
+				var fileContent = readFile(sg, directory);
+				return new ParsedResultWithFilename(parseBattleResult(fileContent), sg.getFilename(), fileContent);
+			})
+			.sorted(Comparator.comparing(this::getPlayedTime))
+			.forEach(result -> {
+				try {
+					if (result.getParsedResult().getData().getVsHistoryDetail() != null) {
+						vsResultService.ensureResultExists(result.getParsedResult().getData().getVsHistoryDetail(), result.getFileContent());
+					} else {
+						srResultService.ensureResultExists(result.getParsedResult().getData().getCoopHistoryDetail(), result.getFileContent());
+					}
+
+					if (shouldDelete) {
+						Files.deleteIfExists(directory.resolve(result.getFileName()).toAbsolutePath());
+					}
+				} catch (Exception ex) {
+					logSender.sendLogs(logger, String.format("Folder name '%s': Exception during import of file '%s', see logs for details!", folderName, result.getFileName()));
+					logger.error(ex);
+				}
+
+				battleCounter.increaseCount();
+
+				if (battleCounter.getCount() % 50 == 0) {
+					logSender.sendLogs(logger, String.format("Folder name '%s': Total imported games now at %d", folderName, battleCounter.getCount()));
+				}
+			});
+
+		logSender.sendLogs(logger, String.format("Done with importing Splatoon 3 games of account with folder name '%s' from json into database. Total number of imported games: %d", folderName, battleCounter.getCount()));
+
+		entityManager.setFlushMode(oldFLushMode);
+	}
+
+	private Instant getPlayedTime(ParsedResultWithFilename br) {
+		return br.getParsedResult().getData().getVsHistoryDetail() != null
+			? br.getParsedResult().getData().getVsHistoryDetail().getPlayedTimeAsInstant()
+			: br.getParsedResult().getData().getCoopHistoryDetail().getPlayedTimeAsInstant();
+	}
+
+	private boolean directoryCreationFails(Path directory) {
+		if (!Files.exists(directory)) {
+			try {
+				Files.createDirectories(directory);
+			} catch (IOException e) {
+				logSender.sendLogs(logger, String.format("Could not create game directory!! %s", directory));
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@Nullable
 	private ConfigFile.DownloadedGameList getAllDownloadedGames(Path directory) {
 		File battleOverviewFile = directory.resolve("Already_Downloaded_Battles.json").toFile();
@@ -375,11 +486,44 @@ public class S3Downloader {
 	}
 
 	private void parseBattleResult(Map.Entry<String, ConfigFile.StoredGame> game, Path directory) {
-		String filename = directory.resolve(game.getValue().getFilename()).toAbsolutePath().toString();
+		parseBattleResult(game.getValue(), directory);
+	}
+
+	private String readFile(ConfigFile.StoredGame game, Path directory) {
+		String filename = directory.resolve(game.getFilename()).toAbsolutePath().toString();
+
+		String result = null;
+		try (var stream = new FileInputStream(filename)) {
+			logger.info(filename);
+			result = new String(stream.readAllBytes());
+			logger.debug(result);
+		} catch (IOException e) {
+			logSender.sendLogs(logger, String.format("Couldn't read file '%s' OH OH", filename));
+			logger.error(e);
+		}
+
+		return result;
+	}
+
+	private BattleResult parseBattleResult(String json) {
+		BattleResult result = null;
+		try {
+			result = objectMapper.readValue(json, BattleResult.class);
+			logger.debug(result);
+		} catch (IOException e) {
+			logSender.sendLogs(logger, "Couldn't parse battle result json content OH OH");
+			logger.error(e);
+		}
+
+		return result;
+	}
+
+	private void parseBattleResult(ConfigFile.StoredGame game, Path directory) {
+		String filename = directory.resolve(game.getFilename()).toAbsolutePath().toString();
 
 		try {
 			logger.info(filename);
-			BattleResult result = objectMapper.readValue(new File(filename), BattleResult.class);
+			var result = objectMapper.readValue(new File(filename), BattleResult.class);
 			logger.debug(result);
 		} catch (IOException e) {
 			logSender.sendLogs(logger, String.format("Couldn't parse battle result json file '%s' OH OH", filename));

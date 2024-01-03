@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -145,9 +146,16 @@ public class S3RotationSender {
 		logger.info("Done posting rotations to discord");
 	}
 
-	private void importSrRotationsFromGameResultsFolder(Account account) throws IOException {
+	public void importSrRotationsFromGameResultsFolder(Account account) throws IOException {
 		var accountUUIDHash = String.format("%05d", account.getId());
+		importSrRotationsFromGameResultsFolder(accountUUIDHash);
+	}
 
+	public void importSrRotationsFromGameResultsFolder(String accountUUIDHash) throws IOException {
+		importSrRotationsFromGameResultsFolder(accountUUIDHash, false);
+	}
+
+	public void importSrRotationsFromGameResultsFolder(String accountUUIDHash, boolean shouldDelete) throws IOException {
 		var folderName = configurationRepository.findByConfigName("gameResultsFolder").stream()
 			.map(Configuration::getConfigValue)
 			.findFirst()
@@ -162,8 +170,13 @@ public class S3RotationSender {
 			allFiles.stream()
 				.map(file -> {
 					try {
-						// todo delete imported files
-						return mapper.readValue(file.toFile(), BattleResults.class);
+						var content = mapper.readValue(file.toFile(), BattleResults.class);
+
+						if (shouldDelete) {
+							Files.deleteIfExists(file);
+						}
+
+						return content;
 					} catch (IOException e) {
 						return null;
 					}
@@ -175,10 +188,11 @@ public class S3RotationSender {
 	}
 
 	public void sendRotationsFromDatabase(boolean force) {
-		var time = Instant.now();
+		var time = getSlotStartTime(Instant.now());
 
 		vsModeDiscordChannelRepository.findAll().forEach(channel ->
-			vsRotationSlotRepository.findByRotation_ModeAndStartTimeBeforeAndEndTimeAfter(channel.getMode(), time, time)
+			vsRotationSlotRepository.findByStartTime(time)
+				.filter(slot -> slot.getRotation().getMode().equals(channel.getMode()))
 				.filter(slot -> force || Math.abs(slot.getStartTime().getEpochSecond() - Instant.now().getEpochSecond()) <= 300)
 				.ifPresent(slot -> sendVsRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), slot.getRotation())));
 
@@ -659,6 +673,16 @@ public class S3RotationSender {
 		}
 
 		return channelName;
+	}
+
+	private Instant getSlotStartTime(Instant base) {
+		return base.atZone(ZoneOffset.UTC)
+			.truncatedTo(ChronoUnit.DAYS)
+			.withHour(base.atZone(ZoneOffset.UTC).getHour())
+			.withMinute(0)
+			.withSecond(0)
+			.withNano(0)
+			.toInstant();
 	}
 
 	@Getter

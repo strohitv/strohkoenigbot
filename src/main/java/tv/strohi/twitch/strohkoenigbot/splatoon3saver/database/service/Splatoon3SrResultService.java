@@ -38,7 +38,7 @@ public class Splatoon3SrResultService {
 	private final Splatoon3SrEventWaveRepository eventWaveRepository;
 	private final Splatoon3SrSpecialWeaponRepository specialWeaponRepository;
 
-	public Splatoon3SrResult ensureResultExists(CoopHistoryDetail result) {
+	public Splatoon3SrResult ensureResultExists(CoopHistoryDetail result, String json) {
 		var mode = modeRepository.findByApiRule(result.getRule()).orElseThrow();
 		var rotation = rotationRepository.findByModeAndStartTimeBeforeAndEndTimeAfter(mode, result.getPlayedTimeAsInstant(), result.getPlayedTimeAsInstant())
 			.orElseThrow();
@@ -71,15 +71,10 @@ public class Splatoon3SrResultService {
 						.scenarioCode(null)
 						.afterGrade(ensureGradeExists(result.getAfterGrade()))
 						.afterGradePoint(result.getAfterGradePoint())
+						.shortenedJson(imageService.shortenJson(json))
 						.build()
 				));
 
-		// result player
-		// result wave
-		// result wave special
-		// result wave player weapon
-		// enemy results
-		// uniform (probably with player)
 		var allPlayerResults = Stream.concat(Stream.of(result.getMyResult()), Stream.of(result.getMemberResults().toArray(new CoopResult[0]))).collect(Collectors.toList());
 
 		var resultPlayers = ensureResultPlayersExist(dbResult, allPlayerResults);

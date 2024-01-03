@@ -30,7 +30,7 @@ public class ImageService {
 
 	@PostConstruct
 	public void registerSchedule() {
-		schedulingService.register("ShortenedImageService_download10Images", TickSchedule.getScheduleString(360), this::downloadUpTo10MissingImages);
+		schedulingService.register("ShortenedImageService_download10Images", TickSchedule.getScheduleString(60), this::downloadUpTo10MissingImages);
 	}
 
 	@Transactional

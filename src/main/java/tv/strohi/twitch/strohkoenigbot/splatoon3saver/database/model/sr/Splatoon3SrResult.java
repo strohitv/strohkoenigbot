@@ -47,6 +47,9 @@ public class Splatoon3SrResult {
 
 	private String scenarioCode;
 
+	@Lob
+	private String shortenedJson;
+
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)

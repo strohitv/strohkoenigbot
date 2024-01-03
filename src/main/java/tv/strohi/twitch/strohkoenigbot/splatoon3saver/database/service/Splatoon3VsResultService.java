@@ -36,14 +36,13 @@ public class Splatoon3VsResultService {
 	private final Splatoon3VsAwardRepository awardRepository;
 
 	@Transactional
-	public Splatoon3VsResult ensureResultExists(VsHistoryDetail game) {
+	public Splatoon3VsResult ensureResultExists(VsHistoryDetail game, String json) {
 		var mode = modeRepository.findByApiId(game.getVsMode().getId()).orElseThrow();
 		var rule = rotationService.ensureRuleExists(game.getVsRule());
 		var stage = rotationService.ensureStageExists(game.getVsStage());
-
 		var eventRegulation = Optional.ofNullable(game.getLeagueMatch()).map(LeagueMatchDetails::getLeagueMatchEvent).orElse(null);
 
-		var result = resultRepository.findByPlayedTime(game.getPlayedTimeAsInstant())
+		var result = resultRepository.findByApiId(game.getId())
 			.orElseGet(() ->
 				resultRepository.save(Splatoon3VsResult.builder()
 					.apiId(game.getId())
@@ -61,7 +60,7 @@ public class Splatoon3VsResultService {
 
 					.awards(game.getAwards().stream().map(this::ensureAwardExists).collect(Collectors.toList()))
 
-					.shortenedJson(imageService.shortenJson(writeValueAsStringHiddenException(game)))
+					.shortenedJson(imageService.shortenJson(json))
 					.build()));
 
 		var allTeams = new ArrayList<Team>();
@@ -72,14 +71,10 @@ public class Splatoon3VsResultService {
 			.map(t -> ensureTeamExists(t, result))
 			.collect(Collectors.toList());
 
-
 		return resultRepository.save(result.toBuilder()
 			.teams(teams)
 			.build());
-
-//		return resultRepository.findById(result.getId()).orElse(null);
 	}
-
 
 	@Transactional
 	public Splatoon3VsResultTeam ensureTeamExists(Team team, Splatoon3VsResult result) {
