@@ -23,4 +23,6 @@ public class Splatoon3Player {
 
 	// u-aekptjbgz7xovgwzkomm
 	private String apiPrefixedId;
+
+	private boolean isMyself;
 }

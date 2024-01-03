@@ -14,5 +14,5 @@ public class CoopSetting {
 	private CoopStage coopStage;
 	private NameAndImage[] weapons;
 
-	private IdAndName boss;
+	private CoopBoss boss;
 }

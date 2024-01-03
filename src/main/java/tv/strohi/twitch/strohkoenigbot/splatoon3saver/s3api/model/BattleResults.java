@@ -279,21 +279,11 @@ public class BattleResults {
 		private IdAndName afterGrade;
 		private Integer afterGradePoint;
 		private String gradePointDiff;
-		private SalmonRunBossResult bossResult;
+		private BossResult bossResult;
 		private Result myResult;
 		private Result[] memberResults;
 
 		// TODO salmon run fields have to be added!!
-	}
-
-	@Getter
-	@Setter
-	@NoArgsConstructor
-	@AllArgsConstructor
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class SalmonRunBossResult {
-		private Boolean hasDefeatBoss;
-		private IdAndName boss;
 	}
 
 	@Getter

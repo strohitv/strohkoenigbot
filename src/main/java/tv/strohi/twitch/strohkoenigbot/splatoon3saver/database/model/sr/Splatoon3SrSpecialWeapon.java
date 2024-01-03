@@ -21,6 +21,10 @@ public class Splatoon3SrSpecialWeapon {
 
 	private String apiId;
 
+	private Long weaponId;
+
+	private String name;
+
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)

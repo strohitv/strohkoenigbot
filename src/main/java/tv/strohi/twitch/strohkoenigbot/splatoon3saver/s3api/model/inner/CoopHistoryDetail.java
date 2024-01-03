@@ -39,6 +39,8 @@ public class CoopHistoryDetail implements Serializable {
 	private CoopStage coopStage;
 	private List<NameAndImage> weapons;
 
+	private CoopBoss boss;
+
 	private Nothing scenarioCode;
 
 	public Instant getPlayedTimeAsInstant() {
@@ -47,5 +49,15 @@ public class CoopHistoryDetail implements Serializable {
 		} catch (Exception ignored) {
 			return null;
 		}
+	}
+
+	public CoopBoss tryGetBoss() {
+		if (boss != null) {
+			return boss;
+		}
+
+		return bossResult != null
+			? bossResult.getBoss()
+			: null;
 	}
 }

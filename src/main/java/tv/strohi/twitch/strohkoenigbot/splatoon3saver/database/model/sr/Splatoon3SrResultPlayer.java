@@ -64,15 +64,15 @@ public class Splatoon3SrResultPlayer {
 	private Splatoon3Nameplate nameplate;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "badge_left_id", nullable = false)
+	@JoinColumn(name = "badge_left_id")
 	private Splatoon3Badge badgeLeft;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "badge_middle_id", nullable = false)
+	@JoinColumn(name = "badge_middle_id")
 	private Splatoon3Badge badgeMiddle;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "badge_right_id", nullable = false)
+	@JoinColumn(name = "badge_right_id")
 	private Splatoon3Badge badgeRight;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -80,6 +80,7 @@ public class Splatoon3SrResultPlayer {
 	private Splatoon3SrUniform uniform;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "special_weapon_id", nullable = false)
+	@JoinColumn(name = "special_weapon_id")
+	// apparently nullable on disconnects
 	private Splatoon3SrSpecialWeapon specialWeapon;
 }

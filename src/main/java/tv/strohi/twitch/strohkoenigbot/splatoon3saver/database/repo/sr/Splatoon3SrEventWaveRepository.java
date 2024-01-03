@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface Splatoon3SrEventWaveRepository extends CrudRepository<Splatoon3SrEventWave, Long> {
-	Optional<Splatoon3SrEventWave> findById(long id);
+	Optional<Splatoon3SrEventWave> findByApiId(String apiId);
 }

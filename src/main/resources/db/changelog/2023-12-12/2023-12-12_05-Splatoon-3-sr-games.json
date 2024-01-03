@@ -199,7 +199,25 @@
                     "name": "api_id",
                     "type": "varchar(40)",
                     "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(40)",
+                    "constraints": {
                       "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true
                     }
                   }
                 },
@@ -543,7 +561,7 @@
                     "name": "special_weapon_id",
                     "type": "bigint",
                     "constraints": {
-                      "nullable": false,
+                      "nullable": true,
                       "foreignKeyName": "fk_sr_result_player_special_weapon",
                       "references": "splatoon_3_sr_special_weapon(id)"
                     }

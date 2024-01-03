@@ -22,6 +22,8 @@ public class Splatoon3SrBoss {
 
 	private String name;
 
+	private Integer enemyId;
+
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)

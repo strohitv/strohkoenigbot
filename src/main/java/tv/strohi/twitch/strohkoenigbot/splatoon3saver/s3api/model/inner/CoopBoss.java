@@ -8,7 +8,9 @@ import java.io.Serializable;
 @Getter
 @Setter
 // @Accessors(fluent = true)
-public class BossResult implements Serializable {
-	private CoopBoss boss;
-	private Boolean hasDefeatBoss;
+public class CoopBoss implements Serializable {
+	private String id;
+	private String name;
+	private Integer coopEnemyId;
+	private Image image;
 }

@@ -139,6 +139,15 @@
                 },
                 {
                   "column": {
+                    "name": "enemy_id",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
                     "name": "image_id",
                     "type": "bigint",
                     "constraints": {

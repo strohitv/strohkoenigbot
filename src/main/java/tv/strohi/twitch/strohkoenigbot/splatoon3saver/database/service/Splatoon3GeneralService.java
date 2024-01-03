@@ -36,6 +36,7 @@ public class Splatoon3GeneralService {
 				Splatoon3Player.builder()
 					.apiId(decodedPlayerId.substring(2))
 					.apiPrefixedId(decodedPlayerId)
+					.isMyself(false)
 					.build()));
 	}
 

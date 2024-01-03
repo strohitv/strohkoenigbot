@@ -54,7 +54,7 @@ public class Splatoon3SrResult {
 	private Splatoon3SrRotation rotation;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "boss_id", nullable = false)
+	@JoinColumn(name = "boss_id")
 	private Splatoon3SrBoss boss;
 
 	@ManyToOne(fetch = FetchType.LAZY)

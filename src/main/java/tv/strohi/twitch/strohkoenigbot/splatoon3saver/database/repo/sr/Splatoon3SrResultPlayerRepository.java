@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface Splatoon3SrResultPlayerRepository extends CrudRepository<Splatoon3SrResultPlayer, Long> {
-	Optional<Splatoon3SrResultPlayer> findById(long id);
+	Optional<Splatoon3SrResultPlayer> findByResultIdAndPlayerId(long resultId, long playerId);
 }

@@ -37,6 +37,16 @@
                       "nullable": false
                     }
                   }
+                },
+                {
+                  "column": {
+                    "name": "is_myself",
+                    "type": "boolean",
+                    "defaultValueBoolean": true,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
                 }
               ]
             }

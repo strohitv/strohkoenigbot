@@ -11,4 +11,5 @@ public interface Splatoon3SrModeRepository extends CrudRepository<Splatoon3SrMod
 	Optional<Splatoon3SrMode> findById(long id);
 	Optional<Splatoon3SrMode> findByApiTypename(String apiTypename);
 	Optional<Splatoon3SrMode> findByApiModeAndApiRule(String apiMode, String apiRule);
+	Optional<Splatoon3SrMode> findByApiRule(String apiRule);
 }

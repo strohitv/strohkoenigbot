@@ -10,10 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopRotation;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopStage;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.IdAndName;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.NameAndImage;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
@@ -112,7 +109,7 @@ public class Splatoon3SrRotationService {
 			.map(BattleResults.HistoryGroupMatch::getBossResult)
 			.filter(Objects::nonNull)
 			.findAny()
-			.map(BattleResults.SalmonRunBossResult::getBoss)
+			.map(BossResult::getBoss)
 			.orElse(null);
 
 		return rotationRepository.save(
@@ -140,7 +137,7 @@ public class Splatoon3SrRotationService {
 		);
 	}
 
-	private Splatoon3SrBoss tryChooseBoss(IdAndName boss, Instant startTime) {
+	private Splatoon3SrBoss tryChooseBoss(CoopBoss boss, Instant startTime) {
 		if (boss != null) return ensureBossExists(boss);
 
 		if (startTime.isBefore(horrorborosIntroductionDate)) {
@@ -198,13 +195,29 @@ public class Splatoon3SrRotationService {
 
 
 	@Transactional
-	public Splatoon3SrBoss ensureBossExists(IdAndName boss) {
-		return bossRepository.findByName(boss.getName())
+	public Splatoon3SrBoss ensureBossExists(CoopBoss boss) {
+		var dbBoss = bossRepository.findByName(boss.getName())
 			.orElseGet(() -> bossRepository.save(Splatoon3SrBoss.builder()
 				.apiId(boss.getId())
 				.name(boss.getName())
+				.enemyId(boss.getCoopEnemyId())
+				.image(boss.getImage() != null ? imageService.ensureExists(boss.getImage().getUrl()) : null)
 				.build()
 			));
+
+		if (dbBoss.getEnemyId() == null && boss.getCoopEnemyId() != null) {
+			dbBoss = bossRepository.save(dbBoss.toBuilder()
+				.enemyId(boss.getCoopEnemyId())
+				.build());
+		}
+
+		if (dbBoss.getImage() == null && boss.getImage() != null) {
+			dbBoss = bossRepository.save(dbBoss.toBuilder()
+				.image(imageService.ensureExists(boss.getImage().getUrl()))
+				.build());
+		}
+
+		return dbBoss;
 	}
 
 	private String writeValueAsStringHiddenException(Object value) {

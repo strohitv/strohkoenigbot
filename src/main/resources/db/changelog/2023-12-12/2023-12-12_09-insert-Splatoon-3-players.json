@@ -1,0 +1,37 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2023-12-12_09-insert-Splatoon-3-players",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "insert": {
+              "tableName": "splatoon_3_player",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "value": "aekptjbgz7xovgwzkomm"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_prefixed_id",
+                    "value": "u-aekptjbgz7xovgwzkomm"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_myself",
+                    "valueBoolean": true
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
