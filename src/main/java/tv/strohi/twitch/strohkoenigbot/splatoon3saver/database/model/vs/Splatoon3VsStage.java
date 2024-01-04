@@ -25,6 +25,6 @@ public class Splatoon3VsStage {
 
 	// ---
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "image_id", nullable = false)
+	@JoinColumn(name = "image_id")
 	private Image image;
 }

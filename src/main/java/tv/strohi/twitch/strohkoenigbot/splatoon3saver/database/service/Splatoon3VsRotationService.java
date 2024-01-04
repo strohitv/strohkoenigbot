@@ -14,10 +14,7 @@ import javax.transaction.Transactional;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -147,13 +144,46 @@ public class Splatoon3VsRotationService {
 
 	@Transactional
 	public Splatoon3VsStage ensureStageExists(VsStage stage) {
-		return stageRepository.findByApiId(stage.getId())
+		var dbStage = stageRepository.findByApiId(stage.getId())
 			.orElseGet(() -> stageRepository.save(Splatoon3VsStage.builder()
 				.apiId(stage.getId())
 				.name(stage.getName())
-				.image(imageService.ensureExists(stage.getImage().getUrl()))
+				.image(stage.getOriginalImage() != null
+					? imageService.ensureExists(stage.getOriginalImage().getUrl())
+					: imageService.ensureExists(stage.getImage().getUrl()))
 				.build()
 			));
+
+		var bestUrl = getBestUrl(dbStage.getImage() != null ? dbStage.getImage().getUrl() : null,
+			stage.getImage() != null ? stage.getImage().getUrl() : null,
+			stage.getOriginalImage() != null ? stage.getOriginalImage().getUrl() : null);
+
+		if (bestUrl.isPresent()
+			&& (dbStage.getImage() == null || !dbStage.getImage().getUrl().equals(bestUrl.get()))) {
+			dbStage = stageRepository.save(dbStage.toBuilder()
+				.image(imageService.ensureExists(bestUrl.get()))
+				.build());
+		}
+
+		return dbStage;
+	}
+
+	private Optional<String> getBestUrl(String... urls) {
+		return Arrays.stream(urls)
+			.filter(Objects::nonNull)
+			.max((a, b) -> Integer.compare(getUrlValue(a), getUrlValue(b)));
+	}
+
+	private int getUrlValue(String url) {
+		if (url.contains("icon/high_resolution")) {
+			return 100;
+		}
+
+		if (url.contains("icon/low_resolution")) {
+			return 50;
+		}
+
+		return 0;
 	}
 
 

@@ -11,14 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotation;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotationSlot;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrModeDiscordChannelRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrRotationRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeDiscordChannelRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationSlotRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3RotationSenderService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrRotationService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3VsRotationService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
@@ -30,16 +23,15 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Rotation
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,7 +40,7 @@ import java.util.stream.Stream;
 @Component
 @Transactional
 @RequiredArgsConstructor
-public class S3RotationSender {
+public class S3RotationSender implements ScheduledService {
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
@@ -56,34 +48,34 @@ public class S3RotationSender {
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 
-	private final Splatoon3VsModeDiscordChannelRepository vsModeDiscordChannelRepository;
-	private final Splatoon3VsRotationRepository vsRotationRepository;
-	private final Splatoon3VsRotationSlotRepository vsRotationSlotRepository;
-	private final Splatoon3SrModeDiscordChannelRepository srModeDiscordChannelRepository;
-	private final Splatoon3SrRotationRepository srRotationRepository;
-
 	private final S3ApiQuerySender requestSender;
 	private final DiscordBot discordBot;
 	private final ExceptionLogger exceptionLogger;
 
-	private final SchedulingService schedulingService;
-
 	private final Splatoon3VsRotationService vsRotationService;
 	private final Splatoon3SrRotationService srRotationService;
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("S3RotationSender_schedule", CronSchedule.getScheduleString("30 0 * * * *"), this::refreshRotations);
+	private final Splatoon3RotationSenderService rotationSenderService;
+
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+				.name("S3RotationSender_schedule")
+				.schedule(CronSchedule.getScheduleString("30 0 * * * *"))
+				.runnable(this::refreshRotations)
+			.build());
 	}
 
 	@Getter
 	@Setter
 	private boolean pauseSender = false;
 
-	private void refreshRotations() {
+	@Transactional
+	public void refreshRotations() {
 		refreshRotations(false);
 	}
 
+	@Transactional
 	public void refreshRotations(boolean force) {
 		if (pauseSender && !force) {
 			logger.info("rotation sender is pause, returning early!");
@@ -97,12 +89,13 @@ public class S3RotationSender {
 
 		if (useNewWay) {
 			importRotationsToDatabase();
-			sendRotationsFromDatabase(force);
+			rotationSenderService.sendRotationsFromDatabase(force);
 		} else {
 			refreshRotationsOld(force);
 		}
 	}
 
+	@Transactional
 	public void importRotationsToDatabase() {
 		Account account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
@@ -117,6 +110,9 @@ public class S3RotationSender {
 
 			String allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules.getKey());
 			RotationSchedulesResult rotationSchedulesResult = new ObjectMapper().readValue(allRotationsResponse, RotationSchedulesResult.class);
+
+			Arrays.stream(rotationSchedulesResult.getData().getVsStages().getNodes())
+				.forEach(vsRotationService::ensureStageExists);
 
 			Stream
 				.of(rotationSchedulesResult.getData().getRegularSchedules(),
@@ -149,15 +145,18 @@ public class S3RotationSender {
 		logger.info("Done posting rotations to discord");
 	}
 
+	@Transactional
 	public void importSrRotationsFromGameResultsFolder(Account account) throws IOException {
 		var accountUUIDHash = String.format("%05d", account.getId());
 		importSrRotationsFromGameResultsFolder(accountUUIDHash);
 	}
 
+	@Transactional
 	public void importSrRotationsFromGameResultsFolder(String accountUUIDHash) throws IOException {
 		importSrRotationsFromGameResultsFolder(accountUUIDHash, false);
 	}
 
+	@Transactional
 	public void importSrRotationsFromGameResultsFolder(String accountUUIDHash, boolean shouldDelete) throws IOException {
 		var folderName = configurationRepository.findAllByConfigName("gameResultsFolder").stream()
 			.map(Configuration::getConfigValue)
@@ -166,153 +165,34 @@ public class S3RotationSender {
 
 		Path directory = Path.of("game-results", folderName);
 		if (Files.exists(directory)) {
-			var allFiles = Files.walk(directory)
-				.filter(f -> f.getFileName().toString().startsWith("Salmon_List_"))
-				.collect(Collectors.toList());
+			try (var fileList = Files.walk(directory)) {
+				var allFiles = fileList
+					.filter(f -> f.getFileName().toString().startsWith("Salmon_List_"))
+					.collect(Collectors.toList());
 
-			allFiles.stream()
-				.map(file -> {
-					try {
-						var content = mapper.readValue(file.toFile(), BattleResults.class);
+				allFiles.stream()
+					.flatMap(file -> {
+						try {
+							var content = mapper.readValue(file.toFile(), BattleResults.class);
 
-						if (shouldDelete) {
-							Files.deleteIfExists(file);
+							var result = Arrays.stream(content.getData().getCoopResult().getHistoryGroups().getNodes())
+								.map(srRotationService::ensureDummyRotationExists)
+								.collect(Collectors.toList());
+
+							if (shouldDelete) {
+								Files.deleteIfExists(file);
+							}
+
+							return result.stream();
+						} catch (IOException e) {
+							logger.error("could not import salmon run rotations!");
+							logger.error(e);
+							return Stream.empty();
 						}
-
-						return content;
-					} catch (IOException e) {
-						return null;
-					}
-				})
-				.filter(Objects::nonNull)
-				.flatMap(list -> Arrays.stream(list.getData().getCoopResult().getHistoryGroups().getNodes()))
-				.forEach(srRotationService::ensureDummyRotationExists);
+					})
+					.forEach(rotation -> logger.info("imported rotation: {}", rotation.getId()));
+			}
 		}
-	}
-
-	public void sendRotationsFromDatabase(boolean force) {
-		var time = getSlotStartTime(Instant.now());
-
-		vsModeDiscordChannelRepository.findAll().forEach(channel ->
-			vsRotationSlotRepository.findByStartTime(time)
-				.filter(slot -> slot.getRotation().getMode().equals(channel.getMode()))
-				.filter(slot -> force || Math.abs(slot.getStartTime().getEpochSecond() - Instant.now().getEpochSecond()) <= 300)
-				.ifPresent(slot -> sendVsRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), slot.getRotation())));
-
-		srModeDiscordChannelRepository.findAll().forEach(channel ->
-			srRotationRepository.findByModeAndStartTimeBeforeAndEndTimeAfter(channel.getMode(), time, time)
-				.filter(rotation -> force || Math.abs(rotation.getStartTime().getEpochSecond() - Instant.now().getEpochSecond()) <= 300)
-				.ifPresent(rotation -> sendSrRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), rotation)));
-	}
-
-	private void sendVsRotationToDiscord(String channelName, Splatoon3VsRotation rotation) {
-		if (rotation.getEventRegulation() == null) {
-			sendRegularRotationToDiscord(channelName, rotation);
-		} else {
-			sendChallengeRotationToDiscord(channelName, rotation);
-		}
-	}
-
-	private void sendRegularRotationToDiscord(String channelName, Splatoon3VsRotation rotation) {
-		String image1 = rotation.getStage1().getImage().getUrl();
-		String image2 = rotation.getStage2().getImage().getUrl();
-
-		StringBuilder builder = new StringBuilder("**").append(rotation.getMode().getName()).append("**: ")
-			.append("**").append(getEmoji(rotation.getRule().getName())).append(rotation.getRule().getName()).append("**\n")
-			.append("- Stage A: **").append(rotation.getStage1().getName()).append("**\n")
-			.append("- Stage B: **").append(rotation.getStage2().getName()).append("**\n\n")
-			.append("**Next rotations**");
-
-		vsRotationRepository
-			.findByModeAndStartTimeAfter(rotation.getMode(), rotation.getStartTime().plus(1, ChronoUnit.MINUTES)).stream()
-			.sorted(Comparator.comparing(Splatoon3VsRotation::getStartTime))
-			.forEach(r ->
-				builder.append("\n- **<t:")
-					.append(r.getStartTime().getEpochSecond())
-					.append(":R>**: ")
-					.append(getEmoji(r.getRule().getName()))
-					.append(r.getRule().getName())
-					.append(" --- **")
-					.append(r.getStage1().getName())
-					.append("** --- **")
-					.append(r.getStage2().getName())
-					.append("**")
-			);
-
-		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1, image2);
-	}
-
-	private void sendChallengeRotationToDiscord(String channelName, Splatoon3VsRotation rotation) {
-		var event = rotation.getEventRegulation();
-
-		String image1 = rotation.getStage1().getImage().getUrl();
-		String image2 = rotation.getStage2().getImage().getUrl();
-
-		StringBuilder builder = new StringBuilder("**").append(rotation.getMode().getName()).append("**:\n")
-			.append("- Event: **").append(event.getName()).append("**\n")
-			.append("- Description: **").append(event.getDescription()).append("**\n")
-			.append("- Rules:\n```\n").append(event.getRegulation().replace("<br />", "\n")).append("\n```\n")
-			.append("**Rotation details**\n- Game Rule: **")
-			.append(getEmoji(rotation.getRule().getName()))
-			.append(rotation.getRule().getName())
-			.append("**\n")
-			.append("- Stage A: **").append(rotation.getStage1().getName()).append("**\n")
-			.append("- Stage B: **").append(rotation.getStage1().getName()).append("**\n\n");
-
-		var futureSlots = rotation.getSlots().stream()
-			.filter(t -> t.getStartTime().isAfter(Instant.now()))
-			.sorted(Comparator.comparing(Splatoon3VsRotationSlot::getStartTime))
-			.collect(Collectors.toList());
-		if (futureSlots.size() > 0) {
-			builder.append("**Future Slots**");
-
-			futureSlots.forEach(fs -> builder.append("\n- <t:")
-				.append(fs.getStartTime().getEpochSecond()).append(":R>")
-			);
-
-			builder.append("\n\n");
-		}
-
-		builder.append("**Next challenges**");
-
-		vsRotationRepository
-			.findByModeAndStartTimeAfter(rotation.getMode(), rotation.getStartTime().plus(1, ChronoUnit.MINUTES)).stream()
-			.sorted(Comparator.comparing(Splatoon3VsRotation::getStartTime))
-			.forEach(r ->
-				builder.append("\n- **<t:")
-					.append(r.getStartTime().getEpochSecond())
-					.append(":f>** (<t:")
-					.append(r.getStartTime().getEpochSecond())
-					.append(":R>) --- **")
-					.append(r.getEventRegulation().getName())
-					.append("** --- ")
-					.append(getEmoji(r.getRule().getName()))
-					.append(r.getRule().getName())
-					.append(" --- **")
-					.append(r.getStage1().getName())
-					.append("** --- **")
-					.append(r.getStage2().getName())
-					.append("**")
-			);
-
-		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1, image2);
-	}
-
-	private void sendSrRotationToDiscord(String channelName, Splatoon3SrRotation rotation) {
-		StringBuilder builder = new StringBuilder(String.format("**%s**:\n\n**Stage**:\n- ", rotation.getMode().getName()))
-			.append(rotation.getStage().getName())
-			.append("\n\n**Weapons**:\n");
-
-		Stream.of(rotation.getWeapon1(), rotation.getWeapon2(), rotation.getWeapon3(), rotation.getWeapon4())
-			.forEach(w -> builder.append("- ").append(w.getName()).append("\n"));
-
-		builder.append("\nRotation will be running until **<t:")
-			.append(rotation.getEndTime().getEpochSecond())
-			.append(":f>** (<t:")
-			.append(rotation.getEndTime().getEpochSecond())
-			.append(":R>)");
-
-		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getStage().getImage().getUrl());
 	}
 
 	public void refreshRotationsOld(boolean force) {
@@ -676,16 +556,6 @@ public class S3RotationSender {
 		}
 
 		return channelName;
-	}
-
-	private Instant getSlotStartTime(Instant base) {
-		return base.atZone(ZoneOffset.UTC)
-			.truncatedTo(ChronoUnit.DAYS)
-			.withHour(base.atZone(ZoneOffset.UTC).getHour())
-			.withMinute(0)
-			.withSecond(0)
-			.withNano(0)
-			.toInstant();
 	}
 
 	@Getter

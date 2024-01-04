@@ -3,7 +3,10 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -26,10 +29,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ConfigFileConnector;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
 import javax.transaction.Transactional;
@@ -50,7 +53,7 @@ import static java.util.stream.Collectors.groupingBy;
 
 @Component
 @RequiredArgsConstructor
-public class S3Downloader {
+public class S3Downloader implements ScheduledService {
 	private final EntityManager entityManager;
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
@@ -72,11 +75,13 @@ public class S3Downloader {
 	private final Splatoon3SrResultService srResultService;
 	private final S3RotationSender rotationSender;
 
-	private final SchedulingService schedulingService;
-
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("S3Downloader_schedule", CronSchedule.getScheduleString("30 35 * * * *"), this::downloadBattles);
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("S3Downloader_schedule")
+			.schedule(CronSchedule.getScheduleString("30 35 * * * *"))
+			.runnable(this::downloadBattles)
+			.build());
 	}
 
 	@Getter
@@ -527,18 +532,6 @@ public class S3Downloader {
 		public void increaseCount() {
 			count++;
 		}
-
-		public void reset() {
-			count = 0;
-		}
-	}
-
-	@Data
-	@AllArgsConstructor
-	private static class ParsedResultWithFilename {
-		private BattleResult parsedResult;
-		private String fileName;
-		private String fileContent;
 	}
 
 	@SneakyThrows
@@ -546,8 +539,6 @@ public class S3Downloader {
 	public void importJsonResultsIntoDatabase(String folderName, boolean shouldDelete) {
 		var oldFLushMode = entityManager.getFlushMode();
 		entityManager.setFlushMode(FlushModeType.COMMIT);
-
-		logSender.sendLogs(logger, String.format("Importing Splatoon 3 games of account with folder name '%s' from json into database...", folderName));
 
 		Path directory = Path.of("game-results", folderName);
 		if (directoryCreationFails(directory)) {
@@ -573,24 +564,28 @@ public class S3Downloader {
 			.flatMap(Collection::stream)
 			.map(Map.Entry::getValue)
 			.filter(sg -> directory.resolve(sg.getFilename()).toAbsolutePath().toFile().exists())
-			.map(sg -> {
+			.sorted((a, b) -> getPlayedTime(a, directory).compareTo(getPlayedTime(b, directory)))
+			.forEach(sg -> {
+				if (battleCounter.getCount() == 0) {
+					logSender.sendLogs(logger, String.format("Importing Splatoon 3 games of account with folder name '%s' from json into database...", folderName));
+
+				}
+
 				var fileContent = readFile(sg, directory);
-				return new ParsedResultWithFilename(parseBattleResult(fileContent), sg.getFilename(), fileContent);
-			})
-			.sorted(Comparator.comparing(this::getPlayedTime))
-			.forEach(result -> {
+				var result = parseBattleResult(fileContent);
+
 				try {
-					if (result.getParsedResult().getData().getVsHistoryDetail() != null) {
-						vsResultService.ensureResultExists(result.getParsedResult().getData().getVsHistoryDetail(), result.getFileContent());
+					if (result.getData().getVsHistoryDetail() != null) {
+						vsResultService.ensureResultExists(result.getData().getVsHistoryDetail(), fileContent);
 					} else {
-						srResultService.ensureResultExists(result.getParsedResult().getData().getCoopHistoryDetail(), result.getFileContent());
+						srResultService.ensureResultExists(result.getData().getCoopHistoryDetail(), fileContent);
 					}
 
 					if (shouldDelete) {
-						Files.deleteIfExists(directory.resolve(result.getFileName()).toAbsolutePath());
+						Files.deleteIfExists(directory.resolve(sg.getFilename()).toAbsolutePath());
 					}
 				} catch (Exception ex) {
-					logSender.sendLogs(logger, String.format("Folder name '%s': Exception during import of file '%s', see logs for details!", folderName, result.getFileName()));
+					logSender.sendLogs(logger, String.format("Folder name '%s': Exception during import of file '%s', see logs for details!", folderName, sg.getFilename()));
 					logger.error(ex);
 				}
 
@@ -601,15 +596,20 @@ public class S3Downloader {
 				}
 			});
 
-		logSender.sendLogs(logger, String.format("Done with importing Splatoon 3 games of account with folder name '%s' from json into database. Total number of imported games: %d", folderName, battleCounter.getCount()));
+		if (battleCounter.getCount() > 0) {
+			logSender.sendLogs(logger, String.format("Done with importing Splatoon 3 games of account with folder name '%s' from json into database. Total number of imported games: %d", folderName, battleCounter.getCount()));
+		}
 
 		entityManager.setFlushMode(oldFLushMode);
 	}
 
-	private Instant getPlayedTime(ParsedResultWithFilename br) {
-		return br.getParsedResult().getData().getVsHistoryDetail() != null
-			? br.getParsedResult().getData().getVsHistoryDetail().getPlayedTimeAsInstant()
-			: br.getParsedResult().getData().getCoopHistoryDetail().getPlayedTimeAsInstant();
+	private Instant getPlayedTime(ConfigFile.StoredGame sg, Path directory) {
+		var fileContent = readFile(sg, directory);
+		var parsedResult = parseBattleResult(fileContent);
+
+		return parsedResult.getData().getVsHistoryDetail() != null
+			? parsedResult.getData().getVsHistoryDetail().getPlayedTimeAsInstant()
+			: parsedResult.getData().getCoopHistoryDetail().getPlayedTimeAsInstant();
 	}
 
 	private boolean directoryCreationFails(Path directory) {
