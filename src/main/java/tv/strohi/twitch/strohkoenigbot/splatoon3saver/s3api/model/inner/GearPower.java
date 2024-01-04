@@ -15,4 +15,6 @@ public class GearPower implements Serializable {
 	private Image image;
 	private String desc;
 	private Boolean isEmptySlot;
+	private Long gearPowerId;
+	private Double power;
 }
