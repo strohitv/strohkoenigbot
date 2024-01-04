@@ -2,9 +2,12 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.ImageRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
@@ -20,17 +23,31 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Log4j2
 public class ImageService {
+	private static final int DOWNLOAD_COUNT = 30;
+
 	private final ImageRepository imageRepository;
 	private final ResourcesDownloader resourcesDownloader;
 	private final SchedulingService schedulingService;
+	private final DiscordBot discordBot;
+
+	private LogSender logSender = null;
+
+	private LogSender getLogSender() {
+		if (logSender == null) {
+			logSender = new LogSender(discordBot);
+		}
+
+		return logSender;
+	}
 
 	private final Pattern imageUrlPattern = Pattern.compile("https://api\\.lp1\\.av5ja\\.srv\\.nintendo\\.net[^\"]+");
 	private final Pattern imagePlaceholderPattern = Pattern.compile("<<<[0-9]+>>>");
 
 	@PostConstruct
 	public void registerSchedule() {
-		schedulingService.register("ShortenedImageService_download10Images", TickSchedule.getScheduleString(60), this::downloadUpTo10MissingImages);
+		schedulingService.register("ShortenedImageService_download10Images", TickSchedule.getScheduleString(60), this::downloadSomeMissingImages);
 	}
 
 	@Transactional
@@ -69,29 +86,40 @@ public class ImageService {
 	private final List<Image> brokenImages = new ArrayList<>();
 
 	@Transactional
-	public void downloadUpTo10MissingImages() {
+	public void downloadSomeMissingImages() {
 		var notDownloadedImages = imageRepository.findByFilePathNull().stream()
 			.filter(i -> !brokenImages.contains(i))
 			.collect(Collectors.toList());
 
+		if (notDownloadedImages.size() == 0) {
+			return;
+		}
+
 		int i = 0;
 
 		for (var image : notDownloadedImages) {
-			String imageLocationString = resourcesDownloader.ensureExistsLocally(image.getUrl());
+			String imageLocationString = resourcesDownloader.ensureExistsLocally(image.getUrl().replace("\\u0026", "&"));
 			String path = Paths.get(imageLocationString).toString();
 
 			if (!imageLocationString.startsWith("https://")) {
-				image.setFilePath(Paths.get(System.getProperty("user.dir"), path).toString());
-				imageRepository.save(image);
+				var savedImage = imageRepository.save(image.toBuilder()
+					.filePath(Paths.get(System.getProperty("user.dir"), path).toString())
+					.build());
+
 				i++;
+
+				log.info("Image id {} was successfully saved on path: {}!", savedImage.getId(), savedImage.getFilePath());
 			} else {
 				// download failed, skip next time
 				brokenImages.add(image);
+				log.warn("Image id {}, url '{}' could not be downloaded!", image.getId(), image.getUrl());
 			}
 
-			if (i >= 10) {
+			if (i >= DOWNLOAD_COUNT) {
 				break;
 			}
 		}
+
+		getLogSender().sendLogs(log, String.format("ImageService: scheduled download saved %d images on drive. Number of failed images: %d", i, brokenImages.size()));
 	}
 }

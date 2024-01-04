@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrBoss;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Log4j2
 public class Splatoon3SrRotationService {
 	private final Instant horrorborosIntroductionDate = Instant.parse("2023-03-04T00:00:00Z");
 	private final ObjectMapper mapper = new ObjectMapper();
@@ -44,19 +46,25 @@ public class Splatoon3SrRotationService {
 
 		return rotationRepository.save(
 			rotationRepository.findByModeAndStartTime(mode, rotation.getStartTimeAsInstant())
-				.orElseGet(() -> rotationRepository.save(
-					Splatoon3SrRotation.builder()
-						.mode(mode)
-						.startTime(rotation.getStartTimeAsInstant())
-						.endTime(rotation.getEndTimeAsInstant())
-						.stage(ensureStageExists(rotation.getSetting().getCoopStage()))
-						.weapon1(ensureWeaponExists(weapons.get(0)))
-						.weapon2(ensureWeaponExists(weapons.get(1)))
-						.weapon3(ensureWeaponExists(weapons.get(2)))
-						.weapon4(ensureWeaponExists(weapons.get(3)))
-						.boss(ensureBossExists(rotation.getSetting().getBoss()))
-						.shortenedJson(imageService.shortenJson(writeValueAsStringHiddenException(rotation)))
-						.build()))
+				.orElseGet(() -> {
+					var newRotation = rotationRepository.save(
+						Splatoon3SrRotation.builder()
+							.mode(mode)
+							.startTime(rotation.getStartTimeAsInstant())
+							.endTime(rotation.getEndTimeAsInstant())
+							.stage(ensureStageExists(rotation.getSetting().getCoopStage()))
+							.weapon1(ensureWeaponExists(weapons.get(0)))
+							.weapon2(ensureWeaponExists(weapons.get(1)))
+							.weapon3(ensureWeaponExists(weapons.get(2)))
+							.weapon4(ensureWeaponExists(weapons.get(3)))
+							.boss(ensureBossExists(rotation.getSetting().getBoss()))
+							.shortenedJson(imageService.shortenJson(writeValueAsStringHiddenException(rotation)))
+							.build());
+
+					log.info("Created new rotation id: {}, start time: '{}', mode: '{}'", newRotation.getId(), newRotation.getStartTime(), newRotation.getMode().getName());
+
+					return newRotation;
+				})
 				.toBuilder()
 				.stage(ensureStageExists(rotation.getSetting().getCoopStage()))
 				.weapon1(ensureWeaponExists(weapons.get(0)))
@@ -65,16 +73,6 @@ public class Splatoon3SrRotationService {
 				.weapon4(ensureWeaponExists(weapons.get(3)))
 				.build()
 		);
-	}
-
-	@Transactional
-	public List<Splatoon3SrRotation> ensureDummyRotationsExist(BattleResults rotationOverview) {
-		var rotations = rotationOverview.getData().getCoopResult().getHistoryGroups().getNodes();
-
-		return Arrays.stream(rotations)
-			.map(this::ensureDummyRotationExists)
-			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
 	}
 
 	@Transactional
@@ -114,19 +112,25 @@ public class Splatoon3SrRotationService {
 
 		return rotationRepository.save(
 			rotationRepository.findByModeAndStartTime(mode, rotation.getStartTimeAsInstant())
-				.orElseGet(() -> rotationRepository.save(
-					Splatoon3SrRotation.builder()
-						.mode(mode)
-						.startTime(rotation.getStartTimeAsInstant())
-						.endTime(rotation.getEndTimeAsInstant())
-						.stage(ensureStageExists(stage))
-						.weapon1(ensureWeaponExists(weapons.get(0)))
-						.weapon2(ensureWeaponExists(weapons.get(1)))
-						.weapon3(ensureWeaponExists(weapons.get(2)))
-						.weapon4(ensureWeaponExists(weapons.get(3)))
-						.boss(tryChooseBoss(boss, rotation.getStartTimeAsInstant()))
-						.shortenedJson(imageService.shortenJson(writeValueAsStringHiddenException(rotation)))
-						.build()))
+				.orElseGet(() -> {
+					var newRotation = rotationRepository.save(
+						Splatoon3SrRotation.builder()
+							.mode(mode)
+							.startTime(rotation.getStartTimeAsInstant())
+							.endTime(rotation.getEndTimeAsInstant())
+							.stage(ensureStageExists(stage))
+							.weapon1(ensureWeaponExists(weapons.get(0)))
+							.weapon2(ensureWeaponExists(weapons.get(1)))
+							.weapon3(ensureWeaponExists(weapons.get(2)))
+							.weapon4(ensureWeaponExists(weapons.get(3)))
+							.boss(tryChooseBoss(boss, rotation.getStartTimeAsInstant()))
+							.shortenedJson(imageService.shortenJson(writeValueAsStringHiddenException(rotation)))
+							.build());
+
+					log.info("Created new dummy rotation id: {}, start time: '{}', mode: '{}'", newRotation.getId(), newRotation.getStartTime(), newRotation.getMode().getName());
+
+					return newRotation;
+				})
 				.toBuilder()
 				.stage(ensureStageExists(stage))
 				.weapon1(ensureWeaponExists(weapons.get(0)))
@@ -136,20 +140,6 @@ public class Splatoon3SrRotationService {
 				.build()
 		);
 	}
-
-	private Splatoon3SrBoss tryChooseBoss(CoopBoss boss, Instant startTime) {
-		if (boss != null) return ensureBossExists(boss);
-
-		if (startTime.isBefore(horrorborosIntroductionDate)) {
-			// only cohozuna did exist befor March 4th 2023
-			return bossRepository
-				.findByName("Cohozuna")
-				.orElse(null);
-		}
-
-		return null;
-	}
-
 
 	@Transactional
 	public Splatoon3SrWeapon ensureWeaponExists(NameAndImage weapon) {
@@ -218,6 +208,19 @@ public class Splatoon3SrRotationService {
 		}
 
 		return dbBoss;
+	}
+
+	private Splatoon3SrBoss tryChooseBoss(CoopBoss boss, Instant startTime) {
+		if (boss != null) return ensureBossExists(boss);
+
+		if (startTime.isBefore(horrorborosIntroductionDate)) {
+			// only cohozuna did exist befor March 4th 2023
+			return bossRepository
+				.findByName("Cohozuna")
+				.orElse(null);
+		}
+
+		return null;
 	}
 
 	private String writeValueAsStringHiddenException(Object value) {

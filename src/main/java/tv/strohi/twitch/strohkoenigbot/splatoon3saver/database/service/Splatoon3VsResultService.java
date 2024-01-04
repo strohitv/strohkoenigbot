@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.*;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Log4j2
 public class Splatoon3VsResultService {
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -45,8 +47,8 @@ public class Splatoon3VsResultService {
 		var eventRegulation = Optional.ofNullable(game.getLeagueMatch()).map(LeagueMatchDetails::getLeagueMatchEvent).orElse(null);
 
 		var result = resultRepository.findByApiId(game.getId())
-			.orElseGet(() ->
-				resultRepository.save(Splatoon3VsResult.builder()
+			.orElseGet(() -> {
+				var newResult = resultRepository.save(Splatoon3VsResult.builder()
 					.apiId(game.getId())
 
 					.playedTime(game.getPlayedTimeAsInstant())
@@ -63,7 +65,12 @@ public class Splatoon3VsResultService {
 					.awards(game.getAwards().stream().map(this::ensureAwardExists).collect(Collectors.toList()))
 
 					.shortenedJson(imageService.shortenJson(json))
-					.build()));
+					.build());
+
+				log.info("Created new vs result id: {}, played time: '{}', result: '{}', mode: '{}', rule: '{}', stage: {}", newResult.getId(), newResult.getPlayedTime(), newResult.getOwnJudgement(), newResult.getMode().getName(), newResult.getRule().getName(), newResult.getStage().getName());
+
+				return newResult;
+			});
 
 		var allTeams = new ArrayList<Team>();
 		allTeams.add(game.getMyTeam());

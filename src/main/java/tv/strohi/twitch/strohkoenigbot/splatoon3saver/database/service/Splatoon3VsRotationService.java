@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.*;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Log4j2
 public class Splatoon3VsRotationService {
 	private final Instant challengeSlotExpansionDate = Instant.parse("2023-11-30T00:00:00Z");
 
@@ -56,7 +58,7 @@ public class Splatoon3VsRotationService {
 
 				return rotationRepository.findByModeAndStartTime(mode, rotation.getStartTimeAsInstant())
 					.orElseGet(() -> {
-						var insertedRotation = rotationRepository.save(
+						var newRotation = rotationRepository.save(
 							Splatoon3VsRotation.builder()
 								.startTime(rotation.getStartTimeAsInstant())
 								.endTime(rotation.getEndTimeAsInstant())
@@ -69,11 +71,13 @@ public class Splatoon3VsRotationService {
 								.shortenedJson(imageService.shortenJson(writeValueAsStringHiddenException(rotation)))
 								.build());
 
-						return insertedRotation.toBuilder()
+						log.info("Created new rotation id: {}, start time: '{}', mode: '{}', rule: '{}'", newRotation.getId(), newRotation.getStartTime(), newRotation.getMode().getName(), newRotation.getRule().getName());
+
+						return newRotation.toBuilder()
 							.slots(List.of(rotationSlotRepository.save(Splatoon3VsRotationSlot.builder()
 								.startTime(rotation.getStartTimeAsInstant())
 								.endTime(rotation.getEndTimeAsInstant())
-								.rotation(insertedRotation)
+								.rotation(newRotation)
 								.build())))
 							.build();
 					});
@@ -99,7 +103,7 @@ public class Splatoon3VsRotationService {
 
 		return rotationRepository.findByModeAndStartTime(mode, rotation.getEarliestOccurrence())
 			.orElseGet(() -> {
-				var insertedRotation = rotationRepository.save(
+				var newRotation = rotationRepository.save(
 					Splatoon3VsRotation.builder()
 						.startTime(rotation.getEarliestOccurrence())
 						.endTime(rotation.getLatestEnd())
@@ -116,11 +120,13 @@ public class Splatoon3VsRotationService {
 					.map(tp -> rotationSlotRepository.save(Splatoon3VsRotationSlot.builder()
 						.startTime(tp.getStartTimeAsInstant())
 						.endTime(tp.getEndTimeAsInstant())
-						.rotation(insertedRotation)
+						.rotation(newRotation)
 						.build()))
 					.collect(Collectors.toList());
 
-				return insertedRotation.toBuilder()
+				log.info("Created new event rotation id: {}, start time: '{}', mode: '{}', rule: '{}'", newRotation.getId(), newRotation.getStartTime(), newRotation.getMode().getName(), newRotation.getRule().getName());
+
+				return newRotation.toBuilder()
 					.slots(slots)
 					.build();
 			});
@@ -187,8 +193,8 @@ public class Splatoon3VsRotationService {
 		var rotationSlots = getRotationSlots(rotationStartTime, mode);
 
 		var rotation = rotationRepository.findByModeAndStartTime(mode, rotationStartTime)
-			.orElseGet(() ->
-				rotationRepository.save(Splatoon3VsRotation.builder()
+			.orElseGet(() -> {
+				var newRotation = rotationRepository.save(Splatoon3VsRotation.builder()
 					.startTime(rotationStartTime)
 					.endTime(rotationEndTime)
 					.mode(mode)
@@ -196,7 +202,12 @@ public class Splatoon3VsRotationService {
 					.stage1(stage)
 					.eventRegulation(createDummyEventRegulationIfNecessary(eventRegulation))
 					.shortenedJson("")
-					.build()));
+					.build());
+
+				log.info("Created new dummy rotation id: {}, start time: '{}', mode: '{}', rule: '{}'", newRotation.getId(), newRotation.getStartTime(), newRotation.getMode().getName(), newRotation.getRule().getName());
+
+				return newRotation;
+			});
 
 		if (rotation.getSlots() == null || rotation.getSlots().size() == 0) {
 			var list = new ArrayList<Splatoon3VsRotationSlot>();

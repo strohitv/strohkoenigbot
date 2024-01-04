@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.*;
@@ -20,6 +21,7 @@ import java.util.stream.Stream;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Log4j2
 public class Splatoon3SrResultService {
 	// todo add indices based on the repository searches to make the algorithm fast
 	private final ImageService imageService;
@@ -51,8 +53,8 @@ public class Splatoon3SrResultService {
 		}
 
 		var dbResult = resultRepository.findByApiId(result.getId())
-			.orElseGet(() ->
-				resultRepository.save(
+			.orElseGet(() -> {
+				var newResult = resultRepository.save(
 					Splatoon3SrResult.builder()
 						.apiId(result.getId())
 						.stage(rotationService.ensureStageExists(result.getCoopStage()))
@@ -75,7 +77,12 @@ public class Splatoon3SrResultService {
 						.afterGradePoint(result.getAfterGradePoint())
 						.shortenedJson(imageService.shortenJson(json))
 						.build()
-				));
+				);
+
+				log.info("Created new sr result id: {}, played time: '{}', mode: '{}', stage: {}, rank: {} {}", newResult.getId(), newResult.getPlayedTime(), newResult.getRotation().getMode().getName(), newResult.getStage().getName(), newResult.getAfterGrade().getName(), newResult.getAfterGradePoint());
+
+				return newResult;
+			});
 
 		var allPlayerResults = Stream.concat(Stream.of(result.getMyResult()), Stream.of(result.getMemberResults().toArray(new CoopResult[0]))).collect(Collectors.toList());
 
