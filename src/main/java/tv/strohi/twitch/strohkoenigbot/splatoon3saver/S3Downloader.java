@@ -7,7 +7,6 @@ import lombok.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
@@ -73,22 +72,31 @@ public class S3Downloader {
 	private final Splatoon3SrResultService srResultService;
 	private final S3RotationSender rotationSender;
 
-	private SchedulingService schedulingService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
-	}
+	private final SchedulingService schedulingService;
 
 	@PostConstruct
 	public void registerSchedule() {
 		schedulingService.register("S3Downloader_schedule", CronSchedule.getScheduleString("30 35 * * * *"), this::downloadBattles);
 	}
 
-	//	@Scheduled(cron = "30 35 * * * *")
-	//	@Scheduled(cron = "30 * * * * *")
+	@Getter
+	@Setter
+	private boolean pauseDownloader = false;
+
+	@Transactional
 	public void downloadBattles() {
+		downloadBattles(false);
+	}
+
+	@Transactional
+	public void downloadBattles(boolean force) {
 		logger.info("Loading Splatoon 3 games...");
+
+		if (pauseDownloader && !force) {
+			logger.info("Downloader is paused, stopping loading Splatoon 3 games early");
+			return;
+		}
+
 		try {
 			downloadGamesDecideWay();
 		} catch (Exception e) {
@@ -100,6 +108,8 @@ public class S3Downloader {
 
 			logger.error(e);
 		}
+
+		logger.info("Finished loading Splatoon 3 games.");
 	}
 
 	// todo switch download from storing into json files to storing into databas

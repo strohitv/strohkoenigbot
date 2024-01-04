@@ -390,6 +390,25 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else if (message.startsWith("!reimport s3")) {
 				s3Downloader.downloadBattles();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
+			} else if (message.startsWith("!activate db s3")) {
+				s3Downloader.setPauseDownloader(true);
+				s3RotationSender.setPauseSender(true);
+
+				var useNewWay = configurationRepository.findByConfigName("s3UseDatabase").stream()
+					.findFirst()
+					.orElse(Configuration.builder()
+						.configName("s3UseDatabase")
+						.build());
+
+				useNewWay.setConfigValue("true");
+
+				configurationRepository.save(useNewWay);
+
+				s3Downloader.downloadBattles(true);
+
+				s3Downloader.setPauseDownloader(false);
+				s3RotationSender.setPauseSender(false);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
 			} else if (message.startsWith("!tryparse")) {
 				String uuid = message.substring("!tryparse".length()).trim();
 

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
@@ -67,26 +66,30 @@ public class S3RotationSender {
 	private final DiscordBot discordBot;
 	private final ExceptionLogger exceptionLogger;
 
-	private SchedulingService schedulingService;
+	private final SchedulingService schedulingService;
 
 	private final Splatoon3VsRotationService vsRotationService;
 	private final Splatoon3SrRotationService srRotationService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
-	}
 
 	@PostConstruct
 	public void registerSchedule() {
 		schedulingService.register("S3RotationSender_schedule", CronSchedule.getScheduleString("30 0 * * * *"), this::refreshRotations);
 	}
 
+	@Getter
+	@Setter
+	private boolean pauseSender = false;
+
 	private void refreshRotations() {
 		refreshRotations(false);
 	}
 
 	public void refreshRotations(boolean force) {
+		if (pauseSender && !force) {
+			logger.info("rotation sender is pause, returning early!");
+			return;
+		}
+
 		var useNewWay = configurationRepository.findAllByConfigName("s3UseDatabase").stream()
 			.map(c -> "true".equalsIgnoreCase(c.getConfigValue()))
 			.findFirst()
