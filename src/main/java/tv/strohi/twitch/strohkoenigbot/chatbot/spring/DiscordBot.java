@@ -76,7 +76,7 @@ public class DiscordBot {
 	}
 
 	private GatewayDiscordClient getGateway() {
-		List<Configuration> tokens = configurationRepository.findByConfigName("discordToken");
+		List<Configuration> tokens = configurationRepository.findAllByConfigName("discordToken");
 		if (gateway == null && tokens.size() > 0) {
 			DiscordClient client = DiscordClient.create(tokens.get(0).getConfigValue());
 			gateway = client.login().retry(5).block();

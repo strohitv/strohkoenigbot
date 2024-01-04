@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @ToString(exclude = "discordChannels")
+@EqualsAndHashCode
 public class Splatoon3VsMode {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +30,7 @@ public class Splatoon3VsMode {
 
 	// ---
 
+	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "mode")
 	private List<Splatoon3VsModeDiscordChannel> discordChannels;
 }

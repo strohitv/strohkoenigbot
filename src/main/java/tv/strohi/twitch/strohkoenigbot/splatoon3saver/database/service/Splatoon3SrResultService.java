@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
 
 import javax.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
@@ -357,5 +359,15 @@ public class Splatoon3SrResultService {
 		return br != null
 			? br.getHasDefeatBoss()
 			: wr.getTeamDeliverCount() >= wr.getDeliverNorm();
+	}
+
+	public Instant findStartTimeOfLatestGame() {
+		return resultRepository.findTop1ByOrderByPlayedTimeDesc()
+			.map(Splatoon3SrResult::getPlayedTime)
+			.orElse(Instant.ofEpochSecond(0));
+	}
+
+	public boolean notFound(BattleResults.HistoryGroupMatch hgn) {
+		return resultRepository.findByApiId(hgn.getId()).isEmpty();
 	}
 }

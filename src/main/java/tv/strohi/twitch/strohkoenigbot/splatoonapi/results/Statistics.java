@@ -142,7 +142,7 @@ public class Statistics {
 			String possiblePowerGain = "";
 			String possiblePowerLoss = "";
 
-			Configuration woomyDxDir = configurationRepository.findByConfigName("woomyDxDir").stream().findFirst().orElse(null);
+			Configuration woomyDxDir = configurationRepository.findAllByConfigName("woomyDxDir").stream().findFirst().orElse(null);
 			if (woomyDxDir != null) {
 				Path path = Paths.get(woomyDxDir.getConfigValue());
 

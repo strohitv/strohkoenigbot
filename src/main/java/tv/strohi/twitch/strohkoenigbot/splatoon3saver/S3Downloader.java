@@ -13,7 +13,12 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrMode;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsMode;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrResultService;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrRotationService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3VsResultService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3GTokenRefresher;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
@@ -42,6 +47,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.groupingBy;
+
 @Component
 @RequiredArgsConstructor
 public class S3Downloader {
@@ -62,6 +69,7 @@ public class S3Downloader {
 	private final ExceptionLogger exceptionLogger;
 
 	private final Splatoon3VsResultService vsResultService;
+	private final Splatoon3SrRotationService srRotationService;
 	private final Splatoon3SrResultService srResultService;
 	private final S3RotationSender rotationSender;
 
@@ -82,7 +90,7 @@ public class S3Downloader {
 	public void downloadBattles() {
 		logger.info("Loading Splatoon 3 games...");
 		try {
-			doDownloadBattles();
+			downloadGamesDecideWay();
 		} catch (Exception e) {
 			try {
 				logSender.sendLogs(logger, "An exception occurred during S3 download\nSee logs for details!");
@@ -93,6 +101,150 @@ public class S3Downloader {
 			logger.error(e);
 		}
 	}
+
+	// todo switch download from storing into json files to storing into databas
+
+	private void downloadGamesDecideWay() {
+		var useNewWay = configurationRepository.findAllByConfigName("s3UseDatabase").stream()
+			.map(c -> "true".equalsIgnoreCase(c.getConfigValue()))
+			.findFirst()
+			.orElse(false);
+
+		if (useNewWay) {
+			var oldFLushMode = entityManager.getFlushMode();
+			entityManager.setFlushMode(FlushModeType.COMMIT);
+
+			importAllJsonFilesIntoDatabase();
+			importResultsFromS3Api();
+
+			entityManager.setFlushMode(oldFLushMode);
+		} else {
+			doDownloadBattles();
+		}
+	}
+
+	private void importResultsFromS3Api() {
+		List<Account> accounts = accountRepository.findByEnableSplatoon3(true);
+
+		for (Account account : accounts) {
+			var importedVsGames = importVsResultsOfAccountFromS3Api(account);
+			var importedSrGames = importSrResultsOfAccountFromS3Api(account);
+
+			StringBuilder builder = new StringBuilder("Found new Splatoon 3 results:");
+			importedVsGames.entrySet()
+				.stream()
+				.sorted(Comparator.comparing(entry -> entry.getKey().getName()))
+				.forEach(entry -> {
+					if (entry.getValue().size() > 0) {
+						builder.append(String.format("\n- **%d** new %s battle results", entry.getValue().size(), entry.getKey().getName()));
+					}
+				});
+
+			importedSrGames.entrySet()
+				.stream()
+				.sorted(Comparator.comparing(entry -> entry.getKey().getName()))
+				.forEach(entry -> {
+					if (entry.getValue().size() > 0) {
+						builder.append(String.format("\n- **%d** new %s shift results", entry.getValue().size(), entry.getKey().getName()));
+					}
+				});
+
+			var newGamesImported = importedVsGames.entrySet().stream().anyMatch((res) -> res.getValue().size() > 0)
+				|| importedSrGames.entrySet().stream().anyMatch((res) -> res.getValue().size() > 0);
+
+			if (newGamesImported) {
+				logSender.sendLogs(logger, builder.toString());
+
+				// start refresh of s3s script asynchronously
+				runS3S();
+			}
+		}
+	}
+
+	private Map<Splatoon3VsMode, List<Splatoon3VsResult>> importVsResultsOfAccountFromS3Api(Account account) {
+		return S3RequestKey.getOnlineBattles().stream()
+			.flatMap(rk -> {
+				String gameListResponse = requestSender.queryS3Api(account, rk.getKey());
+				return streamResults(parseBattleResultsSneakyThrow(gameListResponse));
+			})
+			.flatMap(hgn -> Arrays.stream(hgn.getHistoryDetails().getNodes()))
+			.filter(vsResultService::notFound)
+			.map(hgn -> {
+				String matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail.getKey(), "vsResultId", hgn.getId());
+				var parsed = parseSingleResultSneakyThrow(matchJson);
+				parsed.setJsonSave(matchJson);
+				return parsed;
+			})
+			.sorted(Comparator.comparing(parsed -> parsed.getData().getVsHistoryDetail().getPlayedTimeAsInstant()))
+			.map(parsed -> vsResultService.ensureResultExists(parsed.getData().getVsHistoryDetail(), parsed.getJsonSave()))
+			.collect(groupingBy(Splatoon3VsResult::getMode));
+	}
+
+	private Map<Splatoon3SrMode, List<Splatoon3SrResult>> importSrResultsOfAccountFromS3Api(Account account) {
+		String gameListResponse = requestSender.queryS3Api(account, S3RequestKey.Salmon.getKey());
+
+		return streamResults(parseBattleResultsSneakyThrow(gameListResponse))
+			.peek(srRotationService::ensureDummyRotationExists)
+			.flatMap(hgn -> Arrays.stream(hgn.getHistoryDetails().getNodes()))
+			.filter(srResultService::notFound)
+			.map(hgn -> {
+				String matchJson = requestSender.queryS3Api(account, S3RequestKey.SalmonDetail.getKey(), "coopHistoryDetailId", hgn.getId());
+				var parsed = parseSingleResultSneakyThrow(matchJson);
+				parsed.setJsonSave(matchJson);
+				return parsed;
+			})
+			.sorted(Comparator.comparing(parsed -> parsed.getData().getCoopHistoryDetail().getPlayedTimeAsInstant()))
+			.map(parsed -> srResultService.ensureResultExists(parsed.getData().getCoopHistoryDetail(), parsed.getJsonSave()))
+			.collect(groupingBy(res -> res.getRotation().getMode()));
+	}
+
+	private BattleResults parseBattleResultsSneakyThrow(String gameList) {
+		try {
+			return objectMapper.readValue(gameList, BattleResults.class);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private BattleResult parseSingleResultSneakyThrow(String gameJson) {
+		try {
+			return objectMapper.readValue(gameJson, BattleResult.class);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Stream<BattleResults.HistoryGroupsNodes> streamResults(BattleResults results) {
+		var unboxed = results.getData();
+		if (unboxed.getLatestBattleHistories() != null) {
+			return Arrays.stream(unboxed.getLatestBattleHistories().getHistoryGroups().getNodes());
+		} else if (unboxed.getRegularBattleHistories() != null) {
+			return Arrays.stream(unboxed.getRegularBattleHistories().getHistoryGroups().getNodes());
+		} else if (unboxed.getBankaraBattleHistories() != null) {
+			return Arrays.stream(unboxed.getBankaraBattleHistories().getHistoryGroups().getNodes());
+		} else if (unboxed.getXBattleHistories() != null) {
+			return Arrays.stream(unboxed.getXBattleHistories().getHistoryGroups().getNodes());
+		} else if (unboxed.getEventBattleHistories() != null) {
+			return Arrays.stream(unboxed.getEventBattleHistories().getHistoryGroups().getNodes());
+		} else if (unboxed.getPrivateBattleHistories() != null) {
+			return Arrays.stream(unboxed.getPrivateBattleHistories().getHistoryGroups().getNodes());
+		} else if (unboxed.getCoopResult() != null) {
+			return Arrays.stream(unboxed.getCoopResult().getHistoryGroups().getNodes());
+		}
+
+		return Stream.of();
+	}
+
+	private void importAllJsonFilesIntoDatabase() {
+		List<Account> accounts = accountRepository.findByEnableSplatoon3(true);
+
+		for (Account account : accounts) {
+			String accountUUIDHash = String.format("%05d", account.getId());
+			importJsonResultsIntoDatabase(accountUUIDHash, true);
+		}
+	}
+
+	// todo switch download from storing into json files to storing into databas
 
 	private void doDownloadBattles() {
 		List<Account> accounts = accountRepository.findByEnableSplatoon3(true);
@@ -263,9 +415,9 @@ public class S3Downloader {
 		new Thread(() -> {
 			logSender.sendLogs(logger, "Starting s3s refresh...");
 
-			String scriptFormatString = configurationRepository.findByConfigName("s3sScript").stream().map(Configuration::getConfigValue).findFirst().orElse("python3 %s/s3s.py -o");
+			String scriptFormatString = configurationRepository.findAllByConfigName("s3sScript").stream().map(Configuration::getConfigValue).findFirst().orElse("python3 %s/s3s.py -o");
 
-			List<Configuration> s3sLocations = configurationRepository.findByConfigName("s3sLocation");
+			List<Configuration> s3sLocations = configurationRepository.findAllByConfigName("s3sLocation");
 			if (s3sLocations.size() == 0) return;
 
 			Runtime rt = Runtime.getRuntime();
@@ -410,6 +562,7 @@ public class S3Downloader {
 			)
 			.flatMap(Collection::stream)
 			.map(Map.Entry::getValue)
+			.filter(sg -> directory.resolve(sg.getFilename()).toAbsolutePath().toFile().exists())
 			.map(sg -> {
 				var fileContent = readFile(sg, directory);
 				return new ParsedResultWithFilename(parseBattleResult(fileContent), sg.getFilename(), fileContent);

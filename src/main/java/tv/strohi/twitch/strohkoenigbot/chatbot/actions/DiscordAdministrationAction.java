@@ -35,7 +35,9 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -159,7 +161,7 @@ public class DiscordAdministrationAction extends ChatAction {
 	private S3RotationSender s3RotationSender;
 
 	@Autowired
-	public void setS3Downloader(S3RotationSender s3RotationSender) {
+	public void setS3RotationSender(S3RotationSender s3RotationSender) {
 		this.s3RotationSender = s3RotationSender;
 	}
 
@@ -231,7 +233,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				Configuration config = new Configuration();
 				config.setConfigName(propertyName);
-				List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
+				List<Configuration> configs = configurationRepository.findAllByConfigName(propertyName);
 				if (configs.size() > 0) {
 					config = configs.get(0);
 				}
@@ -258,7 +260,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config get".length()).trim();
 
 				Configuration config = null;
-				List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
+				List<Configuration> configs = configurationRepository.findAllByConfigName(propertyName);
 				if (configs.size() > 0) {
 					config = configs.get(0);
 				}
@@ -271,7 +273,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else if (message.startsWith("!config remove")) {
 				String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config remove".length()).trim();
 
-				List<Configuration> configs = configurationRepository.findByConfigName(propertyName);
+				List<Configuration> configs = configurationRepository.findAllByConfigName(propertyName);
 				if (configs.size() > 0) {
 					configurationRepository.deleteAll(configs);
 				}
@@ -283,7 +285,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				Configuration config = new Configuration();
 				config.setConfigName(ConfigurationRepository.streamPrefix);
-				List<Configuration> configs = configurationRepository.findByConfigName(ConfigurationRepository.streamPrefix);
+				List<Configuration> configs = configurationRepository.findAllByConfigName(ConfigurationRepository.streamPrefix);
 				if (configs.size() > 0) {
 					config = configs.get(0);
 				}

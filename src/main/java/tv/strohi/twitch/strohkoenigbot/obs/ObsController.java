@@ -46,7 +46,7 @@ public class ObsController {
 	}
 
 	private void doControllerCommunication() {
-		var obsEnabled = configurationRepository.findByConfigName(OBS_SWITCH_NAME).stream()
+		var obsEnabled = configurationRepository.findAllByConfigName(OBS_SWITCH_NAME).stream()
 			.map(config -> "1".equals(config.getConfigValue()))
 			.findFirst()
 			.orElse(false);
@@ -136,7 +136,7 @@ public class ObsController {
 	}
 
 	public void setObsEnabled(boolean enabled) {
-		var obsEnabledConfig = configurationRepository.findByConfigName(OBS_SWITCH_NAME).stream()
+		var obsEnabledConfig = configurationRepository.findAllByConfigName(OBS_SWITCH_NAME).stream()
 			.findFirst()
 			.orElse(Configuration.builder().configName(OBS_SWITCH_NAME).build());
 
@@ -155,8 +155,8 @@ public class ObsController {
 			return;
 		}
 
-		String obsUrl = configurationRepository.findByConfigName("obsUrl").stream().map(Configuration::getConfigValue).findFirst().orElse(null);
-		String obsPassword = configurationRepository.findByConfigName("obsPassword").stream().map(Configuration::getConfigValue).findFirst().orElse(null);
+		String obsUrl = configurationRepository.findAllByConfigName("obsUrl").stream().map(Configuration::getConfigValue).findFirst().orElse(null);
+		String obsPassword = configurationRepository.findAllByConfigName("obsPassword").stream().map(Configuration::getConfigValue).findFirst().orElse(null);
 
 		if (obsUrl == null || obsPassword == null) {
 			logger.info("connect to OBS failed: no credentials found");

@@ -32,7 +32,7 @@ public class BulletTokenLoader {
 				.cookieHandler(new S3CookieHandler(gToken, true))
 				.build();
 
-		String webViewVersion = configurationRepository.findByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
+		String webViewVersion = configurationRepository.findAllByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
 				.findFirst()
 				.map(Configuration::getConfigValue)
 				.orElse("");

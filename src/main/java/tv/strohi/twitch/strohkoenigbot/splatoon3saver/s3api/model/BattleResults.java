@@ -284,6 +284,11 @@ public class BattleResults {
 		private Result[] memberResults;
 
 		// TODO salmon run fields have to be added!!
+
+		@JsonIgnore
+		public Instant getPlayedTimeAsInstant() {
+			return Instant.parse(playedTime);
+		}
 	}
 
 	@Getter

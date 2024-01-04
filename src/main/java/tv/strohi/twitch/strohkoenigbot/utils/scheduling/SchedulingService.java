@@ -105,7 +105,7 @@ public class SchedulingService {
 	}
 
 	public void register(String configName, String defaultValue, Runnable runnable) {
-		Configuration config = configurationRepository.findByConfigName(configName).stream().findFirst().orElse(null);
+		Configuration config = configurationRepository.findAllByConfigName(configName).stream().findFirst().orElse(null);
 
 		if (config == null) {
 			config = configurationRepository.save(new Configuration(0, configName, defaultValue));

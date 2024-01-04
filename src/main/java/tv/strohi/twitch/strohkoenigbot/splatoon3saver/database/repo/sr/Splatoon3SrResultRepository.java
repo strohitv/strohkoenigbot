@@ -9,6 +9,6 @@ import java.util.Optional;
 @Repository
 public interface Splatoon3SrResultRepository extends CrudRepository<Splatoon3SrResult, Long> {
 	Optional<Splatoon3SrResult> findById(long id);
-
 	Optional<Splatoon3SrResult> findByApiId(String apiId);
+	Optional<Splatoon3SrResult> findTop1ByOrderByPlayedTimeDesc();
 }

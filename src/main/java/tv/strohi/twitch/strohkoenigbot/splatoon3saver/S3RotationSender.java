@@ -87,7 +87,7 @@ public class S3RotationSender {
 	}
 
 	public void refreshRotations(boolean force) {
-		var useNewWay = configurationRepository.findByConfigName("s3UseDatabase").stream()
+		var useNewWay = configurationRepository.findAllByConfigName("s3UseDatabase").stream()
 			.map(c -> "true".equalsIgnoreCase(c.getConfigValue()))
 			.findFirst()
 			.orElse(false);
@@ -156,7 +156,7 @@ public class S3RotationSender {
 	}
 
 	public void importSrRotationsFromGameResultsFolder(String accountUUIDHash, boolean shouldDelete) throws IOException {
-		var folderName = configurationRepository.findByConfigName("gameResultsFolder").stream()
+		var folderName = configurationRepository.findAllByConfigName("gameResultsFolder").stream()
 			.map(Configuration::getConfigValue)
 			.findFirst()
 			.orElse(accountUUIDHash);

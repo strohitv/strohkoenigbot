@@ -470,7 +470,7 @@ public class S3DailyStatsSender {
 	}
 
 	private DailyStatsSaveModel loadYesterdayStats() {
-		Configuration yesterdayStatsConfig = configurationRepository.findByConfigName(YESTERDAY_CONFIG_NAME).stream().findFirst().orElse(null);
+		Configuration yesterdayStatsConfig = configurationRepository.findAllByConfigName(YESTERDAY_CONFIG_NAME).stream().findFirst().orElse(null);
 
 		DailyStatsSaveModel yesterdayStats = new DailyStatsSaveModel();
 		if (yesterdayStatsConfig != null) {
@@ -490,7 +490,7 @@ public class S3DailyStatsSender {
 		try {
 			json = objectMapper.writeValueAsString(yesterdayStats);
 
-			Configuration config = configurationRepository.findByConfigName(YESTERDAY_CONFIG_NAME).stream().findFirst().orElse(new Configuration());
+			Configuration config = configurationRepository.findAllByConfigName(YESTERDAY_CONFIG_NAME).stream().findFirst().orElse(new Configuration());
 			config.setConfigName(YESTERDAY_CONFIG_NAME);
 			config.setConfigValue(json);
 
