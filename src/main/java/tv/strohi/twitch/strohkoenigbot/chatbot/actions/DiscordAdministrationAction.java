@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
@@ -55,128 +54,31 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final ExceptionLogger exceptionLogger;
 	private final StrohkoenigbotApplication strohkoenigbotApplication;
 
+	private final TwitchAuthRepository authRepository;
+	private final AccountRepository accountRepository;
+	private final ConfigurationRepository configurationRepository;
+	private final TwitchSoAccountRepository twitchSoAccountRepository;
+
+	private final DiscordAccountLoader discordAccountLoader;
+	private final TwitchMessageSender twitchMessageSender;
+	private final TwitchBotClient twitchBotClient;
+	private final DiscordBot discordBot;
+
+	private final ResultsExporter resultsExporter;
+	private final StatsExporter statsExporter;
+	private final SplatoonMatchColorComponent splatoonMatchColorComponent;
+	private final DailyStatsSender dailyStatsSender;
+
+	private final ObsController obsController;
+
+	private final S3Downloader s3Downloader;
+	private final S3RotationSender s3RotationSender;
+	private final S3DailyStatsSender s3DailyStatsSender;
+	private final S3NewGearChecker s3NewGearChecker;
+
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
 		return EnumSet.of(TriggerReason.DiscordPrivateMessage);
-	}
-
-	private TwitchAuthRepository authRepository;
-
-	@Autowired
-	public void setAuthRepository(TwitchAuthRepository authRepository) {
-		this.authRepository = authRepository;
-	}
-
-	private AccountRepository accountRepository;
-
-	@Autowired
-	public void setAccountRepository(AccountRepository accountRepository) {
-		this.accountRepository = accountRepository;
-	}
-
-	private DiscordAccountLoader discordAccountLoader;
-
-	@Autowired
-	public void setDiscordAccountLoader(DiscordAccountLoader discordAccountLoader) {
-		this.discordAccountLoader = discordAccountLoader;
-	}
-
-	private ConfigurationRepository configurationRepository;
-
-	@Autowired
-	public void setTwitchSoAccountRepository(TwitchSoAccountRepository twitchSoAccountRepository) {
-		this.twitchSoAccountRepository = twitchSoAccountRepository;
-	}
-
-	private TwitchSoAccountRepository twitchSoAccountRepository;
-
-	@Autowired
-	public void setConfigurationRepository(ConfigurationRepository configurationRepository) {
-		this.configurationRepository = configurationRepository;
-	}
-
-	private TwitchMessageSender twitchMessageSender;
-
-	@Autowired
-	public void setTwitchMessageSender(TwitchMessageSender twitchMessageSender) {
-		this.twitchMessageSender = twitchMessageSender;
-	}
-
-	private TwitchBotClient twitchBotClient;
-
-	@Autowired
-	public void setTwitchBotClient(TwitchBotClient twitchBotClient) {
-		this.twitchBotClient = twitchBotClient;
-	}
-
-	private DiscordBot discordBot;
-
-	@Autowired
-	public void setDiscordBot(DiscordBot discordBot) {
-		this.discordBot = discordBot;
-	}
-
-	private ResultsExporter resultsExporter;
-
-	@Autowired
-	public void setResultsExporter(ResultsExporter resultsExporter) {
-		this.resultsExporter = resultsExporter;
-	}
-
-	private StatsExporter statsExporter;
-
-	@Autowired
-	public void setStatsExporter(StatsExporter statsExporter) {
-		this.statsExporter = statsExporter;
-	}
-
-	private SplatoonMatchColorComponent splatoonMatchColorComponent;
-
-	@Autowired
-	public void setSplatoonMatchColorComponent(SplatoonMatchColorComponent splatoonMatchColorComponent) {
-		this.splatoonMatchColorComponent = splatoonMatchColorComponent;
-	}
-
-	private ObsController obsController;
-
-	@Autowired
-	public void setObsController(ObsController obsController) {
-		this.obsController = obsController;
-	}
-
-	private DailyStatsSender dailyStatsSender;
-
-	@Autowired
-	public void setDailyStatsSender(DailyStatsSender dailyStatsSender) {
-		this.dailyStatsSender = dailyStatsSender;
-	}
-
-	private S3Downloader s3Downloader;
-
-	@Autowired
-	public void setS3Downloader(S3Downloader s3Downloader) {
-		this.s3Downloader = s3Downloader;
-	}
-
-	private S3RotationSender s3RotationSender;
-
-	@Autowired
-	public void setS3RotationSender(S3RotationSender s3RotationSender) {
-		this.s3RotationSender = s3RotationSender;
-	}
-
-	private S3DailyStatsSender s3DailyStatsSender;
-
-	@Autowired
-	public void setS3DailyStatsSender(S3DailyStatsSender s3DailyStatsSender) {
-		this.s3DailyStatsSender = s3DailyStatsSender;
-	}
-
-	private S3NewGearChecker s3NewGearChecker;
-
-	@Autowired
-	public void setS3NewGearChecker(S3NewGearChecker s3NewGearChecker) {
-		this.s3NewGearChecker = s3NewGearChecker;
 	}
 
 	@Override
@@ -203,9 +105,9 @@ public class DiscordAdministrationAction extends ChatAction {
 				}
 			} else if (message.startsWith("!start")) {
 				Account account = accountRepository.findAll().stream()
-						.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
-						.findFirst()
-						.orElse(null);
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.orElse(null);
 
 				if (account != null && !twitchBotClient.isLive(account.getTwitchUserId())) {
 					twitchBotClient.setFakeDebug(true);
@@ -215,9 +117,9 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Results export started successfully.");
 			} else if (message.startsWith("!stop")) {
 				Account account = accountRepository.findAll().stream()
-						.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
-						.findFirst()
-						.orElse(null);
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.orElse(null);
 
 				if (account != null && twitchBotClient.isLive(account.getTwitchUserId())) {
 					twitchBotClient.setFakeDebug(false);
@@ -281,7 +183,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Configurations were removed from database.");
 			} else if (message.startsWith("!platform")) {
 				String streamPrefix = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
-						.substring("!platform".length()).toLowerCase().trim();
+					.substring("!platform".length()).toLowerCase().trim();
 
 				Configuration config = new Configuration();
 				config.setConfigName(ConfigurationRepository.streamPrefix);
@@ -297,14 +199,14 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Configuration %d was stored into database.", config.getId()));
 			} else if (message.startsWith("!stream ranked")) {
 				String startOrStop = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
-						.substring("!stream ranked".length()).toLowerCase().trim();
+					.substring("!stream ranked".length()).toLowerCase().trim();
 
 				resultsExporter.setRankedRunning("start".equals(startOrStop));
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Ranked running was set to " + "start".equals(startOrStop));
 			} else if (message.startsWith("!so add")) {
 				String accountToAdd = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
-						.substring("!so add".length()).toLowerCase().trim();
+					.substring("!so add".length()).toLowerCase().trim();
 
 				Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
@@ -332,7 +234,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), answer);
 			} else if (message.startsWith("!so remove")) {
 				String accountToRemove = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
-						.substring("!so remove".length()).toLowerCase().trim();
+					.substring("!so remove".length()).toLowerCase().trim();
 
 				Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
@@ -385,7 +287,7 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else if (message.startsWith("!obs scene")) {
 				String scene = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!obs scene".length()).trim();
 				obsController.switchScene(scene, result ->
-						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Switch to obs scene '%s' successful: %b", scene, result)));
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Switch to obs scene '%s' successful: %b", scene, result)));
 			} else if (message.startsWith("!twitch")) {
 				String command = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!twitch".length()).trim();
 				if (command.toLowerCase().startsWith("join")) {
@@ -421,8 +323,8 @@ public class DiscordAdministrationAction extends ChatAction {
 				}
 			} else if (message.startsWith("!users")) {
 				List<Account> allUsers = accountRepository.findAll().stream()
-						.sorted(Comparator.comparingLong(Account::getId))
-						.collect(Collectors.toList());
+					.sorted(Comparator.comparingLong(Account::getId))
+					.collect(Collectors.toList());
 
 				StringBuilder builder = new StringBuilder("This bot currently has **").append(allUsers.size()).append("** users");
 
@@ -465,20 +367,20 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "daily stats done");
 			} else if (message.startsWith("!cookie retrieve")) {
 				Account account = accountRepository.findAll().stream()
-						.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
-						.findFirst()
-						.orElse(null);
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.orElse(null);
 
 				if (account != null) {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Cookie: `%s`", account.getSplatoonCookie()));
 				} else {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No cookie for you tsk tsk tsk");
 				}
-			}  else if (message.startsWith("!gtoken retrieve")) {
+			} else if (message.startsWith("!gtoken retrieve")) {
 				Account account = accountRepository.findAll().stream()
-						.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
-						.findFirst()
-						.orElse(null);
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.orElse(null);
 
 				if (account != null) {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("GToken: ||`%s`||", account.getGTokenSplatoon3()));
