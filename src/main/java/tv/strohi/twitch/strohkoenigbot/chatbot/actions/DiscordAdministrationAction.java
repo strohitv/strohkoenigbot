@@ -391,6 +391,8 @@ public class DiscordAdministrationAction extends ChatAction {
 				s3Downloader.downloadBattles();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
 			} else if (message.startsWith("!activate db s3")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Activating Splatoon 3 database...");
+
 				s3Downloader.setPauseDownloader(true);
 				s3RotationSender.setPauseSender(true);
 
@@ -408,7 +410,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				s3Downloader.setPauseDownloader(false);
 				s3RotationSender.setPauseSender(false);
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Splatoon 3 database has been enabled successfully.");
 			} else if (message.startsWith("!tryparse")) {
 				String uuid = message.substring("!tryparse".length()).trim();
 
