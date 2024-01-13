@@ -121,8 +121,13 @@ public class S3RotationSender {
 			|| (rotation.getStartTimeAsInstant().isBefore(Instant.now()) && rotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
 		) {
 			StringBuilder builder = new StringBuilder(String.format("**%s**:\n\n**Stage**:\n- ", srType))
-				.append(rotation.getSetting().getCoopStage().getName())
-				.append("\n\n**Weapons**:\n");
+				.append(rotation.getSetting().getCoopStage().getName());
+
+			if (rotation.getSetting().getBoss() != null) {
+				builder.append("\n\n**Boss**: ").append(rotation.getSetting().getBoss().getName());
+			}
+
+			builder.append("\n\n**Weapons**:\n");
 
 			Arrays.stream(rotation.getSetting().getWeapons()).forEach(w ->
 				builder.append("- ").append(w.getName()).append("\n"));
