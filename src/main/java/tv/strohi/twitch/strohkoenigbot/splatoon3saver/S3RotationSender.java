@@ -124,7 +124,7 @@ public class S3RotationSender {
 				.append(rotation.getSetting().getCoopStage().getName());
 
 			if (rotation.getSetting().getBoss() != null) {
-				builder.append("\n\n**Boss**: ").append(rotation.getSetting().getBoss().getName());
+				builder.append("\n\n**Boss**: \n- ").append(rotation.getSetting().getBoss().getName());
 			}
 
 			builder.append("\n\n**Weapons**:\n");
