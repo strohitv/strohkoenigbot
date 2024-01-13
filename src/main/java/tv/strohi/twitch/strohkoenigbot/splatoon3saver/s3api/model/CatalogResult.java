@@ -2,6 +2,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.apache.commons.lang3.builder.EqualsExclude;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.GearPower;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.IdAndNameAndImage;
@@ -112,7 +113,6 @@ public class CatalogResult {
 	@AllArgsConstructor
 	@EqualsAndHashCode
 	public static class RewardItem {
-		private Image image;
 		private String kind;
 		private String name;
 		private Integer amount;
@@ -121,6 +121,9 @@ public class CatalogResult {
 		private Gear headGear;
 		private Gear clothingGear;
 		private Gear shoesGear;
+
+		@EqualsExclude
+		private Image image;
 	}
 
 	@Getter
