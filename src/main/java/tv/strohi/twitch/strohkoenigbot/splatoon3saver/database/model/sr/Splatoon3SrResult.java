@@ -53,7 +53,11 @@ public class Splatoon3SrResult {
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "rotation_id", nullable = false)
+	@JoinColumn(name = "mode_id", nullable = false)
+	private Splatoon3SrMode mode;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "rotation_id")
 	private Splatoon3SrRotation rotation;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -65,6 +69,6 @@ public class Splatoon3SrResult {
 	private Splatoon3SrStage stage;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "after_grade_id", nullable = false)
+	@JoinColumn(name = "after_grade_id")
 	private Splatoon3SrGrade afterGrade;
 }

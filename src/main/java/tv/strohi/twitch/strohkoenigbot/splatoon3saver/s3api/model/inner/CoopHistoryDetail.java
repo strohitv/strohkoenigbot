@@ -41,7 +41,7 @@ public class CoopHistoryDetail implements Serializable {
 
 	private CoopBoss boss;
 
-	private Nothing scenarioCode;
+	private String scenarioCode;
 
 	public Instant getPlayedTimeAsInstant() {
 		try {

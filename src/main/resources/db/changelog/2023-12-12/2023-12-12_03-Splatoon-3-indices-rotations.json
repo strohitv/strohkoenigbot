@@ -155,23 +155,8 @@
           {
             "createIndex": {
               "tableName": "splatoon_3_sr_mode",
-              "indexName": "idx_splatoon_3_sr_mode_api_rule",
-              "unique": false,
-              "columns": [
-                {
-                  "column": {
-                    "name": "api_rule",
-                    "descending": false
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "createIndex": {
-              "tableName": "splatoon_3_sr_mode",
               "indexName": "idx_splatoon_3_sr_mode_api_mode_api_rule",
-              "unique": false,
+              "unique": true,
               "columns": [
                 {
                   "column": {

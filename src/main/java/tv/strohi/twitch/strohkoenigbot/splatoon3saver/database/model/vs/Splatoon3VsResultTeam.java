@@ -23,6 +23,8 @@ public class Splatoon3VsResultTeam {
 	@Column(name = "team_order")
 	private Integer teamOrder;
 
+	private Boolean isMyTeam;
+
 	@Column(name = "ink_color_r")
 	private Double inkColorR;
 

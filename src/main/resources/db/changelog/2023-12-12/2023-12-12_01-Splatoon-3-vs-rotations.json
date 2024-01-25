@@ -37,6 +37,24 @@
                       "nullable": true
                     }
                   }
+                },
+                {
+                  "column": {
+                    "name": "downloaded",
+                    "type": "bool",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "failed_download_count",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
                 }
               ]
             }

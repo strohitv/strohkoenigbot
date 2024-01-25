@@ -445,6 +445,186 @@
                 }
               ]
             }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_sr_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 2
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Private Salmon Run Shift"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "CoopNormalSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "PRIVATE_CUSTOM"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_rule",
+                    "value": "REGULAR"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_schedules_name",
+                    "value": null
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_sr_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 3
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Private Salmon Run Scenario"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "CoopNormalSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "PRIVATE_SCENARIO"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_rule",
+                    "value": "REGULAR"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_schedules_name",
+                    "value": null
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_sr_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 4
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Big Run"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "CoopNormalSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "REGULAR"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_rule",
+                    "value": "BIG_RUN"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_schedules_name",
+                    "value": "bigRunSchedules"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_sr_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "valueNumeric": 5
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "value": "Eggstra Work"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "value": "CoopNormalSetting"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "value": "LIMITED"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_rule",
+                    "value": "TEAM_CONTEST"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_schedules_name",
+                    "value": "teamContestSchedules"
+                  }
+                }
+              ]
+            }
           }
         ]
       }

@@ -25,6 +25,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3DailyStatsSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3NewGearChecker;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3RotationSender;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
@@ -75,6 +76,8 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final S3RotationSender s3RotationSender;
 	private final S3DailyStatsSender s3DailyStatsSender;
 	private final S3NewGearChecker s3NewGearChecker;
+
+	private final ImageService imageService;
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
@@ -395,6 +398,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				s3Downloader.setPauseDownloader(true);
 				s3RotationSender.setPauseSender(true);
+				imageService.setPauseService(true);
 
 				var useNewWay = configurationRepository.findByConfigName("s3UseDatabase").stream()
 					.findFirst()
@@ -410,6 +414,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				s3Downloader.setPauseDownloader(false);
 				s3RotationSender.setPauseSender(false);
+				imageService.setPauseService(false);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Splatoon 3 database has been enabled successfully.");
 			} else if (message.startsWith("!tryparse")) {
 				String uuid = message.substring("!tryparse".length()).trim();

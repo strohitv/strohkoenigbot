@@ -93,6 +93,8 @@ public class Splatoon3VsResultService {
 					.resultId(result.getId())
 					.teamOrder(team.getOrder())
 
+					.isMyTeam(team.getPlayers().stream().anyMatch(Player::getIsMyself))
+
 					.inkColorR(team.getColor().getR())
 					.inkColorG(team.getColor().getG())
 					.inkColorB(team.getColor().getB())
@@ -230,7 +232,7 @@ public class Splatoon3VsResultService {
 
 	@Transactional
 	public Splatoon3VsBrand ensureBrandExists(Brand brand) {
-		return brandRepository.findByApiId(brand.getId())
+		var dbBrand = brandRepository.findByApiId(brand.getId())
 			.orElseGet(() ->
 				brandRepository.save(
 					Splatoon3VsBrand.builder()
@@ -240,11 +242,23 @@ public class Splatoon3VsResultService {
 						.favoredAbility(ensureAbilityExists(brand.getUsualGearPower()))
 						.build()
 				));
+
+		if (dbBrand.getFavoredAbility() == null && brand.getUsualGearPower() != null) {
+			dbBrand = brandRepository.save(
+				dbBrand.toBuilder()
+					.favoredAbility(ensureAbilityExists(brand.getUsualGearPower()))
+					.build()
+			);
+		}
+
+		return dbBrand;
 	}
 
 
 	@Transactional
 	public Splatoon3VsAbility ensureAbilityExists(GearPower usualGearPower) {
+		if (usualGearPower == null) return null;
+
 		return abilityRepository.findByName(usualGearPower.getName())
 			.orElseGet(() ->
 				abilityRepository.save(

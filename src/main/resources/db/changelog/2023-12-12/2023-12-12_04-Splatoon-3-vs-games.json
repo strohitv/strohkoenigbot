@@ -332,7 +332,7 @@
                     "name": "favored_ability_id",
                     "type": "bigint",
                     "constraints": {
-                      "nullable": false,
+                      "nullable": true,
                       "foreignKeyName": "fk_vs_brand_favored_ability",
                       "references": "splatoon_3_vs_ability(id)"
                     }
@@ -843,6 +843,15 @@
                 },
                 {
                   "column": {
+                    "name": "is_my_team",
+                    "type": "bool",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
                     "name": "ink_color_r",
                     "type": "double",
                     "constraints": {
@@ -910,7 +919,7 @@
                 {
                   "column": {
                     "name": "splatfest_team_name",
-                    "type": "varchar(40)"
+                    "type": "varchar(250)"
                   }
                 },
                 {
@@ -922,7 +931,7 @@
                 {
                   "column": {
                     "name": "splatfest_uniform_name",
-                    "type": "varchar(50)"
+                    "type": "varchar(250)"
                   }
                 },
                 {
@@ -1121,7 +1130,7 @@
                     "name": "has_crown",
                     "type": "boolean",
                     "constraints": {
-                      "nullable": false
+                      "nullable": true
                     }
                   }
                 },

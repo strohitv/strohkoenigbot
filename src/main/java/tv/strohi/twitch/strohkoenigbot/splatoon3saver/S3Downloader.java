@@ -35,7 +35,6 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
-import javax.transaction.Transactional;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -88,12 +87,10 @@ public class S3Downloader implements ScheduledService {
 	@Setter
 	private boolean pauseDownloader = false;
 
-	@Transactional
 	public void downloadBattles() {
 		downloadBattles(false);
 	}
 
-	@Transactional
 	public void downloadBattles(boolean force) {
 		logger.info("Loading Splatoon 3 games...");
 
@@ -535,7 +532,6 @@ public class S3Downloader implements ScheduledService {
 	}
 
 	@SneakyThrows
-	@Transactional
 	public void importJsonResultsIntoDatabase(String folderName, boolean shouldDelete) {
 		var oldFLushMode = entityManager.getFlushMode();
 		entityManager.setFlushMode(FlushModeType.COMMIT);
@@ -568,7 +564,6 @@ public class S3Downloader implements ScheduledService {
 			.forEach(sg -> {
 				if (battleCounter.getCount() == 0) {
 					logSender.sendLogs(logger, String.format("Importing Splatoon 3 games of account with folder name '%s' from json into database...", folderName));
-
 				}
 
 				var fileContent = readFile(sg, directory);
@@ -591,7 +586,7 @@ public class S3Downloader implements ScheduledService {
 
 				battleCounter.increaseCount();
 
-				if (battleCounter.getCount() % 50 == 0) {
+				if (battleCounter.getCount() % 250 == 0) {
 					logSender.sendLogs(logger, String.format("Folder name '%s': Total imported games now at %d", folderName, battleCounter.getCount()));
 				}
 			});

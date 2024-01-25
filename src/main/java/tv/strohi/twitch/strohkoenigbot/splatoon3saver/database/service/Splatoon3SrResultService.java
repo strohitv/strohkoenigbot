@@ -43,12 +43,16 @@ public class Splatoon3SrResultService {
 	private final Splatoon3SrSpecialWeaponRepository specialWeaponRepository;
 
 	public Splatoon3SrResult ensureResultExists(CoopHistoryDetail result, String json) {
-		var mode = modeRepository.findByApiRule(result.getRule()).orElseThrow();
-		var rotation = rotationRepository.findByModeAndStartTimeBeforeAndEndTimeAfter(mode, result.getPlayedTimeAsInstant(), result.getPlayedTimeAsInstant())
-			.orElseThrow();
+		var possibleModes = modeRepository.findByApiRule(result.getRule());
+		Splatoon3SrMode mode = chooseMode(possibleModes, result);
+
+		var rotation = !mode.getApiMode().contains("PRIVATE")
+			? rotationRepository.findByModeAndStartTimeBeforeAndEndTimeAfter(mode, result.getPlayedTimeAsInstant(), result.getPlayedTimeAsInstant()).orElseThrow()
+			: null;
+
 		var boss = result.tryGetBoss() != null ? rotationService.ensureBossExists(result.tryGetBoss()) : null;
 
-		if (boss != null && rotation.getBoss() == null) {
+		if (boss != null && rotation != null && rotation.getBoss() == null) {
 			rotationRepository.save(rotation.toBuilder().boss(boss).build());
 		}
 
@@ -57,6 +61,7 @@ public class Splatoon3SrResultService {
 				var newResult = resultRepository.save(
 					Splatoon3SrResult.builder()
 						.apiId(result.getId())
+						.mode(mode)
 						.stage(rotationService.ensureStageExists(result.getCoopStage()))
 						.playedTime(result.getPlayedTimeAsInstant())
 						.rotation(rotation)
@@ -71,27 +76,45 @@ public class Splatoon3SrResultService {
 						.jobPoint(result.getJobPoint())
 						.jobRate(result.getJobRate())
 						.jobScore(result.getJobScore())
-						// todo scenario code!!!
-						.scenarioCode(null)
+						.scenarioCode(result.getScenarioCode())
 						.afterGrade(ensureGradeExists(result.getAfterGrade()))
 						.afterGradePoint(result.getAfterGradePoint())
 						.shortenedJson(imageService.shortenJson(json))
 						.build()
 				);
 
-				log.info("Created new sr result id: {}, played time: '{}', mode: '{}', stage: {}, rank: {} {}", newResult.getId(), newResult.getPlayedTime(), newResult.getRotation().getMode().getName(), newResult.getStage().getName(), newResult.getAfterGrade().getName(), newResult.getAfterGradePoint());
+				log.info("Created new sr result id: {}, played time: '{}', mode: '{}', stage: {}, rank: {} {}", newResult.getId(), newResult.getPlayedTime(), newResult.getMode().getName(), newResult.getStage().getName(), newResult.getAfterGrade(), newResult.getAfterGradePoint());
 
 				return newResult;
 			});
 
 		var allPlayerResults = Stream.concat(Stream.of(result.getMyResult()), Stream.of(result.getMemberResults().toArray(new CoopResult[0]))).collect(Collectors.toList());
 
-		var resultPlayers = ensureResultPlayersExist(dbResult, allPlayerResults);
+		ensureResultPlayersExist(dbResult, allPlayerResults);
 		var resultWaves = ensureWaveExists(dbResult, result.getWaveResults());
-		var resultWavePlayerWeapons = ensureResultWavePlayerWeaponsExist(resultWaves, allPlayerResults);
-		var resultEnemies = ensureResultEnemiesExist(dbResult, result.getEnemyResults());
+		ensureResultWavePlayerWeaponsExist(resultWaves, allPlayerResults);
+		ensureResultEnemiesExist(dbResult, result.getEnemyResults());
 
 		return dbResult;
+	}
+
+	private Splatoon3SrMode chooseMode(List<Splatoon3SrMode> possibleModes, CoopHistoryDetail result) {
+		var mode = possibleModes.stream().findFirst().orElseThrow();
+
+		if ("REGULAR".equalsIgnoreCase(result.getRule())) {
+			if (result.getScenarioCode() != null) {
+				// scenario private shift
+				mode = possibleModes.stream().filter(m -> m.getApiMode().equalsIgnoreCase("PRIVATE_SCENARIO")).findFirst().orElseThrow();
+			} else if (result.getAfterGrade() == null && result.getAfterGradePoint() == null) {
+				// regular private shift
+				mode = possibleModes.stream().filter(m -> m.getApiMode().equalsIgnoreCase("PRIVATE_CUSTOM")).findFirst().orElseThrow();
+			} else {
+				// regular online shift
+				mode = possibleModes.stream().filter(m -> m.getApiMode().equalsIgnoreCase("REGULAR")).findFirst().orElseThrow();
+			}
+		}
+
+		return mode;
 	}
 
 	public List<Splatoon3SrResultEnemy> ensureResultEnemiesExist(Splatoon3SrResult dbResult, List<EnemyResults> enemyResults) {
@@ -352,6 +375,8 @@ public class Splatoon3SrResultService {
 	}
 
 	public Splatoon3SrGrade ensureGradeExists(IdAndName afterGrade) {
+		if (afterGrade == null) return null;
+
 		return gradeRepository.findByApiId(afterGrade.getId())
 			.orElseGet(() ->
 				gradeRepository.save(

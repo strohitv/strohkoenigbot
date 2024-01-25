@@ -191,6 +191,48 @@
                 }
               ]
             }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_sr_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 2
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-big-run-rotations"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "insert": {
+              "tableName": "splatoon_3_sr_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "valueNumeric": 3
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "value": "s3-eggstra-work-rotations"
+                  }
+                }
+              ]
+            }
           }
         ]
       }

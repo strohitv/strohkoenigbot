@@ -272,10 +272,21 @@
                 },
                 {
                   "column": {
-                    "name": "rotation_id",
+                    "name": "mode_id",
                     "type": "bigint",
                     "constraints": {
                       "nullable": false,
+                      "foreignKeyName": "fk_sr_result_mode",
+                      "references": "splatoon_3_sr_mode(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rotation_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
                       "foreignKeyName": "fk_sr_result_rotation",
                       "references": "splatoon_3_sr_rotation(id)"
                     }
@@ -337,7 +348,7 @@
                     "name": "job_point",
                     "type": "int",
                     "constraints": {
-                      "nullable": false
+                      "nullable": true
                     }
                   }
                 },
@@ -346,7 +357,7 @@
                     "name": "job_score",
                     "type": "int",
                     "constraints": {
-                      "nullable": false
+                      "nullable": true
                     }
                   }
                 },
@@ -355,7 +366,7 @@
                     "name": "job_rate",
                     "type": "double",
                     "constraints": {
-                      "nullable": false
+                      "nullable": true
                     }
                   }
                 },
@@ -364,7 +375,7 @@
                     "name": "job_bonus",
                     "type": "int",
                     "constraints": {
-                      "nullable": false
+                      "nullable": true
                     }
                   }
                 },
@@ -416,7 +427,7 @@
                 {
                   "column": {
                     "name": "scenario_code",
-                    "type": "varchar(150)",
+                    "type": "varchar(50)",
                     "constraints": {
                       "nullable": true
                     }

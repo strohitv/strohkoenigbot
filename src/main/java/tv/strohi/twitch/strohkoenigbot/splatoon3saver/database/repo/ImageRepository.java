@@ -13,5 +13,5 @@ public interface ImageRepository extends CrudRepository<Image, Long> {
 
 	Optional<Image> findByUrl(String imageUrl);
 
-	List<Image> findByFilePathNull();
+	List<Image> findByFilePathNullAndFailedDownloadCountLessThanEqual(int maxFailedDownloadCount);
 }

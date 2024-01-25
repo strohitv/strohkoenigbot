@@ -21,4 +21,10 @@ public class Image {
 	private String url;
 
 	private String filePath;
+
+	@Builder.Default
+	private boolean downloaded = false;
+
+	@Builder.Default
+	private int failedDownloadCount = 0;
 }

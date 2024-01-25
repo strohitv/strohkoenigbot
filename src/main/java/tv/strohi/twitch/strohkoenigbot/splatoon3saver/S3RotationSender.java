@@ -60,9 +60,9 @@ public class S3RotationSender implements ScheduledService {
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(ScheduleRequest.builder()
-				.name("S3RotationSender_schedule")
-				.schedule(CronSchedule.getScheduleString("30 0 * * * *"))
-				.runnable(this::refreshRotations)
+			.name("S3RotationSender_schedule")
+			.schedule(CronSchedule.getScheduleString("30 0 * * * *"))
+			.runnable(this::refreshRotations)
 			.build());
 	}
 
@@ -125,12 +125,14 @@ public class S3RotationSender implements ScheduledService {
 			Arrays.stream(rotationSchedulesResult.getData().getEventSchedules().getNodes())
 				.forEach(vsRotationService::ensureRotationExists);
 
-			Stream
-				.of(rotationSchedulesResult.getData().getCoopGroupingSchedule().getRegularSchedules(),
-					rotationSchedulesResult.getData().getCoopGroupingSchedule().getBigRunSchedules(),
-					rotationSchedulesResult.getData().getCoopGroupingSchedule().getTeamContestSchedules())
-				.flatMap(r -> Arrays.stream(r.getNodes()))
-				.forEach(srRotationService::ensureRotationExists);
+			Arrays.stream(rotationSchedulesResult.getData().getCoopGroupingSchedule().getRegularSchedules().getNodes())
+				.forEach(r -> srRotationService.ensureRotationExists(r, "regularSchedules"));
+
+			Arrays.stream(rotationSchedulesResult.getData().getCoopGroupingSchedule().getBigRunSchedules().getNodes())
+				.forEach(r -> srRotationService.ensureRotationExists(r, "bigRunSchedules"));
+
+			Arrays.stream(rotationSchedulesResult.getData().getCoopGroupingSchedule().getTeamContestSchedules().getNodes())
+				.forEach(r -> srRotationService.ensureRotationExists(r, "teamContestSchedules"));
 		} catch (JsonProcessingException e) {
 //			logSender.sendLogs(logger, String.format("exception during rotation refresh!! %s", e.getMessage()));
 			logger.error(e);
@@ -177,6 +179,7 @@ public class S3RotationSender implements ScheduledService {
 
 							var result = Arrays.stream(content.getData().getCoopResult().getHistoryGroups().getNodes())
 								.map(srRotationService::ensureDummyRotationExists)
+								.filter(Objects::nonNull)
 								.collect(Collectors.toList());
 
 							if (shouldDelete) {

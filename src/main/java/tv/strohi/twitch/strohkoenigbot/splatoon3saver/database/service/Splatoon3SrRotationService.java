@@ -38,8 +38,8 @@ public class Splatoon3SrRotationService {
 
 
 	@Transactional
-	public Splatoon3SrRotation ensureRotationExists(CoopRotation rotation) {
-		var mode = modeRepository.findByApiTypename(rotation.getSetting().get__typename())
+	public Splatoon3SrRotation ensureRotationExists(CoopRotation rotation, String schedulesName) {
+		var mode = modeRepository.findByApiSchedulesName(schedulesName)
 			.orElseThrow();
 
 		var weapons = Arrays.stream(rotation.getSetting().getWeapons()).collect(Collectors.toList());
@@ -80,7 +80,7 @@ public class Splatoon3SrRotationService {
 		var mode = modeRepository.findByApiModeAndApiRule(rotation.getMode(), rotation.getRule())
 			.orElse(null);
 
-		if (mode == null) return null;
+		if (mode == null || mode.getApiMode().contains("PRIVATE")) return null;
 
 		var weapons = Arrays.stream(rotation.getHistoryDetails().getNodes())
 			.map(BattleResults.HistoryGroupMatch::getWeapons)
