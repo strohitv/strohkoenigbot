@@ -133,6 +133,16 @@
                       "nullable": false
                     }
                   }
+                },
+                {
+                  "column": {
+                    "name": "posted",
+                    "type": "boolean",
+                    "defaultOnNull": false,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
                 }
               ]
             }

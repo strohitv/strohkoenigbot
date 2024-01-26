@@ -33,7 +33,11 @@ public class Splatoon3Nameplate {
 	@Column(name = "text_color_a")
 	private Double textColorA;
 
-	private Boolean owned;
+	@Builder.Default
+	private Boolean owned = false;
+
+	@Builder.Default
+	private Boolean posted = false;
 
 	// ---
 
