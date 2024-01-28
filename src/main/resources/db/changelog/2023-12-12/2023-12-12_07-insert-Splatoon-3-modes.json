@@ -602,7 +602,7 @@
                 {
                   "column": {
                     "name": "api_typename",
-                    "value": "CoopNormalSetting"
+                    "value": "CoopTeamContestSetting"
                   }
                 },
                 {
