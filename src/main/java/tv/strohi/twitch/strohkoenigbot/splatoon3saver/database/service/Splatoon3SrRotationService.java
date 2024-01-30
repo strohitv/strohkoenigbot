@@ -57,7 +57,7 @@ public class Splatoon3SrRotationService {
 							.weapon2(ensureWeaponExists(weapons.get(1)))
 							.weapon3(ensureWeaponExists(weapons.get(2)))
 							.weapon4(ensureWeaponExists(weapons.get(3)))
-							.boss(ensureBossExists(rotation.getSetting().getBoss()))
+							.boss(rotation.getSetting().getBoss() != null ? ensureBossExists(rotation.getSetting().getBoss()) : null)
 							.shortenedJson(imageService.shortenJson(writeValueAsStringHiddenException(rotation)))
 							.build());
 
