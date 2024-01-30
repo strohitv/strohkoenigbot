@@ -415,6 +415,9 @@ public class DiscordAdministrationAction extends ChatAction {
 				s3Downloader.setPauseDownloader(false);
 				s3RotationSender.setPauseSender(false);
 				imageService.setPauseService(false);
+
+				s3RotationSender.refreshRotations();
+
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Splatoon 3 database has been enabled successfully.");
 			} else if (message.startsWith("!tryparse")) {
 				String uuid = message.substring("!tryparse".length()).trim();
