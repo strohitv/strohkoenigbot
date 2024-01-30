@@ -1,0 +1,391 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2023-12-12_02-splatoon-3-salmon-run-rotations",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_typename",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_mode",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_rule",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_schedules_name",
+                    "type": "varchar(30)"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_mode_discord_channel",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_sr_mode_discord_channel_mode_id",
+                      "references": "splatoon_3_sr_mode(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "discord_channel_name",
+                    "type": "varchar(50)"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_boss",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "enemy_id",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_salmon_run_boss_image",
+                      "references": "image(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_stage",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_salmon_run_stage_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "thumbnail_image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_salmon_run_stage_image_thumbnail",
+                      "references": "image(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_weapon",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_salmon_run_weapon_image",
+                      "references": "image(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_sr_rotation",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stage_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_salmon_run_rotation_stage_id",
+                      "references": "splatoon_3_sr_stage(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_salmon_run_rotation_mode_id",
+                      "references": "splatoon_3_sr_mode(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "boss_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_salmon_run_rotation_boss_id",
+                      "references": "splatoon_3_sr_boss(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "start_time",
+                    "type": "timestamp",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "end_time",
+                    "type": "timestamp",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_1_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_salmon_run_rotation_weapon_1_id",
+                      "references": "splatoon_3_sr_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_2_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_salmon_run_rotation_weapon_2_id",
+                      "references": "splatoon_3_sr_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_3_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_salmon_run_rotation_weapon_3_id",
+                      "references": "splatoon_3_sr_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_4_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_salmon_run_rotation_weapon_4_id",
+                      "references": "splatoon_3_sr_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shortened_json",
+                    "type": "clob",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

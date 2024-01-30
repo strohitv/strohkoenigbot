@@ -15,7 +15,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 public class Splatoon2AbilityNotification {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
 	private long discordId;

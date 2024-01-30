@@ -70,7 +70,7 @@ public class S3Authenticator {
 		logger.debug(webViewVersion);
 
 		if (webViewVersion != null) {
-			Configuration webViewConfigs = configurationRepository.findByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
+			Configuration webViewConfigs = configurationRepository.findAllByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
 					.findFirst()
 					.orElse(new Configuration(0L, SPLATOON3_WEBVIEWVERSION_CONFIG_NAME, null));
 

@@ -20,7 +20,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 public class Splatoon2Match {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
 	private Long accountId;

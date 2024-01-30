@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.utils.scheduling;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
@@ -32,6 +33,13 @@ public class SchedulingService {
 	private final List<Schedule> schedules = new ArrayList<>();
 	private final List<Schedule> singleRunSchedules = new ArrayList<>();
 
+	@Autowired
+	public void setScheduledServices(List<ScheduledService> services) {
+		services.forEach(service ->
+			service.createScheduleRequests().forEach(request ->
+				register(request.getName(), request.getSchedule(), request.getRunnable())));
+	}
+
 	@Scheduled(fixedDelay = 5000)
 	private void run() {
 		LocalDateTime now = LocalDateTime.now();
@@ -51,7 +59,7 @@ public class SchedulingService {
 
 					if (schedule.isFailed(MAX_ERRORS_SINGLE)) {
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-								String.format("**ERROR**: Single Runnable failed **%d** times and got removed from Scheduler!! Schedule: `%s`", MAX_ERRORS_SINGLE, schedule));
+							String.format("**ERROR**: Single Runnable failed **%d** times and got removed from Scheduler!! Schedule: `%s`", MAX_ERRORS_SINGLE, schedule));
 						singleRunSchedules.remove(i);
 						i--;
 					}
@@ -69,7 +77,7 @@ public class SchedulingService {
 
 				if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
 					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("**ERROR**: Repeated Runnable '**%s**' failed **%d** times and got removed from Scheduler!! Schedule: `%s`", schedule.getName(), MAX_ERRORS_REPEATED, schedule));
+						String.format("**ERROR**: Repeated Runnable '**%s**' failed **%d** times and got removed from Scheduler!! Schedule: `%s`", schedule.getName(), MAX_ERRORS_REPEATED, schedule));
 
 					List<Exception> exceptions = schedule.getErrors();
 					Exception exception = exceptions.get(exceptions.size() - 1);
@@ -105,12 +113,12 @@ public class SchedulingService {
 	}
 
 	public void register(String configName, String defaultValue, Runnable runnable) {
-		Configuration config = configurationRepository.findByConfigName(configName).stream().findFirst().orElse(null);
+		Configuration config = configurationRepository.findAllByConfigName(configName).stream().findFirst().orElse(null);
 
 		if (config == null) {
 			config = configurationRepository.save(new Configuration(0, configName, defaultValue));
 			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-					String.format("Added new Schedule: id = **%d**, name = **%s**, value = **%s**", config.getId(), configName, defaultValue));
+				String.format("Added new Schedule: id = **%d**, name = **%s**, value = **%s**", config.getId(), configName, defaultValue));
 		}
 
 		schedules.add(createFromSettings(configName, config.getConfigValue(), runnable));

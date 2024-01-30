@@ -16,7 +16,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class Splatoon2WeaponRequestRanking {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
 	private Long accountId;

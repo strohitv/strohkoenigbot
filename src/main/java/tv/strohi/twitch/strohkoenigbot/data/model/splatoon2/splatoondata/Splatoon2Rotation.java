@@ -16,7 +16,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class Splatoon2Rotation {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
 	private Long splatoonApiId;
@@ -25,8 +25,10 @@ public class Splatoon2Rotation {
 
 	private Long endTime;
 
+	@Column(name = "stage_a_id")
 	private Long stageAId;
 
+	@Column(name = "stage_b_id")
 	private Long stageBId;
 
 	private Splatoon2Mode mode;

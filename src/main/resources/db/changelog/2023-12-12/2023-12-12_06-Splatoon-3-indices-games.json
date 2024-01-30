@@ -1,0 +1,396 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2023-12-12_06-Splatoon-3-indices-games",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_player",
+              "indexName": "idx_splatoon_3_player_api_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_player",
+              "indexName": "idx_splatoon_3_player_api_prefixed_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_prefixed_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_nameplate",
+              "indexName": "idx_splatoon_3_nameplate_api_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_badge",
+              "indexName": "idx_splatoon_3_badge_api_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_weapon",
+              "indexName": "idx_splatoon_3_vs_weapon_api_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_sub_weapon",
+              "indexName": "idx_splatoon_3_vs_sub_weapon_api_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_result_team",
+              "indexName": "idx_splatoon_3_vs_result_team_result_id_team_order",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "descending": false
+                  }
+                },
+                {
+                  "column": {
+                    "name": "team_order",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_result_team_player",
+              "indexName": "idx_splatoon_3_vs_result_team_player_result_id_team_order_player_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "descending": false
+                  }
+                },
+                {
+                  "column": {
+                    "name": "team_order",
+                    "descending": false
+                  }
+                },
+                {
+                  "column": {
+                    "name": "player_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_special_weapon",
+              "indexName": "idx_splatoon_3_vs_special_weapon_api_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_player",
+              "indexName": "idx_splatoon_3_player_api_prefixed_id",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_prefixed_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_result",
+              "indexName": "idx_splatoon_3_vs_result_api_id",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_event_regulation",
+              "indexName": "idx_splatoon_3_vs_event_regulation_api_id",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_brand",
+              "indexName": "idx_splatoon_3_vs_brand_api_id",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_gear",
+              "indexName": "idx_splatoon_3_vs_gear_name",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "name",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_award",
+              "indexName": "idx_splatoon_3_vs_award_name",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "name",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_vs_ability",
+              "indexName": "idx_splatoon_3_vs_ability_name",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "name",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_sr_result",
+              "indexName": "idx_splatoon_3_sr_result_api_id",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_sr_grade",
+              "indexName": "idx_splatoon_3_sr_grade_api_id",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_sr_uniform",
+              "indexName": "idx_splatoon_3_sr_uniform_name",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_sr_result_wave_used_special_weapon",
+              "indexName": "idx_splatoon_3_sr_result_wave_used_special_weapon_result_id_wave_number",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "descending": false
+                  }
+                },
+                {
+                  "column": {
+                    "name": "wave_number",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_sr_special_weapon",
+              "indexName": "idx_splatoon_3_sr_special_weapon_name",
+              "unique": true,
+              "columns": [
+                {
+                  "column": {
+                    "name": "name",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_sr_event_wave",
+              "indexName": "idx_splatoon_3_sr_event_wave_api_id",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_sr_enemy",
+              "indexName": "idx_splatoon_3_sr_enemy_api_id",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_id",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createIndex": {
+              "tableName": "splatoon_3_sr_boss",
+              "indexName": "idx_splatoon_3_sr_boss_name",
+              "unique": false,
+              "columns": [
+                {
+                  "column": {
+                    "name": "name",
+                    "descending": false
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

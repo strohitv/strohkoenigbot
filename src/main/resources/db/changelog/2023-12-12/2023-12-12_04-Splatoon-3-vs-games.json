@@ -1,0 +1,1344 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2023-12-12_04-splatoon-3-vs-games",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_3_player",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_prefixed_id",
+                    "type": "varchar(42)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_myself",
+                    "type": "boolean",
+                    "defaultValueBoolean": true,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_nameplate",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_nameplate_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "text_color_r",
+                    "type": "double",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "text_color_g",
+                    "type": "double",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "text_color_b",
+                    "type": "double",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "text_color_a",
+                    "type": "double",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "owned",
+                    "type": "boolean",
+                    "defaultOnNull": false,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "posted",
+                    "type": "boolean",
+                    "defaultOnNull": false,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_badge",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_badge_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "owned",
+                    "type": "boolean",
+                    "defaultOnNull": false,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_award",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rank",
+                    "type": "varchar(20)",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_ability",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "description",
+                    "type": "varchar(200)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_ability_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_filler_ability",
+                    "type": "boolean",
+                    "defaultOnNull": true,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_brand",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(30)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_brand_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "favored_ability_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_vs_brand_favored_ability",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_gear",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "original_image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_gear_original_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "thumbnail_image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_gear_thumbnail_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "type",
+                    "type": "varchar(20)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "brand_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_gear_brand",
+                      "references": "splatoon_3_vs_brand(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_special_weapon",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_special_weapon_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "masking_image_width",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "masking_image_height",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "masking_image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_special_weapon_masking_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "overlay_image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_special_weapon_overlay_image",
+                      "references": "image(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_sub_weapon",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_sub_weapon_image",
+                      "references": "image(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_weapon",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(40)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "sub_weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_weapon_sub_weapon",
+                      "references": "splatoon_3_vs_sub_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "special_weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_weapon_special_weapon",
+                      "references": "splatoon_3_vs_special_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_weapon_image",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_2_d_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_weapon_image_2_d",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_2_d_thumbnail_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_weapon_image_2_d_thumbnail",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_3_d_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_weapon_image_3_d",
+                      "references": "image(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "image_3_d_thumbnail_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_weapon_image_3_d_thumbnail",
+                      "references": "image(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_result",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "api_id",
+                    "type": "varchar(200)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "played_time",
+                    "type": "timestamp",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "duration",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "own_judgement",
+                    "type": "varchar(20)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "knockout",
+                    "type": "varchar(20)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "mode_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_mode",
+                      "references": "splatoon_3_vs_mode(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rule_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_rule",
+                      "references": "splatoon_3_vs_rule(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "rotation_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_vs_result_rotation",
+                      "references": "splatoon_3_vs_rotation(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stage_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_stage",
+                      "references": "splatoon_3_vs_stage(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shortened_json",
+                    "type": "clob",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_result_award",
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_award_result",
+                      "references": "splatoon_3_vs_result(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "award_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_award_award",
+                      "references": "splatoon_3_vs_award(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_result_team",
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_result",
+                      "references": "splatoon_3_vs_result(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "team_order",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_my_team",
+                    "type": "bool",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "ink_color_r",
+                    "type": "double",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "ink_color_g",
+                    "type": "double",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "ink_color_b",
+                    "type": "double",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "ink_color_a",
+                    "type": "double",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "judgement",
+                    "type": "varchar(20)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "paint_ratio",
+                    "type": "double"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "score",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tricolor_gained_ultra_signals",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "tricolor_role",
+                    "type": "varchar(20)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatfest_team_name",
+                    "type": "varchar(250)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatfest_streak_win_count",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatfest_uniform_name",
+                    "type": "varchar(250)"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatfest_uniform_bonus_rate",
+                    "type": "double"
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "addPrimaryKey":
+            {
+              "columnNames":  "result_id, team_order",
+              "tableName":  "splatoon_3_vs_result_team",
+              "validate":  true
+            }
+          },
+
+
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_result_team_player",
+              "columns": [
+                {
+                  "column": {
+                    "name": "result_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "team_order",
+                    "type": "int",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "player_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_player",
+                      "references": "splatoon_3_player(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "is_myself",
+                    "type": "boolean",
+                    "defaultOnNull": false,
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "name_id",
+                    "type": "varchar(10)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "title",
+                    "type": "varchar(150)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "nameplate_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_nameplate",
+                      "references": "splatoon_3_nameplate(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "badge_left_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_vs_result_team_player_badge_left",
+                      "references": "splatoon_3_badge(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "badge_middle_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_vs_result_team_player_badge_middle",
+                      "references": "splatoon_3_badge(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "badge_right_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true,
+                      "foreignKeyName": "fk_vs_result_team_player_badge_right",
+                      "references": "splatoon_3_badge(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "species",
+                    "type": "varchar(20)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "weapon_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_weapon",
+                      "references": "splatoon_3_vs_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "paint",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "kills",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "deaths",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "assists",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "specials",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "ultra_signal_attempts",
+                    "type": "int"
+                  }
+                },
+                {
+                  "column": {
+                    "name": "has_crown",
+                    "type": "boolean",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "splatfest_dragon_cert",
+                    "type": "varchar(25)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "head_gear_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_head_gear",
+                      "references": "splatoon_3_vs_gear(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "head_gear_main_ability_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_head_gear_main_ability",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "head_gear_secondary_ability_1_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_head_gear_secondary_ability_1",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "head_gear_secondary_ability_2_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "foreignKeyName": "fk_vs_result_team_player_head_gear_secondary_ability_2",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "head_gear_secondary_ability_3_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "foreignKeyName": "fk_vs_result_team_player_head_gear_secondary_ability_3",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clothing_gear_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_clothing_gear",
+                      "references": "splatoon_3_vs_gear(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clothing_gear_main_ability_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_clothing_gear_main_ability",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clothing_gear_secondary_ability_1_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_clothing_gear_secondary_ability_1",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clothing_gear_secondary_ability_2_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "foreignKeyName": "fk_vs_result_team_player_clothing_gear_secondary_ability_2",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "clothing_gear_secondary_ability_3_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "foreignKeyName": "fk_vs_result_team_player_clothing_gear_secondary_ability_3",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shoes_gear_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_shoes_gear",
+                      "references": "splatoon_3_vs_gear(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shoes_gear_main_ability_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_shoes_gear_main_ability",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shoes_gear_secondary_ability_1_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": false,
+                      "foreignKeyName": "fk_vs_result_team_player_shoes_gear_secondary_ability_1",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shoes_gear_secondary_ability_2_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "foreignKeyName": "fk_vs_result_team_player_shoes_gear_secondary_ability_2",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "shoes_gear_secondary_ability_3_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "foreignKeyName": "fk_vs_result_team_player_shoes_gear_secondary_ability_3",
+                      "references": "splatoon_3_vs_ability(id)"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+
+
+          {
+            "addForeignKeyConstraint": {
+              "baseColumnNames": "result_id, team_order",
+              "baseTableName": "splatoon_3_vs_result_team_player",
+              "referencedColumnNames": "result_id, team_order",
+              "referencedTableName": "splatoon_3_vs_result_team",
+              "constraintName": "fk_sr_result_team_player_result_id_team_order",
+              "validate": true
+            }
+          },
+
+
+          {
+            "addPrimaryKey":
+            {
+              "columnNames":  "result_id, team_order, player_id",
+              "tableName":  "splatoon_3_vs_result_team_player",
+              "validate":  true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

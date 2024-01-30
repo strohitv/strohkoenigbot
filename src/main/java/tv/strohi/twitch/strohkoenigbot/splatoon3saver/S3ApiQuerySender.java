@@ -65,7 +65,7 @@ public class S3ApiQuerySender {
 			body = String.format("{\"variables\":{\"%s\":\"%s\"},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", additionalHeader, additionalContent, actionHash);
 		}
 
-		String webViewVersion = configurationRepository.findByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
+		String webViewVersion = configurationRepository.findAllByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
 				.findFirst()
 				.map(Configuration::getConfigValue)
 				.orElse("");

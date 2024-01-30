@@ -5,11 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3RotationSenderService;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrRotationService;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3VsRotationService;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.RotationSchedulesResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopGroupingSchedule;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopRotation;
@@ -18,42 +23,182 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Rotation
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
+@Transactional
 @RequiredArgsConstructor
-public class S3RotationSender {
+public class S3RotationSender implements ScheduledService {
+	private final ObjectMapper mapper = new ObjectMapper();
+
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 	private final AccountRepository accountRepository;
+	private final ConfigurationRepository configurationRepository;
+
 	private final S3ApiQuerySender requestSender;
 	private final DiscordBot discordBot;
 	private final ExceptionLogger exceptionLogger;
 
-	private SchedulingService schedulingService;
+	private final Splatoon3VsRotationService vsRotationService;
+	private final Splatoon3SrRotationService srRotationService;
 
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	private final Splatoon3RotationSenderService rotationSenderService;
+
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("S3RotationSender_schedule")
+			.schedule(CronSchedule.getScheduleString("30 0 * * * *"))
+			.runnable(this::refreshRotations)
+			.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("S3RotationSender_schedule", CronSchedule.getScheduleString("30 0 * * * *"), this::refreshRotations);
-	}
+	@Getter
+	@Setter
+	private boolean pauseSender = false;
 
-	private void refreshRotations() {
+	@Transactional
+	public void refreshRotations() {
 		refreshRotations(false);
 	}
 
+	@Transactional
 	public void refreshRotations(boolean force) {
+		if (pauseSender && !force) {
+			logger.info("rotation sender is pause, returning early!");
+			return;
+		}
+
+		var useNewWay = configurationRepository.findAllByConfigName("s3UseDatabase").stream()
+			.map(c -> "true".equalsIgnoreCase(c.getConfigValue()))
+			.findFirst()
+			.orElse(false);
+
+		if (useNewWay) {
+			importRotationsToDatabase();
+			rotationSenderService.sendRotationsFromDatabase(force);
+		} else {
+			refreshRotationsOld(force);
+		}
+	}
+
+	@Transactional
+	public void importRotationsToDatabase() {
+		Account account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
+
+		if (account == null) {
+			logSender.sendLogs(logger, "No account found to import rotations to database!");
+			return;
+		}
+
+		logger.info("Start importing rotations to database");
+		try {
+			importSrRotationsFromGameResultsFolder(account);
+
+			String allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules.getKey());
+			RotationSchedulesResult rotationSchedulesResult = new ObjectMapper().readValue(allRotationsResponse, RotationSchedulesResult.class);
+
+			Arrays.stream(rotationSchedulesResult.getData().getVsStages().getNodes())
+				.forEach(vsRotationService::ensureStageExists);
+
+			Stream
+				.of(rotationSchedulesResult.getData().getRegularSchedules(),
+					rotationSchedulesResult.getData().getBankaraSchedules(),
+					rotationSchedulesResult.getData().getXSchedules(),
+					rotationSchedulesResult.getData().getFestSchedules())
+				.flatMap(r -> Arrays.stream(r.getNodes()))
+				.forEach(vsRotationService::ensureRotationExists);
+
+			Arrays.stream(rotationSchedulesResult.getData().getEventSchedules().getNodes())
+				.forEach(vsRotationService::ensureRotationExists);
+
+			Arrays.stream(rotationSchedulesResult.getData().getCoopGroupingSchedule().getRegularSchedules().getNodes())
+				.forEach(r -> srRotationService.ensureRotationExists(r, "regularSchedules"));
+
+			Arrays.stream(rotationSchedulesResult.getData().getCoopGroupingSchedule().getBigRunSchedules().getNodes())
+				.forEach(r -> srRotationService.ensureRotationExists(r, "bigRunSchedules"));
+
+			Arrays.stream(rotationSchedulesResult.getData().getCoopGroupingSchedule().getTeamContestSchedules().getNodes())
+				.forEach(r -> srRotationService.ensureRotationExists(r, "teamContestSchedules"));
+		} catch (JsonProcessingException e) {
+//			logSender.sendLogs(logger, String.format("exception during rotation refresh!! %s", e.getMessage()));
+			logger.error(e);
+			logSender.sendLogs(logger, "An exception occurred during S3 rotation posting\nSee logs for details!");
+			exceptionLogger.logException(logger, e);
+		} catch (IOException e) {
+			logger.error(e);
+			logSender.sendLogs(logger, "An IO exception occurred during S3 rotation posting\nSee logs for details!");
+			exceptionLogger.logException(logger, e);
+		}
+
+		logger.info("Done posting rotations to discord");
+	}
+
+	@Transactional
+	public void importSrRotationsFromGameResultsFolder(Account account) throws IOException {
+		var accountUUIDHash = String.format("%05d", account.getId());
+		importSrRotationsFromGameResultsFolder(accountUUIDHash);
+	}
+
+	@Transactional
+	public void importSrRotationsFromGameResultsFolder(String accountUUIDHash) throws IOException {
+		importSrRotationsFromGameResultsFolder(accountUUIDHash, false);
+	}
+
+	@Transactional
+	public void importSrRotationsFromGameResultsFolder(String accountUUIDHash, boolean shouldDelete) throws IOException {
+		var folderName = configurationRepository.findAllByConfigName("gameResultsFolder").stream()
+			.map(Configuration::getConfigValue)
+			.findFirst()
+			.orElse(accountUUIDHash);
+
+		Path directory = Path.of("game-results", folderName);
+		if (Files.exists(directory)) {
+			try (var fileList = Files.walk(directory)) {
+				var allFiles = fileList
+					.filter(f -> f.getFileName().toString().startsWith("Salmon_List_"))
+					.collect(Collectors.toList());
+
+				allFiles.stream()
+					.flatMap(file -> {
+						try {
+							var content = mapper.readValue(file.toFile(), BattleResults.class);
+
+							var result = Arrays.stream(content.getData().getCoopResult().getHistoryGroups().getNodes())
+								.map(srRotationService::ensureDummyRotationExists)
+								.filter(Objects::nonNull)
+								.collect(Collectors.toList());
+
+							if (shouldDelete) {
+								Files.deleteIfExists(file);
+							}
+
+							return result.stream();
+						} catch (IOException e) {
+							logger.error("could not import salmon run rotations!");
+							logger.error(e);
+							return Stream.empty();
+						}
+					})
+					.forEach(rotation -> logger.info("imported rotation: {}", rotation.getId()));
+			}
+		}
+	}
+
+	public void refreshRotationsOld(boolean force) {
 		Account account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
 		if (account == null) {

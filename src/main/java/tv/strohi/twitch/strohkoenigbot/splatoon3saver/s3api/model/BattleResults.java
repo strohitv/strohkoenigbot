@@ -275,25 +275,20 @@ public class BattleResults {
 		// Salmon Run
 		private Weapon[] weapons;
 		private Integer resultWave;
-		private VsStage coopStage;
+		private CoopStage coopStage;
 		private IdAndName afterGrade;
 		private Integer afterGradePoint;
 		private String gradePointDiff;
-		private SalmonRunBossResult bossResult;
+		private BossResult bossResult;
 		private Result myResult;
 		private Result[] memberResults;
 
 		// TODO salmon run fields have to be added!!
-	}
 
-	@Getter
-	@Setter
-	@NoArgsConstructor
-	@AllArgsConstructor
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class SalmonRunBossResult {
-		private Boolean hasDefeatBoss;
-		private IdAndNameAndImage boss;
+		@JsonIgnore
+		public Instant getPlayedTimeAsInstant() {
+			return Instant.parse(playedTime);
+		}
 	}
 
 	@Getter

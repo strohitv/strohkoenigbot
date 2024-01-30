@@ -11,7 +11,7 @@ import java.util.List;
 // @Accessors(fluent = true)
 public class WaveResults implements Serializable {
 	private IdAndName eventWave;
-	private List<IdAndNameAndImage> specialWeapons;
+	private List<Weapon> specialWeapons;
 	private Integer teamDeliverCount;
 	private Integer waterLevel;
 	private Integer waveNumber;

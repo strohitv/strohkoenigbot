@@ -105,9 +105,9 @@ public class WeaponRequestRankingAction extends ChatAction {
 					// Admin actions
 					if (message.contains("start")
 							&& !isStarted
-							&& configurationRepository.findByConfigName(LAST_REQUESTER_ID).stream().map(Configuration::getConfigValue).findFirst().orElse(null) != null
-							&& configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse(null) != null) {
-						twitchMessageSender.send(channelName, String.format("The weapon request for %s is now active. Let's see how far we can go! :0", configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse("Unknown User")));
+							&& configurationRepository.findAllByConfigName(LAST_REQUESTER_ID).stream().map(Configuration::getConfigValue).findFirst().orElse(null) != null
+							&& configurationRepository.findAllByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse(null) != null) {
+						twitchMessageSender.send(channelName, String.format("The weapon request for %s is now active. Let's see how far we can go! :0", configurationRepository.findAllByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse("Unknown User")));
 						start();
 					} else if (message.contains("stop")) {
 						twitchMessageSender.send(channelName, "A possibly running weapon request has been stopped.");
@@ -123,8 +123,8 @@ public class WeaponRequestRankingAction extends ChatAction {
 			String reward = (String) args.getArguments().get(ArgumentKey.RewardName);
 
 			if (reward != null && reward.toLowerCase().contains("weapon request")) {
-				if (configurationRepository.findByConfigName(LAST_REQUESTER_ID).stream().findFirst().orElse(null) == null
-						|| configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().findFirst().orElse(null) == null) {
+				if (configurationRepository.findAllByConfigName(LAST_REQUESTER_ID).stream().findFirst().orElse(null) == null
+						|| configurationRepository.findAllByConfigName(LAST_REQUESTER_NAME).stream().findFirst().orElse(null) == null) {
 					configurationRepository.save(new Configuration(0, LAST_REQUESTER_ID, args.getUserId()));
 					configurationRepository.save(new Configuration(0, LAST_REQUESTER_NAME, args.getUser()));
 
@@ -139,8 +139,8 @@ public class WeaponRequestRankingAction extends ChatAction {
 	}
 
 	private void start() {
-		userId = configurationRepository.findByConfigName(LAST_REQUESTER_ID).stream().map(Configuration::getConfigValue).findFirst().orElse(null);
-		userName = configurationRepository.findByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse(null);
+		userId = configurationRepository.findAllByConfigName(LAST_REQUESTER_ID).stream().map(Configuration::getConfigValue).findFirst().orElse(null);
+		userName = configurationRepository.findAllByConfigName(LAST_REQUESTER_NAME).stream().map(Configuration::getConfigValue).findFirst().orElse(null);
 
 		winStreak = 0;
 		isStarted = true;
@@ -205,8 +205,8 @@ public class WeaponRequestRankingAction extends ChatAction {
 
 		lastMatch = null;
 
-		configurationRepository.deleteAll(configurationRepository.findByConfigName(LAST_REQUESTER_ID));
-		configurationRepository.deleteAll(configurationRepository.findByConfigName(LAST_REQUESTER_NAME));
+		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(LAST_REQUESTER_ID));
+		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(LAST_REQUESTER_NAME));
 	}
 
 	private void reset() {

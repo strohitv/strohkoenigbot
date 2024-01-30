@@ -17,7 +17,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 public class Splatoon2RotationNotification {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
 	@NonNull

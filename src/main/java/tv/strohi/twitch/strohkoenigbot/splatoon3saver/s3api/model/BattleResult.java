@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopHistoryDetail;
@@ -12,6 +13,9 @@ import java.io.Serializable;
 // @Accessors(fluent = true)
 public class BattleResult implements Serializable {
 	private Data data;
+
+	@JsonIgnore
+	private String jsonSave;
 
 	@Getter
 	@Setter

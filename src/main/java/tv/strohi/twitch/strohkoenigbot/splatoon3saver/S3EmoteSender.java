@@ -75,7 +75,7 @@ public class S3EmoteSender {
 	@Value("classpath:html/emotes/singleemote.html")
 	Resource imageContainerHtml;
 
-	@Value("classpath:already-unlocked-emotes.json")
+	@Value("classpath:json/already-unlocked-emotes.json")
 	Resource alreadyUnlockedEmotesJSON;
 
 	@Autowired

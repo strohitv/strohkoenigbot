@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ConfigurationRepository extends CrudRepository<Configuration, Long> {
@@ -17,5 +18,6 @@ public interface ConfigurationRepository extends CrudRepository<Configuration, L
 
 	Configuration findById(long id);
 
-	List<Configuration> findByConfigName(String configName);
+	List<Configuration> findAllByConfigName(String configName);
+	Optional<Configuration> findByConfigName(String configName);
 }

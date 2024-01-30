@@ -64,12 +64,12 @@ public class Splatoon2ObsController {
 		int year = date.getYear();
 		int month = date.getMonthValue();
 
-		String prefix = configurationRepository.findByConfigName(ConfigurationRepository.streamPrefix).stream().map(Configuration::getConfigValue).findFirst().orElse(null);
+		String prefix = configurationRepository.findAllByConfigName(ConfigurationRepository.streamPrefix).stream().map(Configuration::getConfigValue).findFirst().orElse(null);
 		logger.info("prefix name: {}", prefix);
 		if (prefix != null) {
-			String gameSceneName = configurationRepository.findByConfigName(prefix + ConfigurationRepository.gameSceneName)
+			String gameSceneName = configurationRepository.findAllByConfigName(prefix + ConfigurationRepository.gameSceneName)
 					.stream().map(Configuration::getConfigValue).findFirst().orElse(null);
-			String resultsSceneName = configurationRepository.findByConfigName(prefix + ConfigurationRepository.resultsSceneName)
+			String resultsSceneName = configurationRepository.findAllByConfigName(prefix + ConfigurationRepository.resultsSceneName)
 					.stream().map(Configuration::getConfigValue).findFirst().orElse(null);
 
 			logger.info("game scene name: {}", gameSceneName);
