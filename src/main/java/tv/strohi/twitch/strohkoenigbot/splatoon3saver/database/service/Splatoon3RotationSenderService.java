@@ -143,8 +143,13 @@ public class Splatoon3RotationSenderService {
 
 	private void sendSrRotationToDiscord(String channelName, Splatoon3SrRotation rotation) {
 		StringBuilder builder = new StringBuilder(String.format("**%s**:\n\n**Stage**:\n- ", rotation.getMode().getName()))
-			.append(rotation.getStage().getName())
-			.append("\n\n**Weapons**:\n");
+			.append(rotation.getStage().getName());
+
+		if (rotation.getBoss() != null) {
+			builder.append("\n\n**Boss**: \n- ").append(rotation.getBoss().getName());
+		}
+
+		builder.append("\n\n**Weapons**:\n");
 
 		Stream.of(rotation.getWeapon1(), rotation.getWeapon2(), rotation.getWeapon3(), rotation.getWeapon4())
 			.forEach(w -> builder.append("- ").append(w.getName()).append("\n"));
