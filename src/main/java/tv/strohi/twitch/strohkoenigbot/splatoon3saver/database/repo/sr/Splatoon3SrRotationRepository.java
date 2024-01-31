@@ -13,4 +13,5 @@ public interface Splatoon3SrRotationRepository extends CrudRepository<Splatoon3S
 	Optional<Splatoon3SrRotation> findById(long id);
 	Optional<Splatoon3SrRotation> findByModeAndStartTime(Splatoon3SrMode mode, Instant startTime);
 	Optional<Splatoon3SrRotation> findByModeAndStartTimeBeforeAndEndTimeAfter(Splatoon3SrMode mode, Instant startTimeBefore, Instant endTimeAfter);
+	Optional<Splatoon3SrRotation> findByModeAndStartTimeLessThanEqualAndEndTimeGreaterThan(Splatoon3SrMode mode, Instant startTimeBefore, Instant endTimeAfter);
 }

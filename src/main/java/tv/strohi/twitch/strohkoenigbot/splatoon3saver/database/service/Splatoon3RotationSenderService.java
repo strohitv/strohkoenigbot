@@ -34,7 +34,8 @@ public class Splatoon3RotationSenderService {
 
 	@Transactional
 	public void sendRotationsFromDatabase(boolean force) {
-		var time = getSlotStartTime(Instant.now());
+		var now = Instant.now();
+		var time = getSlotStartTime(now);
 
 		vsModeDiscordChannelRepository.findAll().forEach(channel ->
 			vsRotationSlotRepository.findByStartTime(time).stream()
@@ -43,8 +44,8 @@ public class Splatoon3RotationSenderService {
 				.forEach(slot -> sendVsRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), slot.getRotation())));
 
 		srModeDiscordChannelRepository.findAll().forEach(channel ->
-			srRotationRepository.findByModeAndStartTimeBeforeAndEndTimeAfter(channel.getMode(), time, time)
-				.filter(rotation -> force || Math.abs(rotation.getStartTime().getEpochSecond() - Instant.now().getEpochSecond()) <= 300)
+			srRotationRepository.findByModeAndStartTimeLessThanEqualAndEndTimeGreaterThan(channel.getMode(), time, time)
+				.filter(rotation -> force || Math.abs(rotation.getStartTime().getEpochSecond() - now.getEpochSecond()) <= 300)
 				.ifPresent(rotation -> sendSrRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), rotation)));
 	}
 
