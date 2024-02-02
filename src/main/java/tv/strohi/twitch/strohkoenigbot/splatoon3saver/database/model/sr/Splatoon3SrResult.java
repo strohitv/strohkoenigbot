@@ -1,12 +1,10 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.List;
 
 @Entity(name = "splatoon_3_sr_result")
 @Cacheable(false)
@@ -71,4 +69,18 @@ public class Splatoon3SrResult {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "after_grade_id")
 	private Splatoon3SrGrade afterGrade;
+
+	// ---
+
+	@EqualsAndHashCode.Exclude
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	private List<Splatoon3SrResultPlayer> players;
+
+	@EqualsAndHashCode.Exclude
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	private List<Splatoon3SrResultWave> waves;
+
+	@EqualsAndHashCode.Exclude
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	private List<Splatoon3SrResultEnemy> enemyStats;
 }

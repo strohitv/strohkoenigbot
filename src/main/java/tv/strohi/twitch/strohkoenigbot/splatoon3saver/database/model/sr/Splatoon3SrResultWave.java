@@ -1,12 +1,10 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.id.ResultIdWave;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity(name = "splatoon_3_sr_result_wave")
 @Cacheable(false)
@@ -41,4 +39,10 @@ public class Splatoon3SrResultWave {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "event_wave_id")
 	private Splatoon3SrEventWave eventWave;
+
+	// ---
+
+	@EqualsAndHashCode.Exclude
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "resultWave")
+	private List<Splatoon3SrResultWavePlayerWeapon> playerWeapons;
 }

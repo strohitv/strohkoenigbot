@@ -7,12 +7,21 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultEnemyRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.DailyStatsSaveModel;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
@@ -22,6 +31,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 
 import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,11 +50,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class S3DailyStatsSender {
 	private static final String YESTERDAY_CONFIG_NAME = "DailyStatsSender_yesterday";
+	private static final int PAGE_SIZE = 50;
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
+	private final Splatoon3VsResultRepository vsResultRepository;
+
+	private final Splatoon3SrResultRepository srResultRepository;
+	private final Splatoon3SrResultEnemyRepository srResultEnemyRepository;
 
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
@@ -65,10 +80,12 @@ public class S3DailyStatsSender {
 		schedulingService.register("S3DailyStatsSender_schedule", CronSchedule.getScheduleString("30 11 * * * *"), this::sendStats);
 	}
 
-	private void sendStats() {
+	@Transactional
+	public void sendStats() {
 		sendStats(false);
 	}
 
+	@Transactional
 	public void sendStats(boolean force) {
 		Account account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
@@ -93,34 +110,6 @@ public class S3DailyStatsSender {
 	public void sendStatsToDiscord(String folderName, Account account) {
 		logger.info("Loading Splatoon 3 salmon run games for account with folder name '{}'...", folderName);
 
-		Path directory = Path.of("game-results", folderName);
-		if (!Files.exists(directory)) {
-			try {
-				Files.createDirectories(directory);
-			} catch (IOException e) {
-				logSender.sendLogs(logger, String.format("Could not create account directory!! %s", directory));
-				return;
-			}
-		}
-
-		File battleOverviewFile = directory.resolve("Already_Downloaded_Battles.json").toFile();
-		ConfigFile.DownloadedGameList allDownloadedGames;
-		try {
-			if (battleOverviewFile.exists() && Files.size(battleOverviewFile.toPath()) > 0) { // if file already exists will do nothing
-				allDownloadedGames = objectMapper.readValue(battleOverviewFile, ConfigFile.DownloadedGameList.class);
-			} else if (battleOverviewFile.exists() || battleOverviewFile.createNewFile()) {
-				allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
-				objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
-			} else {
-				logSender.sendLogs(logger, "COULD NOT OPEN SR FILE!!!");
-				return;
-			}
-		} catch (IOException e) {
-			logSender.sendLogs(logger, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
-			logger.error(e);
-			return;
-		}
-
 		DailyStatsSaveModel yesterdayStats = loadYesterdayStats();
 
 		Map<String, Integer> wonOnlineGames = new HashMap<>();
@@ -140,61 +129,104 @@ public class S3DailyStatsSender {
 		Map<String, Integer> ownUsedSpecialsPrivateBattles = new HashMap<>();
 		Map<String, Integer> ownTeamUsedSpecialsPrivateBattles = new HashMap<>();
 		Map<String, Integer> enemyTeamUsedSpecialsPrivateBattles = new HashMap<>();
-		Map<String, Integer> ownUsedSpecialsTotalPrivateBattles = new HashMap<>();
-		Map<String, Integer> ownTeamUsedSpecialsTotalPrivateBattles = new HashMap<>();
-		Map<String, Integer> enemyTeamUsedSpecialsTotalPrivateBattles = new HashMap<>();
-		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getRegular_games().entrySet()) {
-			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
-				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
-				ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
-				ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
-		}
-		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getAnarchy_games().entrySet()) {
-			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
-				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
-				ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
-				ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
-		}
-		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getX_rank_games().entrySet()) {
-			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
-				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
-				ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
-				ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
-		}
-		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getChallenge_games().entrySet()) {
-			countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
-				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
-				ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
-				ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
-		}
-		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getPrivate_games().entrySet()) {
-			countOnlineWins(game, directory, new HashMap<>(), new HashMap<>(),
-				new HashMap<>(), new HashMap<>(), new HashMap<>(),
-				new HashMap<>(), new HashMap<>(), new HashMap<>(),
-				ownUsedSpecialsPrivateBattles, ownTeamUsedSpecialsPrivateBattles, enemyTeamUsedSpecialsPrivateBattles,
-				ownUsedSpecialsTotalPrivateBattles, ownTeamUsedSpecialsTotalPrivateBattles, enemyTeamUsedSpecialsTotalPrivateBattles);
-		}
-
-		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
-		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
 
 		Map<String, Integer> gearStars = new HashMap<>();
 		Map<Integer, Integer> gearStarCounts = new HashMap<>();
 		countStarsOnGear(gearStars, gearStarCounts);
-		sendGearStatsToDiscord(gearStars, yesterdayStats, account);
-		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
 
 		Map<String, Integer> weaponLevelNumbers = new HashMap<>();
 		countWeaponNumberForEveryStarLevel(weaponLevelNumbers);
-		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
 
 		Map<String, Integer> defeatedSalmonRunBosses = new HashMap<>();
 		Map<String, Integer> salmonRunWeaponsYesterday = new HashMap<>();
 		Map<String, Integer> yesterdayWaves = new HashMap<>();
 		Map<String, Integer> yesterdayTides = new HashMap<>();
-		for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getSalmon_games().entrySet()) {
-			countSalmonRunEnemyDefeatAndWeaponResults(game, directory, defeatedSalmonRunBosses, salmonRunWeaponsYesterday, yesterdayWaves, yesterdayTides);
+
+		var useNewWay = configurationRepository.findAllByConfigName("s3UseDatabase").stream()
+			.map(c -> "true".equalsIgnoreCase(c.getConfigValue()))
+			.findFirst()
+			.orElse(false);
+
+		if (useNewWay) {
+			countOnlineWins(wonOnlineGames, winCountSpecialWeapons,
+				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+				ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+				ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials,
+				ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
+
+			countSalmonRunStatistics(defeatedSalmonRunBosses, salmonRunWeaponsYesterday, yesterdayWaves, yesterdayTides);
+		} else {
+			Path directory = Path.of("game-results", folderName);
+			if (!Files.exists(directory)) {
+				try {
+					Files.createDirectories(directory);
+				} catch (IOException e) {
+					logSender.sendLogs(logger, String.format("Could not create account directory!! %s", directory));
+					return;
+				}
+			}
+
+			File battleOverviewFile = directory.resolve("Already_Downloaded_Battles.json").toFile();
+			ConfigFile.DownloadedGameList allDownloadedGames;
+			try {
+				if (battleOverviewFile.exists() && Files.size(battleOverviewFile.toPath()) > 0) { // if file already exists will do nothing
+					allDownloadedGames = objectMapper.readValue(battleOverviewFile, ConfigFile.DownloadedGameList.class);
+				} else if (battleOverviewFile.exists() || battleOverviewFile.createNewFile()) {
+					allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+					objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
+				} else {
+					logSender.sendLogs(logger, "COULD NOT OPEN SR FILE!!!");
+					return;
+				}
+			} catch (IOException e) {
+				logSender.sendLogs(logger, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
+				logger.error(e);
+				return;
+			}
+
+			for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getRegular_games().entrySet()) {
+				countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
+					ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+					ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+					ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
+			}
+			for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getAnarchy_games().entrySet()) {
+				countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
+					ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+					ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+					ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
+			}
+			for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getX_rank_games().entrySet()) {
+				countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
+					ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+					ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+					ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
+			}
+			for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getChallenge_games().entrySet()) {
+				countOnlineWins(game, directory, wonOnlineGames, winCountSpecialWeapons,
+					ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
+					ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
+					ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
+			}
+			for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getPrivate_games().entrySet()) {
+				countOnlineWins(game, directory, new HashMap<>(), new HashMap<>(),
+					new HashMap<>(), new HashMap<>(), new HashMap<>(),
+					new HashMap<>(), new HashMap<>(), new HashMap<>(),
+					ownUsedSpecialsPrivateBattles, ownTeamUsedSpecialsPrivateBattles, enemyTeamUsedSpecialsPrivateBattles,
+					new HashMap<>(), new HashMap<>(), new HashMap<>());
+			}
+
+			for (Map.Entry<String, ConfigFile.StoredGame> game : allDownloadedGames.getSalmon_games().entrySet()) {
+				countSalmonRunEnemyDefeatAndWeaponResults(game, directory, defeatedSalmonRunBosses, salmonRunWeaponsYesterday, yesterdayWaves, yesterdayTides);
+			}
 		}
+
+		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
+		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
+
+		sendGearStatsToDiscord(gearStars, yesterdayStats, account);
+		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
+		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
 
 		sendSalmonRunStatsToDiscord(defeatedSalmonRunBosses, yesterdayStats, account);
 
@@ -210,7 +242,8 @@ public class S3DailyStatsSender {
 			sendStatsToDiscord(yesterdayTides, String.format("**Yesterday, you played a total of __%d__ different tides in Salmon Run**", yesterdayTides.size()), account);
 		}
 
-		sendSpecialWeaponCountStatsToDiscord(ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials, ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal,
+		sendSpecialWeaponCountStatsToDiscord(ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials,
+			ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal,
 			ownUsedSpecialsPrivateBattles, ownTeamUsedSpecialsPrivateBattles, enemyTeamUsedSpecialsPrivateBattles,
 			account);
 
@@ -223,250 +256,418 @@ public class S3DailyStatsSender {
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
 	}
 
+	private void countOnlineWins(Map<String, Integer> ruleWins, Map<String, Integer> specialWinResults,
+								 Map<String, Integer> ownUsedWeapons, Map<String, Integer> ownTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeapons,
+								 Map<String, Integer> ownUsedWeaponsTotal, Map<String, Integer> ownTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedWeaponsTotal,
+								 Map<String, Integer> ownUsedSpecials, Map<String, Integer> ownTeamUsedSpecials, Map<String, Integer> enemyTeamUsedSpecials,
+								 Map<String, Integer> ownUsedSpecialsTotal, Map<String, Integer> ownTeamUsedSpecialsTotal, Map<String, Integer> enemyTeamUsedSpecialsTotal) {
+		var pageable = Pageable.ofSize(PAGE_SIZE);
+		Page<Splatoon3VsResult> games;
+
+		while ((games = vsResultRepository.findAll(pageable)).hasContent()) {
+			for (var game : games) {
+				var myself = game.getTeams().stream()
+					.filter(Splatoon3VsResultTeam::getIsMyTeam)
+					.findFirst()
+					.orElseThrow()
+					.getTeamPlayers().stream()
+					.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
+					.findFirst()
+					.orElseThrow();
+
+				if ("WIN".equalsIgnoreCase(game.getOwnJudgement()) && !"PRIVATE".equalsIgnoreCase(game.getMode().getApiMode())) {
+					var rule = game.getRule().getName();
+					if ("TRI_COLOR".equals(game.getRule().getApiRule())) {
+						var team = game.getTeams().stream()
+							.filter(Splatoon3VsResultTeam::getIsMyTeam)
+							.findFirst()
+							.orElseThrow();
+
+						if (team.getTeamPlayers().size() == 2) {
+							rule += " (Attacker)";
+						} else {
+							rule += " (Defender)";
+						}
+					}
+
+					int currentRuleWinCount = ruleWins.getOrDefault(rule, 0);
+					ruleWins.put(rule, currentRuleWinCount + 1);
+
+					var specials = myself.getSpecials() != null ? myself.getSpecials() : 0;
+					if (specials > 0) {
+						int currentSpecialWinCount = specialWinResults.getOrDefault(myself.getWeapon().getSpecialWeapon().getName(), 0);
+						specialWinResults.put(myself.getWeapon().getSpecialWeapon().getName(), currentSpecialWinCount + 1);
+					}
+				}
+
+				var time = LocalDateTime.ofInstant(game.getPlayedTime(), ZoneId.systemDefault());
+				var wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
+					&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
+
+				var ownTeam = game.getTeams().stream()
+					.filter(Splatoon3VsResultTeam::getIsMyTeam)
+					.findFirst()
+					.orElseThrow();
+
+				var otherPlayers = game.getTeams().stream()
+					.filter(t -> !t.getIsMyTeam())
+					.flatMap(t -> t.getTeamPlayers().stream())
+					.collect(Collectors.toList());
+
+				for (var player : ownTeam.getTeamPlayers()) {
+					if (player.getIsMyself()) {
+						countPlayerStatistics(ownUsedWeapons, ownUsedWeaponsTotal, ownUsedSpecials, ownUsedSpecialsTotal, wasToday, player);
+					} else {
+						countPlayerStatistics(ownTeamUsedWeapons, ownTeamUsedWeaponsTotal, ownTeamUsedSpecials, ownTeamUsedSpecialsTotal, wasToday, player);
+					}
+				}
+
+				for (var player : otherPlayers) {
+					countPlayerStatistics(enemyTeamUsedWeapons, enemyTeamUsedWeaponsTotal, enemyTeamUsedSpecials, enemyTeamUsedSpecialsTotal, wasToday, player);
+				}
+			}
+
+			if (games.isLast()) {
+				break;
+			}
+
+			pageable = games.nextPageable();
+			logger.info("vs game pageable now at {}", pageable.getOffset());
+		}
+	}
+
+	private void countPlayerStatistics(Map<String, Integer> enemyTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedSpecials, Map<String, Integer> enemyTeamUsedSpecialsTotal, boolean wasToday, Splatoon3VsResultTeamPlayer player) {
+		var specials = player.getSpecials() != null ? player.getSpecials() : 0;
+		if (wasToday) {
+			int currentOwnTeamWeaponCount = enemyTeamUsedWeapons.getOrDefault(player.getWeapon().getName(), 0);
+			enemyTeamUsedWeapons.put(player.getWeapon().getName(), currentOwnTeamWeaponCount + 1);
+
+			int currentOwnTeamSpecialUseCount = enemyTeamUsedSpecials.getOrDefault(player.getWeapon().getSpecialWeapon().getName(), 0);
+			enemyTeamUsedSpecials.put(player.getWeapon().getSpecialWeapon().getName(), currentOwnTeamSpecialUseCount + specials);
+		}
+
+		int currentOwnTeamWeaponCountTotal = enemyTeamUsedWeaponsTotal.getOrDefault(player.getWeapon().getName(), 0);
+		enemyTeamUsedWeaponsTotal.put(player.getWeapon().getName(), currentOwnTeamWeaponCountTotal + 1);
+
+		int currentOwnTeamSpecialUseCountTotal = enemyTeamUsedSpecialsTotal.getOrDefault(player.getWeapon().getSpecialWeapon().getName(), 0);
+		enemyTeamUsedSpecialsTotal.put(player.getWeapon().getSpecialWeapon().getName(), currentOwnTeamSpecialUseCountTotal + specials);
+	}
+
+	private void countSalmonRunStatistics(Map<String, Integer> defeatedSalmonRunBosses, Map<String, Integer> salmonRunWeaponsYesterday, Map<String, Integer> yesterdayWaves, Map<String, Integer> yesterdayTides) {
+		var enemyDestroyStats = srResultEnemyRepository.findOwnDestroySumGroupByEnemyId();
+		for (var enemyStats : enemyDestroyStats) {
+			defeatedSalmonRunBosses.put(enemyStats.getName(), enemyStats.getOwnDestroyCount());
+		}
+
+		var gamesPageable = Pageable.ofSize(PAGE_SIZE);
+		Page<Splatoon3SrResult> games;
+
+		while ((games = srResultRepository.findAllByPlayedTimeGreaterThanEqual(LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.DAYS).atZone(ZoneId.systemDefault()).toInstant(), gamesPageable)).hasContent()) {
+			for (var game : games) {
+					var ownPlayerWeapons = game.getWaves().stream()
+						.flatMap(w -> w.getPlayerWeapons().stream().filter(pw -> pw.getPlayer().isMyself()))
+						.collect(Collectors.toList());
+
+					for (var playerWeapon : ownPlayerWeapons) {
+						int countYesterday = salmonRunWeaponsYesterday.getOrDefault(playerWeapon.getWeapon().getName(), 0);
+						salmonRunWeaponsYesterday.put(playerWeapon.getWeapon().getName(), countYesterday + 1);
+					}
+
+					for (var wave : game.getWaves()) {
+						if (wave.getEventWave() != null) {
+							int countYesterday = yesterdayWaves.getOrDefault(wave.getEventWave().getName(), 0);
+							yesterdayWaves.put(wave.getEventWave().getName(), countYesterday + 1);
+						} else {
+							String name = "No Event";
+							int countYesterday = yesterdayWaves.getOrDefault(name, 0);
+							yesterdayWaves.put(name, countYesterday + 1);
+						}
+
+						String tideName = "Normal Tide";
+						if (wave.getWaterLevel() == 0) {
+							tideName = "Low Tide";
+						} else if (wave.getWaterLevel() == 2) {
+							tideName = "High Tide";
+						}
+
+						int tideCountYesterday = yesterdayTides.getOrDefault(tideName, 0);
+						yesterdayTides.put(tideName, tideCountYesterday + 1);
+					}
+			}
+
+			if (games.isLast()) {
+				break;
+			}
+
+			gamesPageable = games.nextPageable();
+			logger.info("sr game pageable now at {}", gamesPageable.getOffset());
+		}
+	}
+
 	private void sendWeaponUsageStatsToDiscord(Map<String, Integer> ownUsedWeapons, Map<String, Integer> ownTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeapons,
 											   Map<String, Integer> ownUsedWeaponsTotal, Map<String, Integer> ownTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedWeaponsTotal,
 											   Account account) {
-		int maxLimit = 15;
+		var maxLimitConfig = configurationRepository.findAllByConfigName("s3DailyStatsMaxLimitWeapons").stream()
+			.findFirst()
+			.orElseGet(() -> configurationRepository.save(Configuration.builder().configName("s3DailyStatsMaxLimitWeapons").configValue("15").build()));
+		var includeWeaponsConfig = configurationRepository.findAllByConfigName("s3DailyStatsIncludeWeapons").stream()
+			.findFirst()
+			.orElseGet(() -> configurationRepository.save(Configuration.builder().configName("s3DailyStatsIncludeWeapons").configValue("false").build()));
 
-		var sortedOwnWeaponsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedOwnTeamWeaponsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedEnemyTeamWeaponsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedOwnWeaponsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedOwnTeamWeaponsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedEnemyTeamWeaponsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
+		if ("true".equalsIgnoreCase(includeWeaponsConfig.getConfigValue())) {
+			configurationRepository.save(includeWeaponsConfig.toBuilder().configValue("false").build());
+			int maxLimit = Integer.parseInt(maxLimitConfig.getConfigValue());
 
-		ownUsedWeapons.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedOwnWeaponsUsageStats::add);
+			var sortedOwnWeaponsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedOwnTeamWeaponsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedEnemyTeamWeaponsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedOwnWeaponsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedOwnTeamWeaponsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedEnemyTeamWeaponsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
 
-		ownTeamUsedWeapons.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedOwnTeamWeaponsUsageStats::add);
+			ownUsedWeapons.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedOwnWeaponsUsageStats::add);
 
-		enemyTeamUsedWeapons.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedEnemyTeamWeaponsUsageStats::add);
+			ownTeamUsedWeapons.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedOwnTeamWeaponsUsageStats::add);
 
-		ownUsedWeaponsTotal.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedOwnWeaponsUsageStatsTotal::add);
+			enemyTeamUsedWeapons.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedEnemyTeamWeaponsUsageStats::add);
 
-		ownTeamUsedWeaponsTotal.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedOwnTeamWeaponsUsageStatsTotal::add);
+			ownUsedWeaponsTotal.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedOwnWeaponsUsageStatsTotal::add);
 
-		enemyTeamUsedWeaponsTotal.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedEnemyTeamWeaponsUsageStatsTotal::add);
+			ownTeamUsedWeaponsTotal.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedOwnTeamWeaponsUsageStatsTotal::add);
 
-		// Yesterday
-		if (sortedOwnWeaponsUsageStats.size() > 0) {
-			StringBuilder ownWeaponUsageBuilder = new StringBuilder("Yesterday, I used a total of **").append(sortedOwnWeaponsUsageStats.size()).append("** different weapons:");
+			enemyTeamUsedWeaponsTotal.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedEnemyTeamWeaponsUsageStatsTotal::add);
 
-			for (var gearStat : sortedOwnWeaponsUsageStats) {
-				// build message
-				ownWeaponUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			// Yesterday
+			if (sortedOwnWeaponsUsageStats.size() > 0) {
+				StringBuilder ownWeaponUsageBuilder = new StringBuilder("Yesterday, I used a total of **").append(sortedOwnWeaponsUsageStats.size()).append("** different weapons:");
+
+				for (var gearStat : sortedOwnWeaponsUsageStats) {
+					// build message
+					ownWeaponUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				}
+
+				discordBot.sendPrivateMessage(account.getDiscordId(), ownWeaponUsageBuilder.toString());
+
+				StringBuilder ownTeamWeaponUsageBuilder = new StringBuilder("Yesterday, my teams used a total of **").append(sortedOwnTeamWeaponsUsageStats.size()).append("** different weapons:");
+
+				var list = sortedOwnTeamWeaponsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+				for (var gearStat : list) {
+					// build message
+					ownTeamWeaponUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				}
+
+				discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamWeaponUsageBuilder.toString());
+
+				StringBuilder enemyTeamWeaponUsageBuilder = new StringBuilder("Yesterday, my enemy teams used a total of **").append(sortedEnemyTeamWeaponsUsageStats.size()).append("** different weapons:");
+
+				list = sortedEnemyTeamWeaponsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+				for (var gearStat : list) {
+					// build message
+					enemyTeamWeaponUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				}
+
+				discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamWeaponUsageBuilder.toString());
 			}
 
-			discordBot.sendPrivateMessage(account.getDiscordId(), ownWeaponUsageBuilder.toString());
+			// Total
+			StringBuilder ownWeaponUsageTotalBuilder = new StringBuilder("In total, I used a total of **").append(sortedOwnWeaponsUsageStatsTotal.size()).append("** different weapons:");
 
-			StringBuilder ownTeamWeaponUsageBuilder = new StringBuilder("Yesterday, my teams used a total of **").append(sortedOwnTeamWeaponsUsageStats.size()).append("** different weapons:");
-
-			var list = sortedOwnTeamWeaponsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+			var list = sortedOwnWeaponsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
 			for (var gearStat : list) {
 				// build message
-				ownTeamWeaponUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				ownWeaponUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 			}
 
-			discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamWeaponUsageBuilder.toString());
+			discordBot.sendPrivateMessage(account.getDiscordId(), ownWeaponUsageTotalBuilder.toString());
 
-			StringBuilder enemyTeamWeaponUsageBuilder = new StringBuilder("Yesterday, my enemy teams used a total of **").append(sortedEnemyTeamWeaponsUsageStats.size()).append("** different weapons:");
+			StringBuilder ownTeamWeaponUsageTotalBuilder = new StringBuilder("In total, my teams used a total of **").append(sortedOwnTeamWeaponsUsageStatsTotal.size()).append("** different weapons:");
 
-			list = sortedEnemyTeamWeaponsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+			list = sortedOwnTeamWeaponsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
 			for (var gearStat : list) {
 				// build message
-				enemyTeamWeaponUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				ownTeamWeaponUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 			}
 
-			discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamWeaponUsageBuilder.toString());
+			discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamWeaponUsageTotalBuilder.toString());
+
+			StringBuilder enemyTeamWeaponUsageTotalBuilder = new StringBuilder("In total, my enemy teams used a total of **").append(sortedEnemyTeamWeaponsUsageStatsTotal.size()).append("** different weapons:");
+
+			list = sortedEnemyTeamWeaponsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
+			for (var gearStat : list) {
+				// build message
+				enemyTeamWeaponUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			}
+
+			discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamWeaponUsageTotalBuilder.toString());
 		}
-
-		// Total
-		StringBuilder ownWeaponUsageTotalBuilder = new StringBuilder("In total, I used a total of **").append(sortedOwnWeaponsUsageStatsTotal.size()).append("** different weapons:");
-
-		var list = sortedOwnWeaponsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
-		for (var gearStat : list) {
-			// build message
-			ownWeaponUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
-		}
-
-		discordBot.sendPrivateMessage(account.getDiscordId(), ownWeaponUsageTotalBuilder.toString());
-
-		StringBuilder ownTeamWeaponUsageTotalBuilder = new StringBuilder("In total, my teams used a total of **").append(sortedOwnTeamWeaponsUsageStatsTotal.size()).append("** different weapons:");
-
-		list = sortedOwnTeamWeaponsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
-		for (var gearStat : list) {
-			// build message
-			ownTeamWeaponUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
-		}
-
-		discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamWeaponUsageTotalBuilder.toString());
-
-		StringBuilder enemyTeamWeaponUsageTotalBuilder = new StringBuilder("In total, my enemy teams used a total of **").append(sortedEnemyTeamWeaponsUsageStatsTotal.size()).append("** different weapons:");
-
-		list = sortedEnemyTeamWeaponsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
-		for (var gearStat : list) {
-			// build message
-			enemyTeamWeaponUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
-		}
-
-		discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamWeaponUsageTotalBuilder.toString());
 	}
 
 	private void sendSpecialWeaponCountStatsToDiscord(Map<String, Integer> ownUsedSpecials, Map<String, Integer> ownTeamUsedSpecials, Map<String, Integer> enemyTeamUsedSpecials,
 													  Map<String, Integer> ownUsedSpecialsTotal, Map<String, Integer> ownTeamUsedSpecialsTotal, Map<String, Integer> enemyTeamUsedSpecialsTotal,
 													  Map<String, Integer> ownUsedSpecialsPbs, Map<String, Integer> ownTeamUsedSpecialsPbs, Map<String, Integer> enemyTeamUsedSpecialsPbs,
 													  Account account) {
-		int maxLimit = 20;
+		var maxLimitConfig = configurationRepository.findAllByConfigName("s3DailyStatsMaxLimitSpecials").stream()
+			.findFirst()
+			.orElseGet(() -> configurationRepository.save(Configuration.builder().configName("s3DailyStatsMaxLimitSpecials").configValue("20").build()));
+		var includeSpecialsConfig = configurationRepository.findAllByConfigName("s3DailyStatsIncludeSpecials").stream()
+			.findFirst()
+			.orElseGet(() -> configurationRepository.save(Configuration.builder().configName("s3DailyStatsIncludeSpecials").configValue("false").build()));
 
-		var sortedOwnSpecialsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedOwnTeamSpecialsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedEnemyTeamSpecialsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedOwnSpecialsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedOwnTeamSpecialsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedEnemyTeamSpecialsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedOwnSpecialsUsageStatsPbs = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedOwnTeamSpecialsUsageStatsPbs = new ArrayList<Map.Entry<String, Integer>>();
-		var sortedEnemyTeamSpecialsUsageStatsPbs = new ArrayList<Map.Entry<String, Integer>>();
+		if ("true".equalsIgnoreCase(includeSpecialsConfig.getConfigValue())) {
+			configurationRepository.save(includeSpecialsConfig.toBuilder().configValue("false").build());
+			int maxLimit = Integer.parseInt(maxLimitConfig.getConfigValue());
 
-		ownUsedSpecials.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedOwnSpecialsUsageStats::add);
+			var sortedOwnSpecialsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedOwnTeamSpecialsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedEnemyTeamSpecialsUsageStats = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedOwnSpecialsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedOwnTeamSpecialsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedEnemyTeamSpecialsUsageStatsTotal = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedOwnSpecialsUsageStatsPbs = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedOwnTeamSpecialsUsageStatsPbs = new ArrayList<Map.Entry<String, Integer>>();
+			var sortedEnemyTeamSpecialsUsageStatsPbs = new ArrayList<Map.Entry<String, Integer>>();
 
-		ownTeamUsedSpecials.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedOwnTeamSpecialsUsageStats::add);
+			ownUsedSpecials.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedOwnSpecialsUsageStats::add);
 
-		enemyTeamUsedSpecials.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedEnemyTeamSpecialsUsageStats::add);
+			ownTeamUsedSpecials.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedOwnTeamSpecialsUsageStats::add);
 
-		ownUsedSpecialsTotal.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedOwnSpecialsUsageStatsTotal::add);
+			enemyTeamUsedSpecials.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedEnemyTeamSpecialsUsageStats::add);
 
-		ownTeamUsedSpecialsTotal.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedOwnTeamSpecialsUsageStatsTotal::add);
+			ownUsedSpecialsTotal.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedOwnSpecialsUsageStatsTotal::add);
 
-		enemyTeamUsedSpecialsTotal.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedEnemyTeamSpecialsUsageStatsTotal::add);
+			ownTeamUsedSpecialsTotal.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedOwnTeamSpecialsUsageStatsTotal::add);
 
-		ownUsedSpecialsPbs.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedOwnSpecialsUsageStatsPbs::add);
+			enemyTeamUsedSpecialsTotal.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedEnemyTeamSpecialsUsageStatsTotal::add);
 
-		ownTeamUsedSpecialsPbs.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedOwnTeamSpecialsUsageStatsPbs::add);
+			ownUsedSpecialsPbs.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedOwnSpecialsUsageStatsPbs::add);
 
-		enemyTeamUsedSpecialsPbs.entrySet().stream()
-			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-			.forEach(sortedEnemyTeamSpecialsUsageStatsPbs::add);
+			ownTeamUsedSpecialsPbs.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedOwnTeamSpecialsUsageStatsPbs::add);
 
-		// Yesterday
-		if (sortedOwnSpecialsUsageStats.size() > 0) {
-			StringBuilder ownSpecialUsageBuilder = new StringBuilder("Yesterday, I used a total of **").append(sortedOwnSpecialsUsageStats.size()).append("** different special weapons:");
+			enemyTeamUsedSpecialsPbs.entrySet().stream()
+				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+				.forEach(sortedEnemyTeamSpecialsUsageStatsPbs::add);
 
-			for (var gearStat : sortedOwnSpecialsUsageStats) {
-				// build message
-				ownSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			// Yesterday
+			if (sortedOwnSpecialsUsageStats.size() > 0) {
+				StringBuilder ownSpecialUsageBuilder = new StringBuilder("Yesterday, I used a total of **").append(sortedOwnSpecialsUsageStats.size()).append("** different special weapons:");
+
+				for (var gearStat : sortedOwnSpecialsUsageStats) {
+					// build message
+					ownSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				}
+
+				discordBot.sendPrivateMessage(account.getDiscordId(), ownSpecialUsageBuilder.toString());
+
+				StringBuilder ownTeamSpecialUsageBuilder = new StringBuilder("Yesterday, my teams used a total of **").append(sortedOwnTeamSpecialsUsageStats.size()).append("** different special weapons:");
+
+				var list = sortedOwnTeamSpecialsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+				for (var gearStat : list) {
+					// build message
+					ownTeamSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				}
+
+				discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamSpecialUsageBuilder.toString());
+
+				StringBuilder enemyTeamSpecialUsageBuilder = new StringBuilder("Yesterday, my enemy teams used a total of **").append(sortedEnemyTeamSpecialsUsageStats.size()).append("** different special weapons:");
+
+				list = sortedEnemyTeamSpecialsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+				for (var gearStat : list) {
+					// build message
+					enemyTeamSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				}
+
+				discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamSpecialUsageBuilder.toString());
 			}
 
-			discordBot.sendPrivateMessage(account.getDiscordId(), ownSpecialUsageBuilder.toString());
+			// pbs
+			if (sortedOwnSpecialsUsageStatsPbs.size() > 0) {
+				StringBuilder ownPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, I used a total of **").append(sortedOwnSpecialsUsageStatsPbs.size()).append("** different special weapons:");
 
-			StringBuilder ownTeamSpecialUsageBuilder = new StringBuilder("Yesterday, my teams used a total of **").append(sortedOwnTeamSpecialsUsageStats.size()).append("** different special weapons:");
+				for (var gearStat : sortedOwnSpecialsUsageStatsPbs) {
+					// build message
+					ownPbsSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				}
 
-			var list = sortedOwnTeamSpecialsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+				discordBot.sendPrivateMessage(account.getDiscordId(), ownPbsSpecialUsageBuilder.toString());
+
+				StringBuilder ownTeamPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, my teams used a total of **").append(sortedOwnTeamSpecialsUsageStatsPbs.size()).append("** different special weapons:");
+
+				for (var gearStat : sortedOwnTeamSpecialsUsageStatsPbs) {
+					// build message
+					ownTeamPbsSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				}
+
+				discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamPbsSpecialUsageBuilder.toString());
+
+				StringBuilder enemyTeamPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, my enemy teams used a total of **").append(sortedEnemyTeamSpecialsUsageStatsPbs.size()).append("** different special weapons:");
+
+				for (var gearStat : sortedEnemyTeamSpecialsUsageStatsPbs) {
+					// build message
+					enemyTeamPbsSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				}
+
+				discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamPbsSpecialUsageBuilder.toString());
+			}
+
+			// Total
+			StringBuilder ownSpecialUsageTotalBuilder = new StringBuilder("In total, I used a total of **").append(sortedOwnSpecialsUsageStatsTotal.size()).append("** different special weapons:");
+
+			var list = sortedOwnSpecialsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
 			for (var gearStat : list) {
 				// build message
-				ownTeamSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				ownSpecialUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 			}
 
-			discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamSpecialUsageBuilder.toString());
+			discordBot.sendPrivateMessage(account.getDiscordId(), ownSpecialUsageTotalBuilder.toString());
 
-			StringBuilder enemyTeamSpecialUsageBuilder = new StringBuilder("Yesterday, my enemy teams used a total of **").append(sortedEnemyTeamSpecialsUsageStats.size()).append("** different special weapons:");
+			StringBuilder ownTeamSpecialsUsageTotalBuilder = new StringBuilder("In total, my teams used a total of **").append(sortedOwnTeamSpecialsUsageStatsTotal.size()).append("** different special weapons:");
 
-			list = sortedEnemyTeamSpecialsUsageStats.stream().limit(maxLimit).collect(Collectors.toList());
+			list = sortedOwnTeamSpecialsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
 			for (var gearStat : list) {
 				// build message
-				enemyTeamSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				ownTeamSpecialsUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 			}
 
-			discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamSpecialUsageBuilder.toString());
-		}
+			discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamSpecialsUsageTotalBuilder.toString());
 
-		// pbs
-		if (sortedOwnSpecialsUsageStatsPbs.size() > 0) {
-			StringBuilder ownPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, I used a total of **").append(sortedOwnSpecialsUsageStatsPbs.size()).append("** different special weapons:");
+			StringBuilder enemyTeamSpecialsUsageTotalBuilder = new StringBuilder("In total, my enemy teams used a total of **").append(sortedEnemyTeamSpecialsUsageStatsTotal.size()).append("** different special weapons:");
 
-			for (var gearStat : sortedOwnSpecialsUsageStatsPbs) {
+			list = sortedEnemyTeamSpecialsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
+			for (var gearStat : list) {
 				// build message
-				ownPbsSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+				enemyTeamSpecialsUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 			}
 
-			discordBot.sendPrivateMessage(account.getDiscordId(), ownPbsSpecialUsageBuilder.toString());
-
-			StringBuilder ownTeamPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, my teams used a total of **").append(sortedOwnTeamSpecialsUsageStatsPbs.size()).append("** different special weapons:");
-
-			for (var gearStat : sortedOwnTeamSpecialsUsageStatsPbs) {
-				// build message
-				ownTeamPbsSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
-			}
-
-			discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamPbsSpecialUsageBuilder.toString());
-
-			StringBuilder enemyTeamPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, my enemy teams used a total of **").append(sortedEnemyTeamSpecialsUsageStatsPbs.size()).append("** different special weapons:");
-
-			for (var gearStat : sortedEnemyTeamSpecialsUsageStatsPbs) {
-				// build message
-				enemyTeamPbsSpecialUsageBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
-			}
-
-			discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamPbsSpecialUsageBuilder.toString());
+			discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamSpecialsUsageTotalBuilder.toString());
 		}
-
-		// Total
-		StringBuilder ownSpecialUsageTotalBuilder = new StringBuilder("In total, I used a total of **").append(sortedOwnSpecialsUsageStatsTotal.size()).append("** different special weapons:");
-
-		var list = sortedOwnSpecialsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
-		for (var gearStat : list) {
-			// build message
-			ownSpecialUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
-		}
-
-		discordBot.sendPrivateMessage(account.getDiscordId(), ownSpecialUsageTotalBuilder.toString());
-
-		StringBuilder ownTeamSpecialsUsageTotalBuilder = new StringBuilder("In total, my teams used a total of **").append(sortedOwnTeamSpecialsUsageStatsTotal.size()).append("** different special weapons:");
-
-		list = sortedOwnTeamSpecialsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
-		for (var gearStat : list) {
-			// build message
-			ownTeamSpecialsUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
-		}
-
-		discordBot.sendPrivateMessage(account.getDiscordId(), ownTeamSpecialsUsageTotalBuilder.toString());
-
-		StringBuilder enemyTeamSpecialsUsageTotalBuilder = new StringBuilder("In total, my enemy teams used a total of **").append(sortedEnemyTeamSpecialsUsageStatsTotal.size()).append("** different special weapons:");
-
-		list = sortedEnemyTeamSpecialsUsageStatsTotal.stream().limit(maxLimit).collect(Collectors.toList());
-		for (var gearStat : list) {
-			// build message
-			enemyTeamSpecialsUsageTotalBuilder.append("\n- ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
-		}
-
-		discordBot.sendPrivateMessage(account.getDiscordId(), enemyTeamSpecialsUsageTotalBuilder.toString());
 	}
 
 	private DailyStatsSaveModel loadYesterdayStats() {
