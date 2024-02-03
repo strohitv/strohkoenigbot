@@ -3373,6 +3373,12 @@
         "path": "/2023-12-12",
         "relativeToChangelogFile": true
       }
+    },
+    {
+      "includeAll": {
+        "path": "/2024-02-03",
+        "relativeToChangelogFile": true
+      }
     }
   ]
 }
