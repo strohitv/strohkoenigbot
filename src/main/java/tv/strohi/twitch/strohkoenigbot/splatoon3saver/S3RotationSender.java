@@ -370,7 +370,10 @@ public class S3RotationSender implements ScheduledService {
 			.forEach(r ->
 				builder.append("\n- **<t:")
 					.append(r.getStartTime().getEpochSecond())
-					.append(":R>**: ")
+					.append(":t>**")
+					.append(" (<t:")
+					.append(r.getStartTime().getEpochSecond())
+					.append(":R>): ")
 					.append(getEmoji(r.getRotationMatchSetting().getVsRule().getName()))
 					.append(r.getRotationMatchSetting().getVsRule().getName())
 					.append(" --- **")
@@ -405,7 +408,11 @@ public class S3RotationSender implements ScheduledService {
 			builder.append("**Future Slots**");
 
 			futureSlots.forEach(fs -> builder.append("\n- <t:")
-				.append(fs.getStartTimeAsInstant().getEpochSecond()).append(":R>")
+				.append(fs.getStartTimeAsInstant().getEpochSecond())
+				.append(":t>")
+				.append(" (<t:")
+				.append(fs.getStartTimeAsInstant().getEpochSecond())
+				.append(":R>)")
 			);
 
 			builder.append("\n\n");
