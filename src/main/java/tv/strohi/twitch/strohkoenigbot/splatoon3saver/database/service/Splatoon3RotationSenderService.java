@@ -73,7 +73,10 @@ public class Splatoon3RotationSenderService {
 			.forEach(r ->
 				builder.append("\n- **<t:")
 					.append(r.getStartTime().getEpochSecond())
-					.append(":R>**: ")
+					.append(":t>**")
+					.append(" (<t:")
+					.append(r.getStartTime().getEpochSecond())
+					.append(":R>): ")
 					.append(getEmoji(r.getRule().getName()))
 					.append(r.getRule().getName())
 					.append(" --- **")
@@ -110,8 +113,12 @@ public class Splatoon3RotationSenderService {
 		if (futureSlots.size() > 0) {
 			builder.append("**Future Slots**");
 
-			futureSlots.forEach(fs -> builder.append("\n- <t:")
-				.append(fs.getStartTime().getEpochSecond()).append(":R>")
+			futureSlots.forEach(fs -> builder.append("\n- **<t:")
+				.append(fs.getStartTime().getEpochSecond())
+				.append(":t>**")
+				.append(" (<t:")
+				.append(fs.getStartTime().getEpochSecond())
+				.append(":R>)")
 			);
 
 			builder.append("\n\n");
