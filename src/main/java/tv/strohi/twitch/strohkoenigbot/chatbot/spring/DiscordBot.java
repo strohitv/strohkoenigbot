@@ -156,7 +156,9 @@ public class DiscordBot {
 
 		while (attempts++ < 10 && channel == null) {
 			try {
-				logger.info("attempt number {}", attempts);
+				if (attempts > 1) {
+					logger.info("attempt number {}", attempts);
+				}
 				channel = message.getChannel().retry(5).block();
 			} catch (Exception ex) {
 				lastException = ex;

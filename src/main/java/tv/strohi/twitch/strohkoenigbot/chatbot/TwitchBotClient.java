@@ -293,7 +293,9 @@ public class TwitchBotClient {
 
 				while ((list = client.getHelix().getClips(null, null, null, id, null, null, null, null, null).execute()).getData().size() == 0) {
 					try {
-						logger.info("attempt number: {}", attempt);
+						if (attempt > 1) {
+							logger.info("attempt number: {}", attempt);
+						}
 						attempt++;
 						Thread.sleep(1000);
 					} catch (Exception ignored) {
