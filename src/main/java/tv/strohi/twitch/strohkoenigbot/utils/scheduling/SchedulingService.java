@@ -9,9 +9,7 @@ import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.Schedule;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.*;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -29,6 +27,7 @@ public class SchedulingService {
 
 	private final ConfigurationRepository configurationRepository;
 	private final DiscordBot discordBot;
+	private final TransactionalScheduleRunner transactionalRunner;
 
 	private final List<Schedule> schedules = new ArrayList<>();
 	private final List<Schedule> singleRunSchedules = new ArrayList<>();
@@ -51,7 +50,7 @@ public class SchedulingService {
 				logger.info("running job...");
 
 				try {
-					schedule.getRunnable().run();
+					transactionalRunner.run(schedule.getRunnable());
 					singleRunSchedules.remove(i);
 					i--;
 				} catch (Exception ignored) {
@@ -73,7 +72,7 @@ public class SchedulingService {
 			Schedule schedule = schedules.get(i);
 
 			if (schedule.shouldRun(now)) {
-				schedule.run();
+				transactionalRunner.run(schedule.getRunnable());
 
 				if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
 					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
