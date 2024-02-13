@@ -77,10 +77,15 @@ public class S3Downloader implements ScheduledService {
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(ScheduleRequest.builder()
-			.name("S3Downloader_schedule")
-			.schedule(CronSchedule.getScheduleString("30 35 * * * *"))
-			.runnable(this::downloadBattles)
-			.build());
+				.name("S3Downloader_schedule")
+				.schedule(CronSchedule.getScheduleString("30 35 * * * *"))
+				.runnable(this::downloadBattles)
+				.build(),
+			ScheduleRequest.builder()
+				.name("S3Downloader_ImportForDailyStats_schedule")
+				.schedule(CronSchedule.getScheduleString("24 12 * * * *"))
+				.runnable(this::downloadBattles)
+				.build());
 	}
 
 	@Getter

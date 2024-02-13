@@ -16,9 +16,6 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResult;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultEnemyRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
@@ -77,7 +74,7 @@ public class S3DailyStatsSender {
 
 	@PostConstruct
 	public void registerSchedule() {
-		schedulingService.register("S3DailyStatsSender_schedule", CronSchedule.getScheduleString("30 11 * * * *"), this::sendStats);
+		schedulingService.register("S3DailyStatsSender_schedule", CronSchedule.getScheduleString("30 12 * * * *"), this::sendStats);
 	}
 
 	@Transactional
@@ -98,7 +95,7 @@ public class S3DailyStatsSender {
 			logger.info("Start posting stats to discord");
 			String accountUUIDHash = String.format("%05d", account.getId());
 
-			downloader.downloadBattles();
+//			downloader.downloadBattles();
 			newGearChecker.checkForNewGearInSplatNetShop(true);
 			weaponDownloader.loadWeapons();
 			sendStatsToDiscord(accountUUIDHash, account);
@@ -261,97 +258,124 @@ public class S3DailyStatsSender {
 								 Map<String, Integer> ownUsedWeaponsTotal, Map<String, Integer> ownTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedWeaponsTotal,
 								 Map<String, Integer> ownUsedSpecials, Map<String, Integer> ownTeamUsedSpecials, Map<String, Integer> enemyTeamUsedSpecials,
 								 Map<String, Integer> ownUsedSpecialsTotal, Map<String, Integer> ownTeamUsedSpecialsTotal, Map<String, Integer> enemyTeamUsedSpecialsTotal) {
-		var pageable = Pageable.ofSize(PAGE_SIZE);
-		Page<Splatoon3VsResult> games;
+		var modeAndRuleWins = vsResultRepository.findModeAndRuleWinCounts();
 
-		while ((games = vsResultRepository.findAll(pageable)).hasContent()) {
-			for (var game : games) {
-				var myself = game.getTeams().stream()
-					.filter(Splatoon3VsResultTeam::getIsMyTeam)
-					.findFirst()
-					.orElseThrow()
-					.getTeamPlayers().stream()
-					.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
-					.findFirst()
-					.orElseThrow();
+		modeAndRuleWins.forEach(mrw -> {
+			var rule = mrw.getRule().getName();
 
-				if ("WIN".equalsIgnoreCase(game.getOwnJudgement()) && !"PRIVATE".equalsIgnoreCase(game.getMode().getApiMode())) {
-					var rule = game.getRule().getName();
-					if ("TRI_COLOR".equals(game.getRule().getApiRule())) {
-						var team = game.getTeams().stream()
-							.filter(Splatoon3VsResultTeam::getIsMyTeam)
-							.findFirst()
-							.orElseThrow();
+			if ("TRI_COLOR".equals(mrw.getRule().getApiRule())) {
+				var allTriColorOwnWinTeams = vsResultRepository.findTriColorOwnTeamWins(mrw.getMode());
 
-						if (team.getTeamPlayers().size() == 2) {
-							rule += " (Attacker)";
-						} else {
-							rule += " (Defender)";
-						}
-					}
+				var sortedByTeamSize = allTriColorOwnWinTeams.stream().collect(Collectors.groupingBy(dings ->
+					dings.getPlayerSize() == 2
+						? "Tricolor Turf War (Attacker)"
+						: "Tricolor Turf War (Defender)"));
 
-					int currentRuleWinCount = ruleWins.getOrDefault(rule, 0);
-					ruleWins.put(rule, currentRuleWinCount + 1);
-
-					var specials = myself.getSpecials() != null ? myself.getSpecials() : 0;
-					if (specials > 0) {
-						int currentSpecialWinCount = specialWinResults.getOrDefault(myself.getWeapon().getSpecialWeapon().getName(), 0);
-						specialWinResults.put(myself.getWeapon().getSpecialWeapon().getName(), currentSpecialWinCount + 1);
-					}
-				}
-
-				var time = LocalDateTime.ofInstant(game.getPlayedTime(), ZoneId.systemDefault());
-				var wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
-					&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
-
-				var ownTeam = game.getTeams().stream()
-					.filter(Splatoon3VsResultTeam::getIsMyTeam)
-					.findFirst()
-					.orElseThrow();
-
-				var otherPlayers = game.getTeams().stream()
-					.filter(t -> !t.getIsMyTeam())
-					.flatMap(t -> t.getTeamPlayers().stream())
-					.collect(Collectors.toList());
-
-				for (var player : ownTeam.getTeamPlayers()) {
-					if (player.getIsMyself()) {
-						countPlayerStatistics(ownUsedWeapons, ownUsedWeaponsTotal, ownUsedSpecials, ownUsedSpecialsTotal, wasToday, player);
-					} else {
-						countPlayerStatistics(ownTeamUsedWeapons, ownTeamUsedWeaponsTotal, ownTeamUsedSpecials, ownTeamUsedSpecialsTotal, wasToday, player);
-					}
-				}
-
-				for (var player : otherPlayers) {
-					countPlayerStatistics(enemyTeamUsedWeapons, enemyTeamUsedWeaponsTotal, enemyTeamUsedSpecials, enemyTeamUsedSpecialsTotal, wasToday, player);
-				}
+				sortedByTeamSize.forEach((name, list) -> ruleWins.put(name, list.size()));
+			} else {
+				int currentRuleWinCount = ruleWins.getOrDefault(rule, 0);
+				ruleWins.put(rule, currentRuleWinCount + mrw.getWinCount());
 			}
+		});
 
-			if (games.isLast()) {
-				break;
-			}
+		var specialWeaponWins = vsResultRepository.findSpecialWins();
+		specialWeaponWins.forEach(win -> {
+			int currentSpecialWinCount = specialWinResults.getOrDefault(win.getSpecialWeapon().getName(), 0);
+			specialWinResults.put(win.getSpecialWeapon().getName(), currentSpecialWinCount + win.getWinCount());
+		});
 
-			pageable = games.nextPageable();
-			logger.info("vs game pageable now at {}", pageable.getOffset());
-		}
+
+//		var pageable = Pageable.ofSize(PAGE_SIZE);
+//		Page<Splatoon3VsResult> games;
+//
+//		while ((games = vsResultRepository.findAll(pageable)).hasContent()) {
+//			for (var game : games) {
+//				var myself = game.getTeams().stream()
+//					.filter(Splatoon3VsResultTeam::getIsMyTeam)
+//					.findFirst()
+//					.orElseThrow()
+//					.getTeamPlayers().stream()
+//					.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
+//					.findFirst()
+//					.orElseThrow();
+//
+//				if ("WIN".equalsIgnoreCase(game.getOwnJudgement()) && !"PRIVATE".equalsIgnoreCase(game.getMode().getApiMode())) {
+//					var rule = game.getRule().getName();
+//					if ("TRI_COLOR".equals(game.getRule().getApiRule())) {
+//						var team = game.getTeams().stream()
+//							.filter(Splatoon3VsResultTeam::getIsMyTeam)
+//							.findFirst()
+//							.orElseThrow();
+//
+//						if (team.getTeamPlayers().size() == 2) {
+//							rule += " (Attacker)";
+//						} else {
+//							rule += " (Defender)";
+//						}
+//					}
+//
+//					int currentRuleWinCount = ruleWins.getOrDefault(rule, 0);
+//					ruleWins.put(rule, currentRuleWinCount + 1);
+//
+//					var specials = myself.getSpecials() != null ? myself.getSpecials() : 0;
+//					if (specials > 0) {
+//						int currentSpecialWinCount = specialWinResults.getOrDefault(myself.getWeapon().getSpecialWeapon().getName(), 0);
+//						specialWinResults.put(myself.getWeapon().getSpecialWeapon().getName(), currentSpecialWinCount + 1);
+//					}
+//				}
+//
+//				var time = LocalDateTime.ofInstant(game.getPlayedTime(), ZoneId.systemDefault());
+//				var wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
+//					&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
+//
+//				var ownTeam = game.getTeams().stream()
+//					.filter(Splatoon3VsResultTeam::getIsMyTeam)
+//					.findFirst()
+//					.orElseThrow();
+//
+//				var otherPlayers = game.getTeams().stream()
+//					.filter(t -> !t.getIsMyTeam())
+//					.flatMap(t -> t.getTeamPlayers().stream())
+//					.collect(Collectors.toList());
+//
+//				for (var player : ownTeam.getTeamPlayers()) {
+//					if (player.getIsMyself()) {
+//						countPlayerStatistics(ownUsedWeapons, ownUsedWeaponsTotal, ownUsedSpecials, ownUsedSpecialsTotal, wasToday, player);
+//					} else {
+//						countPlayerStatistics(ownTeamUsedWeapons, ownTeamUsedWeaponsTotal, ownTeamUsedSpecials, ownTeamUsedSpecialsTotal, wasToday, player);
+//					}
+//				}
+//
+//				for (var player : otherPlayers) {
+//					countPlayerStatistics(enemyTeamUsedWeapons, enemyTeamUsedWeaponsTotal, enemyTeamUsedSpecials, enemyTeamUsedSpecialsTotal, wasToday, player);
+//				}
+//			}
+//
+//			if (games.isLast()) {
+//				break;
+//			}
+//
+//			pageable = games.nextPageable();
+//			logger.info("vs game pageable now at {}", pageable.getOffset());
+//		}
 	}
 
-	private void countPlayerStatistics(Map<String, Integer> enemyTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedSpecials, Map<String, Integer> enemyTeamUsedSpecialsTotal, boolean wasToday, Splatoon3VsResultTeamPlayer player) {
-		var specials = player.getSpecials() != null ? player.getSpecials() : 0;
-		if (wasToday) {
-			int currentOwnTeamWeaponCount = enemyTeamUsedWeapons.getOrDefault(player.getWeapon().getName(), 0);
-			enemyTeamUsedWeapons.put(player.getWeapon().getName(), currentOwnTeamWeaponCount + 1);
-
-			int currentOwnTeamSpecialUseCount = enemyTeamUsedSpecials.getOrDefault(player.getWeapon().getSpecialWeapon().getName(), 0);
-			enemyTeamUsedSpecials.put(player.getWeapon().getSpecialWeapon().getName(), currentOwnTeamSpecialUseCount + specials);
-		}
-
-		int currentOwnTeamWeaponCountTotal = enemyTeamUsedWeaponsTotal.getOrDefault(player.getWeapon().getName(), 0);
-		enemyTeamUsedWeaponsTotal.put(player.getWeapon().getName(), currentOwnTeamWeaponCountTotal + 1);
-
-		int currentOwnTeamSpecialUseCountTotal = enemyTeamUsedSpecialsTotal.getOrDefault(player.getWeapon().getSpecialWeapon().getName(), 0);
-		enemyTeamUsedSpecialsTotal.put(player.getWeapon().getSpecialWeapon().getName(), currentOwnTeamSpecialUseCountTotal + specials);
-	}
+//	private void countPlayerStatistics(Map<String, Integer> enemyTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedSpecials, Map<String, Integer> enemyTeamUsedSpecialsTotal, boolean wasToday, Splatoon3VsResultTeamPlayer player) {
+//		var specials = player.getSpecials() != null ? player.getSpecials() : 0;
+//		if (wasToday) {
+//			int currentOwnTeamWeaponCount = enemyTeamUsedWeapons.getOrDefault(player.getWeapon().getName(), 0);
+//			enemyTeamUsedWeapons.put(player.getWeapon().getName(), currentOwnTeamWeaponCount + 1);
+//
+//			int currentOwnTeamSpecialUseCount = enemyTeamUsedSpecials.getOrDefault(player.getWeapon().getSpecialWeapon().getName(), 0);
+//			enemyTeamUsedSpecials.put(player.getWeapon().getSpecialWeapon().getName(), currentOwnTeamSpecialUseCount + specials);
+//		}
+//
+//		int currentOwnTeamWeaponCountTotal = enemyTeamUsedWeaponsTotal.getOrDefault(player.getWeapon().getName(), 0);
+//		enemyTeamUsedWeaponsTotal.put(player.getWeapon().getName(), currentOwnTeamWeaponCountTotal + 1);
+//
+//		int currentOwnTeamSpecialUseCountTotal = enemyTeamUsedSpecialsTotal.getOrDefault(player.getWeapon().getSpecialWeapon().getName(), 0);
+//		enemyTeamUsedSpecialsTotal.put(player.getWeapon().getSpecialWeapon().getName(), currentOwnTeamSpecialUseCountTotal + specials);
+//	}
 
 	private void countSalmonRunStatistics(Map<String, Integer> defeatedSalmonRunBosses, Map<String, Integer> salmonRunWeaponsYesterday, Map<String, Integer> yesterdayWaves, Map<String, Integer> yesterdayTides) {
 		var enemyDestroyStats = srResultEnemyRepository.findOwnDestroySumGroupByEnemyId();
@@ -364,35 +388,35 @@ public class S3DailyStatsSender {
 
 		while ((games = srResultRepository.findAllByPlayedTimeGreaterThanEqual(LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.DAYS).atZone(ZoneId.systemDefault()).toInstant(), gamesPageable)).hasContent()) {
 			for (var game : games) {
-					var ownPlayerWeapons = game.getWaves().stream()
-						.flatMap(w -> w.getPlayerWeapons().stream().filter(pw -> pw.getPlayer().isMyself()))
-						.collect(Collectors.toList());
+				var ownPlayerWeapons = game.getWaves().stream()
+					.flatMap(w -> w.getPlayerWeapons().stream().filter(pw -> pw.getPlayer().isMyself()))
+					.collect(Collectors.toList());
 
-					for (var playerWeapon : ownPlayerWeapons) {
-						int countYesterday = salmonRunWeaponsYesterday.getOrDefault(playerWeapon.getWeapon().getName(), 0);
-						salmonRunWeaponsYesterday.put(playerWeapon.getWeapon().getName(), countYesterday + 1);
+				for (var playerWeapon : ownPlayerWeapons) {
+					int countYesterday = salmonRunWeaponsYesterday.getOrDefault(playerWeapon.getWeapon().getName(), 0);
+					salmonRunWeaponsYesterday.put(playerWeapon.getWeapon().getName(), countYesterday + 1);
+				}
+
+				for (var wave : game.getWaves()) {
+					if (wave.getEventWave() != null) {
+						int countYesterday = yesterdayWaves.getOrDefault(wave.getEventWave().getName(), 0);
+						yesterdayWaves.put(wave.getEventWave().getName(), countYesterday + 1);
+					} else {
+						String name = "No Event";
+						int countYesterday = yesterdayWaves.getOrDefault(name, 0);
+						yesterdayWaves.put(name, countYesterday + 1);
 					}
 
-					for (var wave : game.getWaves()) {
-						if (wave.getEventWave() != null) {
-							int countYesterday = yesterdayWaves.getOrDefault(wave.getEventWave().getName(), 0);
-							yesterdayWaves.put(wave.getEventWave().getName(), countYesterday + 1);
-						} else {
-							String name = "No Event";
-							int countYesterday = yesterdayWaves.getOrDefault(name, 0);
-							yesterdayWaves.put(name, countYesterday + 1);
-						}
-
-						String tideName = "Normal Tide";
-						if (wave.getWaterLevel() == 0) {
-							tideName = "Low Tide";
-						} else if (wave.getWaterLevel() == 2) {
-							tideName = "High Tide";
-						}
-
-						int tideCountYesterday = yesterdayTides.getOrDefault(tideName, 0);
-						yesterdayTides.put(tideName, tideCountYesterday + 1);
+					String tideName = "Normal Tide";
+					if (wave.getWaterLevel() == 0) {
+						tideName = "Low Tide";
+					} else if (wave.getWaterLevel() == 2) {
+						tideName = "High Tide";
 					}
+
+					int tideCountYesterday = yesterdayTides.getOrDefault(tideName, 0);
+					yesterdayTides.put(tideName, tideCountYesterday + 1);
+				}
 			}
 
 			if (games.isLast()) {
