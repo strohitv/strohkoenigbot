@@ -145,12 +145,7 @@ public class S3DailyStatsSender {
 			.orElse(false);
 
 		if (useNewWay) {
-			countOnlineWins(wonOnlineGames, winCountSpecialWeapons,
-				ownUsedWeapons, ownTeamUsedWeapons, enemyTeamUsedWeapons,
-				ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
-				ownUsedSpecials, ownTeamUsedSpecials, enemyTeamUsedSpecials,
-				ownUsedSpecialsTotal, ownTeamUsedSpecialsTotal, enemyTeamUsedSpecialsTotal);
-
+			countOnlineWins(wonOnlineGames, winCountSpecialWeapons);
 			countSalmonRunStatistics(defeatedSalmonRunBosses, salmonRunWeaponsYesterday, yesterdayWaves, yesterdayTides);
 		} else {
 			Path directory = Path.of("game-results", folderName);
@@ -253,11 +248,7 @@ public class S3DailyStatsSender {
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
 	}
 
-	private void countOnlineWins(Map<String, Integer> ruleWins, Map<String, Integer> specialWinResults,
-								 Map<String, Integer> ownUsedWeapons, Map<String, Integer> ownTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeapons,
-								 Map<String, Integer> ownUsedWeaponsTotal, Map<String, Integer> ownTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedWeaponsTotal,
-								 Map<String, Integer> ownUsedSpecials, Map<String, Integer> ownTeamUsedSpecials, Map<String, Integer> enemyTeamUsedSpecials,
-								 Map<String, Integer> ownUsedSpecialsTotal, Map<String, Integer> ownTeamUsedSpecialsTotal, Map<String, Integer> enemyTeamUsedSpecialsTotal) {
+	private void countOnlineWins(Map<String, Integer> ruleWins, Map<String, Integer> specialWinResults) {
 		var modeAndRuleWins = vsResultRepository.findModeAndRuleWinCounts();
 
 		modeAndRuleWins.forEach(mrw -> {
@@ -283,99 +274,7 @@ public class S3DailyStatsSender {
 			int currentSpecialWinCount = specialWinResults.getOrDefault(win.getSpecialWeapon().getName(), 0);
 			specialWinResults.put(win.getSpecialWeapon().getName(), currentSpecialWinCount + win.getWinCount());
 		});
-
-
-//		var pageable = Pageable.ofSize(PAGE_SIZE);
-//		Page<Splatoon3VsResult> games;
-//
-//		while ((games = vsResultRepository.findAll(pageable)).hasContent()) {
-//			for (var game : games) {
-//				var myself = game.getTeams().stream()
-//					.filter(Splatoon3VsResultTeam::getIsMyTeam)
-//					.findFirst()
-//					.orElseThrow()
-//					.getTeamPlayers().stream()
-//					.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
-//					.findFirst()
-//					.orElseThrow();
-//
-//				if ("WIN".equalsIgnoreCase(game.getOwnJudgement()) && !"PRIVATE".equalsIgnoreCase(game.getMode().getApiMode())) {
-//					var rule = game.getRule().getName();
-//					if ("TRI_COLOR".equals(game.getRule().getApiRule())) {
-//						var team = game.getTeams().stream()
-//							.filter(Splatoon3VsResultTeam::getIsMyTeam)
-//							.findFirst()
-//							.orElseThrow();
-//
-//						if (team.getTeamPlayers().size() == 2) {
-//							rule += " (Attacker)";
-//						} else {
-//							rule += " (Defender)";
-//						}
-//					}
-//
-//					int currentRuleWinCount = ruleWins.getOrDefault(rule, 0);
-//					ruleWins.put(rule, currentRuleWinCount + 1);
-//
-//					var specials = myself.getSpecials() != null ? myself.getSpecials() : 0;
-//					if (specials > 0) {
-//						int currentSpecialWinCount = specialWinResults.getOrDefault(myself.getWeapon().getSpecialWeapon().getName(), 0);
-//						specialWinResults.put(myself.getWeapon().getSpecialWeapon().getName(), currentSpecialWinCount + 1);
-//					}
-//				}
-//
-//				var time = LocalDateTime.ofInstant(game.getPlayedTime(), ZoneId.systemDefault());
-//				var wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
-//					&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
-//
-//				var ownTeam = game.getTeams().stream()
-//					.filter(Splatoon3VsResultTeam::getIsMyTeam)
-//					.findFirst()
-//					.orElseThrow();
-//
-//				var otherPlayers = game.getTeams().stream()
-//					.filter(t -> !t.getIsMyTeam())
-//					.flatMap(t -> t.getTeamPlayers().stream())
-//					.collect(Collectors.toList());
-//
-//				for (var player : ownTeam.getTeamPlayers()) {
-//					if (player.getIsMyself()) {
-//						countPlayerStatistics(ownUsedWeapons, ownUsedWeaponsTotal, ownUsedSpecials, ownUsedSpecialsTotal, wasToday, player);
-//					} else {
-//						countPlayerStatistics(ownTeamUsedWeapons, ownTeamUsedWeaponsTotal, ownTeamUsedSpecials, ownTeamUsedSpecialsTotal, wasToday, player);
-//					}
-//				}
-//
-//				for (var player : otherPlayers) {
-//					countPlayerStatistics(enemyTeamUsedWeapons, enemyTeamUsedWeaponsTotal, enemyTeamUsedSpecials, enemyTeamUsedSpecialsTotal, wasToday, player);
-//				}
-//			}
-//
-//			if (games.isLast()) {
-//				break;
-//			}
-//
-//			pageable = games.nextPageable();
-//			logger.info("vs game pageable now at {}", pageable.getOffset());
-//		}
 	}
-
-//	private void countPlayerStatistics(Map<String, Integer> enemyTeamUsedWeapons, Map<String, Integer> enemyTeamUsedWeaponsTotal, Map<String, Integer> enemyTeamUsedSpecials, Map<String, Integer> enemyTeamUsedSpecialsTotal, boolean wasToday, Splatoon3VsResultTeamPlayer player) {
-//		var specials = player.getSpecials() != null ? player.getSpecials() : 0;
-//		if (wasToday) {
-//			int currentOwnTeamWeaponCount = enemyTeamUsedWeapons.getOrDefault(player.getWeapon().getName(), 0);
-//			enemyTeamUsedWeapons.put(player.getWeapon().getName(), currentOwnTeamWeaponCount + 1);
-//
-//			int currentOwnTeamSpecialUseCount = enemyTeamUsedSpecials.getOrDefault(player.getWeapon().getSpecialWeapon().getName(), 0);
-//			enemyTeamUsedSpecials.put(player.getWeapon().getSpecialWeapon().getName(), currentOwnTeamSpecialUseCount + specials);
-//		}
-//
-//		int currentOwnTeamWeaponCountTotal = enemyTeamUsedWeaponsTotal.getOrDefault(player.getWeapon().getName(), 0);
-//		enemyTeamUsedWeaponsTotal.put(player.getWeapon().getName(), currentOwnTeamWeaponCountTotal + 1);
-//
-//		int currentOwnTeamSpecialUseCountTotal = enemyTeamUsedSpecialsTotal.getOrDefault(player.getWeapon().getSpecialWeapon().getName(), 0);
-//		enemyTeamUsedSpecialsTotal.put(player.getWeapon().getSpecialWeapon().getName(), currentOwnTeamSpecialUseCountTotal + specials);
-//	}
 
 	private void countSalmonRunStatistics(Map<String, Integer> defeatedSalmonRunBosses, Map<String, Integer> salmonRunWeaponsYesterday, Map<String, Integer> yesterdayWaves, Map<String, Integer> yesterdayTides) {
 		var enemyDestroyStats = srResultEnemyRepository.findOwnDestroySumGroupByEnemyId();
