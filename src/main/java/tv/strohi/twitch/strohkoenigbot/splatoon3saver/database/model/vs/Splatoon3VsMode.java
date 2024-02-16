@@ -26,7 +26,7 @@ public class Splatoon3VsMode {
 
 	private String apiTypename;
 
-	private String apiBankaraMode;
+	private String apiModeDistinction;
 
 	// ---
 

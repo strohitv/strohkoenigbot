@@ -40,7 +40,14 @@ public class Splatoon3VsRotationService {
 	public List<Splatoon3VsRotation> ensureRotationExists(Rotation rotation) {
 		return getRotationMatchSetting(rotation).stream()
 			.map(ms -> {
-				var mode = modeRepository.findByApiTypenameAndApiBankaraMode(ms.get__typename(), ms.getBankaraMode())
+				if (ms.getVsStages() == null && ms.getVsRule() == null) {
+					// rotation not active during splatfest
+					return null;
+				}
+
+				var modeDistinction = ms.getBankaraMode() != null ? ms.getBankaraMode() : ms.getFestMode();
+
+				var mode = modeRepository.findByApiTypenameAndApiModeDistinction(ms.get__typename(), modeDistinction)
 					.orElseThrow();
 				if ("PRIVATE".equalsIgnoreCase(mode.getApiMode())) {
 					// no rotations in private battles
@@ -85,7 +92,7 @@ public class Splatoon3VsRotationService {
 
 	@Transactional
 	public Splatoon3VsRotation ensureRotationExists(RotationSchedulesResult.EventNode rotation) {
-		var mode = modeRepository.findByApiTypenameAndApiBankaraMode(rotation.getLeagueMatchSetting().get__typename(), null)
+		var mode = modeRepository.findByApiTypenameAndApiModeDistinction(rotation.getLeagueMatchSetting().get__typename(), null)
 			.orElseThrow();
 		if ("PRIVATE".equalsIgnoreCase(mode.getApiMode())) {
 			// no rotations in private battles

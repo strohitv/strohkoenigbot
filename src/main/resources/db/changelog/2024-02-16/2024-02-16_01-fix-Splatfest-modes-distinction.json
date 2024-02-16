@@ -1,0 +1,47 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2023-02-16_01-fix-Splatfest-modes-distinction",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "renameColumn": {
+              "tableName": "splatoon_3_vs_mode",
+              "oldColumnName": "api_bankara_mode",
+              "newColumnName": "api_mode_distinction"
+            }
+          },
+          {
+            "update": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_mode_distinction",
+                    "value": "REGULAR"
+                  }
+                }
+              ],
+              "where": "id=6"
+            }
+          },
+          {
+            "update": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_mode_distinction",
+                    "value": "CHALLENGE"
+                  }
+                }
+              ],
+              "where": "id=7"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

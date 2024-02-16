@@ -142,6 +142,10 @@ public class S3RotationSender implements ScheduledService {
 			logger.error(e);
 			logSender.sendLogs(logger, "An IO exception occurred during S3 rotation posting\nSee logs for details!");
 			exceptionLogger.logException(logger, e);
+		} catch (Exception e) {
+			logger.error(e);
+			logSender.sendLogs(logger, "An unspecified exception occurred during S3 rotation posting\nSee logs for details!");
+			exceptionLogger.logException(logger, e);
 		}
 
 		logger.info("Done posting rotations to discord");
