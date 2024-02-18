@@ -122,6 +122,10 @@ public class S3RotationSender implements ScheduledService {
 				.flatMap(r -> Arrays.stream(r.getNodes()))
 				.forEach(vsRotationService::ensureRotationExists);
 
+			if (rotationSchedulesResult.getData().getCurrentFest() != null) {
+				vsRotationService.ensureTricolorRotationsExist(rotationSchedulesResult.getData().getCurrentFest());
+			}
+
 			Arrays.stream(rotationSchedulesResult.getData().getEventSchedules().getNodes())
 				.forEach(vsRotationService::ensureRotationExists);
 

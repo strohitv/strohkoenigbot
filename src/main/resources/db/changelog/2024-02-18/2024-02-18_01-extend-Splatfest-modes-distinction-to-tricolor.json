@@ -1,0 +1,26 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2024-02-18_01-extend-Splatfest-modes-distinction-to-tricolor",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "update": {
+              "tableName": "splatoon_3_vs_mode",
+              "columns": [
+                {
+                  "column": {
+                    "name": "api_mode_distinction",
+                    "value": "TRI_COLOR"
+                  }
+                }
+              ],
+              "where": "id=8"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

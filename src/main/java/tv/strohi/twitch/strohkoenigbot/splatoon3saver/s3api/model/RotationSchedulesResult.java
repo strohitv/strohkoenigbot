@@ -167,6 +167,18 @@ public class RotationSchedulesResult implements Serializable {
 		private String state;
 		private Team[] teams;
 		private VsStage tricolorStage;
+
+		public Instant getStartTimeAsInstant() {
+			return Instant.parse(startTime);
+		}
+
+		public Instant getEndTimeAsInstant() {
+			return Instant.parse(endTime);
+		}
+
+		public Instant getMidTermTimeAsInstant() {
+			return Instant.parse(midtermTime);
+		}
 	}
 
 	@Getter

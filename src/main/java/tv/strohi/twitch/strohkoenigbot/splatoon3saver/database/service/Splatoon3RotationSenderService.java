@@ -59,34 +59,52 @@ public class Splatoon3RotationSenderService {
 
 	private void sendRegularRotationToDiscord(String channelName, Splatoon3VsRotation rotation) {
 		String image1 = rotation.getStage1().getImage().getUrl();
-		String image2 = rotation.getStage2().getImage().getUrl();
+
+		// Tricolor => second stage == null
+		String image2 = rotation.getStage2() != null
+			? rotation.getStage2().getImage().getUrl()
+			: null;
 
 		StringBuilder builder = new StringBuilder("**").append(rotation.getMode().getName()).append("**: ")
 			.append("**").append(getEmoji(rotation.getRule().getName())).append(rotation.getRule().getName()).append("**\n")
-			.append("- Stage A: **").append(rotation.getStage1().getName()).append("**\n")
-			.append("- Stage B: **").append(rotation.getStage2().getName()).append("**\n\n")
-			.append("**Next rotations**");
+			.append("- Stage A: **").append(rotation.getStage1().getName()).append("**\n");
+
+		if (rotation.getStage2() != null) {
+			builder.append("- Stage B: **").append(rotation.getStage2().getName()).append("**\n");
+		}
+
+		builder.append("\n**Next rotations**");
 
 		vsRotationRepository
 			.findByModeAndStartTimeAfter(rotation.getMode(), rotation.getStartTime().plus(1, ChronoUnit.MINUTES)).stream()
 			.sorted(Comparator.comparing(Splatoon3VsRotation::getStartTime))
 			.forEach(r ->
-				builder.append("\n- **<t:")
-					.append(r.getStartTime().getEpochSecond())
-					.append(":t>**")
-					.append(" (<t:")
-					.append(r.getStartTime().getEpochSecond())
-					.append(":R>): ")
-					.append(getEmoji(r.getRule().getName()))
-					.append(r.getRule().getName())
-					.append(" --- **")
-					.append(r.getStage1().getName())
-					.append("** --- **")
-					.append(r.getStage2().getName())
-					.append("**")
+				{
+					builder.append("\n- **<t:")
+						.append(r.getStartTime().getEpochSecond())
+						.append(":t>**")
+						.append(" (<t:")
+						.append(r.getStartTime().getEpochSecond())
+						.append(":R>): ")
+						.append(getEmoji(r.getRule().getName()))
+						.append(r.getRule().getName())
+						.append(" --- **")
+						.append(r.getStage1().getName())
+						.append("**");
+
+					if (r.getStage2() != null) {
+						builder.append(" --- **")
+							.append(r.getStage2().getName())
+							.append("**");
+					}
+				}
 			);
 
-		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1, image2);
+		if (image2 != null) {
+			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1, image2);
+		} else {
+			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1);
+		}
 	}
 
 	private void sendChallengeRotationToDiscord(String channelName, Splatoon3VsRotation rotation) {
