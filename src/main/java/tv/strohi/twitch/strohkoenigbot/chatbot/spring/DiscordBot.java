@@ -227,6 +227,10 @@ public class DiscordBot {
 	}
 
 	public boolean sendServerMessageWithImageUrls(String channelName, String message, String... imageUrls) {
+		return sendServerMessageWithImageUrls(channelName, message, true, imageUrls);
+	}
+
+	public boolean sendServerMessageWithImageUrls(String channelName, String message, boolean storeOnLocalDrive, String... imageUrls) {
 		if (getGateway() == null) {
 			return false;
 		}
@@ -251,7 +255,7 @@ public class DiscordBot {
 
 			for (TextChannel channel : allChannels) {
 				if (channel != null) {
-					result = sendMessage(channel, message, imageUrls);
+					result = sendMessage(channel, message, storeOnLocalDrive, imageUrls);
 					logger.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
 				}
 			}
@@ -405,23 +409,35 @@ public class DiscordBot {
 	}
 
 	private boolean sendMessage(MessageChannel channel, String message, String... imageUrls) {
+		return sendMessage(channel, message, true, imageUrls);
+	}
+
+	private boolean sendMessage(MessageChannel channel, String message, boolean storeOnLocalDrive, String... imageUrls) {
 		List<Tuple<String, InputStream>> streams = new ArrayList<>();
 
 		for (String imageUrlFullPath : imageUrls) {
 			try {
-				String imageLocationString = resourcesDownloader.ensureExistsLocally(imageUrlFullPath);
-				String path = Paths.get(imageLocationString).toString();
-				String idStr = Paths.get(path).getFileName().toString();
+				if (storeOnLocalDrive) {
+					String imageLocationString = resourcesDownloader.ensureExistsLocally(imageUrlFullPath);
+					String path = Paths.get(imageLocationString).toString();
+					String idStr = Paths.get(path).getFileName().toString();
 
-				Tuple<String, InputStream> filenameWithInputStream;
-				if (imageLocationString.startsWith("https://")) {
-					URL url = new URL(imageLocationString);
-					filenameWithInputStream = new Tuple<>(idStr, url.openStream());
+					Tuple<String, InputStream> filenameWithInputStream;
+					if (imageLocationString.startsWith("https://")) {
+						URL url = new URL(imageLocationString);
+						filenameWithInputStream = new Tuple<>(idStr, url.openStream());
+					} else {
+						filenameWithInputStream = new Tuple<>(idStr, new FileInputStream(Paths.get(System.getProperty("user.dir"), path).toString()));
+					}
+
+					streams.add(filenameWithInputStream);
 				} else {
-					filenameWithInputStream = new Tuple<>(idStr, new FileInputStream(Paths.get(System.getProperty("user.dir"), path).toString()));
-				}
+					String path = Paths.get(imageUrlFullPath).toString();
+					String idStr = Paths.get(path).getFileName().toString();
+					URL url = new URL(imageUrlFullPath);
 
-				streams.add(filenameWithInputStream);
+					streams.add(new Tuple<>(idStr, url.openStream()));
+				}
 			} catch (IOException e) {
 				logger.error(e);
 			}

@@ -7,12 +7,10 @@ import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
 import com.github.twitch4j.chat.events.channel.RaidEvent;
 import com.github.twitch4j.common.events.user.PrivateMessageEvent;
+import com.github.twitch4j.events.ChannelClipCreatedEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.github.twitch4j.events.ChannelGoOfflineEvent;
-import com.github.twitch4j.helix.domain.Clip;
-import com.github.twitch4j.helix.domain.ClipList;
-import com.github.twitch4j.helix.domain.CreateClipList;
-import com.github.twitch4j.helix.domain.User;
+import com.github.twitch4j.helix.domain.*;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,13 +31,12 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchGoingLiveAlertRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
+import tv.strohi.twitch.strohkoenigbot.utils.Constants;
 
 import javax.annotation.PreDestroy;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 @Component
@@ -56,7 +53,17 @@ public class TwitchBotClient {
 
 	private String accessToken;
 
-	private final List<String> channelNames = List.of("strohkoenig", "stroh_ohne_i");
+	private final Map<String, Queue<ChannelClipCreatedEvent>> createdClips = Map.of("strohkoenig", new LinkedList<>(), "stroh_ohne_i", new LinkedList<>());
+
+	public Optional<ChannelClipCreatedEvent> pollCreatedClip(String channelName) {
+		if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(channelName)) {
+			var list = createdClips.get(channelName);
+
+			return Optional.ofNullable(list.poll());
+		}
+
+		return Optional.empty();
+	}
 
 	private boolean fakeDebug = false;
 
@@ -127,7 +134,7 @@ public class TwitchBotClient {
 
 			client = builder.build();
 
-			for (var channelName : channelNames) {
+			for (var channelName : Constants.ALL_TWITCH_CHANNEL_NAMES) {
 				client.getChat().joinChannel(channelName);
 				if (client.getChat().isChannelJoined(channelName)) {
 					client.getChat().sendMessage(channelName, "Bot started. Hi! GlitchCat");
@@ -135,6 +142,7 @@ public class TwitchBotClient {
 
 				client.getClientHelper().enableStreamEventListener(channelName);
 				client.getClientHelper().enableFollowEventListener(channelName);
+				client.getClientHelper().enableClipEventListener(channelName);
 
 				client.getHelix().getUsers(null, null, Collections.singletonList(channelName)).execute().getUsers().stream().findFirst()
 					.ifPresent(user -> client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, user.getId()));
@@ -151,7 +159,7 @@ public class TwitchBotClient {
 					consumer.accept(event.getChannel().getName());
 				}
 
-				if (channelNames.contains(event.getChannel().getName())) {
+				if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
 					ObsController.setIsLive(true);
 
 					if (resultsExporter != null) {
@@ -164,7 +172,7 @@ public class TwitchBotClient {
 			});
 
 			goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
-				if (channelNames.contains(event.getChannel().getName())) {
+				if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
 					ObsController.setIsLive(false);
 
 					if (resultsExporter != null) {
@@ -173,6 +181,14 @@ public class TwitchBotClient {
 					}
 
 					autoSoAction.endStream();
+				}
+			});
+
+			client.getEventManager().onEvent(ChannelClipCreatedEvent.class, event -> {
+				var channelName = event.getChannel().getName();
+				if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(channelName)) {
+					logger.info("Adding clip for channel {}, url {}", event.getChannel().getName(), event.getClip().getUrl());
+					createdClips.get(channelName).add(event);
 				}
 			});
 
@@ -328,6 +344,18 @@ public class TwitchBotClient {
 		return clip;
 	}
 
+	public Optional<String> getGameName(String gameId) {
+		var credential = getBotCredential();
+		if (credential == null) {
+			logger.error("game loading failed because credential could not be found!");
+			return Optional.empty();
+		}
+
+		return client.getHelix().getGames(credential.getAccessToken(), List.of(gameId), null).execute().getGames().stream()
+			.map(Game::getName)
+			.findFirst();
+	}
+
 	@PreDestroy
 	public void stop() {
 		if (resultsExporter != null) {
@@ -351,7 +379,7 @@ public class TwitchBotClient {
 		}
 
 		if (client != null) {
-			for (var channelName : channelNames) {
+			for (var channelName : Constants.ALL_TWITCH_CHANNEL_NAMES) {
 				if (client.getChat().isChannelJoined(channelName)) {
 					client.getChat().sendMessage(channelName, "Stopping Bot. Bye! GlitchCat");
 					client.getChat().leaveChannel(channelName);
