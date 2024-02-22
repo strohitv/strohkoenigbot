@@ -307,7 +307,7 @@ public class TwitchBotClient {
 				ClipList list;
 				int attempt = 1;
 
-				while ((list = client.getHelix().getClips(null, null, null, id, null, null, null, null, null).execute()).getData().size() == 0) {
+				while ((list = client.getHelix().getClips(null, null, null, List.of(id), null, null, null, null, null, null).execute()).getData().size() == 0) {
 					try {
 						if (attempt > 1) {
 							logger.info("attempt number: {}", attempt);
@@ -345,13 +345,7 @@ public class TwitchBotClient {
 	}
 
 	public Optional<String> getGameName(String gameId) {
-		var credential = getBotCredential();
-		if (credential == null) {
-			logger.error("game loading failed because credential could not be found!");
-			return Optional.empty();
-		}
-
-		return client.getHelix().getGames(credential.getAccessToken(), List.of(gameId), null).execute().getGames().stream()
+		return client.getHelix().getGames(null, List.of(gameId), null, null).execute().getGames().stream()
 			.map(Game::getName)
 			.findFirst();
 	}

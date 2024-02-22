@@ -45,7 +45,7 @@ public class TwitchClipSender {
 
 				var gameName = twitchBotClient.getGameName(clip.getClip().getGameId()).orElse("unknown");
 
-				var discordMessage = String.format("**New Clip on %s**\n- Title: %s\n- Created by: %s\n- Game: %s\n- Duration: %ss\n- Stream language: %s\n- Created At: <t:%d:f> (<t:%d:R>)\n\nLink: <%s>",
+				var discordMessage = String.format("**New Clip on %s**\n- Title: %s\n- Created by: %s\n- Game: %s\n- Duration: %ss\n- Stream language: %s\n- Created at: <t:%d:f> (<t:%d:R>)\n\nLink: <%s>",
 					channelName,
 					clip.getClip().getTitle(),
 					clip.getClip().getCreatorName(),
