@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
-import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrMode;
@@ -22,11 +21,9 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrResultService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrRotationService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3VsResultService;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3GTokenRefresher;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ConfigFileConnector;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -38,14 +35,11 @@ import javax.persistence.FlushModeType;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -60,19 +54,17 @@ public class S3Downloader implements ScheduledService {
 
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-	private Instant lastSuccessfulAttempt = Instant.now().minus(1, ChronoUnit.HOURS);
-
 	private final ConfigurationRepository configurationRepository;
 	private final AccountRepository accountRepository;
 	private final S3ApiQuerySender requestSender;
-	private final S3GTokenRefresher gTokenRefresher;
-	private final ConfigFileConnector configFileConnector;
 	private final ExceptionLogger exceptionLogger;
 
 	private final Splatoon3VsResultService vsResultService;
 	private final Splatoon3SrRotationService srRotationService;
 	private final Splatoon3SrResultService srResultService;
 	private final S3RotationSender rotationSender;
+
+	private final S3S3sRunner s3sRunner;
 
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
@@ -173,7 +165,7 @@ public class S3Downloader implements ScheduledService {
 				logSender.sendLogs(logger, builder.toString());
 
 				// start refresh of s3s script asynchronously
-				runS3S();
+				s3sRunner.runS3S();
 			}
 		}
 	}
@@ -267,8 +259,6 @@ public class S3Downloader implements ScheduledService {
 		List<Account> accounts = accountRepository.findByEnableSplatoon3(true);
 
 		for (Account account : accounts) {
-			lastSuccessfulAttempt = Instant.now();
-
 			String accountUUIDHash = String.format("%05d", account.getId()); // UUID.nameUUIDFromBytes(Path.of(configFileLocation, "config.txt").toString().getBytes()).toString();
 			Path directory = Path.of("game-results", accountUUIDHash);
 			if (!Files.exists(directory)) {
@@ -393,7 +383,7 @@ public class S3Downloader implements ScheduledService {
 				logSender.sendLogs(logger, message);
 
 				// start refresh of s3s script asynchronously
-				runS3S();
+				s3sRunner.runS3S();
 			}
 
 			if (LocalDateTime.now(ZoneId.systemDefault()).getHour() == 8) { // = 9:35 am
@@ -426,65 +416,6 @@ public class S3Downloader implements ScheduledService {
 		if (allDownloadedGames.getSalmon_games() == null) {
 			allDownloadedGames.setSalmon_games(new HashMap<>());
 		}
-	}
-
-	private void runS3S() {
-		new Thread(() -> {
-			logSender.sendLogs(logger, "Starting s3s refresh...");
-
-			String scriptFormatString = configurationRepository.findAllByConfigName("s3sScript").stream().map(Configuration::getConfigValue).findFirst().orElse("python3 %s/s3s.py -o");
-
-			List<Configuration> s3sLocations = configurationRepository.findAllByConfigName("s3sLocation");
-			if (s3sLocations.size() == 0) return;
-
-			Runtime rt = Runtime.getRuntime();
-			for (Configuration singleS3SLocation : s3sLocations) {
-				String configFileLocation = singleS3SLocation.getConfigValue();
-				String completeCommand = String.format(scriptFormatString, configFileLocation).trim();
-
-				logger.info(String.format("Starting download for location %s", configFileLocation));
-
-				if (!gTokenRefresher.refreshGToken(rt, configFileLocation, completeCommand)) {
-					logger.warn("Did not work..");
-					if (lastSuccessfulAttempt.isBefore(Instant.now().minus(3, ChronoUnit.HOURS))) {
-						logSender.sendLogs(logger, "Exception while executing s3s process!! Result wasn't 0 for at least three hours now!");
-					}
-
-					continue;
-				}
-
-				ConfigFile configFile = configFileConnector.readConfigFile(configFileLocation);
-
-				if (configFile == null) continue;
-
-				String accountUUIDHash = UUID.nameUUIDFromBytes(Path.of(configFileLocation, "config.txt").toString().getBytes()).toString();
-				Path directory = Path.of("game-results", accountUUIDHash);
-				if (!Files.exists(directory)) {
-					try {
-						Files.createDirectories(directory);
-					} catch (IOException e) {
-						logSender.sendLogs(logger, String.format("Could not create game directory!! %s", directory));
-						continue;
-					}
-				}
-
-				File file = new File(".");
-				List<String> directories = Arrays.stream(Objects.requireNonNull(file.list((current, name) -> new File(current, name).isDirectory()))).filter(name -> name.startsWith("export-")).collect(Collectors.toList());
-
-				// move exported folders to back up directory
-				for (String dir : directories) {
-					try {
-						logger.info(String.format("Moving directory %s", dir));
-						Files.move(new File(dir).toPath(), directory.resolve(dir), StandardCopyOption.REPLACE_EXISTING);
-					} catch (IOException e) {
-						logSender.sendLogs(logger, String.format("could not move directory %s", dir));
-						logger.error(e);
-					}
-				}
-			}
-
-			logSender.sendLogs(logger, "Finished s3s refresh");
-		}).start();
 	}
 
 	public void tryParseAllBattles(String folderName) {

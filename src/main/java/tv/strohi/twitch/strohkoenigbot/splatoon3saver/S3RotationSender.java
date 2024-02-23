@@ -127,6 +127,7 @@ public class S3RotationSender implements ScheduledService {
 			}
 
 			Arrays.stream(rotationSchedulesResult.getData().getEventSchedules().getNodes())
+				.filter(r -> r.getLeagueMatchSetting().getVsRule() != null && r.getTimePeriods().length > 0)
 				.forEach(vsRotationService::ensureRotationExists);
 
 			Arrays.stream(rotationSchedulesResult.getData().getCoopGroupingSchedule().getRegularSchedules().getNodes())

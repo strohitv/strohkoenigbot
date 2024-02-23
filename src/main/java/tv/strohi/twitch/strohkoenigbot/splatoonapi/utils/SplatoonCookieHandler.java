@@ -76,7 +76,6 @@ public class SplatoonCookieHandler extends CookieHandler {
 	private void resetCookieAndThrowException(String message) throws CookieRefreshException {
 		account.setSplatoonCookie(null);
 		account.setSplatoonCookieExpiresAt(null);
-		account.setSplatoonSessionToken(null);
 
 		if (account.getId() > 0 && account.getDiscordId() != null) {
 			accountRepository.save(account);
