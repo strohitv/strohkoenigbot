@@ -12,6 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
@@ -26,6 +27,9 @@ import java.util.stream.Collectors;
 @Log4j2
 public class Splatoon3SrRotationService {
 	private final Instant horrorborosIntroductionDate = Instant.parse("2023-03-04T00:00:00Z");
+
+	private final LogSender logSender;
+
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	private final ImageService imageService;
@@ -166,6 +170,23 @@ public class Splatoon3SrRotationService {
 					: null)
 				.build()
 			));
+
+
+		if (!stage.getName().equals(coopStage.getName())) {
+			// edge case for season changes where the stage is unknown at first (and has the ??? image)
+			logSender.sendLogs(log, String.format("Coop stage name has changed! Old name: **%s**, new name: **%s**", stage.getName(), coopStage.getName()));
+			log.info("old coop stage");
+			log.info(stage);
+			log.info("new coop stage");
+			log.info(coopStage);
+
+			stage = stageRepository.save(Splatoon3SrStage.builder()
+				.name(coopStage.getName())
+				.image(coopStage.getImage() != null
+					? imageService.ensureExists(coopStage.getImage().getUrl())
+					: imageService.ensureExists(coopStage.getThumbnailImage().getUrl()))
+				.build());
+		}
 
 		if ((stage.getImage() == null && coopStage.getImage() != null)
 			|| (stage.getThumbnailImage() == null && coopStage.getThumbnailImage() != null)) {

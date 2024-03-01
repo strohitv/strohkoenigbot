@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.RotationSchedulesResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
@@ -25,6 +26,8 @@ import java.util.stream.Collectors;
 public class Splatoon3VsRotationService {
 	private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 	private final Instant challengeSlotExpansionDate = Instant.parse("2023-11-30T00:00:00Z");
+
+	private final LogSender logSender;
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -193,6 +196,22 @@ public class Splatoon3VsRotationService {
 					: imageService.ensureExists(stage.getImage().getUrl()))
 				.build()
 			));
+
+		if (!dbStage.getName().equals(stage.getName())) {
+			// edge case for season changes where the stage is unknown at first (and has the ??? image)
+			logSender.sendLogs(log, String.format("Stage name has changed! Old name: **%s**, new name: **%s**", dbStage.getName(), stage.getName()));
+			log.info("old stage");
+			log.info(dbStage);
+			log.info("new stage");
+			log.info(stage);
+
+			dbStage = stageRepository.save(Splatoon3VsStage.builder()
+				.name(stage.getName())
+				.image(stage.getOriginalImage() != null
+					? imageService.ensureExists(stage.getOriginalImage().getUrl())
+					: imageService.ensureExists(stage.getImage().getUrl()))
+				.build());
+		}
 
 		var bestUrl = getBestUrl(dbStage.getImage() != null ? dbStage.getImage().getUrl() : null,
 			stage.getImage() != null ? stage.getImage().getUrl() : null,
