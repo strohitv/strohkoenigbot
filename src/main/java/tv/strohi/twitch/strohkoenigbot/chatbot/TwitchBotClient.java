@@ -147,7 +147,10 @@ public class TwitchBotClient {
 				client.getClientHelper().enableClipEventListener(channelName);
 
 				client.getHelix().getUsers(null, null, Collections.singletonList(channelName)).execute().getUsers().stream().findFirst()
-					.ifPresent(user -> client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, user.getId()));
+					.ifPresent(user -> {
+						client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, user.getId());
+						client.getPubSub().listenForAdsEvents(botCredential, user.getId());
+					});
 			}
 
 			var allAlerts = twitchGoingLiveAlertRepository.findAll();
