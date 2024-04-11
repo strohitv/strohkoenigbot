@@ -42,9 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -259,6 +257,35 @@ public class DiscordAdministrationAction extends ChatAction {
 				} else {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "A shoutout trigger for account **" + accountToRemove + "** does not exist.");
 				}
+			} else if (message.startsWith("!so fix")) {
+				Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
+
+				var updatedUsernames = new ArrayList<String>();
+				var deletedUsernames = new ArrayList<String>();
+
+				var allSoAccounts = twitchSoAccountRepository.findAll().stream()
+					.filter(soAcc -> soAcc.getAccountId() == null)
+					.collect(Collectors.toCollection(LinkedList::new));
+
+				while (allSoAccounts.size() > 0) {
+					var element = allSoAccounts.poll();
+
+					if (twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), element.getUsername()) != null) {
+						twitchSoAccountRepository.delete(element);
+						deletedUsernames.add(element.getUsername());
+					} else {
+						element.setAccountId(account.getId());
+						twitchSoAccountRepository.save(element);
+						updatedUsernames.add(element.getUsername());
+					}
+				}
+
+				var builder = new StringBuilder("**Update result for request of setting all null account ids to __").append(account.getId()).append("__**\n\n__Fixed__");
+				updatedUsernames.forEach(un -> builder.append("\n- ").append(un));
+				builder.append("\n\n__Deleted (duplicate)__");
+				deletedUsernames.forEach(un -> builder.append("\n- ").append(un));
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
 			} else if (message.startsWith("!file")) {
 				String filepath = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!file".length()).trim();
 
