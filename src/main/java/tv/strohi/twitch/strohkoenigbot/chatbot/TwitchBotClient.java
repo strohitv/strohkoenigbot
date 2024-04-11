@@ -10,6 +10,7 @@ import com.github.twitch4j.common.events.user.PrivateMessageEvent;
 import com.github.twitch4j.events.ChannelClipCreatedEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.github.twitch4j.events.ChannelGoOfflineEvent;
+import com.github.twitch4j.eventsub.events.ChannelAdBreakBeginEvent;
 import com.github.twitch4j.helix.domain.*;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import org.apache.logging.log4j.LogManager;
@@ -34,6 +35,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.utils.Constants;
 
 import javax.annotation.PreDestroy;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -126,11 +128,11 @@ public class TwitchBotClient {
 
 		try {
 			TwitchClientBuilder builder = TwitchClientBuilder.builder()
-					.withDefaultAuthToken(botCredential)
-					.withEnableChat(true)
-					.withChatAccount(botCredential)
-					.withEnableHelix(true)
-					.withEnablePubSub(true);
+				.withDefaultAuthToken(botCredential)
+				.withEnableChat(true)
+				.withChatAccount(botCredential)
+				.withEnableHelix(true)
+				.withEnablePubSub(true);
 
 			client = builder.build();
 
@@ -153,6 +155,18 @@ public class TwitchBotClient {
 			for (var alert : allAlerts) {
 				client.getClientHelper().enableStreamEventListener(alert.getTwitchChannelName());
 			}
+
+			client.getPubSub().getEventManager().onEvent(ChannelAdBreakBeginEvent.class, event -> {
+				if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getBroadcasterUserName())) {
+					if (event.getStartedAt().isBefore(Instant.now())) {
+						// Ads running, send !ads
+						client.getChat().sendMessage(event.getBroadcasterUserName(), String.format("!ads @%s", event.getBroadcasterUserName()));
+					} else {
+						// Ads soon, notify streamer via chat
+						client.getChat().sendMessage(event.getBroadcasterUserName(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", event.getBroadcasterUserName(), Duration.between(Instant.now(), event.getStartedAt()).toSeconds() / 60.0, event.getLengthSeconds() / 60.0));
+					}
+				}
+			});
 
 			goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
 				for (var consumer : goingLiveAlertConsumers) {
@@ -266,9 +280,9 @@ public class TwitchBotClient {
 
 	public boolean isLiveIgnoreDebug(String channelId) {
 		return channelId != null
-				&& !channelId.isBlank()
-				&& client.getHelix().getStreams(accessToken, null, null, null, null, null, Collections.singletonList(channelId), null).execute()
-				.getStreams().size() > 0;
+			&& !channelId.isBlank()
+			&& client.getHelix().getStreams(accessToken, null, null, null, null, null, Collections.singletonList(channelId), null).execute()
+			.getStreams().size() > 0;
 	}
 
 	public Splatoon2Clip createClip(String message, String channelId, boolean isGoodPlay) {
