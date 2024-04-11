@@ -1,0 +1,26 @@
+package tv.strohi.twitch.strohkoenigbot.splatoon3saver.model;
+
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.Map;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class NsoQueryKeyData {
+	private String version;
+	private GraphQL graphql;
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class GraphQL {
+		private Map<String, String> hash_map;
+	}
+}

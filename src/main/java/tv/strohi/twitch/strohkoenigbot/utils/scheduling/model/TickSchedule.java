@@ -23,6 +23,14 @@ public class TickSchedule implements Schedule {
 
 	private int currentTick = 0;
 
+	public static int everyMinutes(int minutes) {
+		return minutes * 12;
+	}
+
+	public static int everyHours(int hours) {
+		return hours * 60 * 12;
+	}
+
 	public static String getScheduleString(int ticks) {
 		return String.format("tick: %d", ticks);
 	}
