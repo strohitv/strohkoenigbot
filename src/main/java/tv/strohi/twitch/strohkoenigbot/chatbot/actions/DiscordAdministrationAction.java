@@ -213,13 +213,21 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				Account account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
 
-				if (twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToAdd) == null) {
+				var foundNullAccount = twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToAdd);
+				if (foundNullAccount != null) {
+					foundNullAccount.setAccountId(account.getId());
+					twitchSoAccountRepository.save(foundNullAccount);
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I fixed the database entry and will trigger an **!so** message whenever **" + accountToAdd + "** writes the first message in stream.");
+				} else if (twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToAdd) == null) {
 					TwitchSoAccount soAccount = new TwitchSoAccount();
+					soAccount.setAccountId(account.getId());
 					soAccount.setUsername(accountToAdd);
 					twitchSoAccountRepository.save(soAccount);
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will trigger an **!so** message whenever **" + accountToAdd + "** writes the first message in stream.");
+				} else {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "A shoutout trigger for account **" + accountToAdd + "** does already exist.");
 				}
 
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will trigger an **!so** message whenever **" + accountToAdd + "** raids or writes the first message in stream.");
 			} else if (message.startsWith("!so list")) {
 				String answer = "You didn't tell me who to !so yet.";
 
@@ -244,9 +252,13 @@ public class DiscordAdministrationAction extends ChatAction {
 				TwitchSoAccount soAccount = twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), accountToRemove);
 				if (soAccount != null) {
 					twitchSoAccountRepository.delete(soAccount);
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will not trigger an **!so** message anymore whenever **" + accountToRemove + "** writes the first message in stream.");
+				} else if ((soAccount = twitchSoAccountRepository.findByAccountIdAndUsername(null, accountToRemove)) != null) {
+					twitchSoAccountRepository.delete(soAccount);
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will not trigger an **!so** message anymore whenever **" + accountToRemove + "** writes the first message in stream.");
+				} else {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "A shoutout trigger for account **" + accountToRemove + "** does not exist.");
 				}
-
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "I will not trigger an **!so** message anymore whenever **" + accountToRemove + "** raids or writes the first message in stream.");
 			} else if (message.startsWith("!file")) {
 				String filepath = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!file".length()).trim();
 
