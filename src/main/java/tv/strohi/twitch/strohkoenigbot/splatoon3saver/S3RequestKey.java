@@ -8,8 +8,6 @@ import java.util.EnumSet;
 @AllArgsConstructor
 @Getter
 public enum S3RequestKey {
-	// TODO https://raw.githubusercontent.com/imink-app/SplatNet3/master/Data/splatnet3_webview_data.json
-
 	Home("HomeQuery", "51fc56bbf006caf37728914aa8bc0e2c86a80cf195b4d4027d6822a3623098a8", "/"),
 	History("HistoryRecordQuery", "0a62c0152f27c4218cf6c87523377521c2cff76a4ef0373f2da3300079bf0388", "/history_record/summary"),
 	Catalog("CatalogQuery", "40b62e4734f22a6009f1951fc1d03366b14a70833cb96a9a46c0e9b7043c67ef", "/catalog_record"),
