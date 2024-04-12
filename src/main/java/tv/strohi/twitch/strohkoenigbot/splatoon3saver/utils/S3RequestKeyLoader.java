@@ -11,6 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3RequestKey;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Splatoon3RequestKey;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.Splatoon3RequestKeyRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.NsoQueryKeyData;
+import tv.strohi.twitch.strohkoenigbot.utils.ExceptionSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
@@ -29,6 +30,10 @@ public class S3RequestKeyLoader {
 	public void registerSchedule() {
 		schedulingService.registerOnce("S3RequestKeyLoader_refreshRequestKeys", TickSchedule.everyMinutes(1), this::refreshRequestKeys);
 	}
+
+	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
+	private final ExceptionSender exceptionSender;
 
 	private final ConfigurationRepository configurationRepository;
 	private final Splatoon3RequestKeyRepository requestKeyRepository;
@@ -72,6 +77,8 @@ public class S3RequestKeyLoader {
 						.configName("Splatoon3_WebViewVersion")
 						.configValue(queryKeys.getVersion())
 						.build()));
+
+					logSender.sendLogs(log, String.format("Found a newer version via github request keys: `%s`", queryKeys.getVersion()));
 				}
 			}
 
@@ -84,6 +91,7 @@ public class S3RequestKeyLoader {
 
 					if (!Objects.equals(requestKey.getQueryHash(), hash)) {
 						requestKey.setQueryHash(hash);
+						logSender.sendLogs(log, String.format("Found a new query hash for request key `%s` via github: `%s`", requestKey.getQueryName(), hash));
 					}
 
 					Arrays.stream(S3RequestKey.values()).filter(rk -> rk.getKey().equals(hash))
@@ -94,9 +102,8 @@ public class S3RequestKeyLoader {
 				});
 			}
 		} catch (Exception ex) {
-			log.error(ex);
+			exceptionLogger.logException(log, ex);
+			exceptionSender.send(ex);
 		}
-
-		log.info("done");
 	}
 }
