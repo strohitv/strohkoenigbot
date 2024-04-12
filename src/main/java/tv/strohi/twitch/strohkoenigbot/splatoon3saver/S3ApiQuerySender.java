@@ -26,6 +26,7 @@ import static tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authen
 public class S3ApiQuerySender {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final S3RequestSender s3RequestSender;
+	private final S3RequestKeyGetter requestKeyGetter;
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 
@@ -33,11 +34,13 @@ public class S3ApiQuerySender {
 
 	private final S3Authenticator authenticator;
 
-	public String queryS3Api(Account account, String actionHash) {
-		return queryS3Api(account, actionHash, null, null);
+	public String queryS3Api(Account account, S3RequestKey key) {
+		return queryS3Api(account, key, null, null);
 	}
 
-	public String queryS3Api(Account account, String actionHash, String additionalHeader, String additionalContent) {
+	public String queryS3Api(Account account, S3RequestKey key, String additionalHeader, String additionalContent) {
+		var actionHash = requestKeyGetter.load(key);
+
 		logger.info("Sending request for hash '{}', additional header  '{}' and additional content '{}'", actionHash, additionalHeader, additionalContent);
 
 		String result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, additionalHeader, additionalContent);

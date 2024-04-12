@@ -94,12 +94,12 @@ public class S3NewGearChecker {
 //				SplatNetShopResult result = new ObjectMapper().readValue(new File("C:\\Users\\marco\\Documents\\win 8.1 vorteile\\test\\splatnetshop_test.txt").toURI().toURL(), SplatNetShopResult.class);
 //				System.out.println(result);
 
-				String allGearResponse = requestSender.queryS3Api(account, S3RequestKey.OwnedWeaponsAndGear.getKey());
+				String allGearResponse = requestSender.queryS3Api(account, S3RequestKey.OwnedWeaponsAndGear);
 				OwnedGearAndWeaponsResult ownedGear = new ObjectMapper().readValue(allGearResponse, OwnedGearAndWeaponsResult.class);
 
 //				ownedGear.getData().getHeadGears().setNodes(Arrays.stream(ownedGear.getData().getHeadGears().getNodes()).filter(g -> !"Classic Bowler".equals(g.getName())).toArray(Gear[]::new));
 
-				String splatNetGearResponse = requestSender.queryS3Api(account, S3RequestKey.SplatNetShop.getKey());
+				String splatNetGearResponse = requestSender.queryS3Api(account, S3RequestKey.SplatNetShop);
 				SplatNetShopResult splatNetOffers = new ObjectMapper().readValue(splatNetGearResponse, SplatNetShopResult.class);
 
 				if (account.getIsMainAccount()) {

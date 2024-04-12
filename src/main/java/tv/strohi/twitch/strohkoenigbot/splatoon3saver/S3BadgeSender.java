@@ -87,7 +87,7 @@ public class S3BadgeSender {
 
 		for (Account account : accounts) {
 			try {
-				String historyResponse = requestSender.queryS3Api(account, S3RequestKey.History.getKey());
+				String historyResponse = requestSender.queryS3Api(account, S3RequestKey.History);
 				HistoryResult history = mapper.readValue(historyResponse, HistoryResult.class);
 
 				if (account.getIsMainAccount()) {

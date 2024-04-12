@@ -108,7 +108,7 @@ public class S3RotationSender implements ScheduledService {
 		try {
 			importSrRotationsFromGameResultsFolder(account);
 
-			String allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules.getKey());
+			String allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules);
 			RotationSchedulesResult rotationSchedulesResult = new ObjectMapper().readValue(allRotationsResponse, RotationSchedulesResult.class);
 
 			Arrays.stream(rotationSchedulesResult.getData().getVsStages().getNodes())
@@ -217,7 +217,7 @@ public class S3RotationSender implements ScheduledService {
 
 		logger.info("Start posting rotations to discord");
 		try {
-			String allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules.getKey());
+			String allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules);
 			RotationSchedulesResult rotationSchedulesResult = new ObjectMapper().readValue(allRotationsResponse, RotationSchedulesResult.class);
 
 			sendRotations(List.of(
