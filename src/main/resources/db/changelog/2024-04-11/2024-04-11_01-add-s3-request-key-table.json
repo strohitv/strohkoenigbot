@@ -1,0 +1,57 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2024-04-11_01-add-s3-request-key-table",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "createTable": {
+              "tableName": "splatoon_3_request_key",
+              "columns": [
+                {
+                  "column": {
+                    "name": "id",
+                    "type": "bigint",
+                    "autoIncrement": true,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "query_name",
+                    "type": "varchar(200)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "query_hash",
+                    "type": "varchar(200)",
+                    "constraints": {
+                      "nullable": false
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "query_path",
+                    "type": "varchar(200)",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

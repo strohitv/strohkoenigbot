@@ -172,14 +172,14 @@ public class S3Downloader implements ScheduledService {
 
 	private Map<Splatoon3VsMode, List<Splatoon3VsResult>> importVsResultsOfAccountFromS3Api(Account account) {
 		return S3RequestKey.getOnlineBattles().stream()
-			.flatMap(rk -> {
-				String gameListResponse = requestSender.queryS3Api(account, rk.getKey());
+			.flatMap(requestKey -> {
+				String gameListResponse = requestSender.queryS3Api(account, requestKey);
 				return streamResults(parseBattleResultsSneakyThrow(gameListResponse));
 			})
 			.flatMap(hgn -> Arrays.stream(hgn.getHistoryDetails().getNodes()))
 			.filter(vsResultService::notFound)
 			.map(hgn -> {
-				String matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail.getKey(), "vsResultId", hgn.getId());
+				String matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail, "vsResultId", hgn.getId());
 				var parsed = parseSingleResultSneakyThrow(matchJson);
 				parsed.setJsonSave(matchJson);
 				return parsed;
@@ -190,14 +190,14 @@ public class S3Downloader implements ScheduledService {
 	}
 
 	private Map<Splatoon3SrMode, List<Splatoon3SrResult>> importSrResultsOfAccountFromS3Api(Account account) {
-		String gameListResponse = requestSender.queryS3Api(account, S3RequestKey.Salmon.getKey());
+		String gameListResponse = requestSender.queryS3Api(account, S3RequestKey.Salmon);
 
 		return streamResults(parseBattleResultsSneakyThrow(gameListResponse))
 			.peek(srRotationService::ensureDummyRotationExists)
 			.flatMap(hgn -> Arrays.stream(hgn.getHistoryDetails().getNodes()))
 			.filter(srResultService::notFound)
 			.map(hgn -> {
-				String matchJson = requestSender.queryS3Api(account, S3RequestKey.SalmonDetail.getKey(), "coopHistoryDetailId", hgn.getId());
+				String matchJson = requestSender.queryS3Api(account, S3RequestKey.SalmonDetail, "coopHistoryDetailId", hgn.getId());
 				var parsed = parseSingleResultSneakyThrow(matchJson);
 				parsed.setJsonSave(matchJson);
 				return parsed;
@@ -331,7 +331,7 @@ public class S3Downloader implements ScheduledService {
 				storeOnlineGame(account, "Private", directory, allDownloadedGames.getPrivate_games(), matchId);
 			}
 
-			String salmonListResponse = requestSender.queryS3Api(account, S3RequestKey.Salmon.getKey());
+			String salmonListResponse = requestSender.queryS3Api(account, S3RequestKey.Salmon);
 			logger.debug(salmonListResponse);
 
 			List<String> salmonShiftsToDownload = new ArrayList<>();
@@ -626,7 +626,7 @@ public class S3Downloader implements ScheduledService {
 	}
 
 	private void downloadPvPGames(Account account, Path directory, ConfigFile.DownloadedGameList allDownloadedGames, String timeString, List<String> onlineRegularGamesToDownload, List<String> onlineAnarchyGamesToDownload, List<String> onlineXRankGamesToDownload, List<String> onlineChallengeGamesToDownload, List<String> onlinePrivateGamesToDownload, S3RequestKey key) {
-		String gameListResponse = requestSender.queryS3Api(account, key.getKey());
+		String gameListResponse = requestSender.queryS3Api(account, key);
 		logger.debug(gameListResponse);
 		if (!gameListResponse.contains("assistAverage")) {
 			logSender.sendLogs(logger, String.format("Could not load results from SplatNet3: %s", key));
@@ -716,7 +716,7 @@ public class S3Downloader implements ScheduledService {
 			}
 
 			for (String salmonShiftId : salmonShiftsToDownload) {
-				String salmonShiftJson = requestSender.queryS3Api(account, S3RequestKey.SalmonDetail.getKey(), "coopHistoryDetailId", salmonShiftId);
+				String salmonShiftJson = requestSender.queryS3Api(account, S3RequestKey.SalmonDetail, "coopHistoryDetailId", salmonShiftId);
 				logger.debug(salmonShiftJson);
 
 				if (!salmonShiftJson.contains("coopHistoryDetail")) {
@@ -740,7 +740,7 @@ public class S3Downloader implements ScheduledService {
 	}
 
 	private void storeOnlineGame(Account account, String filenamePrefix, Path directory, Map<String, ConfigFile.StoredGame> games, String matchId) {
-		String matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail.getKey(), "vsResultId", matchId);
+		String matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail, "vsResultId", matchId);
 		logger.debug(matchJson);
 
 		if (!matchJson.contains("vsHistoryDetail")) {

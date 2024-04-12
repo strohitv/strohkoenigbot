@@ -93,7 +93,7 @@ public class S3EmoteSender {
 
 		for (Account account : accounts) {
 			try {
-				String catalogResponse = requestSender.queryS3Api(account, S3RequestKey.Catalog.getKey());
+				String catalogResponse = requestSender.queryS3Api(account, S3RequestKey.Catalog);
 				var catalogResult = mapper.readValue(catalogResponse, CatalogResult.class);
 
 				if (catalogResult.getData().getCatalog().getProgress() == null) {

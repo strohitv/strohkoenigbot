@@ -53,7 +53,7 @@ public class S3WeaponDownloader {
 
 		for (Account account : accounts) {
 			try {
-				String allWeaponsResponse = requestSender.queryS3Api(account, S3RequestKey.Weapons.getKey());
+				String allWeaponsResponse = requestSender.queryS3Api(account, S3RequestKey.Weapons);
 				WeaponsResult ownedGear = new ObjectMapper().readValue(allWeaponsResponse, WeaponsResult.class);
 
 				if (account.getIsMainAccount()) {
