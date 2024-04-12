@@ -26,7 +26,7 @@ import static tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authen
 public class S3ApiQuerySender {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final S3RequestSender s3RequestSender;
-	private final S3RequestKeyGetter requestKeyGetter;
+	private final S3RequestKeyUtil requestKeyUtil;
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 
@@ -39,7 +39,7 @@ public class S3ApiQuerySender {
 	}
 
 	public String queryS3Api(Account account, S3RequestKey key, String additionalHeader, String additionalContent) {
-		var actionHash = requestKeyGetter.load(key);
+		var actionHash = requestKeyUtil.load(key);
 
 		logger.info("Sending request for hash '{}', additional header  '{}' and additional content '{}'", actionHash, additionalHeader, additionalContent);
 

@@ -7,7 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.Splatoon3Req
 
 @Component
 @RequiredArgsConstructor
-public class S3RequestKeyGetter {
+public class S3RequestKeyUtil {
 	private final Splatoon3RequestKeyRepository requestKeyRepository;
 
 	public String load(S3RequestKey requestKey) {
