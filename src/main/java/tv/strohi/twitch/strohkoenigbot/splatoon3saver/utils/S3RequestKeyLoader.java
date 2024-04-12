@@ -91,7 +91,7 @@ public class S3RequestKeyLoader {
 
 					if (!Objects.equals(requestKey.getQueryHash(), hash)) {
 						requestKey.setQueryHash(hash);
-						logSender.sendLogs(log, String.format("Found a new query hash for request key `%s` via github: `%s`", requestKey.getQueryName(), hash));
+						logSender.sendLogs(log, String.format("Found new query hash for `%s` via github: `%s`", requestKey.getQueryName(), hash));
 					}
 
 					Arrays.stream(S3RequestKey.values()).filter(rk -> rk.getKey().equals(hash))
