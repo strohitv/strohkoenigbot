@@ -32,6 +32,10 @@ public class ObsController {
 		ObsController.isLive = isLive;
 	}
 
+	public static boolean isLive() {
+		return ObsController.isLive;
+	}
+
 	private final ConfigurationRepository configurationRepository;
 	private final SchedulingService schedulingService;
 	private final List<Consumer<OBSRemoteController>> openCalls = new ArrayList<>();
