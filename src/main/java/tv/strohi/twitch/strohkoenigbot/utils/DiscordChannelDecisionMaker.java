@@ -29,6 +29,7 @@ public class DiscordChannelDecisionMaker {
 
 	private final static String s3BadgesChannel = "s3-badges";
 	private final static String s3EmotesChannel = "s3-emotes";
+	private final static String s3NameplatesChannel = "s3-banners";
 
 	private static boolean isLocalDebug = false;
 
@@ -210,6 +211,14 @@ public class DiscordChannelDecisionMaker {
 			return debugTempChannel;
 		} else {
 			return s3EmotesChannel;
+		}
+	}
+
+	public static String getS3NameplatesChannel() {
+		if (isLocalDebug) {
+			return debugTempChannel;
+		} else {
+			return s3NameplatesChannel;
 		}
 	}
 

@@ -117,7 +117,7 @@ public class SchedulingService {
 		if (config == null) {
 			config = configurationRepository.save(new Configuration(0, configName, defaultValue));
 			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-				String.format("Added new Schedule: id = **%d**, name = **%s**, value = **%s**", config.getId(), configName, defaultValue));
+				String.format("Added new Schedule: id = `%d`, name = `%s`, value = `%s`", config.getId(), configName, defaultValue));
 		}
 
 		schedules.add(createFromSettings(configName, config.getConfigValue(), runnable));
