@@ -130,7 +130,7 @@ public class S3NameplateSender {
 					var indexStr = String.format("#**%03d**", allNameplates.indexOf(nameplate) + 1);
 
 					if (builder.length() + indexStr.length() + "\n- ".length() > 2000) {
-						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3EmotesChannel(), builder.toString());
+						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3NameplatesChannel(), builder.toString());
 						builder = new StringBuilder();
 					}
 
@@ -145,7 +145,7 @@ public class S3NameplateSender {
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3NameplatesChannel(), builder.toString(), allNameplatesImage);
 				logger.info("Done sending nameplate notification to discord");
 			} catch (Exception e) {
-				logSender.sendLogs(logger, "An exception occurred during S3 emote download\nSee logs for details!");
+				logSender.sendLogs(logger, "An exception occurred during S3 nameplate download\nSee logs for details!");
 				exceptionLogger.logException(logger, e);
 			}
 		}
