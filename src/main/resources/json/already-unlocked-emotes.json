@@ -208,5 +208,20 @@
       "primaryGearPower": null,
       "id": "Q2F0YWxvZ0l0ZW0tMzo5"
     }
+  },
+  {
+    "level": 1,
+    "currentPoint": 9500,
+    "state": "ACCEPTED",
+    "item": {
+      "image": {
+        "url": "https://cdn.wikimg.net/en/splatoonwiki/images/8/8b/S3_Emote_Bait_the_Hook.png"
+      },
+      "kind": "EMOTE",
+      "name": "Bait the Hook",
+      "amount": 1,
+      "primaryGearPower": null,
+      "id": "Q2F0YWxvZ0l0ZW0tMzon"
+    }
   }
 ]
