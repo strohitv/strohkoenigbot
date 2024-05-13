@@ -53,7 +53,7 @@ public class S3NameplateSender {
 
 	@PostConstruct
 	public void registerSchedule() {
-		schedulingService.register("S3NameplateLoader_schedule", CronSchedule.getScheduleString("0 * * * * *"), this::repostNameplates);
+		schedulingService.register("S3NameplateLoader_schedule", CronSchedule.getScheduleString("15 3 * * * *"), this::repostNameplates);
 	}
 
 	public void repostNameplates() {
