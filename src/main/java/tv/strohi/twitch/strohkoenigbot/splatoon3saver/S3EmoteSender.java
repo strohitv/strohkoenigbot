@@ -176,7 +176,7 @@ public class S3EmoteSender {
 						graphics.drawImage(emoteWithImage.getImage(), posX + padding, posY + padding, sizeX, sizeY, null);
 
 						graphics.setPaint(new Color(0, 0, 0, 255));
-						drawCenteredString(graphics, String.format("%d: %s", index + 1, emoteWithImage.emote.getItem().getName()), new Rectangle(posX + sizeX + padding, posY, fontWidth + padding, sizeY + 2 * padding), font);
+						drawCenteredString(graphics, String.format("E%03d: %s", index + 1, emoteWithImage.emote.getItem().getName()), new Rectangle(posX + sizeX + padding, posY, fontWidth + padding, sizeY + 2 * padding), font);
 
 						index++;
 						posX = (sizeX + 2 * padding + fontWidth + margin) * (index % columns);
@@ -188,7 +188,7 @@ public class S3EmoteSender {
 
 					var builder = new StringBuilder("Found new Emotes:");
 					for (var emote : list) {
-						var indexStr = String.format("#**%03d**: ", allOwnedEmotesSoFar.indexOf(emote) + 1);
+						var indexStr = String.format("**E%03d**: ", allOwnedEmotesSoFar.indexOf(emote) + 1);
 
 						if (builder.length() + emote.getItem().getName().length() + indexStr.length() + "\n- ".length() > 2000) {
 							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3EmotesChannel(), builder.toString());

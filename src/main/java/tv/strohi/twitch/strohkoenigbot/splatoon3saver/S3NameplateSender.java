@@ -118,16 +118,16 @@ public class S3NameplateSender {
 
 					graphics.setPaint(new Color(0, 0, 0, 255));
 					// Include Image ID: drawCenteredString(graphics, String.format("%d: %s", index + 1, new String(Base64.getDecoder().decode(nameplateWithImage.nameplate.getApiId())).replaceAll("[^0-9]", "")), new Rectangle(posX, posY + sizeY + padding, fontWidth + padding, fontHeight + 2 * padding), font);
-					drawCenteredString(graphics, String.format("%d", index + 1), new Rectangle(posX, posY + sizeY + padding, fontWidth + 2 * padding, fontHeight + 2 * padding), font);
+					drawCenteredString(graphics, String.format("N%03d", index + 1), new Rectangle(posX, posY + sizeY + padding, fontWidth + 2 * padding, fontHeight + 2 * padding), font);
 
 					index++;
 					posX = (sizeX + 2 * padding + margin) * (index % columns);
 					posY = (sizeY + 2 * padding + fontHeight + margin) * (index / columns);
 				}
 
-				var builder = new StringBuilder("Found new Banners:");
+				var builder = new StringBuilder("Found new Nameplates:");
 				for (var nameplate : unpostedNameplates) {
-					var indexStr = String.format("#**%03d**", allNameplates.indexOf(nameplate) + 1);
+					var indexStr = String.format("**N%03d**", allNameplates.indexOf(nameplate) + 1);
 
 					if (builder.length() + indexStr.length() + "\n- ".length() > 2000) {
 						discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3NameplatesChannel(), builder.toString());

@@ -141,7 +141,7 @@ public class S3BadgeSender {
 						graphics.drawImage(badgeImage, posX, posY, size, size, null);
 
 						graphics.setPaint(new Color(0, 0, 0, 255));
-						drawCenteredString(graphics, String.format("%d", index + 1), new Rectangle(posX, posY + size, size, fontHeight), font);
+						drawCenteredString(graphics, String.format("B%03d", index + 1), new Rectangle(posX, posY + size, size, fontHeight), font);
 
 						index++;
 						posX = (size + spacing) * (index % columns);
@@ -153,7 +153,7 @@ public class S3BadgeSender {
 
 					var builder = new StringBuilder("Found new badges:");
 					for (var badge : list) {
-						var indexStr = String.format("#**%03d**: ", allOwnedBadges.indexOf(badge) + 1);
+						var indexStr = String.format("**B%03d**: ", allOwnedBadges.indexOf(badge) + 1);
 
 						if (builder.length() + badge.getDescription().length() + indexStr.length() + "\n- ".length() > 2000) {
 							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3BadgesChannel(), builder.toString());
