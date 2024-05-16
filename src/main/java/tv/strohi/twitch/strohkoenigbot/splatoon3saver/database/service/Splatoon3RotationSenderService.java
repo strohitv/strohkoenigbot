@@ -122,7 +122,7 @@ public class Splatoon3RotationSenderService {
 			.append(rotation.getRule().getName())
 			.append("**\n")
 			.append("- Stage A: **").append(rotation.getStage1().getName()).append("**\n")
-			.append("- Stage B: **").append(rotation.getStage1().getName()).append("**\n\n");
+			.append("- Stage B: **").append(rotation.getStage2().getName()).append("**\n\n");
 
 		var futureSlots = rotation.getSlots().stream()
 			.filter(t -> t.getStartTime().isAfter(Instant.now()))
