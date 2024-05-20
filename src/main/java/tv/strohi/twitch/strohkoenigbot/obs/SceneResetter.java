@@ -36,7 +36,7 @@ public class SceneResetter implements ScheduledService {
 
 					if (disableResult) {
 						try {
-							Thread.sleep(3000);
+							Thread.sleep(2000);
 						} catch (InterruptedException ignored) {
 						}
 
