@@ -53,6 +53,14 @@ public class TwitchBotClient {
 	@Getter
 	private Instant wentLiveTime = null;
 
+	public void forceLive() {
+		wentLiveTime = Instant.now();
+	}
+
+	public void forceOffline() {
+		wentLiveTime = null;
+	}
+
 	private TwitchClient client;
 
 	private static ResultsExporter resultsExporter;
