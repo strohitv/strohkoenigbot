@@ -159,27 +159,27 @@ public class S3StreamStatistics {
 					return;
 			}
 
-			String mainWeaponUrl = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getWeapon().getImage().getFilePath()));
-			String subWeaponUrl = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getWeapon().getSubWeapon().getImage().getFilePath()));
-			String specialWeaponUrl = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getWeapon().getSpecialWeapon().getImage().getFilePath()));
+			String mainWeaponUrl = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getWeapon().getImage().getUrl()));
+			String subWeaponUrl = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getWeapon().getSubWeapon().getImage().getUrl()));
+			String specialWeaponUrl = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getWeapon().getSpecialWeapon().getImage().getUrl()));
 
-			String headGear = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGear().getOriginalImage().getFilePath()));
-			String headGearMain = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearMainAbility().getImage().getFilePath()));
-			String headGearSub1 = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearSecondaryAbility1().getImage().getFilePath()));
-			String headGearSub2 = player.getHeadGearSecondaryAbility2() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearSecondaryAbility2().getImage().getFilePath())) : null;
-			String headGearSub3 = player.getHeadGearSecondaryAbility3() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearSecondaryAbility3().getImage().getFilePath())) : null;
+			String headGear = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGear().getOriginalImage().getUrl()));
+			String headGearMain = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearMainAbility().getImage().getUrl()));
+			String headGearSub1 = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearSecondaryAbility1().getImage().getUrl()));
+			String headGearSub2 = player.getHeadGearSecondaryAbility2() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearSecondaryAbility2().getImage().getUrl())) : null;
+			String headGearSub3 = player.getHeadGearSecondaryAbility3() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearSecondaryAbility3().getImage().getUrl())) : null;
 
-			String clothesGear = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingGear().getOriginalImage().getFilePath()));
-			String clothesGearMain = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingMainAbility().getImage().getFilePath()));
-			String clothesGearSub1 = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingSecondaryAbility1().getImage().getFilePath()));
-			String clothesGearSub2 = player.getClothingSecondaryAbility2() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingSecondaryAbility2().getImage().getFilePath())) : null;
-			String clothesGearSub3 = player.getClothingSecondaryAbility3() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingSecondaryAbility3().getImage().getFilePath())) : null;
+			String clothesGear = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingGear().getOriginalImage().getUrl()));
+			String clothesGearMain = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingMainAbility().getImage().getUrl()));
+			String clothesGearSub1 = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingSecondaryAbility1().getImage().getUrl()));
+			String clothesGearSub2 = player.getClothingSecondaryAbility2() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingSecondaryAbility2().getImage().getUrl())) : null;
+			String clothesGearSub3 = player.getClothingSecondaryAbility3() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingSecondaryAbility3().getImage().getUrl())) : null;
 
-			String shoesGear = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesGear().getOriginalImage().getFilePath()));
-			String shoesGearMain = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesMainAbility().getImage().getFilePath()));
-			String shoesGearSub1 = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesSecondaryAbility1().getImage().getFilePath()));
-			String shoesGearSub2 = player.getShoesSecondaryAbility2() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesSecondaryAbility2().getImage().getFilePath())) : null;
-			String shoesGearSub3 = player.getShoesSecondaryAbility3() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesSecondaryAbility3().getImage().getFilePath())) : null;
+			String shoesGear = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesGear().getOriginalImage().getUrl()));
+			String shoesGearMain = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesMainAbility().getImage().getUrl()));
+			String shoesGearSub1 = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesSecondaryAbility1().getImage().getUrl()));
+			String shoesGearSub2 = player.getShoesSecondaryAbility2() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesSecondaryAbility2().getImage().getUrl())) : null;
+			String shoesGearSub3 = player.getShoesSecondaryAbility3() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesSecondaryAbility3().getImage().getUrl())) : null;
 
 			InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-statistics-template.html");
 			try {
