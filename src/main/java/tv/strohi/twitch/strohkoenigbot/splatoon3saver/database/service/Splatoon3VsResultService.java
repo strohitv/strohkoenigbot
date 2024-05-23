@@ -216,7 +216,7 @@ public class Splatoon3VsResultService {
 
 	@Transactional
 	public Splatoon3VsGear ensureGearExists(Gear gear) {
-		return gearRepository.findByName(gear.getName())
+		var dbGear = gearRepository.findByName(gear.getName())
 			.orElseGet(() ->
 				gearRepository.save(
 					Splatoon3VsGear.builder()
@@ -227,6 +227,28 @@ public class Splatoon3VsResultService {
 						.brand(ensureBrandExists(gear.getBrand()))
 						.build()
 				));
+
+		var changed = false;
+
+		if (imageService.isFailed(dbGear.getOriginalImage())) {
+			changed = true;
+			dbGear = dbGear.toBuilder()
+				.originalImage(imageService.ensureExists(gear.getOriginalImage().getUrl()))
+				.build();
+		}
+
+		if (imageService.isFailed(dbGear.getThumbnailImage())) {
+			changed = true;
+			dbGear = dbGear.toBuilder()
+				.thumbnailImage(imageService.ensureExists(gear.getThumbnailImage().getUrl()))
+				.build();
+		}
+
+		if (changed) {
+			dbGear = gearRepository.save(dbGear);
+		}
+
+		return dbGear;
 	}
 
 
@@ -251,6 +273,12 @@ public class Splatoon3VsResultService {
 			);
 		}
 
+		if (imageService.isFailed(dbBrand.getImage())) {
+			dbBrand = brandRepository.save(dbBrand.toBuilder()
+				.image(imageService.ensureExists(brand.getImage().getUrl()))
+				.build());
+		}
+
 		return dbBrand;
 	}
 
@@ -259,7 +287,7 @@ public class Splatoon3VsResultService {
 	public Splatoon3VsAbility ensureAbilityExists(GearPower usualGearPower) {
 		if (usualGearPower == null) return null;
 
-		return abilityRepository.findByName(usualGearPower.getName())
+		var dbAbility = abilityRepository.findByName(usualGearPower.getName())
 			.orElseGet(() ->
 				abilityRepository.save(
 					Splatoon3VsAbility.builder()
@@ -271,12 +299,20 @@ public class Splatoon3VsResultService {
 							: usualGearPower.getName().equalsIgnoreCase("unknown"))
 						.build()
 				));
+
+		if (imageService.isFailed(dbAbility.getImage())) {
+			dbAbility = abilityRepository.save(dbAbility.toBuilder()
+				.image(imageService.ensureExists(usualGearPower.getImage().getUrl()))
+				.build());
+		}
+
+		return dbAbility;
 	}
 
 
 	@Transactional
 	public Splatoon3VsWeapon ensureWeaponExists(Weapon weapon) {
-		return weaponRepository.findByApiId(weapon.getId())
+		var dbWeapon = weaponRepository.findByApiId(weapon.getId())
 			.orElseGet(() ->
 				weaponRepository.save(
 					Splatoon3VsWeapon.builder()
@@ -291,12 +327,55 @@ public class Splatoon3VsResultService {
 						.image3DThumbnail(imageService.ensureExists(weapon.getImage3dThumbnail().getUrl()))
 						.build()
 				));
+
+		var changed = false;
+
+		if (imageService.isFailed(dbWeapon.getImage())) {
+			changed = true;
+			dbWeapon = dbWeapon.toBuilder()
+				.image(imageService.ensureExists(weapon.getImage().getUrl()))
+				.build();
+		}
+
+		if (imageService.isFailed(dbWeapon.getImage2D())) {
+			changed = true;
+			dbWeapon = dbWeapon.toBuilder()
+				.image2D(imageService.ensureExists(weapon.getImage2d().getUrl()))
+				.build();
+		}
+
+		if (imageService.isFailed(dbWeapon.getImage2DThumbnail())) {
+			changed = true;
+			dbWeapon = dbWeapon.toBuilder()
+				.image2DThumbnail(imageService.ensureExists(weapon.getImage2dThumbnail().getUrl()))
+				.build();
+		}
+
+		if (imageService.isFailed(dbWeapon.getImage3D())) {
+			changed = true;
+			dbWeapon = dbWeapon.toBuilder()
+				.image3D(imageService.ensureExists(weapon.getImage3d().getUrl()))
+				.build();
+		}
+
+		if (imageService.isFailed(dbWeapon.getImage3DThumbnail())) {
+			changed = true;
+			dbWeapon = dbWeapon.toBuilder()
+				.image3DThumbnail(imageService.ensureExists(weapon.getImage3dThumbnail().getUrl()))
+				.build();
+		}
+
+		if (changed) {
+			dbWeapon = weaponRepository.save(dbWeapon);
+		}
+
+		return dbWeapon;
 	}
 
 
 	@Transactional
 	public Splatoon3VsSubWeapon ensureSubWeaponExists(WeaponDetail subWeapon) {
-		return subWeaponRepository.findByApiId(subWeapon.getId())
+		var dbSubWeapon = subWeaponRepository.findByApiId(subWeapon.getId())
 			.orElseGet(() ->
 				subWeaponRepository.save(
 					Splatoon3VsSubWeapon.builder()
@@ -305,12 +384,20 @@ public class Splatoon3VsResultService {
 						.image(imageService.ensureExists(subWeapon.getImage().getUrl()))
 						.build()
 				));
+
+		if (imageService.isFailed(dbSubWeapon.getImage())) {
+			dbSubWeapon = subWeaponRepository.save(dbSubWeapon.toBuilder()
+				.image(imageService.ensureExists(subWeapon.getImage().getUrl()))
+				.build());
+		}
+
+		return dbSubWeapon;
 	}
 
 
 	@Transactional
 	public Splatoon3VsSpecialWeapon ensureSpecialWeaponExists(WeaponDetail specialWeapon) {
-		return specialWeaponRepository.findByApiId(specialWeapon.getId())
+		var dbSpecialWeapon = specialWeaponRepository.findByApiId(specialWeapon.getId())
 			.orElseGet(() ->
 				specialWeaponRepository.save(
 					Splatoon3VsSpecialWeapon.builder()
@@ -323,6 +410,35 @@ public class Splatoon3VsResultService {
 						.maskingImageHeight(specialWeapon.getMaskingImage().getHeight())
 						.build()
 				));
+
+		var changed = false;
+
+		if (imageService.isFailed(dbSpecialWeapon.getImage())) {
+			changed = true;
+			dbSpecialWeapon = dbSpecialWeapon.toBuilder()
+				.image(imageService.ensureExists(specialWeapon.getImage().getUrl()))
+				.build();
+		}
+
+		if (imageService.isFailed(dbSpecialWeapon.getOverlayImage())) {
+			changed = true;
+			dbSpecialWeapon = dbSpecialWeapon.toBuilder()
+				.overlayImage(imageService.ensureExists(specialWeapon.getMaskingImage().getOverlayImageUrl()))
+				.build();
+		}
+
+		if (imageService.isFailed(dbSpecialWeapon.getMaskingImage())) {
+			changed = true;
+			dbSpecialWeapon = dbSpecialWeapon.toBuilder()
+				.maskingImage(imageService.ensureExists(specialWeapon.getMaskingImage().getMaskImageUrl()))
+				.build();
+		}
+
+		if (changed) {
+			dbSpecialWeapon = specialWeaponRepository.save(dbSpecialWeapon);
+		}
+
+		return dbSpecialWeapon;
 	}
 
 

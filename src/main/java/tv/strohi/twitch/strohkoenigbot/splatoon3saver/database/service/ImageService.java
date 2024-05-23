@@ -139,4 +139,8 @@ public class ImageService {
 			getLogSender().sendLogs(log, String.format("ImageService: scheduled download saved %d images on drive. Number of failed images: %d", i, brokenImages.size()));
 		}
 	}
+
+	public boolean isFailed(Image image) {
+		return !image.isDownloaded() && image.getFailedDownloadCount() > IMAGE_DOWNLOAD_MAX_FAIL_COUNT;
+	}
 }

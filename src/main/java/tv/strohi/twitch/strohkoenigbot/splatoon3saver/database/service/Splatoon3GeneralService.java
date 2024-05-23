@@ -54,6 +54,12 @@ public class Splatoon3GeneralService {
 					.textColorA(nameplate.getBackground().getTextColor().getA())
 					.build()));
 
+		if (imageService.isFailed(s3Nameplate.getImage())) {
+			s3Nameplate = nameplateRepository.save(s3Nameplate.toBuilder()
+				.image(imageService.ensureExists(nameplate.getBackground().getImage().getUrl()))
+				.build());
+		}
+
 		if (myself && !s3Nameplate.getOwned()) {
 			return nameplateRepository.save(s3Nameplate.toBuilder()
 				.owned(true)
@@ -72,6 +78,12 @@ public class Splatoon3GeneralService {
 					.image(imageService.ensureExists(badge.getImage().getUrl()))
 					.owned(false)
 					.build()));
+
+		if (imageService.isFailed(s3Badge.getImage())) {
+			s3Badge = badgeRepository.save(s3Badge.toBuilder()
+				.image(imageService.ensureExists(badge.getImage().getUrl()))
+				.build());
+		}
 
 		if (myself && !s3Badge.getOwned()) {
 			return badgeRepository.save(s3Badge.toBuilder()

@@ -199,7 +199,7 @@ public class Splatoon3VsRotationService {
 			stage.getOriginalImage() != null ? stage.getOriginalImage().getUrl() : null);
 
 		if (bestUrl.isPresent()
-			&& (dbStage.getImage() == null || !dbStage.getImage().getUrl().equals(bestUrl.get()))) {
+			&& (dbStage.getImage() == null || imageService.isFailed(dbStage.getImage()) || !dbStage.getImage().getUrl().equals(bestUrl.get()))) {
 			dbStage = stageRepository.save(dbStage.toBuilder()
 				.image(imageService.ensureExists(bestUrl.get()))
 				.build());

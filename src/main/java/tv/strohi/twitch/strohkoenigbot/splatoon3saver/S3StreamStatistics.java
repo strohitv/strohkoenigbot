@@ -10,11 +10,11 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -70,10 +70,6 @@ public class S3StreamStatistics {
 	public void reset() {
 		includedMatches.clear();
 		startXZones = startXTower = startXRainmaker = startXClams = currentXZones = currentXTower = currentXRainmaker = currentXClams = null;
-	}
-
-	public void stop() {
-		includedMatches.clear();
 
 		InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/s3/afterstream-statistics-template.html");
 
@@ -343,8 +339,12 @@ public class S3StreamStatistics {
 	}
 
 	private String getImageEncoded(String filePath) {
+		if (filePath.startsWith("http")) {
+			return "";
+		}
+
 		try {
-			var fileContent = FileUtils.readFileToByteArray(new File(filePath));
+			var fileContent = FileUtils.readFileToByteArray(Path.of(".", filePath).toFile());
 			return Base64.getEncoder().encodeToString(fileContent);
 		} catch (IOException ignored) {
 		}

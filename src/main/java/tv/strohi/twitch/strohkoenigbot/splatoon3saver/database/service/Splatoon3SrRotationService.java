@@ -143,12 +143,20 @@ public class Splatoon3SrRotationService {
 
 	@Transactional
 	public Splatoon3SrWeapon ensureWeaponExists(NameAndImage weapon) {
-		return weaponRepository.findByName(weapon.getName())
+		var dbWeapon = weaponRepository.findByName(weapon.getName())
 			.orElseGet(() -> weaponRepository.save(Splatoon3SrWeapon.builder()
 				.name(weapon.getName())
 				.image(imageService.ensureExists(weapon.getImage().getUrl()))
 				.build()
 			));
+
+		if (imageService.isFailed(dbWeapon.getImage())) {
+			dbWeapon = weaponRepository.save(dbWeapon.toBuilder()
+				.image(imageService.ensureExists(weapon.getImage().getUrl()))
+				.build());
+		}
+
+		return dbWeapon;
 	}
 
 
@@ -167,8 +175,8 @@ public class Splatoon3SrRotationService {
 				.build()
 			));
 
-		if ((stage.getImage() == null && coopStage.getImage() != null)
-			|| (stage.getThumbnailImage() == null && coopStage.getThumbnailImage() != null)) {
+		if (((stage.getImage() == null || imageService.isFailed(stage.getImage())) && coopStage.getImage() != null)
+			|| ((stage.getThumbnailImage() == null || imageService.isFailed(stage.getThumbnailImage())) && coopStage.getThumbnailImage() != null)) {
 
 			stage = stageRepository.save(stage.toBuilder()
 				.image(coopStage.getImage() != null
@@ -201,7 +209,7 @@ public class Splatoon3SrRotationService {
 				.build());
 		}
 
-		if (dbBoss.getImage() == null && boss.getImage() != null) {
+		if ((dbBoss.getImage() == null || imageService.isFailed(dbBoss.getImage())) && boss.getImage() != null) {
 			dbBoss = bossRepository.save(dbBoss.toBuilder()
 				.image(imageService.ensureExists(boss.getImage().getUrl()))
 				.build());

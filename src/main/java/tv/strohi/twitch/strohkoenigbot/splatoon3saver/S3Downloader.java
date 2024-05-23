@@ -89,6 +89,7 @@ public class S3Downloader implements ScheduledService {
 	private boolean pauseDownloader = false;
 
 	private Instant wentLiveInstant = null;
+	private boolean shouldRunS3s = false;
 
 	public void goLive(Instant wentLiveTime) {
 		wentLiveInstant = wentLiveTime;
@@ -137,6 +138,14 @@ public class S3Downloader implements ScheduledService {
 				}
 
 				logger.error(e);
+			}
+
+			if (refreshMinutes.contains(LocalDateTime.now().getMinute()) && shouldRunS3s) {
+				logSender.sendLogs(logger, "Found games which need to be imported to stat.ink / running s3s");
+
+				// start refresh of s3s script asynchronously
+				s3sRunner.runS3S();
+				shouldRunS3s = false;
 			}
 
 			logger.info("Finished loading Splatoon 3 games.");
@@ -201,14 +210,13 @@ public class S3Downloader implements ScheduledService {
 					}
 				});
 
-			var newGamesImported = importedVsGames.entrySet().stream().anyMatch((res) -> res.getValue().size() > 0)
+			var foundGames = importedVsGames.entrySet().stream().anyMatch((res) -> res.getValue().size() > 0)
 				|| importedSrGames.entrySet().stream().anyMatch((res) -> res.getValue().size() > 0);
 
-			if (newGamesImported) {
-				logSender.sendLogs(logger, builder.toString());
+			shouldRunS3s |= foundGames;
 
-				// start refresh of s3s script asynchronously
-				s3sRunner.runS3S();
+			if (foundGames) {
+				logSender.sendLogs(logger, builder.toString());
 			}
 		}
 	}

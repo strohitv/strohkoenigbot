@@ -137,7 +137,7 @@ public class Splatoon3SrResultService {
 	}
 
 	public Splatoon3SrEnemy ensureEnemyExists(IdAndNameAndImage enemy) {
-		return enemyRepository.findByApiId(enemy.getId())
+		var dbEnemy = enemyRepository.findByApiId(enemy.getId())
 			.orElseGet(() ->
 				enemyRepository.save(
 					Splatoon3SrEnemy.builder()
@@ -146,6 +146,14 @@ public class Splatoon3SrResultService {
 						.image(imageService.ensureExists(enemy.getImage().getUrl()))
 						.build()
 				));
+
+		if (imageService.isFailed(dbEnemy.getImage())) {
+			dbEnemy = enemyRepository.save(dbEnemy.toBuilder()
+				.image(imageService.ensureExists(enemy.getImage().getUrl()))
+				.build());
+		}
+
+		return dbEnemy;
 	}
 
 	public List<Splatoon3SrResultWavePlayerWeapon> ensureResultWavePlayerWeaponsExist(List<Splatoon3SrResultWave> resultWaves, List<CoopResult> playerResults) {
@@ -225,7 +233,7 @@ public class Splatoon3SrResultService {
 	}
 
 	public Splatoon3SrUniform ensureUniformExists(IdAndNameAndImage uniform) {
-		return uniformRepository.findByApiId(uniform.getId())
+		var dbUniform = uniformRepository.findByApiId(uniform.getId())
 			.orElseGet(() ->
 				uniformRepository.save(
 					Splatoon3SrUniform.builder()
@@ -234,6 +242,14 @@ public class Splatoon3SrResultService {
 						.image(imageService.ensureExists(uniform.getImage().getUrl()))
 						.build()
 				));
+
+		if (imageService.isFailed(dbUniform.getImage())) {
+			dbUniform = uniformRepository.save(dbUniform.toBuilder()
+				.image(imageService.ensureExists(uniform.getImage().getUrl()))
+				.build());
+		}
+
+		return dbUniform;
 	}
 
 	public List<Splatoon3SrResultWave> ensureWaveExists(Splatoon3SrResult dbResult, List<WaveResults> waveResults) {
@@ -301,6 +317,12 @@ public class Splatoon3SrResultService {
 						.image(imageService.ensureExists(apiSpecial.getImage().getUrl()))
 						.build()
 				));
+
+		if (imageService.isFailed(dbSpecial.getImage())) {
+			dbSpecial = specialWeaponRepository.save(dbSpecial.toBuilder()
+				.image(imageService.ensureExists(apiSpecial.getImage().getUrl()))
+				.build());
+		}
 
 		try {
 			if (dbSpecial.getApiId() == null) {
