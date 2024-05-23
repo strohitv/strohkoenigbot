@@ -27,6 +27,8 @@ public enum S3RequestKey {
 	OwnedWeaponsAndGear("myOutfitCommonDataEquipmentsQuery", "45a4c343d973864f7bb9e9efac404182be1d48cf2181619505e9b7cd3b56a6e8", "/my_outfits/create"),
 	Weapons("WeaponRecordQuery", "974fad8a1275b415c3386aa212b07eddc3f6582686e4fef286ec4043cdf17135", "/weapon_record"),
 
+	XRankStats("XRankingQuery", "a5331ed228dbf2e904168efe166964e2be2b00460c578eee49fc0bc58b4b899c", "/x_ranking"),
+
 	RotationSchedules("StageScheduleQuery", "d49fb6adffe15e3e43ca1167397debfc580eede3ad2232d7e32062bc5487e7eb", "/schedule/bankara");
 
 	@Getter

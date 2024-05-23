@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
@@ -40,6 +41,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -54,8 +56,11 @@ public class S3Downloader implements ScheduledService {
 
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
+	private final TwitchBotClient twitchBotClient;
+
 	private final ConfigurationRepository configurationRepository;
 	private final AccountRepository accountRepository;
+
 	private final S3ApiQuerySender requestSender;
 	private final ExceptionLogger exceptionLogger;
 
@@ -63,55 +68,80 @@ public class S3Downloader implements ScheduledService {
 	private final Splatoon3SrRotationService srRotationService;
 	private final Splatoon3SrResultService srResultService;
 	private final S3RotationSender rotationSender;
+	private final S3StreamStatistics streamStatistics;
+	private final S3XPowerDownloader xPowerDownloader;
 
 	private final S3S3sRunner s3sRunner;
 
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(ScheduleRequest.builder()
-				.name("S3Downloader_schedule")
-				.schedule(CronSchedule.getScheduleString("30 35 * * * *"))
-				.runnable(this::downloadBattles)
-				.build(),
-			ScheduleRequest.builder()
-				.name("S3Downloader_ImportForDailyStats_schedule")
-				.schedule(CronSchedule.getScheduleString("24 12 * * * *"))
-				.runnable(this::downloadBattles)
-				.build());
+			.name("S3Downloader_schedule")
+			.schedule(CronSchedule.getScheduleString("20 * * * * *"))
+			.runnable(this::downloadBattles)
+			.build());
 	}
+
+	private final List<Integer> refreshMinutes = List.of(12, 35);
 
 	@Getter
 	@Setter
 	private boolean pauseDownloader = false;
+
+	private Instant wentLiveInstant = null;
+
+	public void goLive(Instant wentLiveTime) {
+		wentLiveInstant = wentLiveTime;
+		streamStatistics.reset();
+		xPowerDownloader.fillXPower();
+	}
+
+	public void goOffline() {
+		wentLiveInstant = null;
+		streamStatistics.reset();
+	}
 
 	public void downloadBattles() {
 		downloadBattles(false);
 	}
 
 	public void downloadBattles(boolean force) {
-		logger.info("Loading Splatoon 3 games...");
+		logger.debug("Enter download battles for Splatoon 3 games...");
 
 		if (pauseDownloader && !force) {
 			logger.info("Downloader is paused, stopping loading Splatoon 3 games early");
 			return;
 		}
 
-		try {
-			downloadGamesDecideWay();
-		} catch (Exception e) {
-			try {
-				logSender.sendLogs(logger, "An exception occurred during S3 download\nSee logs for details!");
-				exceptionLogger.logException(logger, e);
-			} catch (Exception ignored) {
-			}
-
-			logger.error(e);
+		if (wentLiveInstant == null && twitchBotClient.getWentLiveTime() != null) {
+			goLive(twitchBotClient.getWentLiveTime());
+		} else if (wentLiveInstant != null && twitchBotClient.getWentLiveTime() == null) {
+			goOffline();
 		}
 
-		logger.info("Finished loading Splatoon 3 games.");
-	}
+		if (wentLiveInstant != null
+			|| force
+			|| refreshMinutes.contains(LocalDateTime.now().getMinute())) {
+			logger.info("Loading Splatoon 3 games...");
+			try {
+				if (wentLiveInstant != null) {
+					xPowerDownloader.fillXPower();
+				}
 
-	// todo switch download from storing into json files to storing into databas
+				downloadGamesDecideWay();
+			} catch (Exception e) {
+				try {
+					logSender.sendLogs(logger, "An exception occurred during S3 download\nSee logs for details!");
+					exceptionLogger.logException(logger, e);
+				} catch (Exception ignored) {
+				}
+
+				logger.error(e);
+			}
+
+			logger.info("Finished loading Splatoon 3 games.");
+		}
+	}
 
 	private void downloadGamesDecideWay() {
 		var useNewWay = configurationRepository.findAllByConfigName("s3UseDatabase").stream()
@@ -138,6 +168,19 @@ public class S3Downloader implements ScheduledService {
 		for (Account account : accounts) {
 			var importedVsGames = importVsResultsOfAccountFromS3Api(account);
 			var importedSrGames = importSrResultsOfAccountFromS3Api(account);
+
+			if (wentLiveInstant != null) {
+				var allNewGamesDuringStream = importedVsGames.keySet().stream()
+					.flatMap(mode -> importedVsGames.get(mode).stream())
+					.filter(g -> g.getPlayedTime().isAfter(wentLiveInstant))
+					.collect(Collectors.toList());
+
+				streamStatistics.addGames(allNewGamesDuringStream);
+
+				if (allNewGamesDuringStream.size() > 0) {
+					streamStatistics.exportHtml();
+				}
+			}
 
 			StringBuilder builder = new StringBuilder("Found new Splatoon 3 results:");
 			importedVsGames.entrySet()

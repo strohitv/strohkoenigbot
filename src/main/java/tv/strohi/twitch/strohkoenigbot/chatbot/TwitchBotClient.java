@@ -13,6 +13,7 @@ import com.github.twitch4j.events.ChannelGoOfflineEvent;
 import com.github.twitch4j.eventsub.events.ChannelAdBreakBeginEvent;
 import com.github.twitch4j.helix.domain.*;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
+import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +49,9 @@ public class TwitchBotClient {
 	private final List<Consumer<String>> goingLiveAlertConsumers = new ArrayList<>();
 
 	private static Instant lastClipCreatedTime = Instant.now();
+
+	@Getter
+	private Instant wentLiveTime = null;
 
 	private TwitchClient client;
 
@@ -177,6 +181,8 @@ public class TwitchBotClient {
 				}
 
 				if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
+					wentLiveTime = Instant.now();
+
 					ObsController.setIsLive(true);
 
 					if (resultsExporter != null) {
@@ -190,6 +196,8 @@ public class TwitchBotClient {
 
 			goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
 				if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
+					wentLiveTime = null;
+
 					ObsController.setIsLive(false);
 
 					if (resultsExporter != null) {
