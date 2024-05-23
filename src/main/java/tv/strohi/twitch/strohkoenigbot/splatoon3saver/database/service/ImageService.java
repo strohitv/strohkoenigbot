@@ -19,6 +19,7 @@ import javax.transaction.Transactional;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -92,6 +93,31 @@ public class ImageService {
 	}
 
 	private final List<Image> brokenImages = new ArrayList<>();
+
+	@Transactional
+	public Optional<Image> ensureImageIsDownloaded(Image image) {
+		String imageLocationString = resourcesDownloader.ensureExistsLocally(image.getUrl().replace("\\u0026", "&"));
+		String path = Paths.get(imageLocationString).toString();
+
+		if (!imageLocationString.startsWith("https://")) {
+			var savedImage = imageRepository.save(image.toBuilder()
+				.filePath(Paths.get(System.getProperty("user.dir"), path).toString())
+				.downloaded(true)
+				.build());
+
+			log.info("Image id {} was successfully saved on path: {}!", savedImage.getId(), savedImage.getFilePath());
+			return Optional.of(savedImage);
+		} else {
+			// download failed, skip next time
+			var savedImage = imageRepository.save(image.toBuilder()
+				.failedDownloadCount(image.getFailedDownloadCount() + 1)
+				.build());
+
+			brokenImages.add(savedImage);
+			log.warn("Image id {}, url '{}' could not be downloaded! Failed {} times", savedImage.getId(), savedImage.getUrl(), image.getFailedDownloadCount());
+			return Optional.empty();
+		}
+	}
 
 	@Transactional
 	public void downloadSomeMissingImages() {

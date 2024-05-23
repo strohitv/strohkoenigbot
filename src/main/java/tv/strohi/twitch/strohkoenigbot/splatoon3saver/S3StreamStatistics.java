@@ -3,18 +3,20 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 public class S3StreamStatistics {
 	private final Splatoon3VsRotationRepository rotationRepository;
 	private final Splatoon3VsModeRepository modeRepository;
+	private final ImageService imageService;
 
 	private final List<Splatoon3VsResult> includedMatches = new ArrayList<>();
 
@@ -50,9 +53,12 @@ public class S3StreamStatistics {
 
 	private String finishedHtml = currentHtml;
 
-	public S3StreamStatistics(@Autowired Splatoon3VsRotationRepository vsRotationRepository, @Autowired Splatoon3VsModeRepository vsModeRepository) {
+	public S3StreamStatistics(@Autowired Splatoon3VsRotationRepository vsRotationRepository,
+							  @Autowired Splatoon3VsModeRepository vsModeRepository,
+							  @Autowired ImageService imageService) {
 		rotationRepository = vsRotationRepository;
 		modeRepository = vsModeRepository;
+		this.imageService = imageService;
 		reset();
 	}
 
@@ -155,27 +161,27 @@ public class S3StreamStatistics {
 					return;
 			}
 
-			String mainWeaponUrl = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getWeapon().getImage().getUrl()));
-			String subWeaponUrl = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getWeapon().getSubWeapon().getImage().getUrl()));
-			String specialWeaponUrl = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getWeapon().getSpecialWeapon().getImage().getUrl()));
+			String mainWeaponUrl = getImageEncoded(player.getWeapon().getImage());
+			String subWeaponUrl = getImageEncoded(player.getWeapon().getSubWeapon().getImage());
+			String specialWeaponUrl = getImageEncoded(player.getWeapon().getSpecialWeapon().getImage());
 
-			String headGear = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGear().getOriginalImage().getUrl()));
-			String headGearMain = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearMainAbility().getImage().getUrl()));
-			String headGearSub1 = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearSecondaryAbility1().getImage().getUrl()));
-			String headGearSub2 = player.getHeadGearSecondaryAbility2() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearSecondaryAbility2().getImage().getUrl())) : null;
-			String headGearSub3 = player.getHeadGearSecondaryAbility3() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getHeadGearSecondaryAbility3().getImage().getUrl())) : null;
+			String headGear = getImageEncoded(player.getHeadGear().getOriginalImage());
+			String headGearMain = getImageEncoded(player.getHeadGearMainAbility().getImage());
+			String headGearSub1 = getImageEncoded(player.getHeadGearSecondaryAbility1().getImage());
+			String headGearSub2 = player.getHeadGearSecondaryAbility2() != null ? getImageEncoded(player.getHeadGearSecondaryAbility2().getImage()) : null;
+			String headGearSub3 = player.getHeadGearSecondaryAbility3() != null ? getImageEncoded(player.getHeadGearSecondaryAbility3().getImage()) : null;
 
-			String clothesGear = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingGear().getOriginalImage().getUrl()));
-			String clothesGearMain = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingMainAbility().getImage().getUrl()));
-			String clothesGearSub1 = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingSecondaryAbility1().getImage().getUrl()));
-			String clothesGearSub2 = player.getClothingSecondaryAbility2() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingSecondaryAbility2().getImage().getUrl())) : null;
-			String clothesGearSub3 = player.getClothingSecondaryAbility3() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getClothingSecondaryAbility3().getImage().getUrl())) : null;
+			String clothesGear = getImageEncoded(player.getClothingGear().getOriginalImage());
+			String clothesGearMain = getImageEncoded(player.getClothingMainAbility().getImage());
+			String clothesGearSub1 = getImageEncoded(player.getClothingSecondaryAbility1().getImage());
+			String clothesGearSub2 = player.getClothingSecondaryAbility2() != null ? getImageEncoded(player.getClothingSecondaryAbility2().getImage()) : null;
+			String clothesGearSub3 = player.getClothingSecondaryAbility3() != null ? getImageEncoded(player.getClothingSecondaryAbility3().getImage()) : null;
 
-			String shoesGear = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesGear().getOriginalImage().getUrl()));
-			String shoesGearMain = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesMainAbility().getImage().getUrl()));
-			String shoesGearSub1 = getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesSecondaryAbility1().getImage().getUrl()));
-			String shoesGearSub2 = player.getShoesSecondaryAbility2() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesSecondaryAbility2().getImage().getUrl())) : null;
-			String shoesGearSub3 = player.getShoesSecondaryAbility3() != null ? getImageEncoded(resourcesDownloader.ensureExistsLocally(player.getShoesSecondaryAbility3().getImage().getUrl())) : null;
+			String shoesGear = getImageEncoded(player.getShoesGear().getOriginalImage());
+			String shoesGearMain = getImageEncoded(player.getShoesMainAbility().getImage());
+			String shoesGearSub1 = getImageEncoded(player.getShoesSecondaryAbility1().getImage());
+			String shoesGearSub2 = player.getShoesSecondaryAbility2() != null ? getImageEncoded(player.getShoesSecondaryAbility2().getImage()) : null;
+			String shoesGearSub3 = player.getShoesSecondaryAbility3() != null ? getImageEncoded(player.getShoesSecondaryAbility3().getImage()) : null;
 
 			InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-statistics-template.html");
 			try {
@@ -338,17 +344,18 @@ public class S3StreamStatistics {
 			.toInstant();
 	}
 
-	private String getImageEncoded(String filePath) {
-		if (filePath.startsWith("http")) {
-			return "";
-		}
+	private String getImageEncoded(Image image) {
+		var attemptedImage = imageService.ensureImageIsDownloaded(image);
 
-		try {
-			var fileContent = FileUtils.readFileToByteArray(Path.of(".", filePath).toFile());
-			return Base64.getEncoder().encodeToString(fileContent);
-		} catch (IOException ignored) {
+		if (attemptedImage.isPresent()) {
+			try {
+				var fileContent = FileUtils.readFileToByteArray(new File(image.getFilePath()));
+				return Base64.getEncoder().encodeToString(fileContent);
+			} catch (IOException ignored) {
+				return "EXCEPTION DURING IMAGE CONVERSION TO BASE64";
+			}
+		} else {
+			return "UNABLE TO DOWNLOAD IMAGE TO DRIVE";
 		}
-
-		return "";
 	}
 }
