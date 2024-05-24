@@ -189,31 +189,13 @@ public class TwitchBotClient {
 				}
 
 				if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
-					wentLiveTime = Instant.now();
-
-					ObsController.setIsLive(true);
-
-					if (resultsExporter != null) {
-						Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
-						resultsExporter.start(account);
-					}
-
-					autoSoAction.startStream();
+					goLive(event.getChannel().getId());
 				}
 			});
 
 			goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
 				if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
-					wentLiveTime = null;
-
-					ObsController.setIsLive(false);
-
-					if (resultsExporter != null) {
-						Account account = accountRepository.findByTwitchUserId(event.getChannel().getId()).orElse(null);
-						resultsExporter.stop(account);
-					}
-
-					autoSoAction.endStream();
+					goOffline(event.getChannel().getId());
 				}
 			});
 
@@ -231,6 +213,32 @@ public class TwitchBotClient {
 			client.getEventManager().onEvent(PrivateMessageEvent.class, new PrivateMessageConsumer(botActions));
 		} catch (Exception ignored) {
 		}
+	}
+
+	public void goOffline(String channelId) {
+		wentLiveTime = null;
+
+		ObsController.setIsLive(false);
+
+		if (resultsExporter != null) {
+			Account account = accountRepository.findByTwitchUserId(channelId).orElse(null);
+			resultsExporter.stop(account);
+		}
+
+		autoSoAction.endStream();
+	}
+
+	public void goLive(String channelId) {
+		wentLiveTime = Instant.now();
+
+		ObsController.setIsLive(true);
+
+		if (resultsExporter != null) {
+			Account account = accountRepository.findByTwitchUserId(channelId).orElse(null);
+			resultsExporter.start(account);
+		}
+
+		autoSoAction.startStream();
 	}
 
 	@Nullable

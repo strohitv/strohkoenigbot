@@ -486,12 +486,33 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Issued shutdown");
 			} else if (message.startsWith("!force twitch live")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing twitch going live state");
-				twitchBotClient.forceLive();
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Successfully forced twitch going live state");
+				var account = accountRepository.findAll().stream()
+					.filter(a -> a.getTwitchUserId() != null && !a.getTwitchUserId().isBlank())
+					.findFirst()
+					.orElse(null);
+
+				if (account != null) {
+					twitchBotClient.goLive(account.getTwitchUserId());
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Successfully forced twitch going live state for twitch channel id %s", account.getTwitchUserId()));
+				} else {
+					twitchBotClient.forceLive();
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Successfully forced twitch going live state without twitch user id");
+				}
 			} else if (message.startsWith("!force twitch offline")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing twitch going offline state");
-				twitchBotClient.forceOffline();
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Successfully forced twitch going offline state");
+
+				var account = accountRepository.findAll().stream()
+					.filter(a -> a.getTwitchUserId() != null && !a.getTwitchUserId().isBlank())
+					.findFirst()
+					.orElse(null);
+
+				if (account != null) {
+					twitchBotClient.goOffline(account.getTwitchUserId());
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Successfully forced twitch going offline state for twitch channel id %s", account.getTwitchUserId()));
+				} else {
+					twitchBotClient.forceOffline();
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Successfully forced twitch going offline state without twitch user id");
+				}
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
