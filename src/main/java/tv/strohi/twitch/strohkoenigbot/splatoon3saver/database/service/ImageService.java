@@ -96,6 +96,10 @@ public class ImageService {
 
 	@Transactional
 	public Optional<Image> ensureImageIsDownloaded(Image image) {
+		if (image.isDownloaded()) {
+			return Optional.of(image);
+		}
+
 		String imageLocationString = resourcesDownloader.ensureExistsLocally(image.getUrl().replace("\\u0026", "&"));
 		String path = Paths.get(imageLocationString).toString();
 
