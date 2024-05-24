@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
@@ -21,6 +22,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Log4j2
 public class Splatoon3VsResultService {
+	private final LogSender logSender;
+
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	private final ImageService imageService;
@@ -230,18 +233,26 @@ public class Splatoon3VsResultService {
 
 		var changed = false;
 
-		if (imageService.isFailed(dbGear.getOriginalImage())) {
+		if (imageService.isFailed(dbGear.getOriginalImage())
+			&& !dbGear.getOriginalImage().getUrl().equals(gear.getOriginalImage().getUrl())) {
+
 			changed = true;
 			dbGear = dbGear.toBuilder()
 				.originalImage(imageService.ensureExists(gear.getOriginalImage().getUrl()))
 				.build();
+
+			logSender.sendLogs(log, String.format("Set original image for gear with id `%d` to `%s`", dbGear.getId(), gear.getOriginalImage().getUrl()));
 		}
 
-		if (imageService.isFailed(dbGear.getThumbnailImage())) {
+		if (imageService.isFailed(dbGear.getThumbnailImage())
+			&& !dbGear.getThumbnailImage().getUrl().equals(gear.getThumbnailImage().getUrl())) {
+
 			changed = true;
 			dbGear = dbGear.toBuilder()
 				.thumbnailImage(imageService.ensureExists(gear.getThumbnailImage().getUrl()))
 				.build();
+
+			logSender.sendLogs(log, String.format("Set thumbnail image for gear with id `%d` to `%s`", dbGear.getId(), gear.getThumbnailImage().getUrl()));
 		}
 
 		if (changed) {
@@ -273,10 +284,14 @@ public class Splatoon3VsResultService {
 			);
 		}
 
-		if (imageService.isFailed(dbBrand.getImage())) {
+		if (imageService.isFailed(dbBrand.getImage())
+			&& !dbBrand.getImage().getUrl().equals(brand.getImage().getUrl())) {
+
 			dbBrand = brandRepository.save(dbBrand.toBuilder()
 				.image(imageService.ensureExists(brand.getImage().getUrl()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for brand with id `%d` to `%s`", dbBrand.getId(), brand.getImage().getUrl()));
 		}
 
 		return dbBrand;
@@ -300,10 +315,14 @@ public class Splatoon3VsResultService {
 						.build()
 				));
 
-		if (imageService.isFailed(dbAbility.getImage())) {
+		if (imageService.isFailed(dbAbility.getImage())
+			&& !dbAbility.getImage().getUrl().equals(usualGearPower.getImage().getUrl())) {
+
 			dbAbility = abilityRepository.save(dbAbility.toBuilder()
 				.image(imageService.ensureExists(usualGearPower.getImage().getUrl()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for ability with id `%d` to `%s`", dbAbility.getId(), usualGearPower.getImage().getUrl()));
 		}
 
 		return dbAbility;
@@ -330,39 +349,59 @@ public class Splatoon3VsResultService {
 
 		var changed = false;
 
-		if (imageService.isFailed(dbWeapon.getImage())) {
+		if (imageService.isFailed(dbWeapon.getImage())
+			&& !dbWeapon.getImage().getUrl().equals(weapon.getImage().getUrl())) {
+
 			changed = true;
 			dbWeapon = dbWeapon.toBuilder()
 				.image(imageService.ensureExists(weapon.getImage().getUrl()))
 				.build();
+
+			logSender.sendLogs(log, String.format("Set image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage().getUrl()));
 		}
 
-		if (imageService.isFailed(dbWeapon.getImage2D())) {
+		if (imageService.isFailed(dbWeapon.getImage2D())
+			&& !dbWeapon.getImage().getUrl().equals(weapon.getImage2d().getUrl())) {
+
 			changed = true;
 			dbWeapon = dbWeapon.toBuilder()
 				.image2D(imageService.ensureExists(weapon.getImage2d().getUrl()))
 				.build();
+
+			logSender.sendLogs(log, String.format("Set 2d image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage2d().getUrl()));
 		}
 
-		if (imageService.isFailed(dbWeapon.getImage2DThumbnail())) {
+		if (imageService.isFailed(dbWeapon.getImage2DThumbnail())
+			&& !dbWeapon.getImage().getUrl().equals(weapon.getImage2dThumbnail().getUrl())) {
+
 			changed = true;
 			dbWeapon = dbWeapon.toBuilder()
 				.image2DThumbnail(imageService.ensureExists(weapon.getImage2dThumbnail().getUrl()))
 				.build();
+
+			logSender.sendLogs(log, String.format("Set 2d thumbnail image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage2dThumbnail().getUrl()));
 		}
 
-		if (imageService.isFailed(dbWeapon.getImage3D())) {
+		if (imageService.isFailed(dbWeapon.getImage3D())
+			&& !dbWeapon.getImage().getUrl().equals(weapon.getImage3d().getUrl())) {
+
 			changed = true;
 			dbWeapon = dbWeapon.toBuilder()
 				.image3D(imageService.ensureExists(weapon.getImage3d().getUrl()))
 				.build();
+
+			logSender.sendLogs(log, String.format("Set 3d image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage3d().getUrl()));
 		}
 
-		if (imageService.isFailed(dbWeapon.getImage3DThumbnail())) {
+		if (imageService.isFailed(dbWeapon.getImage3DThumbnail())
+			&& !dbWeapon.getImage().getUrl().equals(weapon.getImage3dThumbnail().getUrl())) {
+
 			changed = true;
 			dbWeapon = dbWeapon.toBuilder()
 				.image3DThumbnail(imageService.ensureExists(weapon.getImage3dThumbnail().getUrl()))
 				.build();
+
+			logSender.sendLogs(log, String.format("Set 3d thumbnail image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage3dThumbnail().getUrl()));
 		}
 
 		if (changed) {
@@ -385,10 +424,14 @@ public class Splatoon3VsResultService {
 						.build()
 				));
 
-		if (imageService.isFailed(dbSubWeapon.getImage())) {
+		if (imageService.isFailed(dbSubWeapon.getImage())
+			&& !dbSubWeapon.getImage().getUrl().equals(subWeapon.getImage().getUrl())) {
+
 			dbSubWeapon = subWeaponRepository.save(dbSubWeapon.toBuilder()
 				.image(imageService.ensureExists(subWeapon.getImage().getUrl()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for sub weapon with id `%d` to `%s`", dbSubWeapon.getId(), subWeapon.getImage().getUrl()));
 		}
 
 		return dbSubWeapon;
@@ -413,25 +456,37 @@ public class Splatoon3VsResultService {
 
 		var changed = false;
 
-		if (imageService.isFailed(dbSpecialWeapon.getImage())) {
+		if (imageService.isFailed(dbSpecialWeapon.getImage())
+			&& !dbSpecialWeapon.getImage().getUrl().equals(specialWeapon.getImage().getUrl())) {
+
 			changed = true;
 			dbSpecialWeapon = dbSpecialWeapon.toBuilder()
 				.image(imageService.ensureExists(specialWeapon.getImage().getUrl()))
 				.build();
+
+			logSender.sendLogs(log, String.format("Set image for special weapon with id `%d` to `%s`", dbSpecialWeapon.getId(), specialWeapon.getImage().getUrl()));
 		}
 
-		if (imageService.isFailed(dbSpecialWeapon.getOverlayImage())) {
+		if (imageService.isFailed(dbSpecialWeapon.getOverlayImage())
+			&& !dbSpecialWeapon.getOverlayImage().getUrl().equals(specialWeapon.getMaskingImage().getOverlayImageUrl())) {
+
 			changed = true;
 			dbSpecialWeapon = dbSpecialWeapon.toBuilder()
 				.overlayImage(imageService.ensureExists(specialWeapon.getMaskingImage().getOverlayImageUrl()))
 				.build();
+
+			logSender.sendLogs(log, String.format("Set overlay image for special weapon with id `%d` to `%s`", dbSpecialWeapon.getId(), specialWeapon.getMaskingImage().getOverlayImageUrl()));
 		}
 
-		if (imageService.isFailed(dbSpecialWeapon.getMaskingImage())) {
+		if (imageService.isFailed(dbSpecialWeapon.getMaskingImage())
+			&& !dbSpecialWeapon.getMaskingImage().getUrl().equals(specialWeapon.getMaskingImage().getMaskImageUrl())) {
+
 			changed = true;
 			dbSpecialWeapon = dbSpecialWeapon.toBuilder()
 				.maskingImage(imageService.ensureExists(specialWeapon.getMaskingImage().getMaskImageUrl()))
 				.build();
+
+			logSender.sendLogs(log, String.format("Set masking image for special weapon with id `%d` to `%s`", dbSpecialWeapon.getId(), specialWeapon.getMaskingImage().getMaskImageUrl()));
 		}
 
 		if (changed) {

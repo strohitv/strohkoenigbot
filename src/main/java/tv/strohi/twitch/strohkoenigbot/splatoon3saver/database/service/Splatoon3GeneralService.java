@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Badge;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Nameplate;
@@ -10,6 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splat
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3PlayerRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Badge;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Nameplate;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.util.Arrays;
@@ -18,7 +20,10 @@ import java.util.Base64;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Log4j2
 public class Splatoon3GeneralService {
+	private final LogSender logSender;
+
 	private final ImageService imageService;
 
 	private final Splatoon3PlayerRepository playerRepository;
@@ -54,10 +59,14 @@ public class Splatoon3GeneralService {
 					.textColorA(nameplate.getBackground().getTextColor().getA())
 					.build()));
 
-		if (imageService.isFailed(s3Nameplate.getImage())) {
+		if (imageService.isFailed(s3Nameplate.getImage())
+			&& !s3Nameplate.getImage().getUrl().equals(nameplate.getBackground().getImage().getUrl())) {
+
 			s3Nameplate = nameplateRepository.save(s3Nameplate.toBuilder()
 				.image(imageService.ensureExists(nameplate.getBackground().getImage().getUrl()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for nameplate with id `%d` to `%s`", s3Nameplate.getId(), nameplate.getBackground().getImage().getUrl()));
 		}
 
 		if (myself && !s3Nameplate.getOwned()) {
@@ -79,10 +88,14 @@ public class Splatoon3GeneralService {
 					.owned(false)
 					.build()));
 
-		if (imageService.isFailed(s3Badge.getImage())) {
+		if (imageService.isFailed(s3Badge.getImage())
+			&& !s3Badge.getImage().getUrl().equals(badge.getImage().getUrl())) {
+
 			s3Badge = badgeRepository.save(s3Badge.toBuilder()
 				.image(imageService.ensureExists(badge.getImage().getUrl()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for badge with id `%d` to `%s`", s3Badge.getId(), badge.getImage().getUrl()));
 		}
 
 		if (myself && !s3Badge.getOwned()) {

@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.RotationSchedulesResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Log4j2
 public class Splatoon3VsRotationService {
+	private final LogSender logSender;
+
 	private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 	private final Instant challengeSlotExpansionDate = Instant.parse("2023-11-30T00:00:00Z");
 
@@ -203,6 +206,8 @@ public class Splatoon3VsRotationService {
 			dbStage = stageRepository.save(dbStage.toBuilder()
 				.image(imageService.ensureExists(bestUrl.get()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for vs stage with id `%d` to `%s`", dbStage.getId(), bestUrl.get()));
 		}
 
 		return dbStage;

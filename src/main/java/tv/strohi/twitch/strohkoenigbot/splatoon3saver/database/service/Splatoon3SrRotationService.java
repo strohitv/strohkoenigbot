@@ -12,6 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Log4j2
 public class Splatoon3SrRotationService {
+	private final LogSender logSender;
 	private final Instant horrorborosIntroductionDate = Instant.parse("2023-03-04T00:00:00Z");
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -150,10 +152,14 @@ public class Splatoon3SrRotationService {
 				.build()
 			));
 
-		if (imageService.isFailed(dbWeapon.getImage())) {
+		if (imageService.isFailed(dbWeapon.getImage())
+			&& !dbWeapon.getImage().getUrl().equals(weapon.getImage().getUrl())) {
+
 			dbWeapon = weaponRepository.save(dbWeapon.toBuilder()
 				.image(imageService.ensureExists(weapon.getImage().getUrl()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for sr weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage().getUrl()));
 		}
 
 		return dbWeapon;
@@ -186,6 +192,9 @@ public class Splatoon3SrRotationService {
 					? imageService.ensureExists(coopStage.getThumbnailImage().getUrl())
 					: null)
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getImage().getUrl()));
+			logSender.sendLogs(log, String.format("Set thumbnail image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getThumbnailImage().getUrl()));
 		}
 
 		return stage;
@@ -209,10 +218,14 @@ public class Splatoon3SrRotationService {
 				.build());
 		}
 
-		if ((dbBoss.getImage() == null || imageService.isFailed(dbBoss.getImage())) && boss.getImage() != null) {
+		if ((dbBoss.getImage() == null || imageService.isFailed(dbBoss.getImage()))
+			&& boss.getImage() != null) {
+
 			dbBoss = bossRepository.save(dbBoss.toBuilder()
 				.image(imageService.ensureExists(boss.getImage().getUrl()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for sr boss with id `%d` to `%s`", dbBoss.getId(), boss.getImage().getUrl()));
 		}
 
 		return dbBoss;

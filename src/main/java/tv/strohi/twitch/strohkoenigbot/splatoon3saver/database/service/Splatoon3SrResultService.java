@@ -7,6 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +25,8 @@ import java.util.stream.Stream;
 @Log4j2
 public class Splatoon3SrResultService {
 	// todo add indices based on the repository searches to make the algorithm fast
+	private final LogSender logSender;
+
 	private final ImageService imageService;
 	private final Splatoon3GeneralService generalService;
 	private final Splatoon3SrRotationService rotationService;
@@ -147,10 +150,14 @@ public class Splatoon3SrResultService {
 						.build()
 				));
 
-		if (imageService.isFailed(dbEnemy.getImage())) {
+		if (imageService.isFailed(dbEnemy.getImage())
+			&& !dbEnemy.getImage().getUrl().equals(enemy.getImage().getUrl())) {
+
 			dbEnemy = enemyRepository.save(dbEnemy.toBuilder()
 				.image(imageService.ensureExists(enemy.getImage().getUrl()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for sr enemy with id `%d` to `%s`", dbEnemy.getId(), enemy.getImage().getUrl()));
 		}
 
 		return dbEnemy;
@@ -243,10 +250,14 @@ public class Splatoon3SrResultService {
 						.build()
 				));
 
-		if (imageService.isFailed(dbUniform.getImage())) {
+		if (imageService.isFailed(dbUniform.getImage())
+			&& !dbUniform.getImage().getUrl().equals(uniform.getImage().getUrl())) {
+
 			dbUniform = uniformRepository.save(dbUniform.toBuilder()
 				.image(imageService.ensureExists(uniform.getImage().getUrl()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for sr uniform with id `%d` to `%s`", dbUniform.getId(), uniform.getImage().getUrl()));
 		}
 
 		return dbUniform;
@@ -307,28 +318,32 @@ public class Splatoon3SrResultService {
 		return resultWaveUsedSpecialWeaponRepository.findAllByResultWave(dbWr);
 	}
 
-	public Splatoon3SrSpecialWeapon ensureSpecialWeaponExists(Weapon apiSpecial) {
-		var dbSpecial = specialWeaponRepository.findByName(apiSpecial.getName())
+	public Splatoon3SrSpecialWeapon ensureSpecialWeaponExists(Weapon special) {
+		var dbSpecial = specialWeaponRepository.findByName(special.getName())
 			.orElseGet(() ->
 				specialWeaponRepository.save(
 					Splatoon3SrSpecialWeapon.builder()
-						.apiId(apiSpecial.getId())
-						.name(apiSpecial.getName())
-						.image(imageService.ensureExists(apiSpecial.getImage().getUrl()))
+						.apiId(special.getId())
+						.name(special.getName())
+						.image(imageService.ensureExists(special.getImage().getUrl()))
 						.build()
 				));
 
-		if (imageService.isFailed(dbSpecial.getImage())) {
+		if (imageService.isFailed(dbSpecial.getImage())
+			&& !dbSpecial.getImage().getUrl().equals(special.getImage().getUrl())) {
+
 			dbSpecial = specialWeaponRepository.save(dbSpecial.toBuilder()
-				.image(imageService.ensureExists(apiSpecial.getImage().getUrl()))
+				.image(imageService.ensureExists(special.getImage().getUrl()))
 				.build());
+
+			logSender.sendLogs(log, String.format("Set image for sr special with id `%d` to `%s`", dbSpecial.getId(), special.getImage().getUrl()));
 		}
 
 		try {
 			if (dbSpecial.getApiId() == null) {
-				if (apiSpecial.getId() != null) {
+				if (special.getId() != null) {
 					dbSpecial = specialWeaponRepository.save(dbSpecial.toBuilder()
-						.apiId(apiSpecial.getId())
+						.apiId(special.getId())
 						.build());
 				} else if (dbSpecial.getWeaponId() != null) {
 					var apiId = Base64.getEncoder()
@@ -337,17 +352,17 @@ public class Splatoon3SrResultService {
 					dbSpecial = specialWeaponRepository.save(dbSpecial.toBuilder()
 						.apiId(apiId)
 						.build());
-				} else if (apiSpecial.getWeaponId() != null) {
+				} else if (special.getWeaponId() != null) {
 					var apiId = Base64.getEncoder()
-						.encodeToString(String.format("SpecialWeapon-%d", apiSpecial.getWeaponId()).getBytes(StandardCharsets.UTF_8));
+						.encodeToString(String.format("SpecialWeapon-%d", special.getWeaponId()).getBytes(StandardCharsets.UTF_8));
 
 					dbSpecial = specialWeaponRepository.save(dbSpecial.toBuilder()
 						.apiId(apiId)
 						.build());
 				}
-			} else if (apiSpecial.getId() != null && !dbSpecial.getApiId().equals(apiSpecial.getId())) {
+			} else if (special.getId() != null && !dbSpecial.getApiId().equals(special.getId())) {
 				dbSpecial = specialWeaponRepository.save(dbSpecial.toBuilder()
-					.apiId(apiSpecial.getId())
+					.apiId(special.getId())
 					.build());
 			}
 		} catch (Exception ignored) {
@@ -355,9 +370,9 @@ public class Splatoon3SrResultService {
 
 		try {
 			if (dbSpecial.getWeaponId() == null) {
-				if (apiSpecial.getWeaponId() != null) {
+				if (special.getWeaponId() != null) {
 					dbSpecial = specialWeaponRepository.save(dbSpecial.toBuilder()
-						.weaponId(apiSpecial.getWeaponId())
+						.weaponId(special.getWeaponId())
 						.build());
 				} else if (dbSpecial.getApiId() != null) {
 					var weaponId = Long.parseLong(
@@ -366,17 +381,17 @@ public class Splatoon3SrResultService {
 					dbSpecial = specialWeaponRepository.save(dbSpecial.toBuilder()
 						.weaponId(weaponId)
 						.build());
-				} else if (apiSpecial.getId() != null) {
+				} else if (special.getId() != null) {
 					var weaponId = Long.parseLong(
-						new String(Base64.getDecoder().decode(apiSpecial.getId())).replaceAll("[^0-9]", ""));
+						new String(Base64.getDecoder().decode(special.getId())).replaceAll("[^0-9]", ""));
 
 					dbSpecial = specialWeaponRepository.save(dbSpecial.toBuilder()
 						.weaponId(weaponId)
 						.build());
 				}
-			} else if (apiSpecial.getWeaponId() != null && !dbSpecial.getWeaponId().equals(apiSpecial.getWeaponId())) {
+			} else if (special.getWeaponId() != null && !dbSpecial.getWeaponId().equals(special.getWeaponId())) {
 				dbSpecial = specialWeaponRepository.save(dbSpecial.toBuilder()
-					.weaponId(apiSpecial.getWeaponId())
+					.weaponId(special.getWeaponId())
 					.build());
 			}
 		} catch (Exception ignored) {
