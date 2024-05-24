@@ -349,6 +349,22 @@ public class Splatoon3VsResultService {
 
 		var changed = false;
 
+		var subWeapon = ensureSubWeaponExists(weapon.getSubWeapon());
+		if (dbWeapon.getSubWeapon() != subWeapon) {
+			changed = true;
+			dbWeapon = dbWeapon.toBuilder()
+				.subWeapon(subWeapon)
+				.build();
+		}
+
+		var specialWeapon = ensureSpecialWeaponExists(weapon.getSpecialWeapon());
+		if (dbWeapon.getSpecialWeapon() != specialWeapon) {
+			changed = true;
+			dbWeapon = dbWeapon.toBuilder()
+				.specialWeapon(specialWeapon)
+				.build();
+		}
+
 		if (imageService.isFailed(dbWeapon.getImage())
 			&& !dbWeapon.getImage().getUrl().equals(weapon.getImage().getUrl())) {
 
