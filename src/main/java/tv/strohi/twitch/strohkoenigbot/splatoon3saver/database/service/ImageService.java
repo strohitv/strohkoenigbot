@@ -99,7 +99,7 @@ public class ImageService {
 		String imageLocationString = resourcesDownloader.ensureExistsLocally(image.getUrl().replace("\\u0026", "&"));
 		String path = Paths.get(imageLocationString).toString();
 
-		logSender.sendLogs(log, String.format("Trying to download image: <%s>", path));
+//		logSender.sendLogs(log, String.format("Trying to download image: <%s>", path));
 
 		if (!imageLocationString.startsWith("https://")) {
 			var savedImage = imageRepository.save(image.toBuilder()
@@ -108,7 +108,7 @@ public class ImageService {
 				.build());
 
 			log.info("Image id {} was successfully saved on path: {}!", savedImage.getId(), savedImage.getFilePath());
-			logSender.sendLogs(log, String.format("Image id %d was successfully saved on path: `%s`!", savedImage.getId(), savedImage.getFilePath()));
+//			logSender.sendLogs(log, String.format("Image id %d was successfully saved on path: `%s`!", savedImage.getId(), savedImage.getFilePath()));
 			return Optional.of(savedImage);
 		} else {
 			// download failed, skip next time
@@ -118,7 +118,7 @@ public class ImageService {
 
 			brokenImages.add(savedImage);
 			log.warn("Image id {}, url '{}' could not be downloaded! Failed {} times", savedImage.getId(), savedImage.getUrl(), image.getFailedDownloadCount());
-			logSender.sendLogs(log, String.format("Image id %d, url <%s> could not be downloaded! Failed %d times", savedImage.getId(), savedImage.getUrl(), image.getFailedDownloadCount()));
+//			logSender.sendLogs(log, String.format("Image id %d, url <%s> could not be downloaded! Failed %d times", savedImage.getId(), savedImage.getUrl(), image.getFailedDownloadCount()));
 			return Optional.empty();
 		}
 	}
