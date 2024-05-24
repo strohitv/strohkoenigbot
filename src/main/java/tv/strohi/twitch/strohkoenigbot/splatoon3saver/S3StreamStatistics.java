@@ -10,12 +10,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -44,7 +42,7 @@ public class S3StreamStatistics {
 		"\n" +
 		"<head>\n" +
 		"\t<meta charset=\"UTF-8\">\n" +
-		"\t<meta http-equiv=\"refresh\" content=\"5\">\n" +
+		"\t<meta http-equiv=\"refresh\" content=\"30\">\n" +
 		"\t<title>Splatoon 3 statistics</title>\n" +
 		"</head>\n" +
 		"<body>\n" +
@@ -62,13 +60,6 @@ public class S3StreamStatistics {
 		reset();
 	}
 
-	private ResourcesDownloader resourcesDownloader;
-
-	@Autowired
-	public void setResourcesDownloader(ResourcesDownloader resourcesDownloader) {
-		this.resourcesDownloader = resourcesDownloader;
-	}
-
 	public String getFinishedHtml() {
 		return finishedHtml;
 	}
@@ -77,16 +68,14 @@ public class S3StreamStatistics {
 		includedMatches.clear();
 		startXZones = startXTower = startXRainmaker = startXClams = currentXZones = currentXTower = currentXRainmaker = currentXClams = null;
 
-		InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/s3/afterstream-statistics-template.html");
-
-		try {
+		try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/afterstream-statistics-template.html")) {
 			assert is != null;
 			currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 			finishedHtml = currentHtml;
 
-			FileWriter myWriter = new FileWriter(path);
-			myWriter.write(currentHtml);
-			myWriter.close();
+			try(var myWriter = new FileWriter(path)) {
+				myWriter.write(currentHtml);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -183,8 +172,7 @@ public class S3StreamStatistics {
 			String shoesGearSub2 = player.getShoesSecondaryAbility2() != null ? getImageEncoded(player.getShoesSecondaryAbility2().getImage()) : null;
 			String shoesGearSub3 = player.getShoesSecondaryAbility3() != null ? getImageEncoded(player.getShoesSecondaryAbility3().getImage()) : null;
 
-			InputStream is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-statistics-template.html");
-			try {
+			try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-statistics-template.html");) {
 				assert is != null;
 				currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
@@ -267,9 +255,9 @@ public class S3StreamStatistics {
 
 				finishedHtml = currentHtml;
 
-				FileWriter myWriter = new FileWriter(path);
-				myWriter.write(currentHtml);
-				myWriter.close();
+				try (var myWriter = new FileWriter(path)) {
+					myWriter.write(currentHtml);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
