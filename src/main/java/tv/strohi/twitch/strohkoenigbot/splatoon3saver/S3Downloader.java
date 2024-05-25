@@ -76,10 +76,20 @@ public class S3Downloader implements ScheduledService {
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(ScheduleRequest.builder()
-			.name("S3Downloader_schedule")
-			.schedule(CronSchedule.getScheduleString("20 * * * * *"))
-			.runnable(this::downloadBattles)
-			.build());
+				.name("S3Downloader_schedule")
+				.schedule(CronSchedule.getScheduleString("20 * * * * *"))
+				.runnable(this::downloadBattles)
+				.build(),
+			ScheduleRequest.builder()
+				.name("S3Downloader_s3s_schedule_1")
+				.schedule(CronSchedule.getScheduleString("35 5 * * * *"))
+				.runnable(this::runS3sIfGamesWereFound)
+				.build(),
+			ScheduleRequest.builder()
+				.name("S3Downloader_s3s_schedule_2")
+				.schedule(CronSchedule.getScheduleString("35 35 * * * *"))
+				.runnable(this::runS3sIfGamesWereFound)
+				.build());
 	}
 
 	private final List<Integer> refreshMinutes = List.of(12, 35);
@@ -100,6 +110,17 @@ public class S3Downloader implements ScheduledService {
 	public void goOffline() {
 		wentLiveInstant = null;
 		streamStatistics.reset();
+	}
+
+	public void runS3sIfGamesWereFound() {
+		if (shouldRunS3s) {
+			logSender.sendLogs(logger, "Found games which need to be imported to stat.ink / running s3s");
+
+			// start refresh of s3s script asynchronously
+			s3sRunner.runS3S();
+
+			shouldRunS3s = false;
+		}
 	}
 
 	public void downloadBattles() {
@@ -138,14 +159,6 @@ public class S3Downloader implements ScheduledService {
 				}
 
 				logger.error(e);
-			}
-
-			if (refreshMinutes.contains(LocalDateTime.now().getMinute()) && shouldRunS3s) {
-				logSender.sendLogs(logger, "Found games which need to be imported to stat.ink / running s3s");
-
-				// start refresh of s3s script asynchronously
-				s3sRunner.runS3S();
-				shouldRunS3s = false;
 			}
 
 			logger.info("Finished loading Splatoon 3 games.");
