@@ -23,10 +23,7 @@ import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -247,9 +244,9 @@ public class S3StreamStatistics {
 					.replace("{weapon-exp-gain}", df.format(expWeaponGain).replaceAll(",", " "))
 					.replace("{weapon-exp-gain-hidden}", currentExpWeapon == startExpWeapon ? "hidden" : "")
 
-					.replace("{already-owned-exp-ratio}", String.format("%.2f", alreadyOwnedExpRatio))
-					.replace("{earned-exp-stream-ratio}", String.format("%.2f", earnedExpStreamRatio))
-					.replace("{remaining-exp-ratio}", String.format("%.2f", remainingExpRatio))
+					.replace("{already-owned-exp-ratio}", String.format(Locale.US, "%.2f", alreadyOwnedExpRatio))
+					.replace("{earned-exp-stream-ratio}", String.format(Locale.US, "%.2f", earnedExpStreamRatio))
+					.replace("{remaining-exp-ratio}", String.format(Locale.US, "%.2f", remainingExpRatio))
 				;
 
 				if (headGearSub2 != null) {
