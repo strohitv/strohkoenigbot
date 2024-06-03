@@ -430,7 +430,7 @@ public class DiscordAdministrationAction extends ChatAction {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No gToken for you tsk tsk tsk");
 				}
 			} else if (message.startsWith("!reimport s3")) {
-				s3Downloader.downloadBattles();
+				s3Downloader.downloadBattles(true);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
 			} else if (message.startsWith("!activate db s3")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Activating Splatoon 3 database...");
