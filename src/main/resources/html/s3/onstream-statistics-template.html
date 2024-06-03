@@ -22,12 +22,12 @@
 
 		body {
 			font-family: Splatoon2, sans-serif;
-			font-size: 20vw;
-			font-weight: bolder;
-			line-height: 25vw;
+			font-size: 15vw;
+			line-height: 23vw;
+			font-weight: bold;
+			-webkit-text-stroke: 1px black;
 			color: white;
 			text-align: center;
-			-webkit-text-stroke: 1px black;
 
 			background-color: rgba(0, 0, 0, 0);
 
@@ -262,10 +262,13 @@
 
 			<div class="{exp-hidden}">
 				<p class="small-font yellow">
-					{weapon-exp}
+					{weapon-exp-start}
 				</p>
-				<p class="small-font {weapon-exp-gain-hidden}">
-					(<span class="aqua">+ {weapon-exp-gain}</span>)
+				<p class="small-font aqua {weapon-exp-gain-hidden}">
+					+ {weapon-exp-gain}
+				</p>
+				<p class="small-font">
+					= {weapon-exp}
 				</p>
 			</div>
 		</div>

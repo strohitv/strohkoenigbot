@@ -240,8 +240,11 @@ public class S3StreamStatistics {
 					.replace("{weapon-star-5-hidden}", weaponStatsCurrent.getStats().getLevel() >= 5 ? "" : "hidden")
 					.replace("{exp-hidden}", weaponStatsCurrent.getStats().getLevel() == 5 ? "hidden" : "")
 					.replace("{weapon-win-count}", df.format(weaponStatsCurrent.getStats().getWin()).replaceAll(",", " "))
-					.replace("{weapon-exp}", df.format(currentExpWeapon).replaceAll(",", " "))
+
+					.replace("{weapon-exp-start}", df.format(startExpWeapon).replaceAll(",", " "))
 					.replace("{weapon-exp-gain}", df.format(expWeaponGain).replaceAll(",", " "))
+					.replace("{weapon-exp}", df.format(currentExpWeapon).replaceAll(",", " "))
+
 					.replace("{weapon-exp-gain-hidden}", currentExpWeapon == startExpWeapon ? "hidden" : "")
 
 					.replace("{already-owned-exp-ratio}", String.format(Locale.US, "%.2f", alreadyOwnedExpRatio))
