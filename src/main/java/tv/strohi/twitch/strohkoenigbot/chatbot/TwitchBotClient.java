@@ -14,6 +14,7 @@ import com.github.twitch4j.eventsub.events.ChannelAdBreakBeginEvent;
 import com.github.twitch4j.helix.domain.*;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +33,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchGoingLiveAlertRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.utils.Constants;
 
@@ -52,6 +54,7 @@ public class TwitchBotClient {
 
 	@Getter
 	private Instant wentLiveTime = null;
+	private final LogSender logSender;
 
 	public void forceLive() {
 		wentLiveTime = Instant.now();
@@ -61,6 +64,7 @@ public class TwitchBotClient {
 		wentLiveTime = null;
 	}
 
+	@Getter
 	private TwitchClient client;
 
 	private static ResultsExporter resultsExporter;
@@ -79,11 +83,8 @@ public class TwitchBotClient {
 		return Optional.empty();
 	}
 
+	@Setter
 	private boolean fakeDebug = false;
-
-	public void setFakeDebug(boolean fakeDebug) {
-		this.fakeDebug = fakeDebug;
-	}
 
 	private final List<IChatAction> botActions = new ArrayList<>();
 
@@ -111,17 +112,14 @@ public class TwitchBotClient {
 		TwitchBotClient.resultsExporter = resultsExporter;
 	}
 
-	public TwitchClient getClient() {
-		return client;
-	}
-
 	private final TwitchAuthRepository twitchAuthRepository;
 	private final TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository;
 
 	@Autowired
-	public TwitchBotClient(TwitchAuthRepository twitchAuthRepository, TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository) {
+	public TwitchBotClient(TwitchAuthRepository twitchAuthRepository, TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository, LogSender logSender) {
 		this.twitchAuthRepository = twitchAuthRepository;
 		this.twitchGoingLiveAlertRepository = twitchGoingLiveAlertRepository;
+		this.logSender = logSender;
 		initializeClient();
 	}
 
@@ -170,6 +168,10 @@ public class TwitchBotClient {
 
 			var allAlerts = twitchGoingLiveAlertRepository.findAll();
 
+			if (client == null) {
+				throw new Exception("client was null!");
+			}
+
 			for (var alert : allAlerts) {
 				client.getClientHelper().enableStreamEventListener(alert.getTwitchChannelName());
 			}
@@ -214,7 +216,9 @@ public class TwitchBotClient {
 			client.getEventManager().onEvent(RewardRedeemedEvent.class, new RewardRedeemedConsumer(botActions));
 			client.getEventManager().onEvent(ChannelMessageEvent.class, new ChannelMessageConsumer(botActions));
 			client.getEventManager().onEvent(PrivateMessageEvent.class, new PrivateMessageConsumer(botActions));
-		} catch (Exception ignored) {
+		} catch (Exception ex) {
+			logSender.sendLogs(logger, String.format("something in twitch bot client went wrong, message: `%s`. see logs for details", ex.getMessage()));
+			logger.error(ex);
 		}
 	}
 
@@ -345,13 +349,14 @@ public class TwitchBotClient {
 
 			logger.info("Created clip ids: {}", ids);
 
-			if (ids.size() > 0) {
+			if (!ids.isEmpty()) {
 				String id = ids.get(0);
 
 				ClipList list;
 				int attempt = 1;
 
-				while ((list = client.getHelix().getClips(null, null, null, List.of(id), null, null, null, null, null, null).execute()).getData().size() == 0) {
+				while ((list = client.getHelix().getClips(null, null, null, List.of(id), null, null, null, null, null, null)
+					.execute()).getData().isEmpty()) {
 					try {
 						if (attempt > 1) {
 							logger.info("attempt number: {}", attempt);
@@ -362,7 +367,7 @@ public class TwitchBotClient {
 					}
 				}
 
-				if (list.getData().size() > 0) {
+				if (!list.getData().isEmpty()) {
 					Clip loadedClip = list.getData().get(0);
 
 					clip = new Splatoon2Clip();
