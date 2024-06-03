@@ -242,6 +242,7 @@ public class S3StreamStatistics {
 					.replace("{weapon-star-4-hidden}", weaponStatsCurrent.getStats().getLevel() >= 4 ? "" : "hidden")
 					.replace("{weapon-star-5-hidden}", weaponStatsCurrent.getStats().getLevel() >= 5 ? "" : "hidden")
 					.replace("{exp-hidden}", weaponStatsCurrent.getStats().getLevel() == 5 ? "hidden" : "")
+					.replace("{weapon-win-count}", df.format(weaponStatsCurrent.getStats().getWin()).replaceAll(",", " "))
 					.replace("{weapon-exp}", df.format(currentExpWeapon).replaceAll(",", " "))
 					.replace("{weapon-exp-gain}", df.format(expWeaponGain).replaceAll(",", " "))
 					.replace("{weapon-exp-gain-hidden}", currentExpWeapon == startExpWeapon ? "hidden" : "")
