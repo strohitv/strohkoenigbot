@@ -216,6 +216,8 @@ public class TwitchBotClient {
 			client.getEventManager().onEvent(RewardRedeemedEvent.class, new RewardRedeemedConsumer(botActions));
 			client.getEventManager().onEvent(ChannelMessageEvent.class, new ChannelMessageConsumer(botActions));
 			client.getEventManager().onEvent(PrivateMessageEvent.class, new PrivateMessageConsumer(botActions));
+
+			logSender.sendLogs(logger, "fully connected twitch bot client");
 		} catch (Exception ex) {
 			logSender.sendLogs(logger, String.format("something in twitch bot client went wrong, message: `%s`. see logs for details", ex.getMessage()));
 			logger.error(ex);
