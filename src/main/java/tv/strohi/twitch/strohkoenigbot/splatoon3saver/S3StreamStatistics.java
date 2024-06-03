@@ -1,5 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
+import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -10,30 +12,38 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@Log4j2
 public class S3StreamStatistics {
 	private final Splatoon3VsRotationRepository rotationRepository;
 	private final Splatoon3VsModeRepository modeRepository;
 	private final ImageService imageService;
 
+	private final DecimalFormat df = new DecimalFormat("#,###,###");
+
 	private final List<Splatoon3VsResult> includedMatches = new ArrayList<>();
 
 	private Double startXZones, startXTower, startXRainmaker, startXClams;
 	private Double currentXZones, currentXTower, currentXRainmaker, currentXClams;
+
+	private List<Weapon> startWeaponStats, currentWeaponStats;
 
 	private final String path = String.format("%s/src/main/resources/html/s3/onstream-statistics-filled.html", Paths.get(".").toAbsolutePath().normalize());
 
@@ -49,6 +59,7 @@ public class S3StreamStatistics {
 		"</body>\n" +
 		"</html>";
 
+	@Getter
 	private String finishedHtml = currentHtml;
 
 	public S3StreamStatistics(@Autowired Splatoon3VsRotationRepository vsRotationRepository,
@@ -60,29 +71,26 @@ public class S3StreamStatistics {
 		reset();
 	}
 
-	public String getFinishedHtml() {
-		return finishedHtml;
-	}
-
 	public void reset() {
 		includedMatches.clear();
 		startXZones = startXTower = startXRainmaker = startXClams = currentXZones = currentXTower = currentXRainmaker = currentXClams = null;
+		startWeaponStats = currentWeaponStats = null;
 
 		try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/afterstream-statistics-template.html")) {
 			assert is != null;
 			currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 			finishedHtml = currentHtml;
 
-			try(var myWriter = new FileWriter(path)) {
+			try (var myWriter = new FileWriter(path)) {
 				myWriter.write(currentHtml);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 	}
 
 	public void exportHtml() {
-		if (includedMatches.size() > 0) {
+		if (!includedMatches.isEmpty()) {
 			long victoryCount = includedMatches.stream().filter(m -> m.getOwnJudgement().equalsIgnoreCase("win")).count();
 			long defeatCount = includedMatches.stream().filter(m -> m.getOwnJudgement().equalsIgnoreCase("lose") || m.getOwnJudgement().equalsIgnoreCase("deemed_lose")).count();
 
@@ -150,6 +158,29 @@ public class S3StreamStatistics {
 					return;
 			}
 
+			var weaponStatsStart = startWeaponStats.stream()
+				.filter(w -> w.getName().equalsIgnoreCase(player.getWeapon().getName()))
+				.findFirst()
+				.orElse(null);
+
+			var weaponStatsCurrent = currentWeaponStats.stream()
+				.filter(w -> w.getName().equalsIgnoreCase(player.getWeapon().getName()))
+				.findFirst()
+				.orElse(null);
+
+			if (weaponStatsStart == null || weaponStatsCurrent == null) {
+				return;
+			}
+
+			var startExpWeapon = getWeaponExp(weaponStatsStart.getStats().getLevel(), weaponStatsStart.getStats().getExpToLevelUp());
+			var currentExpWeapon = getWeaponExp(weaponStatsCurrent.getStats().getLevel(), weaponStatsCurrent.getStats().getExpToLevelUp());
+			var expWeaponGain = currentExpWeapon - startExpWeapon;
+
+			var expGoal = getExpGoal(weaponStatsCurrent.getStats().getLevel());
+			var alreadyOwnedExpRatio = startExpWeapon * 100.0 / expGoal;
+			var earnedExpStreamRatio = expWeaponGain * 100.0 / expGoal;
+			var remainingExpRatio = 100.0 - alreadyOwnedExpRatio - earnedExpStreamRatio;
+
 			String mainWeaponUrl = getImageEncoded(player.getWeapon().getImage());
 			String subWeaponUrl = getImageEncoded(player.getWeapon().getSubWeapon().getImage());
 			String specialWeaponUrl = getImageEncoded(player.getWeapon().getSpecialWeapon().getImage());
@@ -203,7 +234,22 @@ public class S3StreamStatistics {
 						|| startPower == null
 						|| currentPower.doubleValue() == startPower.doubleValue() ? "hidden" : "")
 					.replace("{x-change}", buildPowerDiff(startPower, currentPower))
-					.replace("{x-change-color}", getPowerDiffColor(startPower, currentPower));
+					.replace("{x-change-color}", getPowerDiffColor(startPower, currentPower))
+
+					.replace("{weapon-star-1-hidden}", weaponStatsCurrent.getStats().getLevel() >= 1 ? "" : "hidden")
+					.replace("{weapon-star-2-hidden}", weaponStatsCurrent.getStats().getLevel() >= 2 ? "" : "hidden")
+					.replace("{weapon-star-3-hidden}", weaponStatsCurrent.getStats().getLevel() >= 3 ? "" : "hidden")
+					.replace("{weapon-star-4-hidden}", weaponStatsCurrent.getStats().getLevel() >= 4 ? "" : "hidden")
+					.replace("{weapon-star-5-hidden}", weaponStatsCurrent.getStats().getLevel() >= 5 ? "" : "hidden")
+					.replace("{exp-hidden}", weaponStatsCurrent.getStats().getLevel() == 5 ? "hidden" : "")
+					.replace("{weapon-exp}", df.format(currentExpWeapon).replaceAll(",", " "))
+					.replace("{weapon-exp-gain}", df.format(expWeaponGain).replaceAll(",", " "))
+					.replace("{weapon-exp-gain-hidden}", currentExpWeapon == startExpWeapon ? "hidden" : "")
+
+					.replace("{already-owned-exp-ratio}", String.format("%.2f", alreadyOwnedExpRatio))
+					.replace("{earned-exp-stream-ratio}", String.format("%.2f", earnedExpStreamRatio))
+					.replace("{remaining-exp-ratio}", String.format("%.2f", remainingExpRatio))
+				;
 
 				if (headGearSub2 != null) {
 					currentHtml = currentHtml.replace("{head-sub-2}", String.format("data:image/png;base64,%s", headGearSub2))
@@ -259,9 +305,74 @@ public class S3StreamStatistics {
 					myWriter.write(currentHtml);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error(e);
 			}
 		}
+	}
+
+	private int getExpGoal(Integer level) {
+		var expGoal = 0;
+
+		switch (level) {
+			case 1: {
+				expGoal = 25000;
+				break;
+			}
+			case 2: {
+				expGoal = 60000;
+				break;
+			}
+			case 3: {
+				expGoal = 160000;
+				break;
+			}
+			case 4:
+			case 5: {
+				expGoal = 1160000;
+				break;
+			}
+			default:
+			case 0: {
+				expGoal = 10000;
+				break;
+			}
+		}
+
+		return expGoal;
+	}
+
+	private int getWeaponExp(Integer level, Integer expToLevelUp) {
+		var currentExp = 0;
+
+		switch (level) {
+			case 1: {
+				currentExp = 25000 - expToLevelUp;
+				break;
+			}
+			case 2: {
+				currentExp = 60000 - expToLevelUp;
+				break;
+			}
+			case 3: {
+				currentExp = 160000 - expToLevelUp;
+				break;
+			}
+			case 4: {
+				currentExp = 1160000 - expToLevelUp;
+				break;
+			}
+			case 5: {
+				currentExp = 1160000;
+				break;
+			}
+			default:
+			case 0: {
+				currentExp = 10000 - expToLevelUp;
+				break;
+			}
+		}
+
+		return currentExp;
 	}
 
 	private String buildCurrentX(Double currentPower) {
@@ -320,6 +431,14 @@ public class S3StreamStatistics {
 		currentXTower = tower;
 		currentXRainmaker = rainmaker;
 		currentXClams = clams;
+	}
+
+	public void setCurrentWeaponRecords(Weapon[] allWeapons) {
+		if (startWeaponStats == null) {
+			startWeaponStats = Arrays.stream(allWeapons).collect(Collectors.toList());
+		}
+
+		currentWeaponStats = Arrays.stream(allWeapons).collect(Collectors.toList());
 	}
 
 	private Instant getSlotStartTime(Instant base) {

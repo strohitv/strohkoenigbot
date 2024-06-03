@@ -70,6 +70,7 @@ public class S3Downloader implements ScheduledService {
 	private final S3RotationSender rotationSender;
 	private final S3StreamStatistics streamStatistics;
 	private final S3XPowerDownloader xPowerDownloader;
+	private final S3WeaponStatsDownloader weaponStatsDownloader;
 
 	private final S3S3sRunner s3sRunner;
 
@@ -110,6 +111,7 @@ public class S3Downloader implements ScheduledService {
 		wentLiveInstant = wentLiveTime;
 		streamStatistics.reset();
 		xPowerDownloader.fillXPower();
+		weaponStatsDownloader.fillWeaponStats();
 	}
 
 	public void goOffline() {
@@ -153,6 +155,7 @@ public class S3Downloader implements ScheduledService {
 			try {
 				if (wentLiveInstant != null) {
 					xPowerDownloader.fillXPower();
+					weaponStatsDownloader.fillWeaponStats();
 				}
 
 				downloadGamesDecideWay();
@@ -204,7 +207,7 @@ public class S3Downloader implements ScheduledService {
 
 				streamStatistics.addGames(allNewGamesDuringStream);
 
-				if (allNewGamesDuringStream.size() > 0) {
+				if (!allNewGamesDuringStream.isEmpty()) {
 					streamStatistics.exportHtml();
 				}
 			}
@@ -214,7 +217,7 @@ public class S3Downloader implements ScheduledService {
 				.stream()
 				.sorted(Comparator.comparing(entry -> entry.getKey().getName()))
 				.forEach(entry -> {
-					if (entry.getValue().size() > 0) {
+					if (!entry.getValue().isEmpty()) {
 						builder.append(String.format("\n- **%d** new %s battle results", entry.getValue().size(), entry.getKey().getName()));
 					}
 				});
@@ -223,13 +226,13 @@ public class S3Downloader implements ScheduledService {
 				.stream()
 				.sorted(Comparator.comparing(entry -> entry.getKey().getName()))
 				.forEach(entry -> {
-					if (entry.getValue().size() > 0) {
+					if (!entry.getValue().isEmpty()) {
 						builder.append(String.format("\n- **%d** new %s shift results", entry.getValue().size(), entry.getKey().getName()));
 					}
 				});
 
-			var foundGames = importedVsGames.entrySet().stream().anyMatch((res) -> res.getValue().size() > 0)
-				|| importedSrGames.entrySet().stream().anyMatch((res) -> res.getValue().size() > 0);
+			var foundGames = importedVsGames.entrySet().stream().anyMatch((res) -> !res.getValue().isEmpty())
+				|| importedSrGames.entrySet().stream().anyMatch((res) -> !res.getValue().isEmpty());
 
 			shouldRunS3s |= foundGames;
 
@@ -417,35 +420,35 @@ public class S3Downloader implements ScheduledService {
 				logger.error(e);
 			}
 
-			if (onlineRegularGamesToDownload.size() > 0
-				|| onlineAnarchyGamesToDownload.size() > 0
-				|| onlineXRankGamesToDownload.size() > 0
-				|| onlineChallengeGamesToDownload.size() > 0
-				|| onlinePrivateGamesToDownload.size() > 0
-				|| salmonShiftsToDownload.size() > 0) {
+			if (!onlineRegularGamesToDownload.isEmpty()
+				|| !onlineAnarchyGamesToDownload.isEmpty()
+				|| !onlineXRankGamesToDownload.isEmpty()
+				|| !onlineChallengeGamesToDownload.isEmpty()
+				|| !onlinePrivateGamesToDownload.isEmpty()
+				|| !salmonShiftsToDownload.isEmpty()) {
 				String message = "Found new Splatoon 3 results:";
 
-				if (onlineRegularGamesToDownload.size() > 0) {
+				if (!onlineRegularGamesToDownload.isEmpty()) {
 					message = String.format("%s\n- **%d** new regular battles", message, onlineRegularGamesToDownload.size());
 				}
 
-				if (onlineAnarchyGamesToDownload.size() > 0) {
+				if (!onlineAnarchyGamesToDownload.isEmpty()) {
 					message = String.format("%s\n- **%d** new anarchy battles", message, onlineAnarchyGamesToDownload.size());
 				}
 
-				if (onlineXRankGamesToDownload.size() > 0) {
+				if (!onlineXRankGamesToDownload.isEmpty()) {
 					message = String.format("%s\n- **%d** new x rank battles", message, onlineXRankGamesToDownload.size());
 				}
 
-				if (onlineChallengeGamesToDownload.size() > 0) {
+				if (!onlineChallengeGamesToDownload.isEmpty()) {
 					message = String.format("%s\n- **%d** new challenge battles", message, onlineChallengeGamesToDownload.size());
 				}
 
-				if (onlinePrivateGamesToDownload.size() > 0) {
+				if (!onlinePrivateGamesToDownload.isEmpty()) {
 					message = String.format("%s\n- **%d** new private battles", message, onlinePrivateGamesToDownload.size());
 				}
 
-				if (salmonShiftsToDownload.size() > 0) {
+				if (!salmonShiftsToDownload.isEmpty()) {
 					message = String.format("%s\n- **%d** new salmon run shifts", message, salmonShiftsToDownload.size());
 				}
 
@@ -719,7 +722,7 @@ public class S3Downloader implements ScheduledService {
 		if (parsedResult.getData().getRegularBattleHistories() != null) {
 			storeIdsOfMatchesToDownload(allDownloadedGames.getRegular_games(), onlineRegularGamesToDownload, parsedResult.getData().getRegularBattleHistories());
 
-			if (onlineRegularGamesToDownload.size() > 0) {
+			if (!onlineRegularGamesToDownload.isEmpty()) {
 				String filename = String.format("%s_List_%s.json", key, timeString);
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
@@ -729,7 +732,7 @@ public class S3Downloader implements ScheduledService {
 		if (parsedResult.getData().getBankaraBattleHistories() != null) {
 			storeIdsOfMatchesToDownload(allDownloadedGames.getAnarchy_games(), onlineAnarchyGamesToDownload, parsedResult.getData().getBankaraBattleHistories());
 
-			if (onlineAnarchyGamesToDownload.size() > 0) {
+			if (!onlineAnarchyGamesToDownload.isEmpty()) {
 				String filename = String.format("%s_List_%s.json", key, timeString);
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
@@ -739,7 +742,7 @@ public class S3Downloader implements ScheduledService {
 		if (parsedResult.getData().getXBattleHistories() != null) {
 			storeIdsOfMatchesToDownload(allDownloadedGames.getX_rank_games(), onlineXRankGamesToDownload, parsedResult.getData().getXBattleHistories());
 
-			if (onlineXRankGamesToDownload.size() > 0) {
+			if (!onlineXRankGamesToDownload.isEmpty()) {
 				String filename = String.format("%s_List_%s.json", key, timeString);
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
@@ -749,7 +752,7 @@ public class S3Downloader implements ScheduledService {
 		if (parsedResult.getData().getEventBattleHistories() != null) {
 			storeIdsOfMatchesToDownload(allDownloadedGames.getChallenge_games(), onlineChallengeGamesToDownload, parsedResult.getData().getEventBattleHistories());
 
-			if (onlineChallengeGamesToDownload.size() > 0) {
+			if (!onlineChallengeGamesToDownload.isEmpty()) {
 				String filename = String.format("%s_List_%s.json", key, timeString);
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
@@ -759,7 +762,7 @@ public class S3Downloader implements ScheduledService {
 		if (parsedResult.getData().getPrivateBattleHistories() != null) {
 			storeIdsOfMatchesToDownload(allDownloadedGames.getPrivate_games(), onlinePrivateGamesToDownload, parsedResult.getData().getPrivateBattleHistories());
 
-			if (onlinePrivateGamesToDownload.size() > 0) {
+			if (!onlinePrivateGamesToDownload.isEmpty()) {
 				String filename = String.format("%s_List_%s.json", key, timeString);
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
@@ -779,7 +782,7 @@ public class S3Downloader implements ScheduledService {
 		if (parsedResult != null) {
 			storeIdsOfMatchesToDownload(allDownloadedGames.getSalmon_games(), salmonShiftsToDownload, parsedResult.getData().getCoopResult());
 
-			if (salmonShiftsToDownload.size() > 0) {
+			if (!salmonShiftsToDownload.isEmpty()) {
 				String filename = String.format("Salmon_List_%s.json", timeString);
 				saveFile(directory.resolve(filename), salmonListResponse);
 			}
