@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
+import com.github.twitch4j.events.ChannelGoLiveEvent;
 import discord4j.core.object.entity.channel.TextChannel;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -14,6 +15,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchGoingLiveAlert;
+import tv.strohi.twitch.strohkoenigbot.data.model.TwitchGoingLiveAlertFilter;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchGoingLiveAlertRepository;
 
 import java.util.Arrays;
@@ -66,10 +68,16 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 				message = message.substring("notify ".length()).trim();
 
 				String twitchUser = Arrays.stream(message.split("\n")).findFirst().orElse(null);
-				String notificationMessage = Arrays.stream(message.split("\n", 2)).skip(1).findFirst().orElse(null);
-				if (twitchUser == null || twitchUser.length() == 0 || notificationMessage == null || notificationMessage.trim().length() == 0) {
+
+				String notificationMessage = Arrays.stream(message.split("\n"))
+					.filter(m -> !m.startsWith("+title"))
+					.skip(1)
+					.reduce((a, b) -> String.format("%s\n%s", a, b))
+					.orElse(null);
+
+				if (twitchUser == null || twitchUser.isEmpty() || notificationMessage == null || notificationMessage.trim().isEmpty()) {
 					args.getReplySender().send("Please tell me a twitch channel and a message for the alert!\n" +
-							"The message has to start in a separate line.");
+						"The message has to start in a separate line.");
 					return;
 				} else if (twitchUser.length() > 25 || twitchUser.length() < 3) {
 					args.getReplySender().send("Twitch channel name has to be between 3 and 25 characters long.");
@@ -78,12 +86,22 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 
 				var twitchUserLC = twitchUser.toLowerCase();
 
-				var alert = twitchGoingLiveAlertRepository
-						.findByTwitchChannelNameAndGuildIdAndChannelId(twitchUserLC, guild.getId().asLong(), channel.getId().asLong())
-						.stream()
-						.findFirst()
-						.orElse(new TwitchGoingLiveAlert(0, twitchUserLC, guild.getId().asLong(), channel.getId().asLong(), notificationMessage));
+				var filters = new TwitchGoingLiveAlertFilter();
 
+				var allLines = message.split("\n");
+				Arrays.stream(allLines).forEach(l -> {
+					if (l.startsWith("+title")) {
+						filters.getIncludeFilters().add(l.substring("+title".length()).trim());
+					}
+				});
+
+				var alert = twitchGoingLiveAlertRepository
+					.findByTwitchChannelNameAndGuildIdAndChannelId(twitchUserLC, guild.getId().asLong(), channel.getId().asLong())
+					.stream()
+					.findFirst()
+					.orElse(new TwitchGoingLiveAlert(0, twitchUserLC, guild.getId().asLong(), channel.getId().asLong(), notificationMessage, null));
+
+				alert.setFilters(filters);
 				alert.setNotificationMessage(notificationMessage);
 
 				twitchGoingLiveAlertRepository.save(alert);
@@ -94,7 +112,7 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 			} else if (message.startsWith("remove ")) {
 				message = message.substring("remove ".length()).trim();
 
-				if (message.length() == 0) {
+				if (message.isEmpty()) {
 					args.getReplySender().send("Please tell me the twitch channel you don't want to get notified about anymore!");
 					return;
 				} else if (message.length() > 25 || message.length() < 3) {
@@ -105,16 +123,16 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 				var twitchUserLC = message.toLowerCase();
 
 				var alert = twitchGoingLiveAlertRepository
-						.findByTwitchChannelNameAndGuildIdAndChannelId(twitchUserLC, guild.getId().asLong(), channel.getId().asLong())
-						.stream()
-						.findFirst()
-						.orElse(null);
+					.findByTwitchChannelNameAndGuildIdAndChannelId(twitchUserLC, guild.getId().asLong(), channel.getId().asLong())
+					.stream()
+					.findFirst()
+					.orElse(null);
 
 				if (alert != null) {
 					twitchGoingLiveAlertRepository.delete(alert);
 
 					var allAlertsForChannel = twitchGoingLiveAlertRepository.findByTwitchChannelName(twitchUserLC);
-					if (allAlertsForChannel.size() == 0) {
+					if (allAlertsForChannel.isEmpty()) {
 						twitchBotClient.disableGoingLiveEvent(twitchUserLC);
 					}
 
@@ -124,16 +142,23 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 				}
 			} else {
 				args.getReplySender().send("Sorry, but I don't understand what you're trying to do.\n" +
-						"You can either use `notify` to add a new channel or `remove` to remove an existing notification.");
+					"You can either use `notify` to add a new channel or `remove` to remove an existing notification.");
 			}
 		}
 	}
 
-	private void sendGoingLiveNotifications(String channel) {
-		var allAlerts = twitchGoingLiveAlertRepository.findByTwitchChannelName(channel);
+	private void sendGoingLiveNotifications(ChannelGoLiveEvent event) {
+		var allAlerts = twitchGoingLiveAlertRepository.findByTwitchChannelName(event.getChannel().getName());
 
 		for (var alert : allAlerts) {
-			discordBot.sendServerMessageWithImageUrls(alert.getGuildId(), alert.getChannelId(), alert.getNotificationMessage());
+			var filters = alert.getFiltersAsObject();
+			if (filtersMatch(filters, event)) {
+				discordBot.sendServerMessageWithImageUrls(alert.getGuildId(), alert.getChannelId(), alert.getNotificationMessage());
+			}
 		}
+	}
+
+	private boolean filtersMatch(TwitchGoingLiveAlertFilter filters, ChannelGoLiveEvent event) {
+		return filters.getIncludeFilters().isEmpty() || filters.getIncludeFilters().stream().anyMatch(f -> event.getStream().getTitle().contains(f));
 	}
 }

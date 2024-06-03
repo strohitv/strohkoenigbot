@@ -1,0 +1,28 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2024-06-03_02-add-twitch-goinglive-filter",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addColumn": {
+              "tableName": "twitch_going_live_alert",
+              "columns": [
+                {
+                  "column": {
+                    "name": "filters",
+                    "type": "clob",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

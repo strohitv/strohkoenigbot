@@ -46,7 +46,7 @@ import java.util.function.Consumer;
 public class TwitchBotClient {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
-	private final List<Consumer<String>> goingLiveAlertConsumers = new ArrayList<>();
+	private final List<Consumer<ChannelGoLiveEvent>> goingLiveAlertConsumers = new ArrayList<>();
 
 	private static Instant lastClipCreatedTime = Instant.now();
 
@@ -125,7 +125,7 @@ public class TwitchBotClient {
 		initializeClient();
 	}
 
-	public void addGoingLiveAlertConsumer(Consumer<String> consumer) {
+	public void addGoingLiveAlertConsumer(Consumer<ChannelGoLiveEvent> consumer) {
 		if (!goingLiveAlertConsumers.contains(consumer)) {
 			goingLiveAlertConsumers.add(consumer);
 		}
@@ -158,7 +158,10 @@ public class TwitchBotClient {
 				client.getClientHelper().enableFollowEventListener(channelName);
 				client.getClientHelper().enableClipEventListener(channelName);
 
-				client.getHelix().getUsers(null, null, Collections.singletonList(channelName)).execute().getUsers().stream().findFirst()
+				client.getHelix().getUsers(null, null, Collections.singletonList(channelName)).execute()
+					.getUsers()
+					.stream()
+					.findFirst()
 					.ifPresent(user -> {
 						client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, user.getId());
 						client.getPubSub().listenForAdsEvents(botCredential, user.getId());
@@ -185,7 +188,7 @@ public class TwitchBotClient {
 
 			goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
 				for (var consumer : goingLiveAlertConsumers) {
-					consumer.accept(event.getChannel().getName());
+					consumer.accept(event);
 				}
 
 				if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
@@ -308,8 +311,8 @@ public class TwitchBotClient {
 	public boolean isLiveIgnoreDebug(String channelId) {
 		return channelId != null
 			&& !channelId.isBlank()
-			&& client.getHelix().getStreams(accessToken, null, null, null, null, null, Collections.singletonList(channelId), null).execute()
-			.getStreams().size() > 0;
+			&& !client.getHelix().getStreams(accessToken, null, null, null, null, null, Collections.singletonList(channelId), null).execute()
+			.getStreams().isEmpty();
 	}
 
 	public Splatoon2Clip createClip(String message, String channelId, boolean isGoodPlay) {
