@@ -66,6 +66,11 @@ public class S3RotationSender implements ScheduledService {
 			.build());
 	}
 
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
+	}
+
 	@Getter
 	@Setter
 	private boolean pauseSender = false;

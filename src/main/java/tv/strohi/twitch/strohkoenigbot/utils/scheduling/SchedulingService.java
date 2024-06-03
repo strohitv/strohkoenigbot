@@ -35,8 +35,18 @@ public class SchedulingService {
 	@Autowired
 	public void setScheduledServices(List<ScheduledService> services) {
 		services.forEach(service ->
+		{
+			service.createSingleRunRequests().forEach(request -> {
+				if (request.getSchedule().startsWith("tick: ")) {
+					registerOnce(request.getName(), Integer.parseInt(request.getSchedule().replace("tick:", "").trim()), request.getRunnable());
+				} else {
+					registerOnce(request.getName(), request.getSchedule().replace("cron:", "").trim(), request.getRunnable());
+				}
+			});
+
 			service.createScheduleRequests().forEach(request ->
-				register(request.getName(), request.getSchedule(), request.getRunnable())));
+				register(request.getName(), request.getSchedule(), request.getRunnable()));
+		});
 	}
 
 	@Scheduled(fixedDelay = 5000)

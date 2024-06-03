@@ -106,7 +106,7 @@ public class Splatoon3SrRotationService {
 		if (stage == null) return null;
 
 		var boss = Arrays.stream(rotation.getHistoryDetails().getNodes())
-			.map(BattleResults.HistoryGroupMatch::getBossResult)
+			.flatMap(historyGroupMatch -> historyGroupMatch.getAllBossResults().stream())
 			.filter(Objects::nonNull)
 			.findAny()
 			.map(BossResult::getBoss)

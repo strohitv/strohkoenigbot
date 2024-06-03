@@ -26,6 +26,11 @@ public class SceneResetter implements ScheduledService {
 			.build());
 	}
 
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
+	}
+
 	private void resetSchedule() {
 		if (ObsController.isLive()) {
 			counter = (counter + 1) % 15;

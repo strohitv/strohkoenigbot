@@ -92,6 +92,11 @@ public class S3Downloader implements ScheduledService {
 				.build());
 	}
 
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
+	}
+
 	private final List<Integer> refreshMinutes = List.of(12, 35);
 
 	@Getter

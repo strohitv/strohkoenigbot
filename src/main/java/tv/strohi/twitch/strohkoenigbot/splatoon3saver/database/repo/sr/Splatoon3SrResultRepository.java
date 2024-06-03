@@ -16,4 +16,5 @@ public interface Splatoon3SrResultRepository extends CrudRepository<Splatoon3SrR
 	Optional<Splatoon3SrResult> findTop1ByOrderByPlayedTimeDesc();
 
 	Page<Splatoon3SrResult> findAllByPlayedTimeGreaterThanEqual(Instant playedTimeAfter, Pageable pageable);
+	Page<Splatoon3SrResult> findAllByBossNotNull(Pageable pageable);
 }

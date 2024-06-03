@@ -6,6 +6,9 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -22,6 +25,7 @@ public class CoopHistoryDetail implements Serializable {
 	private IdAndName afterGrade;
 	private Integer afterGradePoint;
 	private BossResult bossResult;
+	private List<BossResult> bossResults;
 	private ScaleCount scale;
 	private Integer jobBonus;
 	private Integer resultWave;
@@ -56,8 +60,19 @@ public class CoopHistoryDetail implements Serializable {
 			return boss;
 		}
 
-		return bossResult != null
-			? bossResult.getBoss()
-			: null;
+		return getAllBossResults().stream()
+			.map(BossResult::getBoss)
+			.findAny()
+			.orElse(null);
+	}
+
+	public List<BossResult> getAllBossResults() {
+		return Stream.concat(
+				Stream.of(bossResult).filter(Objects::nonNull),
+				bossResults != null
+					? bossResults.stream()
+					: Stream.of())
+			.distinct()
+			.collect(Collectors.toList());
 	}
 }

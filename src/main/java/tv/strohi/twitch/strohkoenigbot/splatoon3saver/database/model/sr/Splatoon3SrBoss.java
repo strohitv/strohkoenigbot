@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@ToString(exclude = "rotations")
+@ToString(exclude = {"rotations", "bossResults"})
 public class Splatoon3SrBoss {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,6 +32,11 @@ public class Splatoon3SrBoss {
 
 	// ---
 
+	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "boss")
 	private List<Splatoon3SrRotation> rotations;
+
+	@EqualsAndHashCode.Exclude
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "boss")
+	private List<Splatoon3SrBossResult> bossResults;
 }

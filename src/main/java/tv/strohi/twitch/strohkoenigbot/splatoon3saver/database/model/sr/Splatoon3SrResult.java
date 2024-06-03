@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@ToString(exclude = {"shortenedJson", "mode", "rotation", "boss", "stage", "afterGrade", "players", "waves", "enemyStats", "bossResults"})
 public class Splatoon3SrResult {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -83,4 +84,8 @@ public class Splatoon3SrResult {
 	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
 	private List<Splatoon3SrResultEnemy> enemyStats;
+
+	@EqualsAndHashCode.Exclude
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	private List<Splatoon3SrBossResult> bossResults;
 }

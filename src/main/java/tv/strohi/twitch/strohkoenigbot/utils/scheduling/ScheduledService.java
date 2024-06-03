@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ScheduledService {
 	List<ScheduleRequest> createScheduleRequests();
+	List<ScheduleRequest> createSingleRunRequests();
 }

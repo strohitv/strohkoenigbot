@@ -10,6 +10,10 @@ import lombok.Setter;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -280,6 +284,7 @@ public class BattleResults {
 		private Integer afterGradePoint;
 		private String gradePointDiff;
 		private BossResult bossResult;
+		private List<BossResult> bossResults;
 		private Result myResult;
 		private Result[] memberResults;
 
@@ -288,6 +293,16 @@ public class BattleResults {
 		@JsonIgnore
 		public Instant getPlayedTimeAsInstant() {
 			return Instant.parse(playedTime);
+		}
+
+		public List<BossResult> getAllBossResults() {
+			return Stream.concat(
+					Stream.of(bossResult).filter(Objects::nonNull),
+					bossResults != null
+						? bossResults.stream()
+						: Stream.of())
+				.distinct()
+				.collect(Collectors.toList());
 		}
 	}
 

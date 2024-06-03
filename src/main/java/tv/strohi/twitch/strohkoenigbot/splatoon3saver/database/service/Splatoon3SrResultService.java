@@ -35,6 +35,7 @@ public class Splatoon3SrResultService {
 	private final Splatoon3SrResultRepository resultRepository;
 	private final Splatoon3SrRotationRepository rotationRepository;
 	private final Splatoon3SrGradeRepository gradeRepository;
+	private final Splatoon3SrBossResultRepository bossResultRepository;
 	private final Splatoon3SrEnemyRepository enemyRepository;
 	private final Splatoon3SrResultEnemyRepository resultEnemyRepository;
 	private final Splatoon3SrResultPlayerRepository resultPlayerRepository;
@@ -70,7 +71,7 @@ public class Splatoon3SrResultService {
 						.rotation(rotation)
 						.smellMeter(result.getSmellMeter())
 						.boss(boss)
-						.successful(result.getWaveResults().stream().allMatch(wr -> getSuccessful(result.getBossResult(), wr)))
+						.successful(result.getWaveResults().stream().allMatch(wr -> getSuccessful(result.getAllBossResults(), wr)))
 						.dangerRate(result.getDangerRate())
 						.earnedBronzeScales(result.getScale() != null ? result.getScale().getBronze() : null)
 						.earnedSilverScales(result.getScale() != null ? result.getScale().getSilver() : null)
@@ -85,6 +86,19 @@ public class Splatoon3SrResultService {
 						.shortenedJson(imageService.shortenJson(json))
 						.build()
 				);
+
+				if ((newResult.getBossResults() == null || newResult.getBossResults().isEmpty())
+					&& !result.getAllBossResults().isEmpty()) {
+					var added = result.getAllBossResults().stream()
+						.map(r -> bossResultRepository.save(Splatoon3SrBossResult.builder()
+							.result(newResult)
+							.boss(rotationService.ensureBossExists(r.getBoss()))
+							.defeated(r.getHasDefeatBoss())
+							.build()))
+						.collect(Collectors.toList());
+
+					log.info("Created {} new boss results for sr result id: {}", added.size(), newResult.getId());
+				}
 
 				log.info("Created new sr result id: {}, played time: '{}', mode: '{}', stage: {}, rank: {} {}", newResult.getId(), newResult.getPlayedTime(), newResult.getMode().getName(), newResult.getStage().getName(), newResult.getAfterGrade(), newResult.getAfterGradePoint());
 
@@ -424,9 +438,9 @@ public class Splatoon3SrResultService {
 				));
 	}
 
-	private static boolean getSuccessful(BossResult br, WaveResults wr) {
-		return br != null
-			? br.getHasDefeatBoss()
+	private static boolean getSuccessful(List<BossResult> br, WaveResults wr) {
+		return br != null && !br.isEmpty()
+			? br.stream().allMatch(BossResult::getHasDefeatBoss)
 			: wr.getTeamDeliverCount() >= wr.getDeliverNorm();
 	}
 
