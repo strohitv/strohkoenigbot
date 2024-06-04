@@ -112,11 +112,15 @@ public class S3Downloader implements ScheduledService {
 		streamStatistics.reset();
 		xPowerDownloader.fillXPower();
 		weaponStatsDownloader.fillWeaponStats();
+
+		logSender.sendLogs(logger, "went live on twitch!");
 	}
 
 	public void goOffline() {
 		wentLiveInstant = null;
 		streamStatistics.reset();
+
+		logSender.sendLogs(logger, "went offline on twitch!");
 	}
 
 	public void runS3sIfGamesWereFound() {
