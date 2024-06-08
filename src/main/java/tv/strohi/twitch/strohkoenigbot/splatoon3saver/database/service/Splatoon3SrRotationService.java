@@ -193,8 +193,13 @@ public class Splatoon3SrRotationService {
 					: null)
 				.build());
 
-			logSender.sendLogs(log, String.format("Set image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getImage().getUrl()));
-			logSender.sendLogs(log, String.format("Set thumbnail image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getThumbnailImage().getUrl()));
+			if (coopStage.getImage() != null) {
+				logSender.sendLogs(log, String.format("Set image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getImage().getUrl()));
+			}
+
+			if (coopStage.getThumbnailImage() != null) {
+				logSender.sendLogs(log, String.format("Set thumbnail image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getThumbnailImage().getUrl()));
+			}
 		}
 
 		return stage;
