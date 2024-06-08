@@ -22,13 +22,13 @@ public class PlayHistory implements Serializable {
 	private String udemaeMax;
 
 	@JsonProperty("xMatchRankAr")
-	private XMatchRankStats xMatchRankAr;
+	private Integer xMatchRankAr;
 	@JsonProperty("xMatchRankCl")
-	private XMatchRankStats xMatchRankCl;
+	private Integer xMatchRankCl;
 	@JsonProperty("xMatchRankGl")
-	private XMatchRankStats xMatchRankGl;
+	private Integer xMatchRankGl;
 	@JsonProperty("xMatchRankLf")
-	private XMatchRankStats xMatchRankLf;
+	private Integer xMatchRankLf;
 
 	@JsonProperty("xMatchMaxAr")
 	private XMatchRankStats xMatchMaxAr;

@@ -100,7 +100,7 @@ public class S3BadgeSender {
 				var list = new ArrayList<>(allOwnedBadges);
 				list.removeAll(allBadgesYesterday);
 
-				if (list.size() > 0) {
+				if (!list.isEmpty()) {
 					var badgeImages = new ArrayList<BufferedImage>();
 					for (var badge : allOwnedBadges) {
 						String imageLocationString = resourcesDownloader.ensureExistsLocally(badge.getImage().getUrl());
@@ -177,7 +177,7 @@ public class S3BadgeSender {
 	}
 
 	public String getBadgesAsHtml() {
-		if (allOwnedBadges.size() == 0) {
+		if (allOwnedBadges.isEmpty()) {
 			reloadBadges();
 		}
 

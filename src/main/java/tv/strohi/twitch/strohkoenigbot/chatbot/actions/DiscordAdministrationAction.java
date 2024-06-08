@@ -21,10 +21,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3DailyStatsSender;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3NewGearChecker;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3RotationSender;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
@@ -76,6 +73,10 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final S3NewGearChecker s3NewGearChecker;
 
 	private final ImageService imageService;
+
+	private final S3BadgeSender badgeSender;
+	private final S3EmoteSender emoteSender;
+	private final S3NameplateSender nameplateSender;
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
@@ -137,7 +138,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				Configuration config = new Configuration();
 				config.setConfigName(propertyName);
 				List<Configuration> configs = configurationRepository.findAllByConfigName(propertyName);
-				if (configs.size() > 0) {
+				if (!configs.isEmpty()) {
 					config = configs.get(0);
 				}
 
@@ -164,7 +165,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				Configuration config = null;
 				List<Configuration> configs = configurationRepository.findAllByConfigName(propertyName);
-				if (configs.size() > 0) {
+				if (!configs.isEmpty()) {
 					config = configs.get(0);
 				}
 
@@ -177,7 +178,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				String propertyName = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!config remove".length()).trim();
 
 				List<Configuration> configs = configurationRepository.findAllByConfigName(propertyName);
-				if (configs.size() > 0) {
+				if (!configs.isEmpty()) {
 					configurationRepository.deleteAll(configs);
 				}
 
@@ -189,7 +190,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				Configuration config = new Configuration();
 				config.setConfigName(ConfigurationRepository.streamPrefix);
 				List<Configuration> configs = configurationRepository.findAllByConfigName(ConfigurationRepository.streamPrefix);
-				if (configs.size() > 0) {
+				if (!configs.isEmpty()) {
 					config = configs.get(0);
 				}
 
@@ -233,7 +234,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				List<TwitchSoAccount> accounts = twitchSoAccountRepository.findAllByAccountId(account.getId());
 
-				if (accounts.size() > 0) {
+				if (!accounts.isEmpty()) {
 					StringBuilder builder = new StringBuilder("**I send an !so command whenever one of the following accounts raids or writes their first message**:\n");
 					twitchSoAccountRepository.findAll().forEach(soa -> builder.append("- ").append(soa.getUsername()).append("\n"));
 
@@ -267,7 +268,7 @@ public class DiscordAdministrationAction extends ChatAction {
 					.filter(soAcc -> soAcc.getAccountId() == null)
 					.collect(Collectors.toCollection(LinkedList::new));
 
-				while (allSoAccounts.size() > 0) {
+				while (!allSoAccounts.isEmpty()) {
 					var element = allSoAccounts.poll();
 
 					if (twitchSoAccountRepository.findByAccountIdAndUsername(account.getId(), element.getUsername()) != null) {
@@ -384,7 +385,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				if (DiscordChannelDecisionMaker.isLocalDebug()) {
 					Long accountId;
 					String messageWithoutCommand = message.trim().substring("!local_stats".length()).trim();
-					if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
+					if (!messageWithoutCommand.isEmpty() && (accountId = tryParseId(messageWithoutCommand)) != null) {
 						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("is local - sending for account Id %d...", accountId));
 						dailyStatsSender.sendDailyStatsToAccount(accountId);
 					} else {
@@ -398,7 +399,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				if (!DiscordChannelDecisionMaker.isLocalDebug()) {
 					Long accountId;
 					String messageWithoutCommand = message.trim().substring("!daily_stats".length()).trim();
-					if (messageWithoutCommand.length() > 0 && (accountId = tryParseId(messageWithoutCommand)) != null) {
+					if (!messageWithoutCommand.isEmpty() && (accountId = tryParseId(messageWithoutCommand)) != null) {
 						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("is server - sending for account Id %d...", accountId));
 						dailyStatsSender.sendDailyStatsToAccount(accountId);
 					} else {
@@ -513,6 +514,18 @@ public class DiscordAdministrationAction extends ChatAction {
 					twitchBotClient.forceOffline();
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Successfully forced twitch going offline state without twitch user id");
 				}
+			} else if (message.startsWith("!repost badges")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Reposting badges...");
+				badgeSender.reloadBadges();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished badge repost.");
+			} else if (message.startsWith("!repost emotes")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Reposting emotes...");
+				emoteSender.reloadEmotes();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished emote repost.");
+			} else if (message.startsWith("!repost nameplates")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Reposting nameplates...");
+				nameplateSender.repostNameplates();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished nameplate repost.");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
