@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -214,12 +215,16 @@ public class S3DailyStatsSender {
 
 		var minTop500XPowers = xLeaderboardDownloader.loadTop500MinPower();
 
+		var requiredExpFor4StarGrind = getExpNeededFor4StarGrind();
+
 		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
 		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
 
 		sendGearStatsToDiscord(gearStars, yesterdayStats, account);
 		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
+
 		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
+		sendRequiredExpFor4StarGrindToDiscord(requiredExpFor4StarGrind, yesterdayStats, account);
 
 		sendMinTop500XPowersToDiscord(minTop500XPowers, yesterdayStats, account);
 
@@ -251,6 +256,59 @@ public class S3DailyStatsSender {
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
 	}
 
+	private void sendRequiredExpFor4StarGrindToDiscord(int requiredExpFor4StarGrind, DailyStatsSaveModel yesterdayStats, Account account) {
+		var df = new DecimalFormat("#,###,###");
+		var yesterdayExp = yesterdayStats.getPreviousRequiredExpFor4StarGrind() != null
+			? yesterdayStats.getPreviousRequiredExpFor4StarGrind()
+			: requiredExpFor4StarGrind;
+
+		StringBuilder expBuilder = new StringBuilder("**Current amount of weapon exp points required to finish 4 star grind:**\n- **")
+			.append(df.format(requiredExpFor4StarGrind).replaceAll(",", " "))
+			.append("** exp");
+
+		if (!Objects.equals(yesterdayExp, requiredExpFor4StarGrind)) {
+			expBuilder.append(" (")
+				.append(yesterdayExp < requiredExpFor4StarGrind ? "+" : "-")
+				.append(df.format(Math.abs(yesterdayExp - requiredExpFor4StarGrind)).replaceAll(",", " "))
+				.append(")");
+		}
+
+		expBuilder.append("\n- I will need roughly **").append(requiredExpFor4StarGrind / 50_000 + 1).append(" days** if I farm 50k exp every day.");
+
+		yesterdayStats.setPreviousRequiredExpFor4StarGrind(requiredExpFor4StarGrind);
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), expBuilder.toString());
+	}
+
+	private int getExpNeededFor4StarGrind() {
+		var unfinishedWeapons = weaponDownloader.getWeapons().stream().filter(w -> w.getStats().getLevel() < 4).collect(Collectors.toList());
+
+		int requiredExp = 0;
+
+		for (var weapon : unfinishedWeapons) {
+			if (weapon.getStats() == null || weapon.getStats().getLevel() == null) {
+				// not purchased yet
+				requiredExp += 160_000;
+				continue;
+			}
+
+			var requiredExpForWeapon = weapon.getStats().getExpToLevelUp();
+			if (weapon.getStats().getLevel() < 3) {
+				requiredExpForWeapon += 100_000;
+			}
+			if (weapon.getStats().getLevel() < 2) {
+				requiredExpForWeapon += 35_000;
+			}
+			if (weapon.getStats().getLevel() < 1) {
+				requiredExpForWeapon += 15_000;
+			}
+
+			requiredExp += requiredExpForWeapon;
+		}
+
+		return requiredExp;
+	}
+
 	private void sendMinTop500XPowersToDiscord(Map<String, Double> minTop500XPowers, DailyStatsSaveModel yesterdayStats, Account account) {
 		var sortedStats = Stream.of(minTop500XPowers.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("ar")).findFirst().orElse(null),
 				minTop500XPowers.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("lf")).findFirst().orElse(null),
@@ -259,24 +317,24 @@ public class S3DailyStatsSender {
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 
-		StringBuilder winBuilder = new StringBuilder("**Current X powers required to get top 500:**");
+		StringBuilder thresholdBuilder = new StringBuilder("**Current X powers required to get top 500:**");
 
-		for (var gearStat : sortedStats) {
-			var yesterdayStarCount = yesterdayStats.getPreviousXRankTop500Thresholds().getOrDefault(gearStat.getKey(), gearStat.getValue());
+		for (var thresholdStat : sortedStats) {
+			var yesterdayTop500Threshold = yesterdayStats.getPreviousXRankTop500Thresholds().getOrDefault(thresholdStat.getKey(), thresholdStat.getValue());
 
 			// build message
-			winBuilder.append("\n- ").append(getRuleName(gearStat.getKey())).append(": **").append(gearStat.getValue()).append("**");
-			if (!Objects.equals(yesterdayStarCount, gearStat.getValue())) {
-				winBuilder.append(" (")
-					.append(yesterdayStarCount < gearStat.getValue() ? "+" : "-")
-					.append(Math.abs(yesterdayStarCount - gearStat.getValue()))
+			thresholdBuilder.append("\n- ").append(getRuleName(thresholdStat.getKey())).append(": **").append(thresholdStat.getValue()).append("**");
+			if (!Objects.equals(yesterdayTop500Threshold, thresholdStat.getValue())) {
+				thresholdBuilder.append(" (")
+					.append(yesterdayTop500Threshold < thresholdStat.getValue() ? "+" : "-")
+					.append(String.format("%.1f", Math.abs(yesterdayTop500Threshold - thresholdStat.getValue())))
 					.append(")");
 			}
 
-			yesterdayStats.getPreviousXRankTop500Thresholds().put(gearStat.getKey(), gearStat.getValue());
+			yesterdayStats.getPreviousXRankTop500Thresholds().put(thresholdStat.getKey(), thresholdStat.getValue());
 		}
 
-		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
+		discordBot.sendPrivateMessage(account.getDiscordId(), thresholdBuilder.toString());
 	}
 
 	private String getRuleName(String key) {

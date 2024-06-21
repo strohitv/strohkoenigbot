@@ -27,4 +27,6 @@ public class DailyStatsSaveModel {
 	private Map<String, Integer> previousSalmonRunBossDefeatCount = new HashMap<>();
 
 	private Map<String, Double> previousXRankTop500Thresholds = new HashMap<>();
+
+	private Integer previousRequiredExpFor4StarGrind = null;
 }
