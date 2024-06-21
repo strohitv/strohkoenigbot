@@ -61,6 +61,29 @@ public class S3ApiQuerySender {
 		return result;
 	}
 
+	public String queryS3ApiPaged(Account account, S3RequestKey key, String id, int page, int first, String cursor) {
+		var actionHash = requestKeyUtil.load(key);
+
+		logger.info("Sending request for hash '{}', id  '{}', page '{}', first '{}' and cursor '{}'", actionHash, id, page, first, cursor);
+
+		String result = doRequestPaged(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, id, page, first, cursor);
+
+		if (result == null) {
+			if (DiscordChannelDecisionMaker.isLocalDebug()) logSender.sendLogs(logger, "Didn't receive a result, retrying after refreshing tokens...");
+
+			// Tokens might be outdated -> retry once with refreshed Tokens
+			S3AuthenticationData authenticationData = authenticator.refreshAccess(account.getSplatoonSessionToken());
+			account.setGTokenSplatoon3(authenticationData.getGToken());
+			account.setBulletTokenSplatoon3(authenticationData.getBulletToken());
+
+			account = accountRepository.save(account);
+			result = doRequestPaged(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, id, page, first, cursor);
+			if (DiscordChannelDecisionMaker.isLocalDebug()) logSender.sendLogs(logger, String.format("is result null again? %b", result == null));
+		}
+
+		return result;
+	}
+
 	private String doRequest(String gToken, String bulletToken, String actionHash, String additionalHeader, String additionalContent) {
 		String body = String.format("{\"variables\":{},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", actionHash);
 
@@ -68,35 +91,44 @@ public class S3ApiQuerySender {
 			body = String.format("{\"variables\":{\"%s\":\"%s\"},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", additionalHeader, additionalContent, actionHash);
 		}
 
+		return doRequest(gToken, bulletToken, body);
+	}
+
+	private String doRequestPaged(String gToken, String bulletToken, String actionHash, String id, int page, int first, String cursor) {
+		String body = String.format("{\"variables\":{\"cursor\":\"%s\",\"first\":%d,\"page\":%d,\"id\":\"%s\"},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", cursor, first, page, id, actionHash);
+		return doRequest(gToken, bulletToken, body);
+	}
+
+	private String doRequest(String gToken, String bulletToken, String body) {
 		String webViewVersion = configurationRepository.findAllByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
-				.findFirst()
-				.map(Configuration::getConfigValue)
-				.orElse("");
+			.findFirst()
+			.map(Configuration::getConfigValue)
+			.orElse("");
 
 		String address = "https://api.lp1.av5ja.srv.nintendo.net/api/graphql";
 
 		URI uri = URI.create(address);
 
 		HttpRequest request = HttpRequest.newBuilder()
-				.POST(HttpRequest.BodyPublishers.ofString(body))
-				.uri(uri)
-				.setHeader("Authorization", String.format("Bearer %s", bulletToken))
-				.setHeader("Accept-Language", "en-US")
-				.setHeader("Accept-Encoding", "gzip,deflate,br")
-				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
-				.setHeader("X-Web-View-Ver", webViewVersion)
-				.setHeader("Content-Type", "application/json")
-				.setHeader("Accept", "*/*")
-				.setHeader("Origin", "https://api.lp1.av5ja.srv.nintendo.net")
-				.setHeader("X-Requested-With", "com.nintendo.znca")
-				.setHeader("Referer", "https://api.lp1.av5ja.srv.nintendo.net/?lang=en-US&na_country=US&na_lang=en-US")
+			.POST(HttpRequest.BodyPublishers.ofString(body))
+			.uri(uri)
+			.setHeader("Authorization", String.format("Bearer %s", bulletToken))
+			.setHeader("Accept-Language", "en-US")
+			.setHeader("Accept-Encoding", "gzip,deflate,br")
+			.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
+			.setHeader("X-Web-View-Ver", webViewVersion)
+			.setHeader("Content-Type", "application/json")
+			.setHeader("Accept", "*/*")
+			.setHeader("Origin", "https://api.lp1.av5ja.srv.nintendo.net")
+			.setHeader("X-Requested-With", "com.nintendo.znca")
+			.setHeader("Referer", "https://api.lp1.av5ja.srv.nintendo.net/?lang=en-US&na_country=US&na_lang=en-US")
 //				.setHeader("Accept-Encoding", "gzip, deflate")
-				.build();
+			.build();
 
 		HttpClient client = HttpClient.newBuilder()
-				.version(HttpClient.Version.HTTP_2)
-				.cookieHandler(new S3CookieHandler(gToken, false))
-				.build();
+			.version(HttpClient.Version.HTTP_2)
+			.cookieHandler(new S3CookieHandler(gToken, false))
+			.build();
 
 		return s3RequestSender.sendRequestAndParseGzippedJson(client, request);
 	}

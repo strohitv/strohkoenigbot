@@ -37,11 +37,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -64,6 +62,7 @@ public class S3DailyStatsSender {
 	private final S3Downloader downloader;
 	private final S3NewGearChecker newGearChecker;
 	private final S3WeaponDownloader weaponDownloader;
+	private final S3XLeaderboardDownloader xLeaderboardDownloader;
 
 	private SchedulingService schedulingService;
 
@@ -213,6 +212,8 @@ public class S3DailyStatsSender {
 			}
 		}
 
+		var minTop500XPowers = xLeaderboardDownloader.loadTop500MinPower();
+
 		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
 		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
 
@@ -220,17 +221,19 @@ public class S3DailyStatsSender {
 		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
 		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
 
+		sendMinTop500XPowersToDiscord(minTop500XPowers, yesterdayStats, account);
+
 		sendSalmonRunStatsToDiscord(defeatedSalmonRunBosses, yesterdayStats, account);
 
-		if (salmonRunWeaponsYesterday.size() > 0) {
+		if (!salmonRunWeaponsYesterday.isEmpty()) {
 			sendStatsToDiscord(salmonRunWeaponsYesterday, String.format("**Yesterday, you played a total of __%d__ different weapons in Salmon Run**", salmonRunWeaponsYesterday.size()), account);
 		}
 
-		if (yesterdayWaves.size() > 0) {
+		if (!yesterdayWaves.isEmpty()) {
 			sendStatsToDiscord(yesterdayWaves, String.format("**Yesterday, you played a total of __%d__ different waves in Salmon Run**", yesterdayWaves.size()), account);
 		}
 
-		if (yesterdayTides.size() > 0) {
+		if (!yesterdayTides.isEmpty()) {
 			sendStatsToDiscord(yesterdayTides, String.format("**Yesterday, you played a total of __%d__ different tides in Salmon Run**", yesterdayTides.size()), account);
 		}
 
@@ -246,6 +249,46 @@ public class S3DailyStatsSender {
 		refreshYesterdayStats(yesterdayStats);
 
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
+	}
+
+	private void sendMinTop500XPowersToDiscord(Map<String, Double> minTop500XPowers, DailyStatsSaveModel yesterdayStats, Account account) {
+		var sortedStats = Stream.of(minTop500XPowers.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("ar")).findFirst().orElse(null),
+				minTop500XPowers.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("lf")).findFirst().orElse(null),
+				minTop500XPowers.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("gl")).findFirst().orElse(null),
+				minTop500XPowers.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("cl")).findFirst().orElse(null))
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+
+		StringBuilder winBuilder = new StringBuilder("**Current X powers required to get top 500:**");
+
+		for (var gearStat : sortedStats) {
+			var yesterdayStarCount = yesterdayStats.getPreviousXRankTop500Thresholds().getOrDefault(gearStat.getKey(), gearStat.getValue());
+
+			// build message
+			winBuilder.append("\n- ").append(getRuleName(gearStat.getKey())).append(": **").append(gearStat.getValue()).append("**");
+			if (!Objects.equals(yesterdayStarCount, gearStat.getValue())) {
+				winBuilder.append(" (")
+					.append(yesterdayStarCount < gearStat.getValue() ? "+" : "-")
+					.append(Math.abs(yesterdayStarCount - gearStat.getValue()))
+					.append(")");
+			}
+
+			yesterdayStats.getPreviousXRankTop500Thresholds().put(gearStat.getKey(), gearStat.getValue());
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
+	}
+
+	private String getRuleName(String key) {
+		if (key.equalsIgnoreCase("ar")) {
+			return "Zones";
+		} else if (key.equalsIgnoreCase("lf")) {
+			return "Tower";
+		} else if (key.equalsIgnoreCase("gl")) {
+			return "Rainmaker";
+		} else {
+			return "Clams";
+		}
 	}
 
 	private void countOnlineWins(Map<String, Integer> ruleWins, Map<String, Integer> specialWinResults) {
@@ -373,7 +416,7 @@ public class S3DailyStatsSender {
 				.forEach(sortedEnemyTeamWeaponsUsageStatsTotal::add);
 
 			// Yesterday
-			if (sortedOwnWeaponsUsageStats.size() > 0) {
+			if (!sortedOwnWeaponsUsageStats.isEmpty()) {
 				StringBuilder ownWeaponUsageBuilder = new StringBuilder("Yesterday, I used a total of **").append(sortedOwnWeaponsUsageStats.size()).append("** different weapons:");
 
 				for (var gearStat : sortedOwnWeaponsUsageStats) {
@@ -499,7 +542,7 @@ public class S3DailyStatsSender {
 				.forEach(sortedEnemyTeamSpecialsUsageStatsPbs::add);
 
 			// Yesterday
-			if (sortedOwnSpecialsUsageStats.size() > 0) {
+			if (!sortedOwnSpecialsUsageStats.isEmpty()) {
 				StringBuilder ownSpecialUsageBuilder = new StringBuilder("Yesterday, I used a total of **").append(sortedOwnSpecialsUsageStats.size()).append("** different special weapons:");
 
 				for (var gearStat : sortedOwnSpecialsUsageStats) {
@@ -531,7 +574,7 @@ public class S3DailyStatsSender {
 			}
 
 			// pbs
-			if (sortedOwnSpecialsUsageStatsPbs.size() > 0) {
+			if (!sortedOwnSpecialsUsageStatsPbs.isEmpty()) {
 				StringBuilder ownPbsSpecialUsageBuilder = new StringBuilder("Yesterday in private battles, I used a total of **").append(sortedOwnSpecialsUsageStatsPbs.size()).append("** different special weapons:");
 
 				for (var gearStat : sortedOwnSpecialsUsageStatsPbs) {
@@ -874,7 +917,7 @@ public class S3DailyStatsSender {
 			if (timeAsInstant != null) {
 				LocalDateTime time = LocalDateTime.ofInstant(timeAsInstant, ZoneId.systemDefault());
 
-				wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
+				wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(1))
 					&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
 			} else {
 				logSender.sendLogs(logger, "Instant from match was null?? WTH?");
@@ -1015,7 +1058,7 @@ public class S3DailyStatsSender {
 				}
 			}
 
-			if (ownSpecials.size() == 0
+			if (ownSpecials.isEmpty()
 				&& result.getData().getVsHistoryDetail().getPlayer() != null
 				&& result.getData().getVsHistoryDetail().getPlayer().getWeapon() != null
 				&& result.getData().getVsHistoryDetail().getPlayer().getResult() != null
@@ -1044,7 +1087,7 @@ public class S3DailyStatsSender {
 			if (timeAsInstant != null) {
 				LocalDateTime time = LocalDateTime.ofInstant(timeAsInstant, ZoneId.systemDefault());
 
-				var wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS))
+				var wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(1))
 					&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
 
 				if (wasToday) {

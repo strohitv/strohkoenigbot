@@ -29,10 +29,18 @@ public enum S3RequestKey {
 
 	XRankStats("XRankingQuery", "a5331ed228dbf2e904168efe166964e2be2b00460c578eee49fc0bc58b4b899c", "/x_ranking"),
 
+	XRankLeaderboardNextPageZones("DetailTabViewXRankingArRefetchQuery", "0dc7b908c6d7ad925157a7fa60915523dab4613e6902f8b3359ae96be1ba175f", "/x_ranking/WFJhbmtpbmdTZWFzb24tYTo4/ar"),
+	XRankLeaderboardNextPageTower("DetailTabViewXRankingLfRefetchQuery", "ca55206629f2c9fab38d74e49dda3c5452a83dd02a5a7612a2520a1fc77ae228", "/x_ranking/WFJhbmtpbmdTZWFzb24tYTo4/lf"),
+	XRankLeaderboardNextPageRainmaker("DetailTabViewXRankingGlRefetchQuery", "6ab0299d827378d2cae1e608d349168cd4db21dd11164c542d405ed689c9f622", "/x_ranking/WFJhbmtpbmdTZWFzb24tYTo4/gl"),
+	XRankLeaderboardNextPageClams("DetailTabViewXRankingClRefetchQuery", "485e5decc718feeccf6dffddfe572455198fdd373c639d68744ee81507df1a48", "/x_ranking/WFJhbmtpbmdTZWFzb24tYTo4/cl"),
+
 	RotationSchedules("StageScheduleQuery", "d49fb6adffe15e3e43ca1167397debfc580eede3ad2232d7e32062bc5487e7eb", "/schedule/bankara");
 
 	@Getter
 	private final static EnumSet<S3RequestKey> onlineBattles = EnumSet.of(Regular, Anarchy, XRank, Challenge, Private); // EnumSet.of(Latest, Regular, Anarchy, Private); //
+
+	@Getter
+	private final static EnumSet<S3RequestKey> xRankLeaderBoardQueries = EnumSet.of(XRankLeaderboardNextPageZones, XRankLeaderboardNextPageTower, XRankLeaderboardNextPageRainmaker, XRankLeaderboardNextPageClams);
 
 	private final String queryName;
 	private final String key;

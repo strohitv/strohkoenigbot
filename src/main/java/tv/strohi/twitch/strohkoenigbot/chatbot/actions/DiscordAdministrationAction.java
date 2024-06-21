@@ -78,6 +78,8 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final S3EmoteSender emoteSender;
 	private final S3NameplateSender nameplateSender;
 
+	private final S3XLeaderboardDownloader leaderboardDownloader;
+
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
 		return EnumSet.of(TriggerReason.DiscordPrivateMessage);
@@ -526,10 +528,33 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Reposting nameplates...");
 				nameplateSender.repostNameplates();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished nameplate repost.");
+			} else if (message.startsWith("!load top500")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Loading top500 powers...");
+
+				var powers = leaderboardDownloader.loadTop500MinPower();
+				var builder = new StringBuilder("current top 500 powers:");
+				for (var key : powers.keySet()) {
+					builder.append("\n- ").append(findModeName(key)).append(": ").append(powers.get(key));
+				}
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished loading top500 powers.");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
 			exceptionLogger.logException(logger, e);
+		}
+	}
+
+	private String findModeName(String key) {
+		if (key.toLowerCase(Locale.ROOT).contains("ar")) {
+			return "Zones";
+		} else if (key.toLowerCase(Locale.ROOT).contains("lf")) {
+			return "Tower";
+		} else if (key.toLowerCase(Locale.ROOT).contains("gl")) {
+			return "Rainmaker";
+		} else {
+			return "Clams";
 		}
 	}
 

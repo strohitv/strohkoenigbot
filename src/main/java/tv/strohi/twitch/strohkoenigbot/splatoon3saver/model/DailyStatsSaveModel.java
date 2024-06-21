@@ -25,4 +25,6 @@ public class DailyStatsSaveModel {
 
 	private List<String> ignoredSalmonRunBosses = new ArrayList<>(List.of("Goldie", "Griller", "Mudmouth"));
 	private Map<String, Integer> previousSalmonRunBossDefeatCount = new HashMap<>();
+
+	private Map<String, Double> previousXRankTop500Thresholds = new HashMap<>();
 }
