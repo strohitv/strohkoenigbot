@@ -36,7 +36,7 @@ public class TwitchDiscordMessageSender {
 				messageSender.send("strohkoenig", message);
 				break;
 			case PrivateMessage:
-				messageSender.replyPrivate((String) args.getArguments().get(ArgumentKey.ChannelName), message);
+				messageSender.replyPrivate(args.getUserId(), message);
 				break;
 			case DiscordPrivateMessage:
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), message);

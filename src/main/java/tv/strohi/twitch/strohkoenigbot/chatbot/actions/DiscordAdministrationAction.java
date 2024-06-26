@@ -14,7 +14,6 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
-import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAuth;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchSoAccount;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
@@ -95,19 +94,7 @@ public class DiscordAdministrationAction extends ChatAction {
 		try {
 			message = message.toLowerCase().trim();
 
-			if (message.startsWith("!setbottoken")) {
-				String newBotToken = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim().substring("!setbottoken".length()).trim();
-
-				TwitchAuth auth = authRepository.findAll().stream().findFirst().orElse(null);
-				if (auth != null) {
-					auth.setToken(newBotToken);
-					authRepository.save(auth);
-
-					twitchBotClient.initializeClient();
-
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Token was set successfully.");
-				}
-			} else if (message.startsWith("!start")) {
+			if (message.startsWith("!start")) {
 				Account account = accountRepository.findAll().stream()
 					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.findFirst()

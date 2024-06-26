@@ -103,15 +103,6 @@ public class JavaArgumentEvaluator {
 						configurationRepository.deleteAll();
 						configurationRepository.saveAll(Arrays.asList(config.getConfig()));
 					}
-
-					if (config.getTwitch() != null) {
-						twitchBotClient.stop();
-
-						twitchAuthRepository.deleteAll();
-						twitchAuthRepository.saveAll(Arrays.asList(config.getTwitch()));
-
-						twitchBotClient.initializeClient();
-					}
 				} catch (IOException e) {
 					logger.error(e);
 				}
