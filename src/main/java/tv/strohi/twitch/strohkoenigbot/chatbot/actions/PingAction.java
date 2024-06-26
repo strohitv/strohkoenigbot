@@ -14,7 +14,7 @@ import java.util.EnumSet;
 public class PingAction extends ChatAction {
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
-		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.DiscordMessage, TriggerReason.DiscordPrivateMessage);
+		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.PrivateMessage, TriggerReason.DiscordMessage, TriggerReason.DiscordPrivateMessage);
 	}
 
 	@Override

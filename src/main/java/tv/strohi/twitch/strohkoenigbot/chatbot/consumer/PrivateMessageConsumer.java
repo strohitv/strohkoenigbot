@@ -29,9 +29,10 @@ public class PrivateMessageConsumer implements Consumer<PrivateMessageEvent> {
 		args.getArguments().put(ArgumentKey.Event, event);
 		args.getArguments().put(ArgumentKey.Message, event.getMessage());
 		args.getArguments().put(ArgumentKey.ChannelName, event.getUser().getName());
+		args.getArguments().put(ArgumentKey.ChannelId, event.getUser().getId());
 
 		args.setReplySender(
-				new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
+			new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
 		);
 
 		botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChatMessage)).forEach(action -> action.run(args));

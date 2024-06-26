@@ -28,7 +28,7 @@ public class S3RandomWeaponAction extends ChatAction {
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
-		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.DiscordMessage, TriggerReason.DiscordPrivateMessage);
+		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.PrivateMessage, TriggerReason.DiscordMessage, TriggerReason.DiscordPrivateMessage);
 	}
 
 	@Override
@@ -189,7 +189,7 @@ public class S3RandomWeaponAction extends ChatAction {
 				}
 			}
 
-			if (chosenClasses.size() > 0) {
+			if (!chosenClasses.isEmpty()) {
 				kits = kits.stream().filter(k -> chosenClasses.contains(k.getWeaponCategory().getName())).collect(Collectors.toList());
 			}
 
