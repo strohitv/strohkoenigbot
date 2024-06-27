@@ -239,6 +239,7 @@ public class TwitchBotClient {
 						goOffline(event.getChannel().getId());
 					}
 				});
+				logSender.sendLogs(logger, "done with twitch alerts");
 
 				client.getEventManager().onEvent(ChannelClipCreatedEvent.class, event -> {
 					var channelName = event.getChannel().getName();
@@ -251,6 +252,7 @@ public class TwitchBotClient {
 				client.getEventManager().onEvent(RaidEvent.class, new RaidEventConsumer(botActions));
 				client.getEventManager().onEvent(ChannelMessageEvent.class, new ChannelMessageConsumer(botActions));
 				client.getEventManager().onEvent(PrivateMessageEvent.class, new PrivateMessageConsumer(botActions));
+				logSender.sendLogs(logger, "done with twitch events");
 			} else {
 				client.getPubSub().listenForAdsManagerEvents(botCredential, access.getUserId(), access.getUserId());
 				client.getPubSub().listenForAdsEvents(botCredential, access.getUserId());
