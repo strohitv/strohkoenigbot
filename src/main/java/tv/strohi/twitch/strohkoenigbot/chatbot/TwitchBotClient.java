@@ -214,24 +214,28 @@ public class TwitchBotClient {
 				}
 
 				var allAlerts = twitchGoingLiveAlertRepository.findAll();
+				logSender.sendLogs(logger, String.format("number of twitch alerts to watch over: %d", allAlerts.size()));
+
 				for (var alert : allAlerts) {
-					if (access.getUseForMessages()) {
-						client.getClientHelper().enableStreamEventListener(alert.getTwitchChannelName());
-					}
+					logSender.sendLogs(logger, String.format("creating twitch alert for: %s", alert.getTwitchChannelName()));
+					client.getClientHelper().enableStreamEventListener(alert.getTwitchChannelName());
 				}
 
 				goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
+					logSender.sendLogs(logger, String.format("alert fired for channel: %s", event.getChannel().getName()));
 					for (var consumer : goingLiveAlertConsumers) {
 						consumer.accept(event);
 					}
 
 					if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
+						logSender.sendLogs(logger, String.format("going live for channel: %s", event.getChannel().getName()));
 						goLive(event.getChannel().getId());
 					}
 				});
 
 				goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
 					if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
+						logSender.sendLogs(logger, String.format("going offline for channel: %s", event.getChannel().getName()));
 						goOffline(event.getChannel().getId());
 					}
 				});
