@@ -31,10 +31,10 @@ public class S3XPowerDownloader {
 				var xStats = objectMapper.readValue(xResponse, XRankStats.class);
 				var xPlayer = xStats.getData().getXRanking().getPlayer();
 
-				var zonesPower = xPlayer.getStatsAr() != null ? xPlayer.getStatsAr().getLastXPower() : null;
-				var towerPower = xPlayer.getStatsLf() != null ? xPlayer.getStatsLf().getLastXPower() : null;
-				var rainmakerPower = xPlayer.getStatsGl() != null ? xPlayer.getStatsGl().getLastXPower() : null;
-				var clamsPower = xPlayer.getStatsCl() != null ? xPlayer.getStatsCl().getLastXPower() : null;
+				var zonesPower = xPlayer.getStatsAr() != null && xPlayer.getStatsAr().getLastXPower() >= 500 ? xPlayer.getStatsAr().getLastXPower() : null;
+				var towerPower = xPlayer.getStatsLf() != null && xPlayer.getStatsLf().getLastXPower() >= 500 ? xPlayer.getStatsLf().getLastXPower() : null;
+				var rainmakerPower = xPlayer.getStatsGl() != null && xPlayer.getStatsGl().getLastXPower() >= 500 ? xPlayer.getStatsGl().getLastXPower() : null;
+				var clamsPower = xPlayer.getStatsCl() != null && xPlayer.getStatsCl().getLastXPower() >= 500 ? xPlayer.getStatsCl().getLastXPower() : null;
 
 				streamStatistics.setCurrentXPowers(zonesPower, towerPower, rainmakerPower, clamsPower);
 			} catch (Exception ex) {
