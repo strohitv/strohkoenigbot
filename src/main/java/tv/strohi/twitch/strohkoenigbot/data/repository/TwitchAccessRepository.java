@@ -14,4 +14,5 @@ public interface TwitchAccessRepository extends CrudRepository<TwitchAccess, Lon
 
 	Optional<TwitchAccess> findById(long id);
 	Optional<TwitchAccess> findByUserId(String id);
+	Optional<TwitchAccess> findByUseForMessages(boolean useForMessages);
 }

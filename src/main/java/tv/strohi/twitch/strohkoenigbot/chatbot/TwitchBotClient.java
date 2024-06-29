@@ -37,20 +37,23 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.ChannelMessageConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.PrivateMessageConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.RaidEventConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.RewardRedeemedConsumer;
-import tv.strohi.twitch.strohkoenigbot.chatbot.model.TwitchAccessInformation;
-import tv.strohi.twitch.strohkoenigbot.chatbot.model.TwitchAccessTokenResponse;
-import tv.strohi.twitch.strohkoenigbot.chatbot.model.TwitchClaims;
-import tv.strohi.twitch.strohkoenigbot.chatbot.model.TwitchIdTokenResponse;
+import tv.strohi.twitch.strohkoenigbot.chatbot.model.*;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAccess;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchGoingLiveAlert;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
-import tv.strohi.twitch.strohkoenigbot.data.repository.*;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAccessRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchGoingLiveAlertRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.utils.Constants;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import javax.annotation.PreDestroy;
 import java.net.URLEncoder;
@@ -63,7 +66,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Component
-public class TwitchBotClient {
+public class TwitchBotClient implements ScheduledService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final List<Consumer<ChannelGoLiveEvent>> goingLiveAlertConsumers = new ArrayList<>();
@@ -120,6 +123,8 @@ public class TwitchBotClient {
 		return Optional.empty();
 	}
 
+	private final Queue<TwitchClientGoLiveChannel> goLiveEventsToChange = new LinkedList<>();
+
 	@Setter
 	private boolean fakeDebug = false;
 
@@ -163,19 +168,39 @@ public class TwitchBotClient {
 
 		this.logSender = logSender;
 
-		for (var access : twitchAccessRepository.findAll()) {
-			var refreshedAccessToken = refreshAccessToken(access);
+		twitchAccessRepository.findByUseForMessages(true)
+			.ifPresent(access -> {
+				var refreshedAccessToken = refreshAccessToken(access);
 
-			if (refreshedAccessToken != null) {
-				access.setAccessToken(refreshedAccessToken);
-				twitchAccessRepository.save(access);
-			}
+				if (refreshedAccessToken != null) {
+					access.setAccessToken(refreshedAccessToken);
+					twitchAccessRepository.save(access);
+				}
 
-			var newBotCredential = new OAuth2Credential("twitch", access.getAccessToken(), access.getRefreshToken(), access.getUserId(), access.getPreferredUsername(), access.getExpiresIn(), access.getScopesList(), null);
-			var twitchClient = initializeClient(newBotCredential, access);
+				var newBotCredential = new OAuth2Credential("twitch", access.getAccessToken(), access.getRefreshToken(), access.getUserId(), access.getPreferredUsername(), access.getExpiresIn(), access.getScopesList(), null);
+				var twitchClient = initializeClient(newBotCredential, access);
 
-			twitchClients.add(new TwitchAccessInformation(access, twitchClient, newBotCredential));
-		}
+				twitchClients.add(new TwitchAccessInformation(access, twitchClient, newBotCredential));
+			});
+	}
+
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+				.name("TwitchBotClient_initializeOneClient")
+				.schedule(TickSchedule.getScheduleString(TickSchedule.everyMinutes(1)))
+				.runnable(this::initializeOneClient)
+				.build(),
+			ScheduleRequest.builder()
+				.name("TwitchBotClient_addOneGoLiveEventListener")
+				.schedule(TickSchedule.getScheduleString(1))
+				.runnable(this::addOneGoLiveEvent)
+				.build());
+	}
+
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
 	public void addGoingLiveAlertConsumer(Consumer<ChannelGoLiveEvent> consumer) {
@@ -219,8 +244,7 @@ public class TwitchBotClient {
 				logSender.sendLogs(logger, String.format("number of twitch alerts to watch over: %d", allAlerts.size()));
 
 				for (var alertChannelName : allAlerts) {
-					logSender.sendLogs(logger, String.format("creating twitch alert for: %s", alertChannelName));
-					client.getClientHelper().enableStreamEventListener(alertChannelName);
+					goLiveEventsToChange.add(new TwitchClientGoLiveChannel(client, alertChannelName, true));
 				}
 
 				goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
@@ -241,7 +265,6 @@ public class TwitchBotClient {
 						goOffline(event.getChannel().getId());
 					}
 				});
-				logSender.sendLogs(logger, "done with twitch alerts");
 
 				client.getEventManager().onEvent(ChannelClipCreatedEvent.class, event -> {
 					var channelName = event.getChannel().getName();
@@ -468,7 +491,7 @@ public class TwitchBotClient {
 			.findFirst()
 			.ifPresent(connection -> {
 				var client = connection.getClient();
-				client.getClientHelper().enableStreamEventListener(channelName);
+				goLiveEventsToChange.add(new TwitchClientGoLiveChannel(client, channelName, true));
 			});
 	}
 
@@ -478,7 +501,7 @@ public class TwitchBotClient {
 			.findFirst()
 			.ifPresent(connection -> {
 				var client = connection.getClient();
-				client.getClientHelper().disableStreamEventListener(channelName);
+				goLiveEventsToChange.add(new TwitchClientGoLiveChannel(client, channelName, false));
 			});
 	}
 
@@ -797,6 +820,39 @@ public class TwitchBotClient {
 			return response.getBody().getAccessToken();
 		} else {
 			return null;
+		}
+	}
+
+	private void initializeOneClient() {
+		twitchAccessRepository.findAll().stream()
+			.filter(access -> twitchClients.stream().noneMatch(client -> client.getAccess().getId() == access.getId()))
+			.findFirst()
+			.ifPresent(access -> {
+				var refreshedAccessToken = refreshAccessToken(access);
+
+				if (refreshedAccessToken != null) {
+					access.setAccessToken(refreshedAccessToken);
+					twitchAccessRepository.save(access);
+				}
+
+				var newBotCredential = new OAuth2Credential("twitch", access.getAccessToken(), access.getRefreshToken(), access.getUserId(), access.getPreferredUsername(), access.getExpiresIn(), access.getScopesList(), null);
+				var twitchClient = initializeClient(newBotCredential, access);
+
+				twitchClients.add(new TwitchAccessInformation(access, twitchClient, newBotCredential));
+			});
+	}
+
+	private void addOneGoLiveEvent() {
+		var firstEntry = goLiveEventsToChange.poll();
+
+		if (firstEntry != null) {
+			if (firstEntry.isEnable()) {
+				logSender.sendLogs(logger, String.format("enabling twitch stream event listener for: %s", firstEntry.getChannelName()));
+				firstEntry.getClient().getClientHelper().enableStreamEventListener(firstEntry.getChannelName());
+			} else {
+				logSender.sendLogs(logger, String.format("disabling twitch stream event listener for: %s", firstEntry.getChannelName()));
+				firstEntry.getClient().getClientHelper().disableStreamEventListener(firstEntry.getChannelName());
+			}
 		}
 	}
 }
