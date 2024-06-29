@@ -44,6 +44,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.model.TwitchIdTokenResponse;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAccess;
+import tv.strohi.twitch.strohkoenigbot.data.model.TwitchGoingLiveAlert;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Clip;
 import tv.strohi.twitch.strohkoenigbot.data.repository.*;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
@@ -59,6 +60,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Component
 public class TwitchBotClient {
@@ -213,12 +215,12 @@ public class TwitchBotClient {
 					client.getEventManager().onEvent(RewardRedeemedEvent.class, new RewardRedeemedConsumer(botActions));
 				}
 
-				var allAlerts = twitchGoingLiveAlertRepository.findAll();
+				var allAlerts = twitchGoingLiveAlertRepository.findAll().stream().map(TwitchGoingLiveAlert::getTwitchChannelName).distinct().collect(Collectors.toList());
 				logSender.sendLogs(logger, String.format("number of twitch alerts to watch over: %d", allAlerts.size()));
 
-				for (var alert : allAlerts) {
-					logSender.sendLogs(logger, String.format("creating twitch alert for: %s", alert.getTwitchChannelName()));
-					client.getClientHelper().enableStreamEventListener(alert.getTwitchChannelName());
+				for (var alertChannelName : allAlerts) {
+					logSender.sendLogs(logger, String.format("creating twitch alert for: %s", alertChannelName));
+					client.getClientHelper().enableStreamEventListener(alertChannelName);
 				}
 
 				goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
