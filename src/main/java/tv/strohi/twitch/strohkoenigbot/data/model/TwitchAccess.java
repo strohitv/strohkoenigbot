@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +45,7 @@ public class TwitchAccess {
 
 	private ZonedDateTime updatedAt;
 
-	private Integer expiresIn;
+	private Instant expiresAt;
 
 	public List<String> getScopesList() {
 		if (scopes == null) {

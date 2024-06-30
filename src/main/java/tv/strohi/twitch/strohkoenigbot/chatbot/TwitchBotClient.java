@@ -124,6 +124,7 @@ public class TwitchBotClient implements ScheduledService {
 	}
 
 	private final Queue<TwitchClientGoLiveChannel> goLiveEventsToChange = new LinkedList<>();
+	private final List<String> registeredGoLiveChannels = new ArrayList<>();
 
 	@Setter
 	private boolean fakeDebug = false;
@@ -173,11 +174,19 @@ public class TwitchBotClient implements ScheduledService {
 				var refreshedAccessToken = refreshAccessToken(access);
 
 				if (refreshedAccessToken != null) {
-					access.setAccessToken(refreshedAccessToken);
+					access.setAccessToken(refreshedAccessToken.getAccessToken());
+					access.setRefreshToken(refreshedAccessToken.getRefreshToken());
+					access.setExpiresAt(Instant.now().plusSeconds(refreshedAccessToken.getExpiresIn()));
 					twitchAccessRepository.save(access);
+
+					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
+						access.getPreferredUsername(),
+						access.getExpiresAt().getEpochSecond(),
+						access.getExpiresAt().getEpochSecond(),
+						access.getExpiresAt().getEpochSecond()));
 				}
 
-				var newBotCredential = new OAuth2Credential("twitch", access.getAccessToken(), access.getRefreshToken(), access.getUserId(), access.getPreferredUsername(), access.getExpiresIn(), access.getScopesList(), null);
+				var newBotCredential = new OAuth2Credential("twitch", access.getAccessToken(), access.getRefreshToken(), access.getUserId(), access.getPreferredUsername(), Math.toIntExact(Duration.between(Instant.now(), access.getExpiresAt()).toSeconds()), access.getScopesList(), null);
 				var twitchClient = initializeClient(newBotCredential, access);
 
 				twitchClients.add(new TwitchAccessInformation(access, twitchClient, newBotCredential));
@@ -195,6 +204,11 @@ public class TwitchBotClient implements ScheduledService {
 				.name("TwitchBotClient_addOneGoLiveEventListener")
 				.schedule(TickSchedule.getScheduleString(1))
 				.runnable(this::addOneGoLiveEvent)
+				.build(),
+			ScheduleRequest.builder()
+				.name("TwitchBotClient_refreshAccessTokens")
+				.schedule(TickSchedule.getScheduleString(TickSchedule.everyMinutes(10)))
+				.runnable(this::refreshAccessTokens)
 				.build());
 	}
 
@@ -216,14 +230,28 @@ public class TwitchBotClient implements ScheduledService {
 		if (botCredential == null) return null;
 
 		try {
-			TwitchClientBuilder builder = TwitchClientBuilder.builder()
-				.withDefaultAuthToken(botCredential)
-				.withEnableChat(true)
-				.withChatAccount(botCredential)
-				.withEnableHelix(true)
-				.withEnablePubSub(true);
+			var clientId = configurationRepository.findByConfigName("twitchClientId")
+				.map(Configuration::getConfigValue)
+				.orElse(null);
 
-			var client = builder.build();
+			var clientSecret = configurationRepository.findByConfigName("twitchClientPassword")
+				.map(Configuration::getConfigValue)
+				.orElse(null);
+
+			var client = TwitchClientBuilder.builder()
+				.withClientId(clientId)
+				.withClientSecret(clientSecret)
+				.withRedirectUrl("http://localhost:8080/twitch-api")
+
+				.withDefaultAuthToken(botCredential)
+				.withChatAccount(botCredential)
+
+				.withEnableChat(true)
+				.withEnableHelix(true)
+				.withEnablePubSub(true)
+				.withEnableEventSocket(true)
+//				.withEnableGraphQL(true) // apparently experimental
+				.build();
 
 			if (access.getUseForMessages()) {
 				for (var channelName : Constants.ALL_TWITCH_CHANNEL_NAMES) {
@@ -231,6 +259,8 @@ public class TwitchBotClient implements ScheduledService {
 					if (client.getChat().isChannelJoined(channelName)) {
 						client.getChat().sendMessage(channelName, "Bot started. Hi! DinoDance");
 					}
+
+					goLiveEventsToChange.add(new TwitchClientGoLiveChannel(client, channelName, true));
 
 					client.getClientHelper().enableStreamEventListener(channelName);
 					client.getClientHelper().enableFollowEventListener(channelName);
@@ -277,41 +307,12 @@ public class TwitchBotClient implements ScheduledService {
 				client.getEventManager().onEvent(RaidEvent.class, new RaidEventConsumer(botActions));
 				client.getEventManager().onEvent(ChannelMessageEvent.class, new ChannelMessageConsumer(botActions));
 				client.getEventManager().onEvent(PrivateMessageEvent.class, new PrivateMessageConsumer(botActions));
-				logSender.sendLogs(logger, "done with twitch events");
+				logSender.sendLogs(logger, "done with twitch events for message sender channel");
 			} else {
-				client.getPubSub().listenForAdsManagerEvents(botCredential, access.getUserId(), access.getUserId());
-				client.getPubSub().listenForAdsEvents(botCredential, access.getUserId());
+				client.getEventManager().onEvent(ChannelAdBreakBeginEvent.class, this::reactToAdBreakBeginEvent);
+				client.getEventManager().onEvent(AdsScheduleUpdateEvent.class, this::reactToAdScheduleEvent);
 
-				client.getPubSub().getEventManager().onEvent(ChannelAdBreakBeginEvent.class, event -> {
-					if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getBroadcasterUserName())) {
-						if (event.getStartedAt().isBefore(Instant.now())) {
-							// Ads running, send !ads
-							getMessageClient().getChat().sendMessage(event.getBroadcasterUserName(), String.format("!ads @%s", event.getBroadcasterUserName()));
-						} else {
-							// Ads soon, notify streamer via chat
-							getMessageClient().getChat().sendMessage(event.getBroadcasterUserName(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", event.getBroadcasterUserName(), Duration.between(Instant.now(), event.getStartedAt()).toSeconds() / 60.0, event.getLengthSeconds() / 60.0));
-						}
-					}
-				});
-
-				client.getPubSub().getEventManager().onEvent(AdsScheduleUpdateEvent.class, event -> {
-					var channelName = twitchClients.stream()
-						.filter(c -> Objects.equals(event.getChannelId(), c.getAccess().getUserId())).findFirst()
-						.map(c -> c.getAccess().getPreferredUsername());
-
-					if (channelName.isPresent() && Constants.ALL_TWITCH_CHANNEL_NAMES.contains(channelName.get())) {
-						event.getData().getAdSchedule().stream().reduce((a, b) -> a.getRunAtTime().isBefore(b.getRunAtTime()) ? a : b)
-							.ifPresent(ad -> {
-								if (ad.getRunAtTime().isBefore(Instant.now())) {
-									// Ads running, send !ads
-									getMessageClient().getChat().sendMessage(channelName.get(), String.format("!ads @%s", channelName.get()));
-								} else {
-									// Ads soon, notify streamer via chat
-									getMessageClient().getChat().sendMessage(channelName.get(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", channelName.get(), Duration.between(Instant.now(), ad.getRunAtTime()).toSeconds() / 60.0, ad.getDurationSeconds() / 60.0));
-								}
-							});
-					}
-				});
+				logSender.sendLogs(logger, "done with twitch events for live channel");
 			}
 
 			logSender.sendLogs(logger, "fully connected twitch bot client");
@@ -357,6 +358,7 @@ public class TwitchBotClient implements ScheduledService {
 			"analytics:read:extensions",
 			"analytics:read:games",
 			"bits:read",
+			"channel_editor",
 			"channel:manage:ads",
 			"channel:read:ads",
 			"channel:manage:broadcast",
@@ -700,7 +702,7 @@ public class TwitchBotClient implements ScheduledService {
 		if (token != null) {
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.setBearerAuth(token.getAccessToken()); // todo oder idToken??
+			headers.setBearerAuth(token.getAccessToken());
 			var idToken = getUserInfo(headers);
 
 			if (idToken != null) {
@@ -716,7 +718,7 @@ public class TwitchBotClient implements ScheduledService {
 					.emailVerified(idToken.getEmailVerified())
 					.picture(idToken.getPicture())
 					.updatedAt(idToken.getUpdatedAtAsDate())
-					.expiresIn(token.getExpiresIn())
+					.expiresAt(Instant.now().plusSeconds(token.getExpiresIn()))
 					.build();
 
 				twitchAccess.setScopes(token.getScope());
@@ -784,7 +786,7 @@ public class TwitchBotClient implements ScheduledService {
 		}
 	}
 
-	private String refreshAccessToken(TwitchAccess access) {
+	private TwitchAccessTokenResponse refreshAccessToken(TwitchAccess access) {
 		var clientId = configurationRepository.findByConfigName("twitchClientId")
 			.map(Configuration::getConfigValue)
 			.orElse(null);
@@ -817,7 +819,7 @@ public class TwitchBotClient implements ScheduledService {
 			});
 
 		if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-			return response.getBody().getAccessToken();
+			return response.getBody();
 		} else {
 			return null;
 		}
@@ -831,14 +833,49 @@ public class TwitchBotClient implements ScheduledService {
 				var refreshedAccessToken = refreshAccessToken(access);
 
 				if (refreshedAccessToken != null) {
-					access.setAccessToken(refreshedAccessToken);
+					access.setAccessToken(refreshedAccessToken.getAccessToken());
+					access.setRefreshToken(refreshedAccessToken.getRefreshToken());
+					access.setExpiresAt(Instant.now().plusSeconds(refreshedAccessToken.getExpiresIn()));
 					twitchAccessRepository.save(access);
+
+					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
+						access.getPreferredUsername(),
+						access.getExpiresAt().getEpochSecond(),
+						access.getExpiresAt().getEpochSecond(),
+						access.getExpiresAt().getEpochSecond()));
 				}
 
-				var newBotCredential = new OAuth2Credential("twitch", access.getAccessToken(), access.getRefreshToken(), access.getUserId(), access.getPreferredUsername(), access.getExpiresIn(), access.getScopesList(), null);
+				var newBotCredential = new OAuth2Credential("twitch", access.getAccessToken(), access.getRefreshToken(), access.getUserId(), access.getPreferredUsername(), Math.toIntExact(Duration.between(Instant.now(), access.getExpiresAt()).toSeconds()), access.getScopesList(), null);
 				var twitchClient = initializeClient(newBotCredential, access);
 
 				twitchClients.add(new TwitchAccessInformation(access, twitchClient, newBotCredential));
+			});
+	}
+
+	private void refreshAccessTokens() {
+		twitchClients.stream()
+			.filter(tc -> tc.getAccess().getExpiresAt() == null || tc.getAccess().getExpiresAt().isBefore(Instant.now().plus(15, ChronoUnit.MINUTES)))
+			.forEach(tc -> {
+				logSender.sendLogs(logger, String.format("refreshing access token for user **%s**...", tc.getAccess().getPreferredUsername()));
+
+				var refreshedAccessToken = refreshAccessToken(tc.getAccess());
+
+				if (refreshedAccessToken != null) {
+					tc.getAccess().setAccessToken(refreshedAccessToken.getAccessToken());
+					tc.getAccess().setRefreshToken(refreshedAccessToken.getRefreshToken());
+					tc.getAccess().setExpiresAt(Instant.now().plusSeconds(refreshedAccessToken.getExpiresIn()));
+					twitchAccessRepository.save(tc.getAccess());
+
+					tc.getToken().setAccessToken(refreshedAccessToken.getAccessToken());
+					tc.getToken().setRefreshToken(refreshedAccessToken.getRefreshToken());
+					tc.getToken().setExpiresIn(refreshedAccessToken.getExpiresIn() - 10);
+
+					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
+						tc.getAccess().getPreferredUsername(),
+						tc.getAccess().getExpiresAt().getEpochSecond(),
+						tc.getAccess().getExpiresAt().getEpochSecond(),
+						tc.getAccess().getExpiresAt().getEpochSecond()));
+				}
 			});
 	}
 
@@ -847,11 +884,48 @@ public class TwitchBotClient implements ScheduledService {
 
 		if (firstEntry != null) {
 			if (firstEntry.isEnable()) {
-				logSender.sendLogs(logger, String.format("enabling twitch stream event listener for: %s", firstEntry.getChannelName()));
-				firstEntry.getClient().getClientHelper().enableStreamEventListener(firstEntry.getChannelName());
+				if (!registeredGoLiveChannels.contains(firstEntry.getChannelName())) {
+					logSender.sendLogs(logger, String.format("enabling twitch stream event listener for: %s", firstEntry.getChannelName()));
+					firstEntry.getClient().getClientHelper().enableStreamEventListener(firstEntry.getChannelName());
+					registeredGoLiveChannels.add(firstEntry.getChannelName());
+				}
 			} else {
-				logSender.sendLogs(logger, String.format("disabling twitch stream event listener for: %s", firstEntry.getChannelName()));
-				firstEntry.getClient().getClientHelper().disableStreamEventListener(firstEntry.getChannelName());
+				if (registeredGoLiveChannels.contains(firstEntry.getChannelName())) {
+					logSender.sendLogs(logger, String.format("disabling twitch stream event listener for: %s", firstEntry.getChannelName()));
+					firstEntry.getClient().getClientHelper().disableStreamEventListener(firstEntry.getChannelName());
+					registeredGoLiveChannels.remove(firstEntry.getChannelName());
+				}
+			}
+		}
+	}
+
+	private void reactToAdScheduleEvent(AdsScheduleUpdateEvent event) {
+		var channelName = twitchClients.stream()
+			.filter(c -> Objects.equals(event.getChannelId(), c.getAccess().getUserId())).findFirst()
+			.map(c -> c.getAccess().getPreferredUsername());
+
+		if (channelName.isPresent() && Constants.ALL_TWITCH_CHANNEL_NAMES.contains(channelName.get())) {
+			event.getData().getAdSchedule().stream().reduce((a, b) -> a.getRunAtTime().isBefore(b.getRunAtTime()) ? a : b)
+				.ifPresent(ad -> {
+					if (ad.getRunAtTime().isBefore(Instant.now())) {
+						// Ads running, send !ads
+						getMessageClient().getChat().sendMessage(channelName.get(), String.format("!ads @%s", channelName.get()));
+					} else {
+						// Ads soon, notify streamer via chat
+						getMessageClient().getChat().sendMessage(channelName.get(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", channelName.get(), Duration.between(Instant.now(), ad.getRunAtTime()).toSeconds() / 60.0, ad.getDurationSeconds() / 60.0));
+					}
+				});
+		}
+	}
+
+	private void reactToAdBreakBeginEvent(ChannelAdBreakBeginEvent event) {
+		if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getBroadcasterUserName())) {
+			if (event.getStartedAt().isBefore(Instant.now())) {
+				// Ads running, send !ads
+				getMessageClient().getChat().sendMessage(event.getBroadcasterUserName(), String.format("!ads @%s", event.getBroadcasterUserName()));
+			} else {
+				// Ads soon, notify streamer via chat
+				getMessageClient().getChat().sendMessage(event.getBroadcasterUserName(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", event.getBroadcasterUserName(), Duration.between(Instant.now(), event.getStartedAt()).toSeconds() / 60.0, event.getLengthSeconds() / 60.0));
 			}
 		}
 	}

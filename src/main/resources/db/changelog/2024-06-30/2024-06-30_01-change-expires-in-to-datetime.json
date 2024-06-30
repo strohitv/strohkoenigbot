@@ -1,0 +1,34 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2024-06-30_01-change-expires-in-to-datetime",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "dropColumn": {
+              "tableName": "twitch_access",
+              "columnName": "expires_in"
+            }
+          },
+          {
+            "addColumn": {
+              "tableName": "twitch_access",
+              "columns": [
+                {
+                  "column": {
+                    "name": "expires_at",
+                    "type": "datetime",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
