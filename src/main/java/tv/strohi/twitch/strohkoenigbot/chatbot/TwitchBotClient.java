@@ -85,6 +85,8 @@ public class TwitchBotClient implements ScheduledService {
 		wentLiveTime = null;
 	}
 
+	private final Map<TwitchClient, TwitchClientSentAds> adNotifications = new HashMap<>();
+
 	private final List<TwitchAccessInformation> twitchClients = new ArrayList<>();
 
 	public TwitchClient getMessageClient() {
@@ -209,6 +211,11 @@ public class TwitchBotClient implements ScheduledService {
 				.name("TwitchBotClient_refreshAccessTokens")
 				.schedule(TickSchedule.getScheduleString(TickSchedule.everyMinutes(10)))
 				.runnable(this::refreshAccessTokens)
+				.build(),
+			ScheduleRequest.builder()
+				.name("TwitchBotClient_sendAdNotifications")
+				.schedule(TickSchedule.getScheduleString(3))
+				.runnable(this::sendAdNotifications)
 				.build());
 	}
 
@@ -927,6 +934,48 @@ public class TwitchBotClient implements ScheduledService {
 				// Ads soon, notify streamer via chat
 				getMessageClient().getChat().sendMessage(event.getBroadcasterUserName(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", event.getBroadcasterUserName(), Duration.between(Instant.now(), event.getStartedAt()).toSeconds() / 60.0, event.getLengthSeconds() / 60.0));
 			}
+
+			logSender.sendLogs(logger, "ad active notification sent via twitch event");
 		}
+	}
+
+	private void sendAdNotifications() {
+		twitchClients.stream()
+			.filter(tc -> isLive(tc.getAccess().getUserId()))
+			.forEach(tc -> {
+				var result = tc.getClient().getHelix().getAdSchedule(null, tc.getAccess().getUserId()).execute();
+
+				if (result != null) {
+					var nextAdAt = result.get().getNextAdAt();
+					var lastAdAt = result.get().getLastAdAt();
+					var adLengthSeconds = result.get().getLengthSeconds();
+
+					if (adLengthSeconds == null) {
+						adLengthSeconds = 180;
+					}
+
+					if (nextAdAt != null && lastAdAt != null) {
+						var notificationInfo = adNotifications.getOrDefault(tc.getClient(), new TwitchClientSentAds(tc.getAccess().getUserId(), null, null));
+
+						var isAdActive = lastAdAt.isBefore(Instant.now())
+							&& lastAdAt.plusSeconds(result.get().getLengthSeconds()).isAfter(Instant.now());
+
+						if (isAdActive
+							&& (notificationInfo.getLastAdIsActiveWarningSentAt() == null || notificationInfo.getLastAdIsActiveWarningSentAt().isBefore(lastAdAt))) {
+							// Ads running, send !ads
+							getMessageClient().getChat().sendMessage(tc.getAccess().getPreferredUsername(), String.format("!ads @%s", tc.getAccess().getPreferredUsername()));
+							logSender.sendLogs(logger, "ad active notification sent via scheduled service");
+							adNotifications.put(tc.getClient(), notificationInfo.toBuilder().lastAdIsActiveWarningSentAt(Instant.now()).build());
+						} else if (nextAdAt.isBefore(Instant.now().plus(5, ChronoUnit.MINUTES))
+							&& nextAdAt.isAfter(Instant.now().minus(1, ChronoUnit.MINUTES))
+							&& (notificationInfo.getLastAdComesUpWarningSentAt() == null || notificationInfo.getLastAdComesUpWarningSentAt().isBefore(nextAdAt.minus(5, ChronoUnit.MINUTES)))) {
+							// Ads soon, notify streamer via chat
+							getMessageClient().getChat().sendMessage(tc.getAccess().getPreferredUsername(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", tc.getAccess().getPreferredUsername(), Duration.between(Instant.now(), nextAdAt).toSeconds() / 60.0, adLengthSeconds / 60.0));
+							logSender.sendLogs(logger, "ad active notification sent via scheduled service");
+							adNotifications.put(tc.getClient(), notificationInfo.toBuilder().lastAdComesUpWarningSentAt(Instant.now()).build());
+						}
+					}
+				}
+			});
 	}
 }
