@@ -30,22 +30,22 @@
 		<appender-ref ref="Console" />
 	</root>
 
-	<logger name="com.github.twitch4j" level="off" additivity="false">
+	<logger name="com.github.twitch4j" level="info" additivity="false">
 		<appender-ref ref="RollingFile" />
 		<appender-ref ref="Console" />
 	</logger>
 
-	<logger name="discord4j" level="off" additivity="false">
+	<logger name="discord4j" level="info" additivity="false">
 		<appender-ref ref="RollingFile" />
 		<appender-ref ref="Console" />
 	</logger>
 
-	<logger name="c.g.t" level="off" additivity="false">
+	<logger name="c.g.t" level="info" additivity="false">
 		<appender-ref ref="RollingFile" />
 		<appender-ref ref="Console" />
 	</logger>
 
-	<logger name="d.g" level="off" additivity="false">
+	<logger name="d.g" level="info" additivity="false">
 		<appender-ref ref="RollingFile" />
 		<appender-ref ref="Console" />
 	</logger>
