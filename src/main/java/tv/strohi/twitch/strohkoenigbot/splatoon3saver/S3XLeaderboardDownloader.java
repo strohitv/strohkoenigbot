@@ -33,15 +33,16 @@ public class S3XLeaderboardDownloader {
 		var resultMap = new HashMap<String, Double>();
 
 		if (account.isPresent()) {
-			var season1StartDate = LocalDateTime.of(2022, 9, 1, 1, 0, 0);
-			int seasonNumber = 1;
+			var season1StartDate = LocalDateTime.of(2022, 9, 1, 0, 0, 0);
+			var monthDifference = 1;
 
-			var thisMonthStartDate = LocalDateTime.of(LocalDate.now().getYear(), LocalDate.now().getMonth(), 1, 0, 0, 0);
+			var currentMonthStartDateTime = LocalDateTime.of(LocalDate.now().getYear(), LocalDate.now().getMonth(), 1, 0, 0, 0);
 
-			while (season1StartDate.plusMonths((seasonNumber - 1) * 3L).isBefore(thisMonthStartDate)) {
-				seasonNumber++;
+			while (season1StartDate.plusMonths(monthDifference).isBefore(currentMonthStartDateTime)) {
+				monthDifference++;
 			}
 
+			var seasonNumber = monthDifference / 3 + 1;
 			var tentatekSeasonHash = Base64.getEncoder().encodeToString(String.format("XRankingSeason-a:%d", seasonNumber).getBytes(StandardCharsets.UTF_8));
 //			var takorokaSeasonHash = Base64.getEncoder().encodeToString(String.format("XRankingSeason-p:%d", seasonNumber).getBytes(StandardCharsets.UTF_8));
 
