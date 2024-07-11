@@ -24,17 +24,17 @@ public class Authenticator {
 	private final SplatoonCookieRetriever splatoonCookieRetriever = new SplatoonCookieRetriever();
 
 	public String getSessionToken(String clientId, String sessionTokenCode, String sessionTokenCodeVerifier) {
-		return sessionTokenRetriever.getSessionToken(clientId, sessionTokenCode, sessionTokenCodeVerifier);
+		return sessionTokenRetriever.getSessionToken(clientId, sessionTokenCode, sessionTokenCodeVerifier, null);
 	}
 
 	public AuthenticationData refreshAccess(String sessionToken) {
 		logger.info("refreshing cookie of session token: {}", sessionToken);
 
-		String accountAccessToken = accountAccessTokenRetriever.getAccountAccessToken(sessionToken);
+		String accountAccessToken = accountAccessTokenRetriever.getAccountAccessToken(sessionToken, null);
 		logger.info("accountAccessToken");
 		logger.info(accountAccessToken);
 
-		UserInfo userInfo = userInfoRetriever.getUserInfo(accountAccessToken);
+		UserInfo userInfo = userInfoRetriever.getUserInfo(accountAccessToken, null);
 		logger.info("userInfo");
 		logger.info(userInfo);
 
@@ -43,7 +43,7 @@ public class Authenticator {
 		logger.info(fTokenNso);
 
 
-		String gameWebToken = splatoonTokenRetriever.doSplatoonAppLogin(userInfo, fTokenNso, accountAccessToken);
+		String gameWebToken = splatoonTokenRetriever.doSplatoonAppLogin(userInfo, fTokenNso, accountAccessToken, null);
 		logger.info("gameWebToken");
 		logger.info(gameWebToken);
 
@@ -52,7 +52,7 @@ public class Authenticator {
 		logger.info(fTokenApp);
 
 
-		String splatoonAccessToken = splatoonTokenRetriever.getSplatoonAccessToken(gameWebToken, fTokenApp, accountAccessToken, SPLATOON2_TOKEN_REQUEST_ID);
+		String splatoonAccessToken = splatoonTokenRetriever.getSplatoonAccessToken(gameWebToken, fTokenApp, accountAccessToken, SPLATOON2_TOKEN_REQUEST_ID, null);
 		logger.info("splatoonAccessToken");
 		logger.info(splatoonAccessToken);
 

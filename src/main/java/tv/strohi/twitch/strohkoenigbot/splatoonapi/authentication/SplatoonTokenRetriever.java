@@ -12,7 +12,11 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 
 public class SplatoonTokenRetriever extends AuthenticatorBase {
-	public String doSplatoonAppLogin(UserInfo userInfo, FParamLoginResult fParamLoginResult, String accessToken) {
+	public String doSplatoonAppLogin(UserInfo userInfo, FParamLoginResult fParamLoginResult, String accessToken, String appVersion) {
+		if (appVersion == null) {
+			appVersion = nsoAppVersion;
+		}
+
 		String address = "https://api-lp1.znc.srv.nintendo.net/v3/Account/Login";
 
 		URI uri = URI.create(address);
@@ -36,9 +40,9 @@ public class SplatoonTokenRetriever extends AuthenticatorBase {
 				.POST(HttpRequest.BodyPublishers.ofString(body))
 				.uri(uri)
 				.setHeader("Accept-Language", "en-US")
-				.setHeader("User-Agent", "com.nintendo.znca/" + nsoAppVersion + " (Android/7.1.2)")
+				.setHeader("User-Agent", "com.nintendo.znca/" + appVersion + " (Android/14)")
 				.setHeader("Accept", "application/json")
-				.setHeader("X-ProductVersion", nsoAppVersion)
+				.setHeader("X-ProductVersion", appVersion)
 				.setHeader("Content-Type", "application/json; charset=utf-8")
 				.setHeader("Authorization", "Bearer")
 				.setHeader("X-Platform", "Android")
@@ -49,7 +53,11 @@ public class SplatoonTokenRetriever extends AuthenticatorBase {
 		return result != null ? result.getResult().getWebApiServerCredential().getAccessToken() : "";
 	}
 
-	public String getSplatoonAccessToken(String gameWebToken, FParamLoginResult fParamLoginResult, String accessToken, long id) {
+	public String getSplatoonAccessToken(String gameWebToken, FParamLoginResult fParamLoginResult, String accessToken, long id, String appVersion) {
+		if (appVersion == null) {
+			appVersion = nsoAppVersion;
+		}
+
 		String address = "https://api-lp1.znc.srv.nintendo.net/v2/Game/GetWebServiceToken";
 
 		URI uri = URI.create(address);
@@ -70,9 +78,9 @@ public class SplatoonTokenRetriever extends AuthenticatorBase {
 		HttpRequest request = HttpRequest.newBuilder()
 				.POST(HttpRequest.BodyPublishers.ofString(body))
 				.uri(uri)
-				.setHeader("User-Agent", "com.nintendo.znca/" + nsoAppVersion + " (Android/7.1.2)")
+				.setHeader("User-Agent", "com.nintendo.znca/" + appVersion + " (Android/7.1.2)")
 				.setHeader("Accept", "application/json")
-				.setHeader("X-ProductVersion", nsoAppVersion)
+				.setHeader("X-ProductVersion", appVersion)
 				.setHeader("Content-Type", "application/json; charset=utf-8")
 				.setHeader("Authorization", String.format("Bearer %s", gameWebToken))
 				.setHeader("X-Platform", "Android")

@@ -12,6 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3CookieHandler;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.S3RequestSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.UserInfo;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -47,7 +48,8 @@ public class BulletTokenLoader {
 				.setHeader("Content-Type", "application/json")
 				.setHeader("Accept-Language", "en-US")
 				.setHeader("Accept-Encoding", "gzip,deflate,br")
-				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
+//			.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
+				.setHeader("User-Agent", RequestSender.getDefaultUserAgent())
 				.setHeader("X-Web-View-Ver", webViewVersion)
 				.setHeader("X-NACOUNTRY", userInfo.getCountry())
 				.setHeader("Accept", "*/*")

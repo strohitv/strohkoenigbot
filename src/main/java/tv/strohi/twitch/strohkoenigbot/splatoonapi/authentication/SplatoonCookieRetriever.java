@@ -1,5 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication;
 
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -22,7 +24,8 @@ public class SplatoonCookieRetriever extends AuthenticatorBase {
 				.setHeader("Accept-Language", "en-US")
 				.setHeader("X-IsAnalyticsOptedIn", "false")
 				.setHeader("DNT", "0")
-				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
+//			.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
+				.setHeader("User-Agent", RequestSender.getDefaultUserAgent())
 				.setHeader("X-Requested-With", "com.nintendo.znca")
 				.build();
 

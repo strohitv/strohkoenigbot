@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.DefaultUserAgentRetriever;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.CookieRefreshException;
 
 import java.io.ByteArrayInputStream;
@@ -20,7 +24,33 @@ import java.util.zip.GZIPInputStream;
 
 @Component
 public class RequestSender {
+	private static final String SPLATOON3_DEFAULT_USER_AGENT_CONFIG_NAME = "Splatoon3_DefaultUserAgent";
+	private static String DEFAULT_USER_AGENT = "Mozilla/5.0 (Linux; Android 14; Pixel 7a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36";
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+
+	@Autowired
+	public RequestSender(ConfigurationRepository configurationRepository, LogSender logSender) {
+		var loadedUserAgent = new DefaultUserAgentRetriever().getDefaultUserAgent();
+
+		if (loadedUserAgent != null) {
+			DEFAULT_USER_AGENT = loadedUserAgent;
+
+			Configuration defaultUserAgentConfigs = configurationRepository.findAllByConfigName(SPLATOON3_DEFAULT_USER_AGENT_CONFIG_NAME).stream()
+				.findFirst()
+				.orElse(new Configuration(0L, SPLATOON3_DEFAULT_USER_AGENT_CONFIG_NAME, null));
+
+			if (!loadedUserAgent.equals(defaultUserAgentConfigs.getConfigValue())) {
+				defaultUserAgentConfigs.setConfigValue(loadedUserAgent);
+
+				configurationRepository.save(defaultUserAgentConfigs);
+				logSender.sendLogs(logger, String.format("Saved newest DefaultUserAgent: `%s`", loadedUserAgent));
+			}
+		}
+	}
+
+	public static String getDefaultUserAgent() {
+		return DEFAULT_USER_AGENT;
+	}
 
 	private AuthenticatedHttpClientCreator clientCreator;
 
@@ -49,17 +79,18 @@ public class RequestSender {
 
 		String appUniqueId = "32449507786579989235";
 		HttpRequest request = HttpRequest.newBuilder()
-				.GET()
-				.uri(uri)
-				.setHeader("x-unique-id", appUniqueId)
-				.setHeader("x-requested-with", "XMLHttpRequest")
-				.setHeader("x-timezone-offset", String.format("%d", offset))
-				.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
-				.setHeader("Accept", "*/*")
-				.setHeader("Referer", "https://app.splatoon2.nintendo.net/home")
-				.setHeader("Accept-Encoding", "gzip, deflate")
-				.setHeader("Accept-Language", "en-US")
-				.build();
+			.GET()
+			.uri(uri)
+			.setHeader("x-unique-id", appUniqueId)
+			.setHeader("x-requested-with", "XMLHttpRequest")
+			.setHeader("x-timezone-offset", String.format("%d", offset))
+//			.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
+			.setHeader("User-Agent", getDefaultUserAgent())
+			.setHeader("Accept", "*/*")
+			.setHeader("Referer", "https://app.splatoon2.nintendo.net/home")
+			.setHeader("Accept-Encoding", "gzip, deflate")
+			.setHeader("Accept-Language", "en-US")
+			.build();
 
 		return sendRequestAndParseGzippedJson(account, request, valueType);
 	}

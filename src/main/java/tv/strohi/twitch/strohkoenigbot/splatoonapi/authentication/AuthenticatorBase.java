@@ -18,7 +18,7 @@ public abstract class AuthenticatorBase {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	protected static final String nsoAppVersion;
-	private static final String nsoAppFallbackVersion = "2.2.0";
+	private static final String nsoAppFallbackVersion = "2.10.1";
 	private static final String nsoAppVersionHistoryUrl = "https://www.nintendo.co.jp/support/app/nintendo_switch_online_app/index.html";
 
 	protected final HttpClient client = HttpClient.newBuilder()
@@ -49,6 +49,10 @@ public abstract class AuthenticatorBase {
 				}
 
  				logger.info("response body: '{}'", body);
+
+				if (valueType.isInstance("")) {
+					return (T)body;
+				}
 
 				return mapper.readValue(body, valueType);
 			} else {
