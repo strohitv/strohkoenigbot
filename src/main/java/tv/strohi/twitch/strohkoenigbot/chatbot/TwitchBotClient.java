@@ -285,7 +285,7 @@ public class TwitchBotClient implements ScheduledService {
 				}
 
 				goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
-					logSender.sendLogs(logger, String.format("alert fired for channel: %s", event.getChannel().getName()));
+					logger.info(String.format("alert fired for channel: %s", event.getChannel().getName()));
 					for (var consumer : goingLiveAlertConsumers) {
 						consumer.accept(event);
 					}
@@ -863,7 +863,7 @@ public class TwitchBotClient implements ScheduledService {
 		twitchClients.stream()
 			.filter(tc -> tc.getAccess().getExpiresAt() == null || tc.getAccess().getExpiresAt().isBefore(Instant.now().plus(15, ChronoUnit.MINUTES)))
 			.forEach(tc -> {
-				logSender.sendLogs(logger, String.format("refreshing access token for user **%s**...", tc.getAccess().getPreferredUsername()));
+				logger.info(String.format("refreshing access token for user **%s**...", tc.getAccess().getPreferredUsername()));
 
 				var refreshedAccessToken = refreshAccessToken(tc.getAccess());
 
@@ -892,7 +892,7 @@ public class TwitchBotClient implements ScheduledService {
 		if (firstEntry != null) {
 			if (firstEntry.isEnable()) {
 				if (!registeredGoLiveChannels.contains(firstEntry.getChannelName())) {
-					logSender.sendLogs(logger, String.format("enabling twitch stream event listener for: %s", firstEntry.getChannelName()));
+					logger.info(String.format("enabling twitch stream event listener for: %s", firstEntry.getChannelName()));
 					firstEntry.getClient().getClientHelper().enableStreamEventListener(firstEntry.getChannelName());
 					registeredGoLiveChannels.add(firstEntry.getChannelName());
 				}

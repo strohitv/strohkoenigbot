@@ -47,7 +47,7 @@ public class S3S3sRunner {
 
 	public void runS3S(String token) {
 		new Thread(() -> {
-			logSender.sendLogs(logger, "Starting s3s refresh...");
+			logger.info("Starting s3s refresh...");
 
 			String scriptFormatString = configurationRepository.findAllByConfigName("s3sScript").stream().map(Configuration::getConfigValue).findFirst().orElse("python3 %s/s3s.py -o");
 
@@ -106,7 +106,7 @@ public class S3S3sRunner {
 				}
 			}
 
-			logSender.sendLogs(logger, "Finished s3s refresh");
+			logger.info("Finished s3s refresh");
 		}).start();
 	}
 }
