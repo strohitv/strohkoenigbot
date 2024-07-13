@@ -9,6 +9,7 @@ import java.io.Serializable;
 @Setter
 // @Accessors(fluent = true)
 public class FestMatch implements Serializable {
+	private Integer conchShell;
 	private Integer contribution;
 	private Integer jewel;
 	private String dragonMatchType;
