@@ -22,6 +22,7 @@ public class DailyStatsSaveModel {
 	private Map<String, Integer> previousModeWinCount = new HashMap<>();
 	private Map<String, Integer> previousSpecialWeaponWinCount = new HashMap<>();
 	private Map<String, Integer> previousWeaponStarsCount = new HashMap<>();
+	private Map<String, Integer> previousWeaponExpTierCount = new HashMap<>();
 
 	private List<String> ignoredSalmonRunBosses = new ArrayList<>(List.of("Goldie", "Griller", "Mudmouth"));
 	private Map<String, Integer> previousSalmonRunBossDefeatCount = new HashMap<>();

@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -134,6 +135,9 @@ public class S3DailyStatsSender {
 		Map<String, Integer> weaponLevelNumbers = new HashMap<>();
 		countWeaponNumberForEveryStarLevel(weaponLevelNumbers);
 
+		Map<String, Integer> weaponExpTierNumbers = new HashMap<>();
+		countWeaponNumbersForEveryExpTier(weaponExpTierNumbers);
+
 		Map<String, Integer> defeatedSalmonRunBosses = new HashMap<>();
 		Map<String, Integer> salmonRunWeaponsYesterday = new HashMap<>();
 		Map<String, Integer> yesterdayWaves = new HashMap<>();
@@ -224,6 +228,7 @@ public class S3DailyStatsSender {
 		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
 
 		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
+		sendWeaponExpNumbersToDiscord(weaponExpTierNumbers, yesterdayStats, account);
 		sendRequiredExpFor4StarGrindToDiscord(requiredExpFor4StarGrind, yesterdayStats, account);
 
 		sendMinTop500XPowersToDiscord(minTop500XPowers, yesterdayStats, account);
@@ -254,6 +259,62 @@ public class S3DailyStatsSender {
 		refreshYesterdayStats(yesterdayStats);
 
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
+	}
+
+	private void countWeaponNumbersForEveryExpTier(Map<String, Integer> weaponExpNumbers) {
+		var formatter = (DecimalFormat) NumberFormat.getInstance(Locale.US);
+		var symbols = formatter.getDecimalFormatSymbols();
+
+		symbols.setGroupingSeparator(' ');
+		formatter.setDecimalFormatSymbols(symbols);
+
+		List<Weapon> weapons = weaponDownloader.getWeapons();
+		for (Weapon weapon : weapons) {
+			String tierName = "Max Exp";
+
+			if (weapon.getStats() == null || weapon.getStats().getLevel() == null) {
+				// not purchased yet
+				tierName = "Not purchased yet";
+			} else if (weapon.getStats().getLevel() < 5) {
+				var currentExpLowerBound = getCurrentExpLowerBound(weapon);
+				var currentExpUpperBound = currentExpLowerBound + 10_000;
+
+				var lowerBound = String.format("%s%s", formatter.format(currentExpLowerBound / 1_000), currentExpLowerBound > 0 ? "k" : "");
+				var upperBound = formatter.format(currentExpUpperBound / 1_000);
+
+				tierName = String.format("%s - %sk", lowerBound, upperBound);
+			}
+
+			int currentWeaponNumberCount = weaponExpNumbers.getOrDefault(tierName, 0);
+			weaponExpNumbers.put(tierName, currentWeaponNumberCount + 1);
+		}
+	}
+
+	private static int getCurrentExpLowerBound(Weapon weapon) {
+		int nextExpGoal;
+
+		switch (weapon.getStats().getLevel()) {
+			case 0:
+				nextExpGoal = 10_000;
+				break;
+			case 1:
+				nextExpGoal = 25_000;
+				break;
+			case 2:
+				nextExpGoal = 60_000;
+				break;
+			case 3:
+				nextExpGoal = 160_000;
+				break;
+			case 4:
+			default:
+				nextExpGoal = 1_160_000;
+				break;
+		}
+
+		var currentWeaponExp = nextExpGoal - weapon.getStats().getExpToLevelUp();
+		var requiredExpLowerBound = currentWeaponExp - (currentWeaponExp % 10_000);
+		return requiredExpLowerBound;
 	}
 
 	private void sendRequiredExpFor4StarGrindToDiscord(int requiredExpFor4StarGrind, DailyStatsSaveModel yesterdayStats, Account account) {
@@ -753,6 +814,40 @@ public class S3DailyStatsSender {
 		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
 	}
 
+	private void sendWeaponExpNumbersToDiscord(Map<String, Integer> todayStats, DailyStatsSaveModel yesterdayStats, Account account) {
+		var sortedStats = new ArrayList<Map.Entry<String, Integer>>();
+
+		todayStats.entrySet().stream()
+			.sorted((a, b) -> orderExpTierNumbersDescending(a.getKey(), b.getKey()))
+			.forEach(sortedStats::add);
+
+		StringBuilder winBuilder = new StringBuilder("**Current statistics about Exp Tiers of Weapons:**");
+
+		for (var stat : sortedStats) {
+			int yesterdayStarCount = yesterdayStats.getPreviousWeaponExpTierCount().getOrDefault(stat.getKey(), 0);
+
+			// build message
+			winBuilder.append("\n- ").append(stat.getKey()).append(": **").append(stat.getValue()).append("**");
+			if (yesterdayStarCount != stat.getValue()) {
+				winBuilder.append(" (")
+					.append(yesterdayStarCount < stat.getValue() ? "+" : "-")
+					.append(Math.abs(yesterdayStarCount - stat.getValue()))
+					.append(")");
+			}
+
+			yesterdayStats.getPreviousWeaponExpTierCount().put(stat.getKey(), stat.getValue());
+		}
+
+		var keyList = new ArrayList<>(yesterdayStats.getPreviousWeaponExpTierCount().keySet());
+		for (var statKey : keyList) {
+			if (!todayStats.containsKey(statKey)) {
+				yesterdayStats.getPreviousWeaponExpTierCount().remove(statKey);
+			}
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
+	}
+
 	private int orderLevelNumbersDescendingButPutLettersLast(String a, String b) {
 		if (!a.matches("^\\d+$")) {
 			return 1;
@@ -763,6 +858,29 @@ public class S3DailyStatsSender {
 		}
 
 		return String.CASE_INSENSITIVE_ORDER.compare(b, a);
+	}
+
+	private int orderExpTierNumbersDescending(String a, String b) {
+		var leftValue = 0;
+		var rightValue = 0;
+
+		if ("Max Exp".equalsIgnoreCase(a)) {
+			leftValue = 1_000_000;
+		} else if ("Not purchased yet".equalsIgnoreCase(a)) {
+			leftValue = -1_000_000;
+		} else {
+			leftValue = Integer.parseInt(a.split(" - ")[0].replace("k", "").replace(" ", "").trim());
+		}
+
+		if ("Max Exp".equalsIgnoreCase(b)) {
+			rightValue = 1_000_000;
+		} else if ("Not purchased yet".equalsIgnoreCase(b)) {
+			rightValue = -1_000_000;
+		} else {
+			rightValue = Integer.parseInt(b.split(" - ")[0].replace("k", "").replace(" ", "").trim());
+		}
+
+		return Integer.compare(rightValue, leftValue);
 	}
 
 	private void sendGearStatsToDiscord(Map<String, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
