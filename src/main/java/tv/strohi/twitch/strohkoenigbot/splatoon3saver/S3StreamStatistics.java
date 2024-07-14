@@ -123,36 +123,34 @@ public class S3StreamStatistics {
 			var rotation = rotationRepository.findByModeAndStartTime(mode, getSlotStartTime(Instant.now()))
 				.orElse(null);
 
-			if (rotation == null) {
-				return;
-			}
-
-			Double currentPower;
-			Double startPower;
+			Double currentPower = null;
+			Double startPower = null;
 			boolean zonesHidden = true, towerHidden = true, rainmakerHidden = true, clamsHidden = true;
-			switch (rotation.getRule().getApiRule()) {
-				case "AREA":
-					currentPower = currentXZones;
-					startPower = startXZones;
-					zonesHidden = false;
-					break;
-				case "LOFT":
-					currentPower = currentXTower;
-					startPower = startXTower;
-					towerHidden = false;
-					break;
-				case "GOAL":
-					currentPower = currentXRainmaker;
-					startPower = startXRainmaker;
-					rainmakerHidden = false;
-					break;
-				case "CLAM":
-					currentPower = currentXClams;
-					startPower = startXClams;
-					clamsHidden = false;
-					break;
-				default:
-					return;
+			if (rotation != null) {
+				switch (rotation.getRule().getApiRule()) {
+					case "AREA":
+						currentPower = currentXZones;
+						startPower = startXZones;
+						zonesHidden = false;
+						break;
+					case "LOFT":
+						currentPower = currentXTower;
+						startPower = startXTower;
+						towerHidden = false;
+						break;
+					case "GOAL":
+						currentPower = currentXRainmaker;
+						startPower = startXRainmaker;
+						rainmakerHidden = false;
+						break;
+					case "CLAM":
+						currentPower = currentXClams;
+						startPower = startXClams;
+						clamsHidden = false;
+						break;
+					default:
+						return;
+				}
 			}
 
 			var weaponStatsStart = startWeaponStats.stream()
