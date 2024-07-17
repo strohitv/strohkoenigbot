@@ -52,7 +52,7 @@ public class S3S3sRunner {
 			String scriptFormatString = configurationRepository.findAllByConfigName("s3sScript").stream().map(Configuration::getConfigValue).findFirst().orElse("python3 %s/s3s.py -o");
 
 			List<Configuration> s3sLocations = configurationRepository.findAllByConfigName("s3sLocation");
-			if (s3sLocations.size() == 0) return;
+			if (s3sLocations.isEmpty()) return;
 
 			Runtime rt = Runtime.getRuntime();
 			for (Configuration singleS3SLocation : s3sLocations) {

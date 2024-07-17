@@ -67,6 +67,7 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final ObsController obsController;
 
 	private final S3Downloader s3Downloader;
+	private final S3S3sRunner s3sRunner;
 	private final S3RotationSender s3RotationSender;
 	private final S3DailyStatsSender s3DailyStatsSender;
 	private final S3NewGearChecker s3NewGearChecker;
@@ -422,6 +423,10 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else if (message.startsWith("!reimport s3")) {
 				s3Downloader.downloadBattles(true);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
+			} else if (message.startsWith("!run s3s")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Running s3s manually");
+				s3sRunner.runS3S();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished s3s run");
 			} else if (message.startsWith("!activate db s3")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Activating Splatoon 3 database...");
 
