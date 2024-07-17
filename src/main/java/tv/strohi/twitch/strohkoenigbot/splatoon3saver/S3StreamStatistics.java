@@ -59,6 +59,9 @@ public class S3StreamStatistics {
 	@Getter
 	private String finishedHtml = currentHtml;
 
+	@Getter
+	private Instant lastUpdate = null;
+
 	public S3StreamStatistics(@Autowired Splatoon3VsRotationRepository vsRotationRepository,
 							  @Autowired Splatoon3VsModeRepository vsModeRepository,
 							  @Autowired ImageService imageService) {
@@ -84,10 +87,14 @@ public class S3StreamStatistics {
 		} catch (Exception e) {
 			log.error(e);
 		}
+
+		lastUpdate = null;
 	}
 
 	public void exportHtml() {
 		if (!includedMatches.isEmpty()) {
+			lastUpdate = Instant.now();
+
 			long victoryCount = includedMatches.stream().filter(m -> m.getOwnJudgement().equalsIgnoreCase("win")).count();
 			long defeatCount = includedMatches.stream().filter(m -> m.getOwnJudgement().equalsIgnoreCase("lose") || m.getOwnJudgement().equalsIgnoreCase("deemed_lose")).count();
 
