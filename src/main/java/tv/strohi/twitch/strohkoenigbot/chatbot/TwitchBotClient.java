@@ -181,11 +181,11 @@ public class TwitchBotClient implements ScheduledService {
 					access.setExpiresAt(Instant.now().plusSeconds(refreshedAccessToken.getExpiresIn()));
 					twitchAccessRepository.save(access);
 
-					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
-						access.getPreferredUsername(),
-						access.getExpiresAt().getEpochSecond(),
-						access.getExpiresAt().getEpochSecond(),
-						access.getExpiresAt().getEpochSecond()));
+//					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
+//						access.getPreferredUsername(),
+//						access.getExpiresAt().getEpochSecond(),
+//						access.getExpiresAt().getEpochSecond(),
+//						access.getExpiresAt().getEpochSecond()));
 				}
 
 				var newBotCredential = new OAuth2Credential("twitch", access.getAccessToken(), access.getRefreshToken(), access.getUserId(), access.getPreferredUsername(), Math.toIntExact(Duration.between(Instant.now(), access.getExpiresAt()).toSeconds()), access.getScopesList(), null);
@@ -278,7 +278,7 @@ public class TwitchBotClient implements ScheduledService {
 				}
 
 				var allAlerts = twitchGoingLiveAlertRepository.findAll().stream().map(TwitchGoingLiveAlert::getTwitchChannelName).distinct().collect(Collectors.toList());
-				logSender.sendLogs(logger, String.format("number of twitch alerts to watch over: %d", allAlerts.size()));
+//				logSender.sendLogs(logger, String.format("number of twitch alerts to watch over: %d", allAlerts.size()));
 
 				for (var alertChannelName : allAlerts) {
 					goLiveEventsToChange.add(new TwitchClientGoLiveChannel(client, alertChannelName, true));
@@ -314,15 +314,15 @@ public class TwitchBotClient implements ScheduledService {
 				client.getEventManager().onEvent(RaidEvent.class, new RaidEventConsumer(botActions));
 				client.getEventManager().onEvent(ChannelMessageEvent.class, new ChannelMessageConsumer(botActions));
 				client.getEventManager().onEvent(PrivateMessageEvent.class, new PrivateMessageConsumer(botActions));
-				logSender.sendLogs(logger, "done with twitch events for message sender channel");
+				logSender.sendLogs(logger, "fully connected twitch bot client for messages");
 			} else {
 				client.getEventManager().onEvent(ChannelAdBreakBeginEvent.class, this::reactToAdBreakBeginEvent);
 				client.getEventManager().onEvent(AdsScheduleUpdateEvent.class, this::reactToAdScheduleEvent);
 
-				logSender.sendLogs(logger, "done with twitch events for live channel");
+				logSender.sendLogs(logger, "fully connected twitch bot client for live channel");
 			}
 
-			logSender.sendLogs(logger, "fully connected twitch bot client");
+//			logSender.sendLogs(logger, "fully connected twitch bot client");
 
 			return client;
 		} catch (Exception ex) {
@@ -845,11 +845,11 @@ public class TwitchBotClient implements ScheduledService {
 					access.setExpiresAt(Instant.now().plusSeconds(refreshedAccessToken.getExpiresIn()));
 					twitchAccessRepository.save(access);
 
-					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
-						access.getPreferredUsername(),
-						access.getExpiresAt().getEpochSecond(),
-						access.getExpiresAt().getEpochSecond(),
-						access.getExpiresAt().getEpochSecond()));
+//					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
+//						access.getPreferredUsername(),
+//						access.getExpiresAt().getEpochSecond(),
+//						access.getExpiresAt().getEpochSecond(),
+//						access.getExpiresAt().getEpochSecond()));
 				}
 
 				var newBotCredential = new OAuth2Credential("twitch", access.getAccessToken(), access.getRefreshToken(), access.getUserId(), access.getPreferredUsername(), Math.toIntExact(Duration.between(Instant.now(), access.getExpiresAt()).toSeconds()), access.getScopesList(), null);
@@ -877,11 +877,11 @@ public class TwitchBotClient implements ScheduledService {
 					tc.getToken().setRefreshToken(refreshedAccessToken.getRefreshToken());
 					tc.getToken().setExpiresIn(refreshedAccessToken.getExpiresIn() - 10);
 
-					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
-						tc.getAccess().getPreferredUsername(),
-						tc.getAccess().getExpiresAt().getEpochSecond(),
-						tc.getAccess().getExpiresAt().getEpochSecond(),
-						tc.getAccess().getExpiresAt().getEpochSecond()));
+//					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
+//						tc.getAccess().getPreferredUsername(),
+//						tc.getAccess().getExpiresAt().getEpochSecond(),
+//						tc.getAccess().getExpiresAt().getEpochSecond(),
+//						tc.getAccess().getExpiresAt().getEpochSecond()));
 				}
 			});
 	}
