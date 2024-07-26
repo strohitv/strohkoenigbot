@@ -7,11 +7,17 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsWeapon;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3PlayerRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultTeamPlayerRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -19,6 +25,8 @@ import java.util.stream.Collectors;
 @Log4j2
 public class S3StatsSenderUtils {
 	private final Splatoon3VsResultRepository vsResultRepository;
+	private final Splatoon3VsResultTeamPlayerRepository vsResultTeamPlayerRepository;
+	private final Splatoon3PlayerRepository playerRepository;
 	private final ExceptionLogger exceptionLogger;
 
 	@Transactional
@@ -91,6 +99,172 @@ public class S3StatsSenderUtils {
 			args.getReplySender().send("Failed to load the game!");
 			exceptionLogger.logException(log, ex);
 		}
+	}
+
+	@Transactional
+	public void respondWithPlayerStats(ActionArgs args, long playerId) {
+		var searchedPlayer = playerRepository.findById(playerId);
+
+		if (searchedPlayer.isEmpty()) {
+			args.getReplySender().send("**ERROR** I could not find a player with this id");
+			return;
+		}
+
+		var allPlayerGameStats = vsResultTeamPlayerRepository.findByPlayerId(playerId);
+
+		Instant firstMet = null;
+		Instant lastMet = null;
+
+		var lastUsedName = "";
+		Splatoon3VsWeapon lastUsedWeapon = null;
+		Splatoon3VsWeapon ownLastUsedWeapon = null;
+
+		Map<String, Integer> names = new HashMap<>();
+		Map<Splatoon3VsWeapon, Integer> weapons = new HashMap<>();
+
+		Map<Splatoon3VsWeapon, Integer> ownUsedWeapons = new HashMap<>();
+
+		var sameTeamWins = 0L;
+		var sameTeamDraws = 0L;
+		var sameTeamDefeats = 0L;
+		var sameTeamUnknown = 0L;
+		var opposingTeamWins = 0L;
+		var opposingTeamDraws = 0L;
+		var opposingTeamDefeats = 0L;
+		var opposingTeamUnknown = 0L;
+
+		// todo game modes and game rules!
+
+		for (var gameStats : allPlayerGameStats) {
+			var playerTeam = gameStats.getTeam();
+			var game = playerTeam.getResult();
+
+			var ownTeam = game.getTeams().stream().filter(t -> t.getIsMyTeam() || t.getTeamPlayers().stream().anyMatch(Splatoon3VsResultTeamPlayer::getIsMyself)).findFirst().orElseThrow();
+			var ownGameStats = ownTeam.getTeamPlayers().stream().filter(Splatoon3VsResultTeamPlayer::getIsMyself).findFirst().orElseThrow();
+
+			var nameInGame = String.format("%s#%s", gameStats.getName(), gameStats.getNameId());
+			names.putIfAbsent(nameInGame, 0);
+			names.put(nameInGame, names.get(nameInGame) + 1);
+
+			var weapon = gameStats.getWeapon();
+			weapons.putIfAbsent(weapon, 0);
+			weapons.put(weapon, weapons.get(weapon) + 1);
+
+			var ownWeapon = ownGameStats.getWeapon();
+			ownUsedWeapons.putIfAbsent(ownWeapon, 0);
+			ownUsedWeapons.put(ownWeapon, ownUsedWeapons.get(ownWeapon) + 1);
+
+			if (firstMet == null || firstMet.isAfter(game.getPlayedTime())) {
+				firstMet = game.getPlayedTime();
+			}
+
+			if (lastMet == null || lastMet.isBefore(game.getPlayedTime())) {
+				lastMet = game.getPlayedTime();
+				lastUsedName = nameInGame;
+				lastUsedWeapon = gameStats.getWeapon();
+				ownLastUsedWeapon = ownGameStats.getWeapon();
+			}
+
+			boolean sameTeam = ownTeam == playerTeam || // normal modes
+				(ownTeam.getTeamPlayers().size() == 2 && playerTeam.getTeamPlayers().size() == 2); // splatfest
+
+			if (sameTeam) {
+				if (ownTeam.getJudgement() != null) {
+					if (ownTeam.getJudgement().equalsIgnoreCase("WIN")) {
+						sameTeamWins++;
+					} else if (ownTeam.getJudgement().equalsIgnoreCase("DRAW")) {
+						sameTeamDraws++;
+					} else {
+						sameTeamDefeats++;
+					}
+				} else {
+					sameTeamUnknown++;
+				}
+			} else {
+				if (ownTeam.getJudgement() != null) {
+					if (ownTeam.getJudgement().equalsIgnoreCase("WIN")) {
+						opposingTeamWins++;
+					} else if (ownTeam.getJudgement().equalsIgnoreCase("DRAW")) {
+						opposingTeamDraws++;
+					} else {
+						opposingTeamDefeats++;
+					}
+				} else if (playerTeam.getJudgement() != null) {
+					if (playerTeam.getJudgement().equalsIgnoreCase("WIN")) {
+						opposingTeamDefeats++;
+					} else if (playerTeam.getJudgement().equalsIgnoreCase("DRAW")) {
+						opposingTeamDraws++;
+					} else {
+						opposingTeamWins++;
+					}
+				} else {
+					opposingTeamUnknown++;
+				}
+			}
+		}
+
+		var builder = new StringBuilder("**Player ID ").append(playerId).append("**\n")
+			.append("First met at: <t:").append(firstMet != null ? firstMet.getEpochSecond() : "0").append(":f>\n")
+			.append("Last met at: <t:").append(lastMet != null ? lastMet.getEpochSecond() : "0").append(":f>\n\n");
+
+		builder.append("**Names**\nHe last played with the name **").append(escape(lastUsedName)).append("**\n__All names__\n");
+		for (var name : names.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
+			builder.append(escape(name.getKey())).append(": ").append(name.getValue()).append(" times");
+
+			if (name.getKey().equals(lastUsedName)) {
+				builder.append(" (last used name)");
+			}
+
+			builder.append("\n");
+		}
+
+		builder.append("\n");
+
+		builder.append("**Weapons**\n");
+		if (lastUsedWeapon != null) {
+			builder.append("Last time, they played with the weapon **").append(lastUsedWeapon.getName()).append("** (").append(lastUsedWeapon.getSubWeapon().getName()).append(", ").append(lastUsedWeapon.getSpecialWeapon().getName()).append(")\n");
+		}
+		builder.append("__All weapons__\n");
+		for (var weapon : weapons.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
+			builder.append(weapon.getKey().getName()).append(": ").append(weapon.getValue()).append(" times");
+
+			if (weapon.getKey().equals(lastUsedWeapon)) {
+				builder.append(" (last used weapon)");
+			}
+
+			builder.append("\n");
+		}
+
+		builder.append("\n");
+
+		builder.append("**Own Weapons**\n");
+		if (lastUsedWeapon != null) {
+			builder.append("Last time, I played with the weapon **").append(ownLastUsedWeapon.getName()).append("** (").append(ownLastUsedWeapon.getSubWeapon().getName()).append(", ").append(ownLastUsedWeapon.getSpecialWeapon().getName()).append(")\n");
+		}
+		builder.append("__All weapons__\n");
+		for (var weapon : ownUsedWeapons.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
+			builder.append(weapon.getKey().getName()).append(": ").append(weapon.getValue()).append(" times");
+
+			if (weapon.getKey().equals(lastUsedWeapon)) {
+				builder.append(" (last used weapon)");
+			}
+
+			builder.append("\n");
+		}
+
+		builder.append("\n");
+
+		builder.append("**Results**\n");
+		builder.append("This player was in your lobbies ").append(allPlayerGameStats.size()).append(" times\n")
+			.append("Total **wins: ").append(sameTeamWins + opposingTeamWins).append("** (").append(sameTeamWins).append(" same team + ").append(opposingTeamWins).append(" opposing team)\n")
+			.append("Total **draws: ").append(sameTeamDraws + opposingTeamDraws).append("** (").append(sameTeamDraws).append(" same team + ").append(opposingTeamDraws).append(" opposing team)\n")
+			.append("Total **defeats: ").append(sameTeamDefeats + opposingTeamDefeats).append("** (").append(sameTeamDefeats).append(" same team + ").append(opposingTeamDefeats).append(" opposing team)\n");
+
+		if (sameTeamUnknown + opposingTeamUnknown > 0) {
+			builder.append("Total unknown results: ").append(sameTeamUnknown + opposingTeamUnknown).append(" (").append(sameTeamUnknown).append(" same team + ").append(opposingTeamUnknown).append(" opposing team)\n");
+		}
+
+		args.getReplySender().send(builder.toString().trim());
 	}
 
 	private String formatPlayerStats(Splatoon3VsResultTeamPlayer player) {

@@ -13,9 +13,8 @@ import java.util.EnumSet;
 
 @Component
 @RequiredArgsConstructor
-public class S3GameStatsAction extends ChatAction {
+public class S3PlayerStatsAction extends ChatAction {
 	private final S3Downloader s3Downloader;
-
 	private final S3StatsSenderUtils senderUtils;
 
 	@Override
@@ -32,17 +31,16 @@ public class S3GameStatsAction extends ChatAction {
 
 		message = message.toLowerCase().trim();
 
-		if (message.startsWith("!game")) {
-			s3Downloader.downloadBattles(true);
+		if (message.startsWith("!player")) {
+			var commandArg = message.replace("!player", "").trim();
+			if (!commandArg.isBlank() && commandArg.matches("^\\d+$")) {
+				s3Downloader.downloadBattles(true);
 
-			var matchDecidingNumber = 0L;
-
-			var commandArg = message.replace("!game", "").trim();
-			if (!commandArg.isBlank() && commandArg.matches("^-?\\d+$")) {
-				matchDecidingNumber = Long.parseLong(commandArg);
+				var playerId = Long.parseLong(commandArg);
+				senderUtils.respondWithPlayerStats(args, playerId);
+			} else {
+				args.getReplySender().send("**ERROR**: please provide a player id to this command.");
 			}
-
-			senderUtils.respondWithGameStats(args, matchDecidingNumber);
 		}
 	}
 }
