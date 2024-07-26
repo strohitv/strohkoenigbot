@@ -21,7 +21,15 @@ public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsR
 	Optional<Splatoon3VsResult> findByApiId(String apiId);
 	Optional<Splatoon3VsResult> findTop1ByOrderByPlayedTimeDesc();
 
+	Optional<Splatoon3VsResult> findTopByOrderByIdDesc();
+
 	Page<Splatoon3VsResult> findAll(Pageable pageable);
+	Page<Splatoon3VsResult> findAllByOrderByIdDesc(Pageable pageable);
+
+	@Query(value = "SELECT result.id" +
+		" FROM splatoon_3_vs_result result" +
+		" ORDER BY result.id desc")
+	List<Long> findLatestGameIds(Pageable pageable);
 
 	@Query(value = "SELECT new tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.ModeRuleWinCountGame(mode, rule, COUNT(*))" +
 		" FROM splatoon_3_vs_result result" +

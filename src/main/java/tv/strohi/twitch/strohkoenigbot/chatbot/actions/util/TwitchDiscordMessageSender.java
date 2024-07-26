@@ -22,14 +22,19 @@ public class TwitchDiscordMessageSender {
 		this.args = args;
 	}
 
+	public void send(String format, Object... args) {
+		var message = String.format(format, args);
+		send(message);
+	}
+
 	public void send(String message) {
 		switch (args.getReason()) {
 			case ChatMessage:
 				messageSender.reply(
-						(String) args.getArguments().get(ArgumentKey.ChannelName),
-						message,
-						(String) args.getArguments().get(ArgumentKey.MessageNonce),
-						(String) args.getArguments().get(ArgumentKey.ReplyMessageId)
+					(String) args.getArguments().get(ArgumentKey.ChannelName),
+					message,
+					(String) args.getArguments().get(ArgumentKey.MessageNonce),
+					(String) args.getArguments().get(ArgumentKey.ReplyMessageId)
 				);
 				break;
 			case ChannelPointReward:
@@ -43,8 +48,8 @@ public class TwitchDiscordMessageSender {
 				break;
 			case DiscordMessage:
 				discordBot.reply(message,
-						(TextChannel) args.getArguments().get(ArgumentKey.ChannelObject),
-						(Snowflake) args.getArguments().get(ArgumentKey.MessageNonce));
+					(TextChannel) args.getArguments().get(ArgumentKey.ChannelObject),
+					(Snowflake) args.getArguments().get(ArgumentKey.MessageNonce));
 				break;
 			default:
 				break;
