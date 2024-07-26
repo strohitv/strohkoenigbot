@@ -11,8 +11,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 
 import javax.transaction.Transactional;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
@@ -20,8 +18,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Log4j2
 public class S3StatsSenderUtils {
-	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
-
 	private final Splatoon3VsResultRepository vsResultRepository;
 	private final ExceptionLogger exceptionLogger;
 
@@ -50,7 +46,7 @@ public class S3StatsSenderUtils {
 		try {
 			var game = gameResult.get();
 			var builder = new StringBuilder("**Game ID ").append(game.getId()).append("**\n")
-				.append("Played at: ").append(formatter.format(game.getPlayedTime())).append("\n")
+				.append("Played at: <t:").append(game.getPlayedTime().getEpochSecond()).append(":f>\n")
 				.append("Duration: ").append(game.getDuration()).append(" seconds\n")
 				.append("Result: ").append(escape(game.getOwnJudgement())).append("\n\n")
 				.append("Mode: ").append(game.getMode().getName()).append("\n")
