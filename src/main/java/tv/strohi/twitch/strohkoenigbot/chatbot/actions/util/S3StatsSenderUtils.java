@@ -5,9 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsWeapon;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3PlayerRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultTeamPlayerRepository;
@@ -119,10 +117,18 @@ public class S3StatsSenderUtils {
 		Splatoon3VsWeapon lastUsedWeapon = null;
 		Splatoon3VsWeapon ownLastUsedWeapon = null;
 
+		Splatoon3VsMode lastMode = null;
+		Splatoon3VsRule lastRule = null;
+		Splatoon3VsStage lastStage = null;
+
 		Map<String, Integer> names = new HashMap<>();
 		Map<Splatoon3VsWeapon, Integer> weapons = new HashMap<>();
 
 		Map<Splatoon3VsWeapon, Integer> ownUsedWeapons = new HashMap<>();
+
+		Map<Splatoon3VsMode, Integer> modes = new HashMap<>();
+		Map<Splatoon3VsRule, Integer> rules = new HashMap<>();
+		Map<Splatoon3VsStage, Integer> stages = new HashMap<>();
 
 		var sameTeamWins = 0L;
 		var sameTeamDraws = 0L;
@@ -150,6 +156,18 @@ public class S3StatsSenderUtils {
 			weapons.putIfAbsent(weapon, 0);
 			weapons.put(weapon, weapons.get(weapon) + 1);
 
+			var mode = game.getMode();
+			modes.putIfAbsent(mode, 0);
+			modes.put(mode, modes.get(mode) + 1);
+
+			var rule = game.getRule();
+			rules.putIfAbsent(rule, 0);
+			rules.put(rule, rules.get(rule) + 1);
+
+			var stage = game.getStage();
+			stages.putIfAbsent(stage, 0);
+			stages.put(stage, stages.get(stage) + 1);
+
 			var ownWeapon = ownGameStats.getWeapon();
 			ownUsedWeapons.putIfAbsent(ownWeapon, 0);
 			ownUsedWeapons.put(ownWeapon, ownUsedWeapons.get(ownWeapon) + 1);
@@ -163,6 +181,10 @@ public class S3StatsSenderUtils {
 				lastUsedName = nameInGame;
 				lastUsedWeapon = gameStats.getWeapon();
 				ownLastUsedWeapon = ownGameStats.getWeapon();
+
+				lastMode = game.getMode();
+				lastRule = game.getRule();
+				lastStage = game.getStage();
 			}
 
 			boolean sameTeam = ownTeam == playerTeam || // normal modes
@@ -247,6 +269,57 @@ public class S3StatsSenderUtils {
 
 			if (weapon.getKey().equals(ownLastUsedWeapon)) {
 				builder.append(" (last used weapon)");
+			}
+
+			builder.append("\n");
+		}
+
+		builder.append("\n");
+
+		builder.append("**Modes**\n");
+		if (lastMode != null) {
+			builder.append("Last time, we played on the mode **").append(lastMode.getName()).append("\n");
+		}
+		builder.append("__All Modes__\n");
+		for (var Mode : modes.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
+			builder.append(Mode.getKey().getName()).append(": ").append(Mode.getValue()).append(" times");
+
+			if (Mode.getKey().equals(lastMode)) {
+				builder.append(" (last mode)");
+			}
+
+			builder.append("\n");
+		}
+
+		builder.append("\n");
+
+		builder.append("**Rules**\n");
+		if (lastRule != null) {
+			builder.append("Last time, we played on the rule **").append(lastRule.getName()).append("\n");
+		}
+		builder.append("__All Rules__\n");
+		for (var rule : rules.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
+			builder.append(rule.getKey().getName()).append(": ").append(rule.getValue()).append(" times");
+
+			if (rule.getKey().equals(lastRule)) {
+				builder.append(" (last rule)");
+			}
+
+			builder.append("\n");
+		}
+
+		builder.append("\n");
+
+		builder.append("**Stages**\n");
+		if (lastStage != null) {
+			builder.append("Last time, we played on the stage **").append(lastStage.getName()).append("\n");
+		}
+		builder.append("__All Stages__\n");
+		for (var stage : stages.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
+			builder.append(stage.getKey().getName()).append(": ").append(stage.getValue()).append(" times");
+
+			if (stage.getKey().equals(lastStage)) {
+				builder.append(" (last stage)");
 			}
 
 			builder.append("\n");
