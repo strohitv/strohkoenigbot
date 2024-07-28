@@ -238,14 +238,14 @@ public class S3StatsSenderUtils {
 		builder.append("\n");
 
 		builder.append("**Own Weapons**\n");
-		if (lastUsedWeapon != null) {
+		if (ownLastUsedWeapon != null) {
 			builder.append("Last time, I played with the weapon **").append(ownLastUsedWeapon.getName()).append("** (").append(ownLastUsedWeapon.getSubWeapon().getName()).append(", ").append(ownLastUsedWeapon.getSpecialWeapon().getName()).append(")\n");
 		}
 		builder.append("__All weapons__\n");
 		for (var weapon : ownUsedWeapons.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
 			builder.append(weapon.getKey().getName()).append(": ").append(weapon.getValue()).append(" times");
 
-			if (weapon.getKey().equals(lastUsedWeapon)) {
+			if (weapon.getKey().equals(ownLastUsedWeapon)) {
 				builder.append(" (last used weapon)");
 			}
 
