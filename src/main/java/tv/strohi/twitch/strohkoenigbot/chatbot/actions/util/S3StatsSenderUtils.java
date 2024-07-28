@@ -139,8 +139,6 @@ public class S3StatsSenderUtils {
 		var opposingTeamDefeats = 0L;
 		var opposingTeamUnknown = 0L;
 
-		// todo game modes and game rules!
-
 		for (var gameStats : allPlayerGameStats) {
 			var playerTeam = gameStats.getTeam();
 			var game = playerTeam.getResult();
