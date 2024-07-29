@@ -276,7 +276,7 @@ public class S3StatsSenderUtils {
 
 		builder.append("**Modes**\n");
 		if (lastMode != null) {
-			builder.append("Last time, we played on the mode **").append(lastMode.getName()).append("\n");
+			builder.append("Last time, we played on the mode **").append(lastMode.getName()).append("**\n");
 		}
 		builder.append("__All Modes__\n");
 		for (var Mode : modes.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
@@ -293,7 +293,7 @@ public class S3StatsSenderUtils {
 
 		builder.append("**Rules**\n");
 		if (lastRule != null) {
-			builder.append("Last time, we played on the rule **").append(lastRule.getName()).append("\n");
+			builder.append("Last time, we played on the rule **").append(lastRule.getName()).append("**\n");
 		}
 		builder.append("__All Rules__\n");
 		for (var rule : rules.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
@@ -310,7 +310,7 @@ public class S3StatsSenderUtils {
 
 		builder.append("**Stages**\n");
 		if (lastStage != null) {
-			builder.append("Last time, we played on the stage **").append(lastStage.getName()).append("\n");
+			builder.append("Last time, we played on the stage **").append(lastStage.getName()).append("**\n");
 		}
 		builder.append("__All Stages__\n");
 		for (var stage : stages.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
