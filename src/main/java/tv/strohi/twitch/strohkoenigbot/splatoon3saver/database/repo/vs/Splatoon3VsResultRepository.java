@@ -43,7 +43,8 @@ public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsR
 
 	@Query(value = "SELECT new tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.DoubledEntries(result.apiId, COUNT(*))" +
 		" FROM splatoon_3_vs_result result" +
-		" GROUP BY result.apiId")
+		" GROUP BY result.apiId" +
+		" HAVING count(*) > 1")
 	List<DoubledEntries> findDoubledEntries();
 
 	@Query(value = "SELECT new tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.TeamPlayerSize(player.team, COUNT(player))" +

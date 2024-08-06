@@ -15,6 +15,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import javax.transaction.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -550,6 +551,10 @@ public class Splatoon3VsResultService {
 	public void fixDoubledEntries() {
 		var alleDoubledEntries = resultRepository.findDoubledEntries();
 
+		if (!alleDoubledEntries.isEmpty()) {
+			logSender.sendLogs(log, String.format("Found `%d` results with doubled api id", alleDoubledEntries.size()));
+		}
+
 		for (var entry : alleDoubledEntries) {
 			var apiId = entry.getApiId();
 
@@ -562,7 +567,11 @@ public class Splatoon3VsResultService {
 				logSender.sendLogs(log, String.format("game with id: `%d` will be kept for api id: `%s`", gameToKeep.getId(), apiId));
 
 				for (var game : allGames) {
-					if (!game.equals(gameToKeep)) {
+					if (!Objects.equals(game.getId(), gameToKeep.getId())) {
+						logSender.sendLogs(log, String.format("deleting game with id: `%d` for api id: `%s`", game.getId(), apiId));
+
+						game.getTeams().forEach(t -> teamPlayerRepository.deleteAll(t.getTeamPlayers()));
+						teamRepository.deleteAll(game.getTeams());
 						resultRepository.delete(game);
 					}
 				}
