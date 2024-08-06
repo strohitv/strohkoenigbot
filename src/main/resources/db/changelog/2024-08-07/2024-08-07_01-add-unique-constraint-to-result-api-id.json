@@ -1,0 +1,26 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2024-08-07_01-add-unique-constraint-to-result-api-id",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addUniqueConstraint": {
+              "columnNames": "api_id",
+              "tableName": "splatoon_3_vs_result",
+              "validate": true
+            }
+          },
+          {
+            "addUniqueConstraint": {
+              "columnNames": "api_id",
+              "tableName": "splatoon_3_sr_result",
+              "validate": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
