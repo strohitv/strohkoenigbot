@@ -531,6 +531,10 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished loading top500 powers.");
+			} else if (message.startsWith("!fix db")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Fixing database doubled entries...");
+				s3Downloader.fixBrokenDatabaseEntries();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished fixing database doubled entries.");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");

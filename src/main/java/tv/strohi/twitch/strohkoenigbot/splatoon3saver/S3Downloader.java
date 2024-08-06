@@ -90,7 +90,16 @@ public class S3Downloader implements ScheduledService {
 				.name("S3Downloader_s3s_schedule_2")
 				.schedule(CronSchedule.getScheduleString("35 35 * * * *"))
 				.runnable(this::runS3sIfGamesWereFound)
+				.build(),
+			ScheduleRequest.builder()
+				.name("S3Downloader_s3s_fix_broken_database_entries")
+				.schedule(CronSchedule.getScheduleString("35 5 * * * *"))
+				.runnable(this::fixBrokenDatabaseEntries)
 				.build());
+	}
+
+	public void fixBrokenDatabaseEntries() {
+		vsResultService.fixDoubledEntries();
 	}
 
 	@Override

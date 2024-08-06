@@ -8,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsMode;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.DoubledEntries;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.ModeRuleWinCountGame;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.SpecialWinCount;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.TeamPlayerSize;
@@ -18,7 +19,7 @@ import java.util.Optional;
 @Repository
 public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsResult, Long> {
 	Optional<Splatoon3VsResult> findById(long id);
-	Optional<Splatoon3VsResult> findByApiId(String apiId);
+	List<Splatoon3VsResult> findByApiId(String apiId);
 	Optional<Splatoon3VsResult> findTop1ByOrderByPlayedTimeDesc();
 
 	Optional<Splatoon3VsResult> findTopByOrderByIdDesc();
@@ -39,6 +40,11 @@ public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsR
 		" AND mode.apiMode not like '%PRIVATE%'" +
 		" GROUP BY mode, rule")
 	List<ModeRuleWinCountGame> findModeAndRuleWinCounts();
+
+	@Query(value = "SELECT new tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.DoubledEntries(result.apiId, COUNT(*))" +
+		" FROM splatoon_3_vs_result result" +
+		" GROUP BY result.apiId")
+	List<DoubledEntries> findDoubledEntries();
 
 	@Query(value = "SELECT new tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.TeamPlayerSize(player.team, COUNT(player))" +
 		" FROM splatoon_3_vs_result_team_player player" +

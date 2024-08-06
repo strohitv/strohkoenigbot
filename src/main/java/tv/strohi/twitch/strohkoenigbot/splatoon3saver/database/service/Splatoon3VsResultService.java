@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class Splatoon3VsResultService {
 	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -49,7 +51,8 @@ public class Splatoon3VsResultService {
 		var stage = rotationService.ensureStageExists(game.getVsStage());
 		var eventRegulation = Optional.ofNullable(game.getLeagueMatch()).map(LeagueMatchDetails::getLeagueMatchEvent).orElse(null);
 
-		var result = resultRepository.findByApiId(game.getId())
+		var result = resultRepository.findByApiId(game.getId()).stream()
+			.findFirst()
 			.orElseGet(() -> {
 				var newResult = resultRepository.save(Splatoon3VsResult.builder()
 					.apiId(game.getId())
@@ -542,5 +545,32 @@ public class Splatoon3VsResultService {
 
 	public boolean notFound(BattleResults.HistoryGroupMatch hgn) {
 		return resultRepository.findByApiId(hgn.getId()).isEmpty();
+	}
+
+	public void fixDoubledEntries() {
+		var alleDoubledEntries = resultRepository.findDoubledEntries();
+
+		for (var entry : alleDoubledEntries) {
+			var apiId = entry.getApiId();
+
+			logSender.sendLogs(log, String.format("Trying to reduce doubled result entries for api id: `%s`", apiId));
+
+			var allGames = resultRepository.findByApiId(apiId);
+
+			try {
+				var gameToKeep = allGames.stream().findFirst().orElseThrow();
+				logSender.sendLogs(log, String.format("game with id: `%d` will be kept for api id: `%s`", gameToKeep.getId(), apiId));
+
+				for (var game : allGames) {
+					if (!game.equals(gameToKeep)) {
+						resultRepository.delete(game);
+					}
+				}
+				logSender.sendLogs(log, String.format("Done with entries for api id: `%s`", apiId));
+			} catch (Exception ex) {
+				logSender.sendLogs(log, String.format("An exception occurred during removal of doubled result entries for api id: `%s`", apiId));
+				exceptionLogger.logException(log, ex);
+			}
+		}
 	}
 }
