@@ -229,7 +229,7 @@ public class S3StatsSenderUtils {
 
 		builder.append("**Names**\nHe last played with the name **").append(escape(lastUsedName)).append("**\n__All names__\n");
 		for (var name : names.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList())) {
-			builder.append(escape(name.getKey())).append(": ").append(name.getValue()).append(" times");
+			builder.append("- ``").append(escape(name.getKey())).append("``: ").append(name.getValue()).append(" times");
 
 			if (name.getKey().equals(lastUsedName)) {
 				builder.append(" (last used name)");
@@ -334,6 +334,30 @@ public class S3StatsSenderUtils {
 		if (sameTeamUnknown + opposingTeamUnknown > 0) {
 			builder.append("Total unknown results: ").append(sameTeamUnknown + opposingTeamUnknown).append(" (").append(sameTeamUnknown).append(" same team + ").append(opposingTeamUnknown).append(" opposing team)\n");
 		}
+
+		args.getReplySender().send(builder.toString().trim());
+	}
+
+	@Transactional
+	public void respondWithPlayerSearchResults(ActionArgs args, String search) {
+		if (search.isEmpty()) {
+			args.getReplySender().send("**ERROR** Search is empty, I would find all players");
+			return;
+		}
+
+		var allFoundPlayers = vsResultTeamPlayerRepository.findByNameContainsIgnoreCaseOrNameIdContains(search, search).stream()
+			.sorted(Comparator.comparingLong(Splatoon3VsResultTeamPlayer::getPlayerId))
+			.map(rtp -> String.format("`%d` -> %s", rtp.getPlayerId(), escape(String.format("``%s#%s``", rtp.getName(), rtp.getNameId()))))
+			.distinct()
+			.collect(Collectors.toList());
+
+		if (allFoundPlayers.isEmpty()) {
+			args.getReplySender().send("**ERROR** I could not find any players for this search");
+			return;
+		}
+
+		var builder = new StringBuilder("**Players found for search `").append(search).append("`**");
+		allFoundPlayers.forEach(player -> builder.append("\n- ").append(player));
 
 		args.getReplySender().send(builder.toString().trim());
 	}

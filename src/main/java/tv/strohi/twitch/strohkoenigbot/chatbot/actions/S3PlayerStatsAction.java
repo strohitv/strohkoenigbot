@@ -32,14 +32,27 @@ public class S3PlayerStatsAction extends ChatAction {
 		message = message.toLowerCase().trim();
 
 		if (message.startsWith("!player")) {
-			var commandArg = message.replace("!player", "").trim();
-			if (!commandArg.isBlank() && commandArg.matches("^\\d+$")) {
-				s3Downloader.downloadBattles(true);
+			var commandArg = message.substring("!player".length()).trim();
+			if (!commandArg.isBlank()) {
+				if (commandArg.matches("^\\d+$")) {
+					s3Downloader.downloadBattles(true);
 
-				var playerId = Long.parseLong(commandArg);
-				senderUtils.respondWithPlayerStats(args, playerId);
+					var playerId = Long.parseLong(commandArg);
+					senderUtils.respondWithPlayerStats(args, playerId);
+				} else if (commandArg.startsWith("search")) {
+					var search = commandArg.substring("search".length()).trim();
+
+					if ((search.startsWith("\"") && search.endsWith("\"")) || (search.startsWith("'") && search.endsWith("'"))) {
+						search = search.substring(1);
+						search = search.substring(0, search.length() - 1);
+					}
+
+					senderUtils.respondWithPlayerSearchResults(args, search);
+				} else {
+					args.getReplySender().send("**ERROR**: please provide either a player id or a search (starting with search) to this command.");
+				}
 			} else {
-				args.getReplySender().send("**ERROR**: please provide a player id to this command.");
+				args.getReplySender().send("**ERROR**: please provide an argument to this command.");
 			}
 		}
 	}

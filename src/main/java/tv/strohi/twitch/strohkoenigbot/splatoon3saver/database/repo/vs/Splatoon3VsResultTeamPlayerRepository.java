@@ -12,4 +12,5 @@ public interface Splatoon3VsResultTeamPlayerRepository extends CrudRepository<Sp
 	Optional<Splatoon3VsResultTeamPlayer> findByResultIdAndTeamOrderAndPlayerId(long resultId, int teamOrder, long playerId);
 
 	List<Splatoon3VsResultTeamPlayer> findByPlayerId(long playerId);
+	List<Splatoon3VsResultTeamPlayer> findByNameContainsIgnoreCaseOrNameIdContains(String search, String nameId);
 }
