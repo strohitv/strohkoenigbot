@@ -108,7 +108,7 @@ public class S3DailyStatsSender {
 	public void sendStatsToDiscord(String folderName, Account account) {
 		logger.info("Loading Splatoon 3 salmon run games for account with folder name '{}'...", folderName);
 
-		DailyStatsSaveModel yesterdayStats = loadYesterdayStats();
+		var yesterdayStats = loadYesterdayStats();
 
 		Map<String, Integer> wonOnlineGames = new HashMap<>();
 		Map<String, Integer> winCountSpecialWeapons = new HashMap<>();
@@ -130,7 +130,8 @@ public class S3DailyStatsSender {
 
 		Map<String, Integer> gearStars = new HashMap<>();
 		Map<Integer, Integer> gearStarCounts = new HashMap<>();
-		countStarsOnGear(gearStars, gearStarCounts);
+		Map<String, Map<Integer, Integer>> gearStarCountPerBrand = new HashMap<>();
+		countStarsOnGear(gearStars, gearStarCounts, gearStarCountPerBrand);
 
 		Map<String, Integer> weaponLevelNumbers = new HashMap<>();
 		countWeaponNumberForEveryStarLevel(weaponLevelNumbers);
@@ -224,7 +225,7 @@ public class S3DailyStatsSender {
 		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
 		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
 
-		sendGearStatsToDiscord(gearStars, yesterdayStats, account);
+		sendGearStatsToDiscord(gearStars, gearStarCountPerBrand, yesterdayStats, account);
 		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
 
 		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
@@ -821,15 +822,15 @@ public class S3DailyStatsSender {
 			.sorted((a, b) -> orderExpTierNumbersDescending(a.getKey(), b.getKey()))
 			.forEach(sortedStats::add);
 
-		StringBuilder winBuilder = new StringBuilder("**Current statistics about Exp Tiers of Weapons:**");
+		StringBuilder expTierBuilder = new StringBuilder("**Current statistics about Exp Tiers of Weapons:**");
 
 		for (var stat : sortedStats) {
 			int yesterdayStarCount = yesterdayStats.getPreviousWeaponExpTierCount().getOrDefault(stat.getKey(), 0);
 
 			// build message
-			winBuilder.append("\n- ").append(stat.getKey()).append(": **").append(stat.getValue()).append("**");
+			expTierBuilder.append("\n- ").append(stat.getKey()).append(": **").append(stat.getValue()).append("**");
 			if (yesterdayStarCount != stat.getValue()) {
-				winBuilder.append(" (")
+				expTierBuilder.append(" (")
 					.append(yesterdayStarCount < stat.getValue() ? "+" : "-")
 					.append(Math.abs(yesterdayStarCount - stat.getValue()))
 					.append(")");
@@ -845,7 +846,7 @@ public class S3DailyStatsSender {
 			}
 		}
 
-		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
+		discordBot.sendPrivateMessage(account.getDiscordId(), expTierBuilder.toString());
 	}
 
 	private int orderLevelNumbersDescendingButPutLettersLast(String a, String b) {
@@ -883,7 +884,7 @@ public class S3DailyStatsSender {
 		return Integer.compare(rightValue, leftValue);
 	}
 
-	private void sendGearStatsToDiscord(Map<String, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
+	private void sendGearStatsToDiscord(Map<String, Integer> stats, Map<String, Map<Integer, Integer>> gearStarCountPerBrand, DailyStatsSaveModel yesterdayStats, Account account) {
 		var sortedStats = new ArrayList<Map.Entry<String, Integer>>();
 
 		stats.entrySet().stream()
@@ -899,7 +900,7 @@ public class S3DailyStatsSender {
 			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
 			.forEach(sortedStats::add);
 
-		StringBuilder winBuilder = new StringBuilder("**Current statistics about Stars on Gear:**");
+		var starsBuilder = new StringBuilder("**Current statistics about Stars on Gear:**");
 
 		for (var gearStat : sortedStats) {
 			String isFinishedChar = "o";
@@ -913,9 +914,9 @@ public class S3DailyStatsSender {
 			int yesterdayStarCount = yesterdayStats.getPreviousStarCount().getOrDefault(gearStat.getKey(), gearStat.getValue());
 
 			// build message
-			winBuilder.append("\n- `").append(isFinishedChar).append("` ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
+			starsBuilder.append("\n- `").append(isFinishedChar).append("` ").append(gearStat.getKey()).append(": **").append(gearStat.getValue()).append("**");
 			if (yesterdayStarCount != gearStat.getValue()) {
-				winBuilder.append(" (")
+				starsBuilder.append(" (")
 					.append(yesterdayStarCount < gearStat.getValue() ? "+" : "-")
 					.append(Math.abs(yesterdayStarCount - gearStat.getValue()))
 					.append(")");
@@ -931,7 +932,50 @@ public class S3DailyStatsSender {
 			yesterdayStats.getPreviousStarCount().put(gearStat.getKey(), gearStat.getValue());
 		}
 
-		discordBot.sendPrivateMessage(account.getDiscordId(), winBuilder.toString());
+		discordBot.sendPrivateMessage(account.getDiscordId(), starsBuilder.toString());
+
+		sortedStats.stream()
+			.filter(b -> !yesterdayStats.getIgnoredBrands().contains(b.getKey()))
+			.filter(b -> b.getValue() < 100)
+			.map(Map.Entry::getKey)
+			.forEach(b -> sendBrandGearStarStatsToDiscord(b, gearStarCountPerBrand, yesterdayStats, account));
+	}
+
+	private void sendBrandGearStarStatsToDiscord(String brandName, Map<String, Map<Integer, Integer>> gearStarCountPerBrand, DailyStatsSaveModel yesterdayStats, Account account) {
+		var stats = gearStarCountPerBrand.getOrDefault(brandName, new HashMap<>());
+
+		if (stats.isEmpty()) {
+			return;
+		}
+
+		var sortedStats = stats.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getKey(), a.getKey()))
+			.collect(Collectors.toList());
+
+		StringBuilder statMessageBuilder = new StringBuilder("**Current statistics about numbers of Gear with Stars For the `")
+			.append(brandName)
+			.append("` brand**:");
+
+		var yesterdayStatsForBrand = yesterdayStats.getPreviousStarCountPerBrand().getOrDefault(brandName, new HashMap<>());
+
+		for (var singleStat : sortedStats) {
+			statMessageBuilder.append("\n- ").append(singleStat.getKey()).append(" stars: **").append(singleStat.getValue()).append("**");
+
+			int yesterdayStatCount = yesterdayStatsForBrand.getOrDefault(singleStat.getKey(), 0);
+
+			if (yesterdayStatCount != singleStat.getValue()) {
+				statMessageBuilder.append(" (")
+					.append(yesterdayStatCount < singleStat.getValue() ? "+" : "-")
+					.append(Math.abs(yesterdayStatCount - singleStat.getValue()))
+					.append(")");
+			}
+
+			yesterdayStatsForBrand.put(singleStat.getKey(), singleStat.getValue());
+		}
+
+		yesterdayStats.getPreviousStarCountPerBrand().put(brandName, yesterdayStatsForBrand);
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), statMessageBuilder.toString());
 	}
 
 	private void sendGearStarCountStatsToDiscord(Map<Integer, Integer> stats, DailyStatsSaveModel yesterdayStats, Account account) {
@@ -1142,14 +1186,19 @@ public class S3DailyStatsSender {
 		}
 	}
 
-	private void countStarsOnGear(Map<String, Integer> brandsWithStars, Map<Integer, Integer> starCounts) {
+	private void countStarsOnGear(Map<String, Integer> brandsWithStars, Map<Integer, Integer> starCounts, Map<String, Map<Integer, Integer>> gearStarCountsPerBrand) {
 		List<Gear> allOwnedGear = newGearChecker.getAllOwnedGear();
 		for (Gear gear : allOwnedGear) {
-			int currentBrandStarCount = brandsWithStars.getOrDefault(gear.getBrand().getName(), 0);
+			var currentBrandStarCount = brandsWithStars.getOrDefault(gear.getBrand().getName(), 0);
 			brandsWithStars.put(gear.getBrand().getName(), currentBrandStarCount + gear.getRarity());
 
-			int currentStarCount = starCounts.getOrDefault(gear.getRarity(), 0);
+			var currentStarCount = starCounts.getOrDefault(gear.getRarity(), 0);
 			starCounts.put(gear.getRarity(), currentStarCount + 1);
+
+			var gearStarsForBrand = gearStarCountsPerBrand.getOrDefault(gear.getBrand().getName(), new HashMap<>());
+			var currentStarCountForBrand = gearStarsForBrand.getOrDefault(gear.getRarity(), 0);
+			gearStarsForBrand.put(gear.getRarity(), currentStarCountForBrand + 1);
+			gearStarCountsPerBrand.put(gear.getBrand().getName(), gearStarsForBrand);
 		}
 	}
 
