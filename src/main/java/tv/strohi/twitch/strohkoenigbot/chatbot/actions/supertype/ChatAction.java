@@ -1,5 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype;
 
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
 public abstract class ChatAction implements IChatAction {
 	protected abstract void execute(ActionArgs args);
 
@@ -8,7 +11,7 @@ public abstract class ChatAction implements IChatAction {
 		try {
 			execute(args);
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			log.error(ex);
 		}
 	}
 }
