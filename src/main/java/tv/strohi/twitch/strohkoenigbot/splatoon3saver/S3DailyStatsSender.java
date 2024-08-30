@@ -314,8 +314,7 @@ public class S3DailyStatsSender {
 		}
 
 		var currentWeaponExp = nextExpGoal - weapon.getStats().getExpToLevelUp();
-		var requiredExpLowerBound = currentWeaponExp - (currentWeaponExp % 10_000);
-		return requiredExpLowerBound;
+		return currentWeaponExp - (currentWeaponExp % 10_000);
 	}
 
 	private void sendRequiredExpFor4StarGrindToDiscord(int requiredExpFor4StarGrind, DailyStatsSaveModel yesterdayStats, Account account) {
@@ -362,7 +361,7 @@ public class S3DailyStatsSender {
 				requiredExpForWeapon += 35_000;
 			}
 			if (weapon.getStats().getLevel() < 1) {
-				requiredExpForWeapon += 15_000;
+				requiredExpForWeapon += 20_000;
 			}
 
 			requiredExp += requiredExpForWeapon;
