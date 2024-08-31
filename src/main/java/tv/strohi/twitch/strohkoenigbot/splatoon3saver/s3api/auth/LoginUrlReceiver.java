@@ -58,6 +58,7 @@
 //
 //		try {
 //			HttpClient client = HttpClient.newBuilder()
+//					.connectTimeout(Duration.ofSeconds(120))
 //					.version(HttpClient.Version.HTTP_2)
 //					.followRedirects(HttpClient.Redirect.NORMAL)
 //					.build();

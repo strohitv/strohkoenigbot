@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.zip.GZIPInputStream;
@@ -22,6 +23,7 @@ public abstract class AuthenticatorBase {
 	private static final String nsoAppVersionHistoryUrl = "https://www.nintendo.co.jp/support/app/nintendo_switch_online_app/index.html";
 
 	protected final HttpClient client = HttpClient.newBuilder()
+			.connectTimeout(Duration.ofSeconds(120))
 			.version(HttpClient.Version.HTTP_2)
 			.build();
 	protected final String accountsHost = "https://accounts.nintendo.com";

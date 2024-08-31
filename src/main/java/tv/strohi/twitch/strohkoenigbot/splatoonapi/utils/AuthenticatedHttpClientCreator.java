@@ -7,6 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 
 @Component
 public class AuthenticatedHttpClientCreator {
@@ -26,6 +27,7 @@ public class AuthenticatedHttpClientCreator {
 
 	public HttpClient createFor(Account account) {
 		return HttpClient.newBuilder()
+				.connectTimeout(Duration.ofSeconds(120))
 				.version(HttpClient.Version.HTTP_2)
 				.cookieHandler(SplatoonCookieHandler.of(account, accountRepository, discordBot))
 				.build();

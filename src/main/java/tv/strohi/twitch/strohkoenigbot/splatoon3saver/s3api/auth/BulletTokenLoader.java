@@ -17,6 +17,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.time.Duration;
 
 import static tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authenticator.SPLATOON3_WEBVIEWVERSION_CONFIG_NAME;
 
@@ -28,7 +29,8 @@ public class BulletTokenLoader {
 	private final ConfigurationRepository configurationRepository;
 
 	public String getBulletToken(String gToken, UserInfo userInfo) {
-		HttpClient client = HttpClient.newBuilder()
+		var client = HttpClient.newBuilder()
+				.connectTimeout(Duration.ofSeconds(120))
 				.version(HttpClient.Version.HTTP_2)
 				.cookieHandler(new S3CookieHandler(gToken, true))
 				.build();

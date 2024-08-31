@@ -11,6 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,7 +20,8 @@ public class WebViewVersionLoader {
 	private final S3RequestSender s3RequestSender = new S3RequestSender();
 
 	public String refreshWebViewVersion(String gToken) {
-		HttpClient client = HttpClient.newBuilder()
+		var client = HttpClient.newBuilder()
+				.connectTimeout(Duration.ofSeconds(120))
 				.version(HttpClient.Version.HTTP_2)
 				.cookieHandler(new S3CookieHandler(gToken, true))
 				.build();
