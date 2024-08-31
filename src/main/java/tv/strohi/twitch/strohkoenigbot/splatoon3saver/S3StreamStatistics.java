@@ -339,7 +339,7 @@ public class S3StreamStatistics {
 			}
 			default:
 			case 0: {
-				expGoal = 10000;
+				expGoal = 5000;
 				break;
 			}
 		}
@@ -373,7 +373,7 @@ public class S3StreamStatistics {
 			}
 			default:
 			case 0: {
-				currentExp = 10000 - expToLevelUp;
+				currentExp = 5000 - expToLevelUp;
 				break;
 			}
 		}

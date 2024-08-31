@@ -278,7 +278,7 @@ public class S3DailyStatsSender {
 				tierName = "Not purchased yet";
 			} else if (weapon.getStats().getLevel() < 5) {
 				var currentExpLowerBound = getCurrentExpLowerBound(weapon);
-				var currentExpUpperBound = currentExpLowerBound + 10_000;
+				var currentExpUpperBound = currentExpLowerBound + 5_000;
 
 				var lowerBound = String.format("%s%s", formatter.format(currentExpLowerBound / 1_000), currentExpLowerBound > 0 ? "k" : "");
 				var upperBound = formatter.format(currentExpUpperBound / 1_000);
@@ -296,7 +296,7 @@ public class S3DailyStatsSender {
 
 		switch (weapon.getStats().getLevel()) {
 			case 0:
-				nextExpGoal = 10_000;
+				nextExpGoal = 5_000;
 				break;
 			case 1:
 				nextExpGoal = 25_000;
@@ -314,7 +314,7 @@ public class S3DailyStatsSender {
 		}
 
 		var currentWeaponExp = nextExpGoal - weapon.getStats().getExpToLevelUp();
-		return currentWeaponExp - (currentWeaponExp % 10_000);
+		return currentWeaponExp - (currentWeaponExp % 5_000);
 	}
 
 	private void sendRequiredExpFor4StarGrindToDiscord(int requiredExpFor4StarGrind, DailyStatsSaveModel yesterdayStats, Account account) {
