@@ -18,6 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2RotationNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2RotationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -94,6 +95,13 @@ public class RotationWatcher {
 	@Autowired
 	public void setSchedulingService(SchedulingService schedulingService) {
 		this.schedulingService = schedulingService;
+	}
+
+	private ExceptionLogger exceptionLogger;
+
+	@Autowired
+	public void setExceptionLogger(ExceptionLogger exceptionLogger) {
+		this.exceptionLogger = exceptionLogger;
 	}
 
 	@PostConstruct
@@ -243,7 +251,11 @@ public class RotationWatcher {
 				Splatoon2Stage stageB = stagesExporter.loadStage(rotation.getStage_b());
 				newRotation.setStageBId(stageB.getId());
 
-				rotationRepository.save(newRotation);
+				try {
+					rotationRepository.save(newRotation);
+				} catch (Exception ex) {
+					exceptionLogger.logException(logger, ex);
+				}
 
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
 						String.format("New **%s** **%s** rotation with id **%d** on **%s** (id %d) and **%s** (id %d) from **%s** to **%s** was stored into Database!",

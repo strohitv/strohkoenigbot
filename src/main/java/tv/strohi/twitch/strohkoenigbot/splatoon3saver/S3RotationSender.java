@@ -11,6 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3RotationSenderService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrRotationService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3VsRotationService;
@@ -207,7 +208,7 @@ public class S3RotationSender implements ScheduledService {
 							return Stream.empty();
 						}
 					})
-					.forEach(rotation -> logger.info("imported rotation: {}", rotation.getId()));
+					.forEach((Splatoon3SrRotation rotation) -> logger.info("imported rotation: {}", rotation.getId()));
 			}
 		}
 	}
