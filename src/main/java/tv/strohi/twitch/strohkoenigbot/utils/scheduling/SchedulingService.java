@@ -3,24 +3,33 @@ package tv.strohi.twitch.strohkoenigbot.utils.scheduling;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.Schedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @RequiredArgsConstructor
 public class SchedulingService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+	private final ExceptionLogger exceptionLogger;
 
 	private final static int MAX_ERRORS_SINGLE = 3;
 	private final static int MAX_ERRORS_REPEATED = 3; //5; //
@@ -52,6 +61,7 @@ public class SchedulingService {
 	@Scheduled(fixedDelay = 5000)
 	private void run() {
 		LocalDateTime now = LocalDateTime.now();
+		var executor = Executors.newSingleThreadExecutor();
 
 		for (int i = 0; i < singleRunSchedules.size(); i++) {
 			Schedule schedule = singleRunSchedules.get(i);
@@ -60,15 +70,29 @@ public class SchedulingService {
 				logger.info("running job...");
 
 				try {
-					transactionalRunner.run(schedule.getRunnable());
-					singleRunSchedules.remove(i);
-					i--;
-				} catch (Exception ignored) {
+					try {
+						executor
+							.submit(getScheduleAsCallable(schedule))
+							.get(10, TimeUnit.MINUTES);
+
+						singleRunSchedules.remove(i);
+						i--;
+					} catch (Exception ex) {
+						if (ex instanceof TimeoutException) {
+							discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+								String.format("**ERROR**: Runnable '**%s**' ran into timeout!!\nSchedule: `%s`", schedule.getName(), schedule));
+							exceptionLogger.logException(logger, ex);
+						} else {
+							throw ex;
+						}
+					}
+				} catch (Exception ex) {
 					schedule.increaseErrorCount();
 
 					if (schedule.isFailed(MAX_ERRORS_SINGLE)) {
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
 							String.format("**ERROR**: Single Runnable failed **%d** times and got removed from Scheduler!! Schedule: `%s`", MAX_ERRORS_SINGLE, schedule));
+						exceptionLogger.logException(logger, ex);
 						singleRunSchedules.remove(i);
 						i--;
 					}
@@ -82,7 +106,20 @@ public class SchedulingService {
 			Schedule schedule = schedules.get(i);
 
 			if (schedule.shouldRun(now)) {
-				transactionalRunner.run(schedule.getRunnable());
+				try {
+					executor
+						.submit(getScheduleAsCallable(schedule))
+						.get(10, TimeUnit.MINUTES);
+				} catch (Exception ex) {
+					if (ex instanceof TimeoutException) {
+						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+							String.format("**ERROR**: Runnable '**%s**' ran into timeout!!\nSchedule: `%s`", schedule.getName(), schedule));
+					} else {
+						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+							String.format("**ERROR**: Runnable '**%s**' ran into an unexpected Exception!!\nSchedule: `%s`", schedule.getName(), schedule));
+					}
+					exceptionLogger.logException(logger, ex);
+				}
 
 				if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
 					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
@@ -111,6 +148,15 @@ public class SchedulingService {
 				}
 			}
 		}
+
+		executor.shutdown();
+	}
+
+	private @NotNull Callable<Boolean> getScheduleAsCallable(Schedule schedule) {
+		return () -> {
+			transactionalRunner.run(schedule.getRunnable());
+			return true;
+		};
 	}
 
 	public void registerOnce(String name, int ticks, Runnable runnable) {
