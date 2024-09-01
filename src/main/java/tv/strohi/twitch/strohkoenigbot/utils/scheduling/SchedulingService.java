@@ -70,26 +70,20 @@ public class SchedulingService {
 				logger.info("running job...");
 
 				try {
-					try {
-						executor
-							.submit(getScheduleAsCallable(schedule))
-							.get(10, TimeUnit.MINUTES);
+					executor
+						.submit(getScheduleAsCallable(schedule))
+						.get(10, TimeUnit.MINUTES);
 
-						singleRunSchedules.remove(i);
-						i--;
-					} catch (Exception ex) {
-						if (ex instanceof TimeoutException) {
-							discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-								String.format("**ERROR**: Runnable '**%s**' ran into timeout!!\nSchedule: `%s`", schedule.getName(), schedule));
-							exceptionLogger.logException(logger, ex);
-						} else {
-							throw ex;
-						}
-					}
+					singleRunSchedules.remove(i);
+					i--;
 				} catch (Exception ex) {
 					schedule.increaseErrorCount();
 
-					if (schedule.isFailed(MAX_ERRORS_SINGLE)) {
+					if (ex instanceof TimeoutException) {
+						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+							String.format("**ERROR**: Runnable '**%s**' ran into timeout!!\nSchedule: `%s`", schedule.getName(), schedule));
+						exceptionLogger.logException(logger, ex);
+					} else if (schedule.isFailed(MAX_ERRORS_SINGLE)) {
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
 							String.format("**ERROR**: Single Runnable failed **%d** times and got removed from Scheduler!! Schedule: `%s`", MAX_ERRORS_SINGLE, schedule));
 						exceptionLogger.logException(logger, ex);
@@ -111,6 +105,8 @@ public class SchedulingService {
 						.submit(getScheduleAsCallable(schedule))
 						.get(10, TimeUnit.MINUTES);
 				} catch (Exception ex) {
+					schedule.increaseErrorCount();
+
 					if (ex instanceof TimeoutException) {
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
 							String.format("**ERROR**: Runnable '**%s**' ran into timeout!!\nSchedule: `%s`", schedule.getName(), schedule));
@@ -118,6 +114,7 @@ public class SchedulingService {
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
 							String.format("**ERROR**: Runnable '**%s**' ran into an unexpected Exception!!\nSchedule: `%s`", schedule.getName(), schedule));
 					}
+
 					exceptionLogger.logException(logger, ex);
 				}
 
