@@ -66,7 +66,7 @@ public class SchedulingService {
 		for (int i = 0; i < singleRunSchedules.size(); i++) {
 			Schedule schedule = singleRunSchedules.get(i);
 
-			if (schedule.shouldRun(now)) {
+			if (!schedule.isFailed(MAX_ERRORS_SINGLE) && schedule.shouldRun(now)) {
 				logger.info("running job...");
 
 				try {
@@ -99,7 +99,7 @@ public class SchedulingService {
 		for (int i = 0; i < schedules.size(); i++) {
 			Schedule schedule = schedules.get(i);
 
-			if (schedule.shouldRun(now)) {
+			if (!schedule.isFailed(MAX_ERRORS_REPEATED) && schedule.shouldRun(now)) {
 				try {
 					executor
 						.submit(getScheduleAsCallable(schedule))
