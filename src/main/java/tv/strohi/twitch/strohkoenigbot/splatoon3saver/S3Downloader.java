@@ -41,6 +41,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,6 +74,8 @@ public class S3Downloader implements ScheduledService {
 	private final S3WeaponStatsDownloader weaponStatsDownloader;
 
 	private final S3S3sRunner s3sRunner;
+
+	private final Semaphore semaphore = new Semaphore(1);
 
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
@@ -148,6 +151,11 @@ public class S3Downloader implements ScheduledService {
 	}
 
 	public void downloadBattles(boolean force) {
+		if (!semaphore.tryAcquire()) {
+			logSender.sendLogs(logger, "Skipping import because there's already one import running");
+			return;
+		}
+
 		logger.debug("Enter download battles for Splatoon 3 games...");
 
 		if (pauseDownloader && !force) {
@@ -184,6 +192,8 @@ public class S3Downloader implements ScheduledService {
 
 			logger.info("Finished loading Splatoon 3 games.");
 		}
+
+		semaphore.release();
 	}
 
 	private void downloadGamesDecideWay() {
