@@ -225,7 +225,6 @@ public class S3Downloader implements ScheduledService {
 			if (wentLiveInstant != null) {
 				var allNewGamesDuringStream = importedVsGames.keySet().stream()
 					.flatMap(mode -> importedVsGames.get(mode).stream())
-					.filter(g -> g.getPlayedTime().isAfter(wentLiveInstant))
 					.collect(Collectors.toList());
 
 				streamStatistics.addGames(allNewGamesDuringStream);
