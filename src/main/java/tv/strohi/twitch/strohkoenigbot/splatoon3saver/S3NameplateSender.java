@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Nameplate;
@@ -15,10 +14,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -28,11 +27,12 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class S3NameplateSender {
+public class S3NameplateSender implements ScheduledService {
 	private final static String NAMEPLATES_PATH = "resources/prod/v2/npl_img";
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
@@ -44,16 +44,18 @@ public class S3NameplateSender {
 
 	private final Splatoon3NameplateRepository nameplateRepository;
 
-	private SchedulingService schedulingService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	@Override
+	public java.util.List<ScheduleRequest> createScheduleRequests() {
+		return java.util.List.of(ScheduleRequest.builder()
+			.name("S3NameplateLoader_schedule")
+			.schedule(CronSchedule.getScheduleString("15 3 * * * *"))
+			.runnable(this::repostNameplates)
+			.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("S3NameplateLoader_schedule", CronSchedule.getScheduleString("15 3 * * * *"), this::repostNameplates);
+	@Override
+	public java.util.List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
 	public void repostNameplates() {
@@ -63,7 +65,7 @@ public class S3NameplateSender {
 				Integer.parseInt(new String(Base64.getDecoder().decode(a.getApiId())).replaceAll("[^0-9]", ""))))
 			.collect(Collectors.toList());
 
-		if (unpostedNameplates.size() > 0) {
+		if (!unpostedNameplates.isEmpty()) {
 			var allNameplates = nameplateRepository.findAllByOwned(true).stream()
 				.sorted((a, b) -> Integer.compare(
 					Integer.parseInt(new String(Base64.getDecoder().decode(b.getApiId())).replaceAll("[^0-9]", "")),

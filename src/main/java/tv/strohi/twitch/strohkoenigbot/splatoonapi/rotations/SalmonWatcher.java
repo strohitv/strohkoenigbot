@@ -17,10 +17,10 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2Salmon
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetSalmonRunSchedules;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 import static java.lang.Math.toIntExact;
 
 @Component
-public class SalmonWatcher {
+public class SalmonWatcher implements ScheduledService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private SplatNetSalmonRunSchedules schedules;
@@ -75,34 +75,36 @@ public class SalmonWatcher {
 		this.discordBot = discordBot;
 	}
 
-	private SchedulingService schedulingService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("SalmonWatcher_schedule")
+			.schedule(CronSchedule.getScheduleString("15 0 * * * *"))
+			.runnable(this::sendDiscordNotifications)
+			.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("SalmonWatcher_schedule", CronSchedule.getScheduleString("15 0 * * * *"), this::sendDiscordNotifications);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
-//	@Scheduled(cron = "15 0 * * * *")
+	//	@Scheduled(cron = "15 0 * * * *")
 //	@Scheduled(cron = "15 * * * * *")
 	public void sendDiscordNotifications() {
 		refreshRotations();
 
 		SplatNetSalmonRunSchedules.SplatNetScheduleDetail detail = Arrays.stream(schedules.getDetails())
-						.filter(s -> Instant.now().minus(10, ChronoUnit.MINUTES).isBefore(s.getStartTimeAsInstant())
-								&& Instant.now().plus(5, ChronoUnit.MINUTES).isAfter(s.getStartTimeAsInstant()))
-						.findFirst()
-						.orElse(null);
+			.filter(s -> Instant.now().minus(10, ChronoUnit.MINUTES).isBefore(s.getStartTimeAsInstant())
+				&& Instant.now().plus(5, ChronoUnit.MINUTES).isAfter(s.getStartTimeAsInstant()))
+			.findFirst()
+			.orElse(null);
 
 		SplatNetSalmonRunSchedules.SplatNetScheduleDetail newAnnouncedRotation = Arrays.stream(schedules.getDetails())
-				.filter(d -> d != detail)
-				.filter(d -> d.getWeapons() != null)
-				.findFirst()
-				.orElse(null);
+			.filter(d -> d != detail)
+			.filter(d -> d.getWeapons() != null)
+			.findFirst()
+			.orElse(null);
 
 		if (detail != null) {
 			// new rotation started!
@@ -116,10 +118,10 @@ public class SalmonWatcher {
 
 			logger.info("Posting new salmon run rotation into twitch");
 			channelMessageSender.send("strohkoenig",
-					String.format("Salmon Run started! Map: %s - Weapons: %s - online for %s hours",
-							detail.getStage().getName(),
-							formatWeapons(detail),
-							(int) Duration.between(detail.getStartTimeAsInstant(), detail.getEndTimeAsInstant()).toHours()));
+				String.format("Salmon Run started! Map: %s - Weapons: %s - online for %s hours",
+					detail.getStage().getName(),
+					formatWeapons(detail),
+					(int) Duration.between(detail.getStartTimeAsInstant(), detail.getEndTimeAsInstant()).toHours()));
 
 			// private message notifications
 			sendDiscordMessageToUsers(detail, formatRotation(detail), detail.getStage().getImage());
@@ -135,9 +137,9 @@ public class SalmonWatcher {
 			logger.info("checking for new salmon run rotations");
 
 			Account account = accountRepository.findAll().stream()
-					.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
-					.findFirst()
-					.orElse(new Account());
+				.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank() && da.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(da.getSplatoonCookieExpiresAt()))
+				.findFirst()
+				.orElse(new Account());
 
 			schedules = rotationLoader.querySplatoonApiForAccount(account, "/api/coop_schedules", SplatNetSalmonRunSchedules.class);
 
@@ -149,8 +151,8 @@ public class SalmonWatcher {
 	private void sendDiscordMessageToChannel(String channelName, String message, String stageImageUrl) {
 		logger.info("Sending out discord notifications to server channel '{}'", channelName);
 		discordBot.sendServerMessageWithImageUrls(channelName,
-				message,
-				String.format("https://app.splatoon2.nintendo.net%s", stageImageUrl));
+			message,
+			String.format("https://app.splatoon2.nintendo.net%s", stageImageUrl));
 		logger.info("Finished sending out discord notifications to server channel '{}'", channelName);
 	}
 
@@ -161,8 +163,8 @@ public class SalmonWatcher {
 		SalmonRunStage stage = SalmonRunStage.getFromSplatNetApiName(detail.getStage().getName());
 
 		int randomCount = toIntExact(Arrays.stream(detail.getWeapons())
-				.filter(w -> w.getCoop_special_weapon() != null)
-				.count());
+			.filter(w -> w.getCoop_special_weapon() != null)
+			.count());
 		if (randomCount == 2 || randomCount == 3) {
 			randomCount = 1;
 		}
@@ -170,9 +172,9 @@ public class SalmonWatcher {
 		SalmonRunRandomFilter randomFilter = SalmonRunRandomFilter.getFromSplatNetApiRandomCount(randomCount);
 
 		List<SalmonRunWeapon> weapons = Arrays.stream(detail.getWeapons())
-				.filter(w -> w.getWeapon() != null)
-				.map(w -> SalmonRunWeapon.getFromSplatNetApiName(w.getWeapon().getName()))
-				.collect(Collectors.toList());
+			.filter(w -> w.getWeapon() != null)
+			.map(w -> SalmonRunWeapon.getFromSplatNetApiName(w.getWeapon().getName()))
+			.collect(Collectors.toList());
 
 		List<Account> accountsToNotify = new ArrayList<>();
 
@@ -215,8 +217,8 @@ public class SalmonWatcher {
 
 		for (Account account : accountsToNotify) {
 			discordBot.sendPrivateMessageWithImageUrls(account.getDiscordId(),
-					message,
-					String.format("https://app.splatoon2.nintendo.net%s", stageImageUrl));
+				message,
+				String.format("https://app.splatoon2.nintendo.net%s", stageImageUrl));
 			logger.info("Finished sending out discord notifications to discord user '{}'", account.getDiscordId());
 		}
 
@@ -232,14 +234,14 @@ public class SalmonWatcher {
 		} else {
 			// future rotation
 			builder = new StringBuilder("**Next Salmon Run** rotation starting in **")
-					.append(Duration.between(Instant.now(), detail.getStartTimeAsInstant()).abs().toHours() + 1)
-					.append("** hours\nIt will start at **<t:")
-					.append(detail.getStart_time())
-					.append(":F>**\n\n**Stage**:\n- ");
+				.append(Duration.between(Instant.now(), detail.getStartTimeAsInstant()).abs().toHours() + 1)
+				.append("** hours\nIt will start at **<t:")
+				.append(detail.getStart_time())
+				.append(":F>**\n\n**Stage**:\n- ");
 		}
 
 		builder.append(detail.getStage().getName())
-				.append("\n\n**Weapons**:\n");
+			.append("\n\n**Weapons**:\n");
 
 		for (SplatNetSalmonRunSchedules.SplatNetScheduleDetail.WeaponDetail weapon : detail.getWeapons()) {
 			if (weapon.getWeapon() != null) {
@@ -254,8 +256,8 @@ public class SalmonWatcher {
 		}
 
 		builder.append("\nRotation will be running for **")
-				.append((int) Duration.between(detail.getStartTimeAsInstant(), detail.getEndTimeAsInstant()).toHours())
-				.append("** hours!");
+			.append((int) Duration.between(detail.getStartTimeAsInstant(), detail.getEndTimeAsInstant()).toHours())
+			.append("** hours!");
 
 		return builder.toString();
 	}

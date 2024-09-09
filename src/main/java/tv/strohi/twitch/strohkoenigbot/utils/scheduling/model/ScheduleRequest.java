@@ -11,4 +11,5 @@ public class ScheduleRequest {
 	private String name;
 	private String schedule;
 	private Runnable runnable;
+	private Runnable errorCleanUpRunnable;
 }

@@ -12,23 +12,31 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Splatoon3Re
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.Splatoon3RequestKeyRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.NsoQueryKeyData;
 import tv.strohi.twitch.strohkoenigbot.utils.ExceptionSender;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
-import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class S3RequestKeyLoader {
-	private final SchedulingService schedulingService;
+public class S3RequestKeyLoader implements ScheduledService {
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of();
+	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.registerOnce("S3RequestKeyLoader_refreshRequestKeys", TickSchedule.everyMinutes(1), this::refreshRequestKeys);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("S3RequestKeyLoader_refreshRequestKeys")
+			.schedule(TickSchedule.getScheduleString(TickSchedule.everyMinutes(1)))
+			.runnable(this::refreshRequestKeys)
+			.build());
 	}
 
 	private final LogSender logSender;

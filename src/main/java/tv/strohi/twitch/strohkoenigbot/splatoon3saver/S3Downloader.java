@@ -83,6 +83,7 @@ public class S3Downloader implements ScheduledService {
 				.name("S3Downloader_schedule")
 				.schedule(CronSchedule.getScheduleString("20 * * * * *"))
 				.runnable(this::downloadBattles)
+				.errorCleanUpRunnable(this::resetSemaphore)
 				.build(),
 			ScheduleRequest.builder()
 				.name("S3Downloader_s3s_schedule_1")
@@ -101,13 +102,13 @@ public class S3Downloader implements ScheduledService {
 				.build());
 	}
 
-	public void fixBrokenDatabaseEntries() {
-		vsResultService.fixDoubledEntries();
-	}
-
 	@Override
 	public List<ScheduleRequest> createSingleRunRequests() {
 		return List.of();
+	}
+
+	public void fixBrokenDatabaseEntries() {
+		vsResultService.fixDoubledEntries();
 	}
 
 	private final List<Integer> refreshMinutes = List.of(12, 35);
@@ -133,6 +134,12 @@ public class S3Downloader implements ScheduledService {
 		streamStatistics.reset();
 
 		logSender.sendLogs(logger, "went offline on twitch!");
+	}
+
+	public void resetSemaphore() {
+		if (!semaphore.tryAcquire()) {
+			semaphore.release();
+		}
 	}
 
 	public void runS3sIfGamesWereFound() {

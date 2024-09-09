@@ -8,6 +8,8 @@ public interface Schedule {
 
 	Runnable getRunnable();
 
+	Runnable getErrorCleanUpRunnable();
+
 	String getName();
 
 	List<Exception> getErrors();

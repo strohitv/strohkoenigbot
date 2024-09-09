@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -19,10 +18,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -39,7 +38,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class S3EmoteSender {
+public class S3EmoteSender implements ScheduledService {
 	private final static String EMOTES_FILE_PATH = "resources/bot/all-emotes.json";
 	private final static String EMOTES_PATH = "resources/prod/v1/emote_img";
 
@@ -67,8 +66,6 @@ public class S3EmoteSender {
 
 	private final S3ApiQuerySender requestSender;
 
-	private SchedulingService schedulingService;
-
 	@Value("classpath:html/emotes/emotes.html")
 	Resource mainEmoteHtml;
 
@@ -78,14 +75,18 @@ public class S3EmoteSender {
 	@Value("classpath:json/already-unlocked-emotes.json")
 	Resource alreadyUnlockedEmotesJSON;
 
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("S3EmoteLoader_schedule")
+			.schedule(CronSchedule.getScheduleString("0 3 * * * *"))
+			.runnable(this::reloadEmotes)
+			.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("S3EmoteLoader_schedule", CronSchedule.getScheduleString("0 3 * * * *"), this::reloadEmotes);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
 	public void reloadEmotes() {
@@ -127,7 +128,7 @@ public class S3EmoteSender {
 				var list = new ArrayList<>(allOwnedEmotes);
 				list.removeAll(allOwnedEmotesSoFar);
 
-				if (list.size() > 0) {
+				if (!list.isEmpty()) {
 					allOwnedEmotesSoFar.addAll(list);
 					saveEmotesFailsafe(allOwnedEmotesSoFar);
 

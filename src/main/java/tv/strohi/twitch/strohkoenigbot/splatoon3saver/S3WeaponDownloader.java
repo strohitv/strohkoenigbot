@@ -11,17 +11,17 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.WeaponsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class S3WeaponDownloader {
+public class S3WeaponDownloader implements ScheduledService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
@@ -41,11 +41,18 @@ public class S3WeaponDownloader {
 
 	private final S3ApiQuerySender requestSender;
 
-	private final SchedulingService schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("S3WeaponDownloader_schedule")
+			.schedule(CronSchedule.getScheduleString("45 1 * * * *"))
+			.runnable(this::loadWeapons)
+			.build());
+	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("S3WeaponDownloader_schedule", CronSchedule.getScheduleString("45 1 * * * *"), this::loadWeapons);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
 	public void loadWeapons() {

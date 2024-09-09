@@ -15,10 +15,10 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStatPage;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations.StagesExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import static tv.strohi.twitch.strohkoenigbot.utils.TimezoneUtils.timeOfTimezoneIsBetweenTimes;
 
 @Component
-public class StatsExporter {
+public class StatsExporter implements ScheduledService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private AccountRepository accountRepository;
@@ -73,28 +73,30 @@ public class StatsExporter {
 		this.splatoonStatsLoader = splatoonStatsLoader;
 	}
 
-	private SchedulingService schedulingService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("StatsExporter_schedule")
+			.schedule(CronSchedule.getScheduleString("0 3 * * * *"))
+			.runnable(this::refreshStageAndWeaponStats)
+			.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("StatsExporter_schedule", CronSchedule.getScheduleString("0 3 * * * *"), this::refreshStageAndWeaponStats);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
-//	@Scheduled(cron = "0 3 * * * *")
+	//	@Scheduled(cron = "0 3 * * * *")
 	public void refreshStageAndWeaponStats() {
 		logger.info("loading stage and weapon stats");
 
 		List<Account> accounts = accountRepository.findAll().stream()
-				.filter(a -> a.getSplatoonCookie() != null && !a.getSplatoonCookie().isBlank())
-				.filter(a -> a.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(a.getSplatoonCookieExpiresAt()))
-				.filter(a -> a.getTimezone() != null && !a.getTimezone().isBlank())
-				.filter(a -> timeOfTimezoneIsBetweenTimes(a.getTimezone(), 0, 2, 0, 4))
-				.collect(Collectors.toList());
+			.filter(a -> a.getSplatoonCookie() != null && !a.getSplatoonCookie().isBlank())
+			.filter(a -> a.getSplatoonCookieExpiresAt() != null && Instant.now().isBefore(a.getSplatoonCookieExpiresAt()))
+			.filter(a -> a.getTimezone() != null && !a.getTimezone().isBlank())
+			.filter(a -> timeOfTimezoneIsBetweenTimes(a.getTimezone(), 0, 2, 0, 4))
+			.collect(Collectors.toList());
 
 		for (Account account : accounts) {
 			refreshStatsForAccount(account);
@@ -106,8 +108,8 @@ public class StatsExporter {
 
 		logger.info("refreshing weapon stats for account {}", account.getId());
 		refreshWeaponStats(account.getId(), splatNetStatPage.getRecords().getWeapon_stats().values().stream()
-				.sorted((w1, w2) -> -Integer.compare(w1.getWin_count(), w2.getWin_count()))
-				.collect(Collectors.toList())
+			.sorted((w1, w2) -> -Integer.compare(w1.getWin_count(), w2.getWin_count()))
+			.collect(Collectors.toList())
 		);
 		logger.info("refreshing stage stats for account {}", account.getId());
 		refreshStageStats(account.getId(), new ArrayList<>(splatNetStatPage.getRecords().getStage_stats().values()));
@@ -153,7 +155,7 @@ public class StatsExporter {
 			}
 		}
 
-		if (weaponsToSave.size() > 0) {
+		if (!weaponsToSave.isEmpty()) {
 			weaponStatsRepository.saveAll(weaponsToSave);
 		}
 	}
@@ -162,7 +164,7 @@ public class StatsExporter {
 		for (SplatNetStatPage.SplatNetRecords.SplatNetStageStats singleStageStats : loadedStageStats) {
 			Splatoon2Stage stage = stagesExporter.loadStage(singleStageStats.getStage());
 			Splatoon2StageStats stageStats = stageStatsRepository.findByStageIdAndAccountId(stage.getId(), accountId)
-					.orElse(new Splatoon2StageStats(0L, stage.getId(), accountId, 0, 0, 0, 0, 0, 0, 0, 0));
+				.orElse(new Splatoon2StageStats(0L, stage.getId(), accountId, 0, 0, 0, 0, 0, 0, 0, 0));
 
 			boolean isDirty = stageStats.getId() == 0L;
 

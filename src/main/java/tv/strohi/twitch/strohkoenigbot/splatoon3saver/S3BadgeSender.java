@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -17,10 +16,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class S3BadgeSender {
+public class S3BadgeSender implements ScheduledService {
 	private final static String BADGES_FILE_PATH = "resources/bot/all-badges.json";
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
@@ -64,22 +63,24 @@ public class S3BadgeSender {
 
 	private final S3ApiQuerySender requestSender;
 
-	private SchedulingService schedulingService;
-
 	@Value("classpath:html/badges/badges.html")
 	Resource mainBadgeHtml;
 
 	@Value("classpath:html/badges/singlebadge.html")
 	Resource imageContainerHtml;
 
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("S3BadgeLoader_schedule")
+			.schedule(CronSchedule.getScheduleString("45 2 * * * *"))
+			.runnable(this::reloadBadges)
+			.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("S3BadgeLoader_schedule", CronSchedule.getScheduleString("45 2 * * * *"), this::reloadBadges);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
 	public void reloadBadges() {
@@ -195,8 +196,8 @@ public class S3BadgeSender {
 				var stream = new FileInputStream(Paths.get(System.getProperty("user.dir"), path).toString());
 
 				imageContainerHtmlBuilder.append(imageTemplate
-						.replace("%image%", imgToBase64String(ImageIO.read(stream)))
-						.replace("%number%", String.format("%d", index)));
+					.replace("%image%", imgToBase64String(ImageIO.read(stream)))
+					.replace("%number%", String.format("%d", index)));
 
 				index++;
 			}
@@ -269,7 +270,7 @@ public class S3BadgeSender {
 		if (file.exists()) {
 			try {
 				return Arrays.stream(mapper.readValue(file, Badge[].class))
-						.collect(Collectors.toCollection(ArrayList::new));
+					.collect(Collectors.toCollection(ArrayList::new));
 			} catch (IOException e) {
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not load badges because of an Exception!");
 				logger.error("exception occured!!!");

@@ -10,10 +10,11 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetXRankLeaderBoard;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
-import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -21,7 +22,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Component
-public class PeaksExporter {
+public class PeaksExporter implements ScheduledService {
 	private AccountRepository accountRepository;
 
 	@Autowired
@@ -57,22 +58,22 @@ public class PeaksExporter {
 		this.discordBot = discordBot;
 	}
 
-	private SchedulingService schedulingService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+				.name("PeaksExporter_schedule")
+				.schedule(CronSchedule.getScheduleString("0 0 5 1 * *"))
+				.runnable(this::refreshPreviousMonth)
+				.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("PeaksExporter_schedule", CronSchedule.getScheduleString("0 0 5 1 * *"), this::refreshPreviousMonth);
-		schedulingService.registerOnce("PeaksExporter_reloadMonthlyResults", 2, this::reloadMonthlyResults);
-
-//		try {
-//			reloadMonthlyResults();
-//		} catch (Exception ignored) {
-//		}
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("PeaksExporter_reloadMonthlyResults")
+			.schedule(TickSchedule.getScheduleString(2))
+			.runnable(this::reloadMonthlyResults)
+			.build());
 	}
 
 	//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)

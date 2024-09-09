@@ -7,10 +7,10 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
-import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 @Component
 @RequiredArgsConstructor
-public class ObsController {
+public class ObsController implements ScheduledService {
 	private static final Logger logger = LogManager.getLogger(ObsController.class.getSimpleName());
 	private static final String OBS_SWITCH_NAME = "obsControllerEnabled";
 
@@ -37,16 +37,24 @@ public class ObsController {
 	}
 
 	private final ConfigurationRepository configurationRepository;
-	private final SchedulingService schedulingService;
 	private final List<Consumer<OBSRemoteController>> openCalls = new ArrayList<>();
 
 	private OBSRemoteController controller = null;
 	private boolean controllerIsReady = false;
 	private boolean shouldResetController = false;
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("ObsController_doCommunication", TickSchedule.getScheduleString(1), this::doControllerCommunication);
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("ObsController_doCommunication")
+			.schedule(TickSchedule.getScheduleString(1))
+			.runnable(this::doControllerCommunication)
+			.build());
+	}
+
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
 	private void doControllerCommunication() {
@@ -76,12 +84,12 @@ public class ObsController {
 			shouldResetController = false;
 		}
 
-		if ((!controllerIsReady || controller == null) && (isLive || openCalls.size() > 0)) {
+		if ((!controllerIsReady || controller == null) && (isLive || !openCalls.isEmpty())) {
 			logger.info("connecting to controller...");
 			connectToController();
-		} else if (controllerIsReady && openCalls.size() > 0) {
+		} else if (controllerIsReady && !openCalls.isEmpty()) {
 			logger.info("executing open controller calls...");
-			while (openCalls.size() > 0) {
+			while (!openCalls.isEmpty()) {
 				var call = openCalls.get(0);
 				call.accept(controller);
 				openCalls.remove(0);

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
@@ -16,10 +15,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.GearOffe
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class S3NewGearChecker {
+public class S3NewGearChecker implements ScheduledService {
 //	private static final String ALL_GEAR_GRAPHQL_KEY = "d29cd0c2b5e6bac90dd5b817914832f8";
 //	private static final String SPLATNET_SHOP_GRAPHQL_KEY = "a43dd44899a09013bcfd29b4b13314ff";
 
@@ -66,16 +65,18 @@ public class S3NewGearChecker {
 
 	private final S3ApiQuerySender requestSender;
 
-	private SchedulingService schedulingService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("S3NewGearChecker_schedule")
+			.schedule(CronSchedule.getScheduleString("15 1 * * * *"))
+			.runnable(this::checkForNewGearInSplatNetShop)
+			.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("S3NewGearChecker_schedule", CronSchedule.getScheduleString("15 1 * * * *"), this::checkForNewGearInSplatNetShop);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 //	public void registerSchedule() {
 //		schedulingService.register("S3NewGearChecker_schedule", CronSchedule.getScheduleString("15 * * * * *"), this::checkForNewGearInSplatNetShop);
@@ -135,30 +136,30 @@ public class S3NewGearChecker {
 
 					if (isNew && (hours == 1 || hours == 24)) {
 						String discordMessage = String.format("__**There's gear in splatnet gear shop which you don't own yet!**__\n\n" +
-										"Type: **%s**\n" +
-										"Brand: **%s**\n" +
-										"Name: **%s**\n" +
-										"Price: **%s** coins\n\n" +
-										"Main ability: **%s**\n" +
-										"Favored ability: **%s**\n\n" +
-										"Number of stars: **%d**\n" +
-										"(= **%d** unlocked sub slots)\n\n" +
-										"Available for **%d hours**",
-								offer.getGear().get__typename(),
-								offer.getGear().getBrand().getName(),
-								offer.getGear().getName(),
-								offer.getPrice(),
-								offer.getGear().getPrimaryGearPower().getName(),
-								offer.getGear().getBrand().getUsualGearPower() != null
-										? offer.getGear().getBrand().getUsualGearPower().getName()
-										: getUsualGearPowers().getOrDefault(offer.getGear().getBrand().getName(), "None"),
-								offer.getGear().getAdditionalGearPowers().size() - 1,
-								offer.getGear().getAdditionalGearPowers().size(),
-								hours);
+								"Type: **%s**\n" +
+								"Brand: **%s**\n" +
+								"Name: **%s**\n" +
+								"Price: **%s** coins\n\n" +
+								"Main ability: **%s**\n" +
+								"Favored ability: **%s**\n\n" +
+								"Number of stars: **%d**\n" +
+								"(= **%d** unlocked sub slots)\n\n" +
+								"Available for **%d hours**",
+							offer.getGear().get__typename(),
+							offer.getGear().getBrand().getName(),
+							offer.getGear().getName(),
+							offer.getPrice(),
+							offer.getGear().getPrimaryGearPower().getName(),
+							offer.getGear().getBrand().getUsualGearPower() != null
+								? offer.getGear().getBrand().getUsualGearPower().getName()
+								: getUsualGearPowers().getOrDefault(offer.getGear().getBrand().getName(), "None"),
+							offer.getGear().getAdditionalGearPowers().size() - 1,
+							offer.getGear().getAdditionalGearPowers().size(),
+							hours);
 
 						List<String> images = new ArrayList<>(Arrays.asList(
-								offer.getGear().getImage().getUrl(),
-								offer.getGear().getPrimaryGearPower().getImage().getUrl()
+							offer.getGear().getImage().getUrl(),
+							offer.getGear().getPrimaryGearPower().getImage().getUrl()
 						));
 
 						if (offer.getGear().getBrand().getUsualGearPower() != null) {
@@ -167,8 +168,8 @@ public class S3NewGearChecker {
 
 						logger.info("Sending notification to discord account: {}", account.getDiscordId());
 						discordBot.sendPrivateMessageWithImageUrls(account.getDiscordId(),
-								discordMessage,
-								images.toArray(String[]::new));
+							discordMessage,
+							images.toArray(String[]::new));
 						logger.info("Done sending notification to discord account: {}", account.getDiscordId());
 					}
 				}

@@ -5,16 +5,16 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class UserCounter {
+public class UserCounter implements ScheduledService {
 	private AccountRepository accountRepository;
 
 	@Autowired
@@ -29,29 +29,31 @@ public class UserCounter {
 		this.discordBot = discordBot;
 	}
 
-	private SchedulingService schedulingService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("UserCounter_schedule")
+			.schedule(CronSchedule.getScheduleString("10 5 0 * * *"))
+			.runnable(this::sendUserNumbers)
+			.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("UserCounter_schedule", CronSchedule.getScheduleString("10 5 0 * * *"), this::sendUserNumbers);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
-//	@Scheduled(cron = "10 5 0 * * *")
+	//	@Scheduled(cron = "10 5 0 * * *")
 	public void sendUserNumbers() {
 		List<Account> allUsers = accountRepository.findAll().stream()
-				.sorted(Comparator.comparingLong(Account::getId))
-				.collect(Collectors.toList());
+			.sorted(Comparator.comparingLong(Account::getId))
+			.collect(Collectors.toList());
 
 		Long mainAccountId = allUsers.stream()
-				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
-				.map(Account::getDiscordId)
-				.findFirst()
-				.orElse(null);
+			.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+			.map(Account::getDiscordId)
+			.findFirst()
+			.orElse(null);
 
 		if (mainAccountId != null) {
 			StringBuilder builder = new StringBuilder("This bot currently has **").append(allUsers.size()).append("** users\n\nList of all users:");

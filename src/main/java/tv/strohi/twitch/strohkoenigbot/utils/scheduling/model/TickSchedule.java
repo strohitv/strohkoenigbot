@@ -17,6 +17,7 @@ public class TickSchedule implements Schedule {
 	private final String name;
 	private final int runEveryTicks;
 	private final Runnable runnable;
+	private final Runnable errorCleanUpRunnable;
 
 	private int errorCount = 0;
 	private final List<Exception> exceptions = new ArrayList<>();
@@ -44,6 +45,11 @@ public class TickSchedule implements Schedule {
 	@Override
 	public Runnable getRunnable() {
 		return runnable;
+	}
+
+	@Override
+	public Runnable getErrorCleanUpRunnable() {
+		return errorCleanUpRunnable;
 	}
 
 	@Override

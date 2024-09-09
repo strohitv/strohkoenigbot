@@ -8,25 +8,33 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.utils.Constants;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
-import javax.annotation.PostConstruct;
+import java.util.List;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class TwitchClipSender {
+public class TwitchClipSender implements ScheduledService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final TwitchBotClient twitchBotClient;
 	private final DiscordBot discordBot;
 	private final TwitchMessageSender twitchMessageSender;
 
-	private final SchedulingService schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("TwitchClipSender_schedule")
+			.schedule(TickSchedule.getScheduleString(12))
+			.runnable(this::postClips)
+			.build());
+	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("TwitchClipSender_schedule", TickSchedule.getScheduleString(12), this::postClips);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
 	public void postClips() {

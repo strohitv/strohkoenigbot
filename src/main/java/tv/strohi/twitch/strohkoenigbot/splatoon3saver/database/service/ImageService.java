@@ -11,10 +11,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.ImageRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -27,14 +27,13 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 @Log4j2
-public class ImageService {
+public class ImageService implements ScheduledService {
 	private static final int DOWNLOAD_COUNT = 30;
 	private static final int FAILED_COUNT = 50;
 	private static final int IMAGE_DOWNLOAD_MAX_FAIL_COUNT = 5;
 
 	private final ImageRepository imageRepository;
 	private final ResourcesDownloader resourcesDownloader;
-	private final SchedulingService schedulingService;
 	private final DiscordBot discordBot;
 
 	@Getter
@@ -54,9 +53,18 @@ public class ImageService {
 	private final Pattern imageUrlPattern = Pattern.compile("https://api\\.lp1\\.av5ja\\.srv\\.nintendo\\.net[^\"]+");
 	private final Pattern imagePlaceholderPattern = Pattern.compile("<<<[0-9]+>>>");
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("ShortenedImageService_download10Images", TickSchedule.getScheduleString(60), this::downloadSomeMissingImages);
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("ShortenedImageService_download10Images")
+			.schedule(TickSchedule.getScheduleString(60))
+			.runnable(this::downloadSomeMissingImages)
+			.build());
+	}
+
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
 	@Transactional
@@ -169,7 +177,7 @@ public class ImageService {
 			}
 		}
 
-		if (notDownloadedImages.size() > 0) {
+		if (!notDownloadedImages.isEmpty()) {
 			getLogSender().sendLogs(log, String.format("ImageService: scheduled download saved %d images on drive. Number of failed images: %d", i, brokenImages.size()));
 		}
 	}

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -24,10 +23,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +44,7 @@ import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
-public class S3DailyStatsSender {
+public class S3DailyStatsSender implements ScheduledService {
 	private static final String YESTERDAY_CONFIG_NAME = "DailyStatsSender_yesterday";
 	private static final int PAGE_SIZE = 50;
 
@@ -66,16 +65,18 @@ public class S3DailyStatsSender {
 	private final S3WeaponDownloader weaponDownloader;
 	private final S3XLeaderboardDownloader xLeaderboardDownloader;
 
-	private SchedulingService schedulingService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("S3DailyStatsSender_schedule")
+			.schedule(CronSchedule.getScheduleString("30 12 * * * *"))
+			.runnable(this::sendStats)
+			.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("S3DailyStatsSender_schedule", CronSchedule.getScheduleString("30 12 * * * *"), this::sendStats);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
 	@Transactional

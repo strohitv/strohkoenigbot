@@ -47,14 +47,14 @@ public class SchedulingService {
 		{
 			service.createSingleRunRequests().forEach(request -> {
 				if (request.getSchedule().startsWith("tick: ")) {
-					registerOnce(request.getName(), Integer.parseInt(request.getSchedule().replace("tick:", "").trim()), request.getRunnable());
+					registerOnce(request.getName(), Integer.parseInt(request.getSchedule().replace("tick:", "").trim()), request.getRunnable(), request.getErrorCleanUpRunnable());
 				} else {
-					registerOnce(request.getName(), request.getSchedule().replace("cron:", "").trim(), request.getRunnable());
+					registerOnce(request.getName(), request.getSchedule().replace("cron:", "").trim(), request.getRunnable(), request.getErrorCleanUpRunnable());
 				}
 			});
 
 			service.createScheduleRequests().forEach(request ->
-				register(request.getName(), request.getSchedule(), request.getRunnable()));
+				register(request.getName(), request.getSchedule(), request.getRunnable(), request.getErrorCleanUpRunnable()));
 		});
 	}
 
@@ -116,6 +116,16 @@ public class SchedulingService {
 					}
 
 					exceptionLogger.logException(logger, ex);
+
+					if (schedule.getErrorCleanUpRunnable() != null) {
+						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+							String.format("Running error cleanup runnable for schedule '**%s**'!\nSchedule: `%s`", schedule.getName(), schedule));
+
+						transactionalRunner.run(schedule.getErrorCleanUpRunnable());
+
+						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+							String.format("Done running error cleanup runnable for schedule '**%s**'!\nSchedule: `%s`", schedule.getName(), schedule));
+					}
 				}
 
 				if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
@@ -156,15 +166,15 @@ public class SchedulingService {
 		};
 	}
 
-	public void registerOnce(String name, int ticks, Runnable runnable) {
-		singleRunSchedules.add(new TickSchedule(name, ticks, runnable));
+	private void registerOnce(String name, int ticks, Runnable runnable, Runnable errorCleanUpRunnable) {
+		singleRunSchedules.add(new TickSchedule(name, ticks, runnable, errorCleanUpRunnable));
 	}
 
-	public void registerOnce(String name, String cron, Runnable runnable) {
-		singleRunSchedules.add(new CronSchedule(name, cron, runnable));
+	private void registerOnce(String name, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
+		singleRunSchedules.add(new CronSchedule(name, cron, runnable, errorCleanUpRunnable));
 	}
 
-	public void register(String configName, String defaultValue, Runnable runnable) {
+	private void register(String configName, String defaultValue, Runnable runnable, Runnable errorCleanUpRunnable) {
 		Configuration config = configurationRepository.findAllByConfigName(configName).stream().findFirst().orElse(null);
 
 		if (config == null) {
@@ -173,27 +183,27 @@ public class SchedulingService {
 				String.format("Added new Schedule: id = `%d`, name = `%s`, value = `%s`", config.getId(), configName, defaultValue));
 		}
 
-		schedules.add(createFromSettings(configName, config.getConfigValue(), runnable));
+		schedules.add(createFromSettings(configName, config.getConfigValue(), runnable, errorCleanUpRunnable));
 	}
 
-	private static Schedule createFromSettings(String name, String setting, Runnable runnable) {
+	private static Schedule createFromSettings(String name, String setting, Runnable runnable, Runnable errorCleanUpRunnable) {
 		if (setting.toLowerCase().startsWith("cron: ")) {
-			return create(name, setting.substring("cron: ".length()), runnable);
+			return create(name, setting.substring("cron: ".length()), runnable, errorCleanUpRunnable);
 		} else if (setting.toLowerCase().startsWith("tick: ")) {
 			try {
-				return create(name, Integer.parseInt(setting.substring("tick: ".length())), runnable);
+				return create(name, Integer.parseInt(setting.substring("tick: ".length())), runnable, errorCleanUpRunnable);
 			} catch (NumberFormatException ignored) {
 			}
 		}
 
-		return create(name, 720, runnable);
+		return create(name, 720, runnable, errorCleanUpRunnable);
 	}
 
-	private static Schedule create(String name, String cron, Runnable runnable) {
-		return new CronSchedule(name, cron, runnable);
+	private static Schedule create(String name, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
+		return new CronSchedule(name, cron, runnable, errorCleanUpRunnable);
 	}
 
-	private static Schedule create(String name, int tickEvery, Runnable runnable) {
-		return new TickSchedule(name, tickEvery, runnable);
+	private static Schedule create(String name, int tickEvery, Runnable runnable, Runnable errorCleanUpRunnable) {
+		return new TickSchedule(name, tickEvery, runnable, errorCleanUpRunnable);
 	}
 }

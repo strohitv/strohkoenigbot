@@ -19,10 +19,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.ExceptionSender;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
-import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 import static tv.strohi.twitch.strohkoenigbot.utils.TimezoneUtils.timeOfTimezoneIsBetweenTimes;
 
 @Component
-public class ResultsExporter {
+public class ResultsExporter implements ScheduledService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final AccountRepository accountRepository;
@@ -138,16 +138,18 @@ public class ResultsExporter {
 		this.twitchBotClient = twitchBotClient;
 	}
 
-	private SchedulingService schedulingService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("ResultsExporter_schedule")
+			.schedule(TickSchedule.getScheduleString(720))
+			.runnable(this::loadGameResultsScheduled)
+			.build());
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("ResultsExporter_schedule", TickSchedule.getScheduleString(720), this::loadGameResultsScheduled);
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 
 	public void start(Account account) {
@@ -226,7 +228,7 @@ public class ResultsExporter {
 								.filter(r -> r.getBattleNumberAsInteger() > maxSavedBattleNumber) // matchRepository.findBySplatnetBattleNumber(r.getBattleNumberAsInteger()) == null)
 								.collect(Collectors.toList());
 
-						if (results.size() > 0) {
+						if (!results.isEmpty()) {
 							splatoonMatchColorComponent.reset();
 						}
 

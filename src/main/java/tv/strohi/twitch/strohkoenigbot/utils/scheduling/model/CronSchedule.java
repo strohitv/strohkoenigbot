@@ -16,14 +16,16 @@ public class CronSchedule implements Schedule {
 	private final String name;
 	private final CronExpression cronExpression;
 	private final Runnable runnable;
+	private final Runnable errorCleanUpRunnable;
 
 	private int errorCount = 0;
 	private final List<Exception> exceptions = new ArrayList<>();
 
-	public CronSchedule(String name, String cron, Runnable runnable) {
+	public CronSchedule(String name, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
 		this.name = name;
 		this.cronExpression = CronExpression.parse(cron);
 		this.runnable = runnable;
+		this.errorCleanUpRunnable = errorCleanUpRunnable;
 	}
 
 	private LocalDateTime lastFired = LocalDateTime.now();
@@ -55,6 +57,11 @@ public class CronSchedule implements Schedule {
 	@Override
 	public Runnable getRunnable() {
 		return runnable;
+	}
+
+	@Override
+	public Runnable getErrorCleanUpRunnable() {
+		return errorCleanUpRunnable;
 	}
 
 	@Override

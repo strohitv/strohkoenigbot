@@ -22,10 +22,11 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
-import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -36,7 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class RotationWatcher {
+public class RotationWatcher implements ScheduledService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private SplatNetStages stages = null;
@@ -90,13 +91,6 @@ public class RotationWatcher {
 		this.discordBot = discordBot;
 	}
 
-	private SchedulingService schedulingService;
-
-	@Autowired
-	public void setSchedulingService(SchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
-	}
-
 	private ExceptionLogger exceptionLogger;
 
 	@Autowired
@@ -104,15 +98,22 @@ public class RotationWatcher {
 		this.exceptionLogger = exceptionLogger;
 	}
 
-	@PostConstruct
-	public void registerSchedule() {
-		schedulingService.register("RotationWatcher_schedule", CronSchedule.getScheduleString("20 0 * * * *"), this::sendDiscordNotifications);
-		schedulingService.registerOnce("RotationWatcher_sendDiscordNotificationsOnLocalDebug", 2, this::sendDiscordNotificationsOnLocalDebug);
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("RotationWatcher_schedule")
+			.schedule(CronSchedule.getScheduleString("20 0 * * * *"))
+			.runnable(this::sendDiscordNotifications)
+			.build());
+	}
 
-//		try {
-//			sendDiscordNotificationsOnLocalDebug();
-//		} catch (Exception ignored) {
-//		}
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("RotationWatcher_sendDiscordNotificationsOnLocalDebug")
+			.schedule(TickSchedule.getScheduleString(2))
+			.runnable(this::sendDiscordNotificationsOnLocalDebug)
+			.build());
 	}
 
 	//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
