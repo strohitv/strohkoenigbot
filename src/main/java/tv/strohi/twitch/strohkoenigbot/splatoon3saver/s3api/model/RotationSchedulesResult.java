@@ -167,6 +167,8 @@ public class RotationSchedulesResult implements Serializable {
 		private String state;
 		private Team[] teams;
 		private VsStage tricolorStage;
+		private VsStage[] tricolorStages;
+		private Rotation[] timetable;
 
 		public Instant getStartTimeAsInstant() {
 			return Instant.parse(startTime);

@@ -12,6 +12,8 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class Rotation {
+	private String __typename;
+
 	private String startTime;
 	private String endTime;
 
