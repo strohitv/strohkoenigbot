@@ -71,6 +71,7 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final S3RotationSender s3RotationSender;
 	private final S3DailyStatsSender s3DailyStatsSender;
 	private final S3NewGearChecker s3NewGearChecker;
+	private final S3GameExporter s3GameExporter;
 
 	private final ImageService imageService;
 
@@ -535,6 +536,22 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Fixing database doubled entries...");
 				s3Downloader.fixBrokenDatabaseEntries();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished fixing database doubled entries.");
+			} else if (message.startsWith("!export games")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Exporting missed s3s entries to file...");
+				try {
+					s3Downloader.downloadBattles(true);
+
+					var split = message.split(" +");
+					var top = Integer.parseInt(split[2]);
+					var skip = Integer.parseInt(split[3]);
+
+					s3GameExporter.exportGames(DiscordBot.ADMIN_ID, top, skip);
+				} catch (Exception ex) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Exception while exporting Games.");
+					exceptionLogger.logException(logger, ex);
+				}
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished exporting missed s3s entries to file.");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
