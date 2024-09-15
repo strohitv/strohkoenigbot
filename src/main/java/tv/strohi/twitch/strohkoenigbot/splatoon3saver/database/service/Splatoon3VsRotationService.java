@@ -144,25 +144,54 @@ public class Splatoon3VsRotationService {
 
 	@Transactional
 	public void ensureTricolorRotationsExist(RotationSchedulesResult.Fest currentFest) {
-		Arrays.stream(currentFest.getTimetable())
-			.map(rotation -> Rotation.builder()
-				.startTime(rotation.getStartTime())
-				.endTime(rotation.getEndTime())
-				.festMatchSettings(new RotationMatchSetting[]{
-					RotationMatchSetting.builder()
-						.vsStages(Arrays.stream(rotation.getFestMatchSettings()).findFirst().map(RotationMatchSetting::getVsStages).orElseThrow())
-						.festMode("TRI_COLOR")
-						.__typename("FestMatchSetting")
-						.__isVsSetting("FestMatchSetting")
-						.vsRule(VsRule.builder()
-							.id("VnNSdWxlLTU=")
-							.name("Tricolor Turf War")
-							.rule("TRI_COLOR")
-							.build())
-						.build()
-				})
-				.build())
-			.forEach(this::ensureRotationExists);
+		if (currentFest.getTimetable() != null && currentFest.getTimetable().length > 0) {
+			Arrays.stream(currentFest.getTimetable())
+				.map(rotation -> Rotation.builder()
+					.startTime(rotation.getStartTime())
+					.endTime(rotation.getEndTime())
+					.festMatchSettings(new RotationMatchSetting[]{
+						RotationMatchSetting.builder()
+							.vsStages(Arrays.stream(rotation.getFestMatchSettings()).findFirst().map(RotationMatchSetting::getVsStages).orElseThrow())
+							.festMode("TRI_COLOR")
+							.__typename("FestMatchSetting")
+							.__isVsSetting("FestMatchSetting")
+							.vsRule(VsRule.builder()
+								.id("VnNSdWxlLTU=")
+								.name("Tricolor Turf War")
+								.rule("TRI_COLOR")
+								.build())
+							.build()
+					})
+					.build())
+				.forEach(this::ensureRotationExists);
+		} else {
+			var slotList = new ArrayList<Instant>();
+			slotList.add(currentFest.getMidTermTimeAsInstant());
+
+			while (slotList.get(slotList.size() - 1).plus(2, ChronoUnit.HOURS).isBefore(currentFest.getEndTimeAsInstant())) {
+				slotList.add(slotList.get(slotList.size() - 1).plus(2, ChronoUnit.HOURS));
+			}
+
+			slotList.stream()
+				.map(slot -> Rotation.builder()
+					.startTime(formatter.format(slot.atZone(ZoneOffset.UTC)))
+					.endTime(formatter.format(slot.plus(2, ChronoUnit.HOURS).atZone(ZoneOffset.UTC)))
+					.festMatchSettings(new RotationMatchSetting[] {
+						RotationMatchSetting.builder()
+							.vsStages(new VsStage[]{currentFest.getTricolorStage()})
+							.festMode("TRI_COLOR")
+							.__typename("FestMatchSetting")
+							.__isVsSetting("FestMatchSetting")
+							.vsRule(VsRule.builder()
+								.id("VnNSdWxlLTU=")
+								.name("Tricolor Turf War")
+								.rule("TRI_COLOR")
+								.build())
+							.build()
+					})
+					.build())
+				.forEach(this::ensureRotationExists);
+		}
 	}
 
 
