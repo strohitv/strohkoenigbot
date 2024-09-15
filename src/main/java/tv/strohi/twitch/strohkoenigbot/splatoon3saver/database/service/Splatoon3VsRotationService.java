@@ -164,7 +164,7 @@ public class Splatoon3VsRotationService {
 					})
 					.build())
 				.forEach(this::ensureRotationExists);
-		} else {
+		} else if (currentFest.getTricolorStages() != null && currentFest.getTricolorStages().length > 0) {
 			var slotList = new ArrayList<Instant>();
 			slotList.add(currentFest.getMidTermTimeAsInstant());
 
@@ -178,7 +178,7 @@ public class Splatoon3VsRotationService {
 					.endTime(formatter.format(slot.plus(2, ChronoUnit.HOURS).atZone(ZoneOffset.UTC)))
 					.festMatchSettings(new RotationMatchSetting[] {
 						RotationMatchSetting.builder()
-							.vsStages(new VsStage[]{currentFest.getTricolorStage()})
+							.vsStages(new VsStage[]{Arrays.stream(currentFest.getTricolorStages()).findFirst().orElseThrow()})
 							.festMode("TRI_COLOR")
 							.__typename("FestMatchSetting")
 							.__isVsSetting("FestMatchSetting")
