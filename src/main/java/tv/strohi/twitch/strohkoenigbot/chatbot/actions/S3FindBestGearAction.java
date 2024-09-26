@@ -18,6 +18,8 @@ import java.util.stream.Stream;
 
 @Component
 public class S3FindBestGearAction extends ChatAction {
+	public static final String COMMAND_NAME = "!find";
+
 	private final S3NewGearChecker gearChecker;
 
 	private Instant lastUsed = Instant.now().truncatedTo(ChronoUnit.DAYS);
@@ -68,7 +70,7 @@ public class S3FindBestGearAction extends ChatAction {
 
 		message = message.toLowerCase().trim();
 
-		if (!message.startsWith("!fbg")) {
+		if (!message.startsWith(COMMAND_NAME)) {
 			return;
 		}
 
