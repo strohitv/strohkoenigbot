@@ -125,8 +125,13 @@ public class S3EmoteSender implements ScheduledService {
 
 				var allOwnedEmotesSoFar = loadEmotesFailsafe();
 
-				var list = new ArrayList<>(allOwnedEmotes);
-				list.removeAll(allOwnedEmotesSoFar);
+				var allOwnedEmoteNamesSoFar = allOwnedEmotesSoFar.stream()
+					.map(c -> c.getItem().getName())
+					.collect(Collectors.toList());
+
+				var list = new ArrayList<>(allOwnedEmotes).stream()
+					.filter(em -> !allOwnedEmoteNamesSoFar.contains(em.getItem().getName()))
+					.collect(Collectors.toList());
 
 				if (!list.isEmpty()) {
 					allOwnedEmotesSoFar.addAll(list);
