@@ -46,15 +46,15 @@ public class S3EmoteSender implements ScheduledService {
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
-	private final List<CatalogResult.Reward> allOwnedEmotes = new ArrayList<>();
+	private final List<CatalogResult.Reward> allOwnedEmotesSaved = new ArrayList<>();
 
-	private void setAllOwnedEmotes(List<CatalogResult.Reward> allEmotes) {
-		allOwnedEmotes.clear();
-		allOwnedEmotes.addAll(allEmotes);
+	private void setAllOwnedEmotesSaved(List<CatalogResult.Reward> allEmotes) {
+		allOwnedEmotesSaved.clear();
+		allOwnedEmotesSaved.addAll(allEmotes);
 	}
 
-	public List<CatalogResult.Reward> getAllOwnedEmotes() {
-		return List.copyOf(allOwnedEmotes);
+	public List<CatalogResult.Reward> getAllOwnedEmotesSaved() {
+		return List.copyOf(allOwnedEmotesSaved);
 	}
 
 	private final ObjectMapper mapper = new ObjectMapper();
@@ -120,25 +120,25 @@ public class S3EmoteSender implements ScheduledService {
 					catalogEmotes.forEach(emote -> emote.setSeasonName(catalogResult.getData().getCatalog().getSeasonName()));
 
 					allEmotes.addAll(catalogEmotes);
-					setAllOwnedEmotes(allEmotes);
+					setAllOwnedEmotesSaved(allEmotes);
 				}
 
-				var allOwnedEmotesSoFar = loadEmotesFailsafe();
+				var allOwnedEmotesRightNow = loadEmotesFailsafe();
 
-				var allOwnedEmoteNamesSoFar = allOwnedEmotesSoFar.stream()
+				var allOwnedEmotesSavedNames = allOwnedEmotesSaved.stream()
 					.map(c -> c.getItem().getName())
 					.collect(Collectors.toList());
 
-				var list = new ArrayList<>(allOwnedEmotes).stream()
-					.filter(em -> !allOwnedEmoteNamesSoFar.contains(em.getItem().getName()))
+				var newlyFoundEmotes = allOwnedEmotesRightNow.stream()
+					.filter(em -> !allOwnedEmotesSavedNames.contains(em.getItem().getName()))
 					.collect(Collectors.toList());
 
-				if (!list.isEmpty()) {
-					allOwnedEmotesSoFar.addAll(list);
-					saveEmotesFailsafe(allOwnedEmotesSoFar);
+				if (!newlyFoundEmotes.isEmpty()) {
+					allOwnedEmotesRightNow.addAll(newlyFoundEmotes);
+					saveEmotesFailsafe(allOwnedEmotesRightNow);
 
 					var emoteImages = new ArrayList<EmoteWithImage>();
-					for (var emote : allOwnedEmotesSoFar) {
+					for (var emote : allOwnedEmotesRightNow) {
 						String imageLocationString = resourcesDownloader.ensureExistsLocally(emote.getItem().getImage().getUrl(), EMOTES_PATH);
 						String path = Paths.get(imageLocationString).toString();
 
@@ -193,8 +193,8 @@ public class S3EmoteSender implements ScheduledService {
 //				ImageIO.write(allEmotesImage, "png", outputfile);
 
 					var builder = new StringBuilder("Found new Emotes:");
-					for (var emote : list) {
-						var indexStr = String.format("**E%03d**: ", allOwnedEmotesSoFar.indexOf(emote) + 1);
+					for (var emote : newlyFoundEmotes) {
+						var indexStr = String.format("**E%03d**: ", allOwnedEmotesRightNow.indexOf(emote) + 1);
 
 						if (builder.length() + emote.getItem().getName().length() + indexStr.length() + "\n- ".length() > 2000) {
 							discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3EmotesChannel(), builder.toString());
