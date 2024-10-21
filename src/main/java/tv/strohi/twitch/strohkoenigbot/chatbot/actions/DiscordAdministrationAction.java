@@ -536,6 +536,10 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Fixing database doubled entries...");
 				s3Downloader.fixBrokenDatabaseEntries();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished fixing database doubled entries.");
+			}  else if (message.startsWith("!reset semaphore")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Resetting semaphore...");
+				s3Downloader.resetSemaphore();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished resetting semaphore.");
 			} else if (message.startsWith("!export games")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Exporting missed s3s entries to file...");
 				try {
