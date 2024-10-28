@@ -161,12 +161,12 @@ public class S3StreamStatistics {
 			}
 
 			var weaponStatsStart = startWeaponStats.stream()
-				.filter(w -> w.getName().equalsIgnoreCase(player.getWeapon().getName()))
+				.filter(w -> w.getId().equalsIgnoreCase(player.getWeapon().getApiId()))
 				.findFirst()
 				.orElse(null);
 
 			var weaponStatsCurrent = currentWeaponStats.stream()
-				.filter(w -> w.getName().equalsIgnoreCase(player.getWeapon().getName()))
+				.filter(w -> w.getId().equalsIgnoreCase(player.getWeapon().getApiId()))
 				.findFirst()
 				.orElse(null);
 
