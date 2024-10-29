@@ -14,25 +14,34 @@ public class ExceptionLogger {
 	private final LogSender logSender;
 
 	public void logException(Logger logger, Exception e) {
+		logExceptionAsAttachment(logger, "An Exception has occurred!", e);
+	}
+
+	public void logExceptionAsAttachment(Logger logger, String title, Exception e) {
 		var sentExs = new ArrayList<Throwable>();
 		Throwable currentEx = e;
 
+		var messageBuilder = new StringBuilder();
+		int exceptionNumber = 1;
+
 		while (!sentExs.contains(currentEx) && currentEx != null) {
-			logSender.sendLogs(logger, String.format("**Message**: '%s'", currentEx.getMessage()));
+			messageBuilder.append("# Exception #").append(exceptionNumber).append("\n\n");
+			exceptionNumber++;
+
+			messageBuilder.append("### Message\n- ").append(currentEx.getMessage()).append("\n\n");
 
 			StringWriter stringWriter = new StringWriter();
 			PrintWriter printWriter = new PrintWriter(stringWriter);
 			currentEx.printStackTrace(printWriter);
 
 			String stacktrace = stringWriter.toString();
-			if (stacktrace.length() > 1900) {
-				stacktrace = stacktrace.substring(0, 1900);
-			}
-
-			logSender.sendLogs(logger, String.format("**Stacktrace**: ```\n%s\n```", stacktrace));
+			messageBuilder.append("### Stacktrace\n```\n").append(stacktrace).append("\n```\n\n");
 
 			sentExs.add(currentEx);
 			currentEx = currentEx.getCause();
 		}
+
+		var wholeMessage = messageBuilder.toString();
+		logSender.sendLogsAsAttachment(logger, String.format("## Error\n%s\n### Exception", title), wholeMessage);
 	}
 }

@@ -80,13 +80,13 @@ public class SchedulingService {
 					schedule.increaseErrorCount();
 
 					if (ex instanceof TimeoutException) {
-						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("**ERROR**: Runnable '**%s**' ran into timeout!!\nSchedule: `%s`", schedule.getName(), schedule));
-						exceptionLogger.logException(logger, ex);
+						exceptionLogger.logExceptionAsAttachment(logger,
+							String.format("Runnable '**%s**' ran into timeout!!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule),
+							ex);
 					} else if (schedule.isFailed(MAX_ERRORS_SINGLE)) {
-						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("**ERROR**: Single Runnable failed **%d** times and got removed from Scheduler!! Schedule: `%s`", MAX_ERRORS_SINGLE, schedule));
-						exceptionLogger.logException(logger, ex);
+						exceptionLogger.logExceptionAsAttachment(logger,
+							String.format("Single Runnable failed **%d** times and got removed from Scheduler!! Schedule:\n```\n%s\n```", MAX_ERRORS_SINGLE, schedule),
+							ex);
 						singleRunSchedules.remove(i);
 						i--;
 					}
@@ -107,30 +107,27 @@ public class SchedulingService {
 				} catch (Exception ex) {
 					schedule.increaseErrorCount();
 
+					String errorLogMessage = String.format("Runnable '**%s**' ran into an unexpected Exception!!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule);
 					if (ex instanceof TimeoutException) {
-						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("**ERROR**: Runnable '**%s**' ran into timeout!!\nSchedule: `%s`", schedule.getName(), schedule));
-					} else {
-						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("**ERROR**: Runnable '**%s**' ran into an unexpected Exception!!\nSchedule: `%s`", schedule.getName(), schedule));
+						errorLogMessage = String.format("Runnable '**%s**' ran into timeout!!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule);
 					}
 
-					exceptionLogger.logException(logger, ex);
+					exceptionLogger.logExceptionAsAttachment(logger, errorLogMessage, ex);
 
 					if (schedule.getErrorCleanUpRunnable() != null) {
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("Running error cleanup runnable for schedule '**%s**'!\nSchedule: `%s`", schedule.getName(), schedule));
+							String.format("Running error cleanup runnable for schedule '**%s**'!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule));
 
 						transactionalRunner.run(schedule.getErrorCleanUpRunnable());
 
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("Done running error cleanup runnable for schedule '**%s**'!\nSchedule: `%s`", schedule.getName(), schedule));
+							String.format("Done running error cleanup runnable for schedule '**%s**'!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule));
 					}
 				}
 
 				if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
 					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-						String.format("**ERROR**: Repeated Runnable '**%s**' failed **%d** times and got removed from Scheduler!! Schedule: `%s`", schedule.getName(), MAX_ERRORS_REPEATED, schedule));
+						String.format("Repeated Runnable '**%s**' failed **%d** times and got removed from Scheduler!! Schedule:\n```\n%s\n```", schedule.getName(), MAX_ERRORS_REPEATED, schedule));
 
 					List<Exception> exceptions = schedule.getErrors();
 					Exception exception = exceptions.get(exceptions.size() - 1);
