@@ -91,7 +91,38 @@ public class XRankStats {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class PastSeasons {
-		public List<Node> nodes;
+		public List<PastSeasonEdge> edges;
+		public PastSeasonPageInfo pageInfo;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class PastSeasonEdge {
+		public PastSeasonNode node;
+		public String cursor;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class PastSeasonNode {
+		public String id;
+		public String name;
+		public String __typename;
+		public Instant startTime;
+		public Instant endTime;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class PastSeasonPageInfo {
+		public String endCursor;
+		public Boolean hasNextPage;
 	}
 
 	@Getter
