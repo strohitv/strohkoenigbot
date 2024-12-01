@@ -156,7 +156,7 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 				discordBot.sendServerMessageWithImageUrls(
 					alert.getGuildId(),
 					alert.getChannelId(),
-					String.format("## %s\n%s\n- Game: %s", event.getStream().getTitle(), alert.getNotificationMessage(), event.getStream().getGameName()));
+					String.format("## __%s__: %s\n%s\n- Game: %s", event.getStream().getUserName(), event.getStream().getTitle(), alert.getNotificationMessage(), event.getStream().getGameName()));
 			}
 		}
 	}
