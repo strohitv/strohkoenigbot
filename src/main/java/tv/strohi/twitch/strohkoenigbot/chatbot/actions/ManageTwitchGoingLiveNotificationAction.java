@@ -153,7 +153,10 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 		for (var alert : allAlerts) {
 			var filters = alert.getFiltersAsObject();
 			if (filtersMatch(filters, event)) {
-				discordBot.sendServerMessageWithImageUrls(alert.getGuildId(), alert.getChannelId(), String.format("## %s\n%s\n- Game: %s", event.getStream().getTitle(), alert.getNotificationMessage(), event.getStream().getGameName()));
+				discordBot.sendServerMessageWithImageUrls(
+					alert.getGuildId(),
+					alert.getChannelId(),
+					String.format("## %s\n%s\n- Game: %s", event.getStream().getTitle(), alert.getNotificationMessage(), event.getStream().getGameName()));
 			}
 		}
 	}
