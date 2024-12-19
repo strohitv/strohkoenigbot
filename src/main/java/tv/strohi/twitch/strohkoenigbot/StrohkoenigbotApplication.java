@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import javax.annotation.PreDestroy;
@@ -33,6 +34,12 @@ public class StrohkoenigbotApplication {
 	@Autowired
 	public void setDataSource(HikariDataSource dataSource) {
 		this.dataSource = dataSource;
+	}
+
+	@Autowired
+	public void setConfigLocalDebug(ConfigurationRepository configurationRepository) {
+		configurationRepository.findByConfigName("debug")
+			.ifPresent(debug -> DiscordChannelDecisionMaker.setOrIsLocalDebug("TRUE".equalsIgnoreCase(debug.getConfigValue().trim())));
 	}
 
 	private DiscordBot discordBot;
