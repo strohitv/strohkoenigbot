@@ -17,6 +17,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchGoingLiveAlert;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchGoingLiveAlertFilter;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchGoingLiveAlertRepository;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -153,9 +154,15 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 		for (var alert : allAlerts) {
 			var filters = alert.getFiltersAsObject();
 			if (filtersMatch(filters, event)) {
+				if (DiscordChannelDecisionMaker.isLocalDebug()) {
+					discordBot.sendServerMessageWithImageUrls(
+						alert.getGuildId(),
+						alert.getChannelId(),
+						String.format("## *%s*: %s\n%s\n- Game: %s", event.getStream().getUserName(), event.getStream().getTitle(), alert.getNotificationMessage(), event.getStream().getGameName()));
+				}
+			} else {
 				discordBot.sendServerMessageWithImageUrls(
-					alert.getGuildId(),
-					alert.getChannelId(),
+					DiscordChannelDecisionMaker.getDebugChannelName(),
 					String.format("## *%s*: %s\n%s\n- Game: %s", event.getStream().getUserName(), event.getStream().getTitle(), alert.getNotificationMessage(), event.getStream().getGameName()));
 			}
 		}
