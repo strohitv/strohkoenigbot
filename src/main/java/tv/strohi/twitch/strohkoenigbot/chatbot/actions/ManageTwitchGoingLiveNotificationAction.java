@@ -154,7 +154,7 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 		for (var alert : allAlerts) {
 			var filters = alert.getFiltersAsObject();
 			if (filtersMatch(filters, event)) {
-				if (DiscordChannelDecisionMaker.isLocalDebug()) {
+				if (!DiscordChannelDecisionMaker.isLocalDebug()) {
 					discordBot.sendServerMessageWithImageUrls(
 						alert.getGuildId(),
 						alert.getChannelId(),
