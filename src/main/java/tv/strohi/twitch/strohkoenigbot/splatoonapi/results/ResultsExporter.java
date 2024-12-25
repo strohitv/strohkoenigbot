@@ -181,6 +181,10 @@ public class ResultsExporter implements ScheduledService {
 	//	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
 //	@Scheduled(fixedDelay = 3_600_000)
 	public void loadGameResultsScheduled() {
+		if (DiscordChannelDecisionMaker.isLocalDebug()) {
+			return;
+		}
+
 		logger.debug("running results exporter");
 
 		List<Account> accounts = accountRepository.findAll().stream()

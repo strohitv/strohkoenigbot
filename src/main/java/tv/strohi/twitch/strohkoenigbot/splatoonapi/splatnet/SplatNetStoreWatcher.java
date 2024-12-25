@@ -85,6 +85,10 @@ public class SplatNetStoreWatcher implements ScheduledService {
 //	@Scheduled(cron = "10 0 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void refreshSplatNetShop() {
+		if (DiscordChannelDecisionMaker.isLocalDebug()) {
+			return;
+		}
+
 		logger.info("checking for new splatnet store offers");
 
 		Account account = accountRepository.findAll().stream()

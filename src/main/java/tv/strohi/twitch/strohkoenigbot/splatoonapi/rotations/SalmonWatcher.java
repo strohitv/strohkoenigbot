@@ -92,6 +92,10 @@ public class SalmonWatcher implements ScheduledService {
 	//	@Scheduled(cron = "15 0 * * * *")
 //	@Scheduled(cron = "15 * * * * *")
 	public void sendDiscordNotifications() {
+		if (DiscordChannelDecisionMaker.isLocalDebug()) {
+			return;
+		}
+
 		refreshRotations();
 
 		SplatNetSalmonRunSchedules.SplatNetScheduleDetail detail = Arrays.stream(schedules.getDetails())

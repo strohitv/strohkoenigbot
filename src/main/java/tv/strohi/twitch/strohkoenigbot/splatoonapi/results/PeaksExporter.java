@@ -78,6 +78,10 @@ public class PeaksExporter implements ScheduledService {
 
 	//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
 	public void reloadMonthlyResults() {
+		if (DiscordChannelDecisionMaker.isLocalDebug()) {
+			return;
+		}
+
 		Account account = accountRepository.findAll().stream()
 				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 				.findFirst()
@@ -175,6 +179,10 @@ public class PeaksExporter implements ScheduledService {
 	//	@Scheduled(cron = "0 0 5 1 * *")
 //	@Scheduled(cron = "0 * * * * *")
 	public void refreshPreviousMonth() {
+		if (DiscordChannelDecisionMaker.isLocalDebug()) {
+			return;
+		}
+
 		Account account = accountRepository.findAll().stream()
 				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 				.findFirst()

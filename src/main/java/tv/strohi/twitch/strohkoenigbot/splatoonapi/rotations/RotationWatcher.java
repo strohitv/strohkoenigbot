@@ -127,6 +127,10 @@ public class RotationWatcher implements ScheduledService {
 //	@Scheduled(cron = "20 0 * * * *")
 //	@Scheduled(cron = "20 * * * * *")
 	public void sendDiscordNotifications() {
+		if (DiscordChannelDecisionMaker.isLocalDebug()) {
+			return;
+		}
+
 		refreshStages();
 
 		if (stages != null) {
