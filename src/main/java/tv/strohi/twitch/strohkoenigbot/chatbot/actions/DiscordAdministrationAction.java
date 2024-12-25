@@ -1,6 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -38,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -406,9 +409,41 @@ public class DiscordAdministrationAction extends ChatAction {
 					.orElse(null);
 
 				if (account != null) {
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Cookie: `%s`", account.getSplatoonCookie()));
+					var cookieJson = new ObjectMapper().registerModule(new JavaTimeModule()).writeValueAsString(new CookieData(
+						account.getSplatoonCookie(),
+						account.getSplatoonCookieExpiresAt(),
+						account.getSplatoonNickname(),
+						account.getSplatoonSessionToken()
+					));
+
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Cookie data: `%s`", cookieJson));
 				} else {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No cookie for you tsk tsk tsk");
+				}
+			} else if (message.startsWith("!cookie set")) {
+				Account account = accountRepository.findAll().stream()
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.orElse(null);
+
+				if (account != null) {
+					try {
+						var cookieJson = message.substring("!cookie set".length()).trim();
+						var cookieData = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(cookieJson, CookieData.class);
+
+						account.setSplatoonCookie(cookieData.splatoonCookie);
+						account.setSplatoonCookieExpiresAt(cookieData.splatoonCookieExpiresAt);
+						account.setSplatoonNickname(cookieData.splatoonNickname);
+						account.setSplatoonSessionToken(cookieData.splatoonSessionToke);
+
+						account = accountRepository.save(account);
+
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Cookie: `%s`", account.getSplatoonCookie()));
+					} catch (Exception e) {
+						exceptionLogger.logException(logger, e);
+					}
+				} else {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Could not find main account");
 				}
 			} else if (message.startsWith("!gtoken retrieve")) {
 				Account account = accountRepository.findAll().stream()
@@ -536,7 +571,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Fixing database doubled entries...");
 				s3Downloader.fixBrokenDatabaseEntries();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished fixing database doubled entries.");
-			}  else if (message.startsWith("!reset semaphore")) {
+			} else if (message.startsWith("!reset semaphore")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Resetting semaphore...");
 				s3Downloader.resetSemaphore();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished resetting semaphore.");
@@ -581,5 +616,16 @@ public class DiscordAdministrationAction extends ChatAction {
 		} catch (Exception ex) {
 			return null;
 		}
+	}
+
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Getter
+	@Setter
+	public static class CookieData {
+		private String splatoonCookie;
+		private Instant splatoonCookieExpiresAt;
+		private String splatoonNickname;
+		private String splatoonSessionToke;
 	}
 }
