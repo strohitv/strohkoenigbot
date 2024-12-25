@@ -428,7 +428,8 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				if (account != null) {
 					try {
-						var cookieJson = message.substring("!cookie set".length()).trim();
+						var cookieJson = ((String) args.getArguments().getOrDefault(ArgumentKey.Message, null)).trim()
+							.substring("!cookie set".length()).trim();
 						var cookieData = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(cookieJson, CookieData.class);
 
 						account.setSplatoonCookie(cookieData.splatoonCookie);
@@ -438,7 +439,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 						account = accountRepository.save(account);
 
-						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Cookie: `%s`", account.getSplatoonCookie()));
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Successfully set Splatoon Cookie of account to: `%s`", account.getSplatoonCookie()));
 					} catch (Exception e) {
 						exceptionLogger.logException(logger, e);
 					}
