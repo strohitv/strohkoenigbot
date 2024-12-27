@@ -98,7 +98,6 @@ public class DiscordAdministrationAction extends ChatAction {
 
 		try {
 			message = message.trim();
-			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Received message: " + message);
 
 			if (message.toLowerCase().startsWith("!nodebug")) {
 				if (DiscordChannelDecisionMaker.isLocalDebug()) {
@@ -107,7 +106,6 @@ public class DiscordAdministrationAction extends ChatAction {
 				}
 
 				message = message.substring("!nodebug".length()).trim();
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "New message: " + message);
 			} else if (message.toLowerCase().startsWith("!debug")) {
 				if (!DiscordChannelDecisionMaker.isLocalDebug()) {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Debug mode disabled - stopping possible execution");
@@ -115,7 +113,6 @@ public class DiscordAdministrationAction extends ChatAction {
 				}
 
 				message = message.substring("!debug".length()).trim();
-				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "New message: " + message);
 			}
 
 			var lowercaseMessage = message.toLowerCase();
