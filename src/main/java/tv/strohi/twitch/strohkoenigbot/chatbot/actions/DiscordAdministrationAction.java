@@ -105,14 +105,16 @@ public class DiscordAdministrationAction extends ChatAction {
 					return;
 				}
 
-				message = message.substring("!nodebug ".length()).trim();
+				message = message.substring("!nodebug".length()).trim();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "New message: " + message);
 			} else if (message.toLowerCase().startsWith("!debug")) {
 				if (!DiscordChannelDecisionMaker.isLocalDebug()) {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Debug mode disabled - stopping possible execution");
 					return;
 				}
 
-				message = message.substring("!debug ".length()).trim();
+				message = message.substring("!debug".length()).trim();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "New message: " + message);
 			}
 
 			var lowercaseMessage = message.toLowerCase();
