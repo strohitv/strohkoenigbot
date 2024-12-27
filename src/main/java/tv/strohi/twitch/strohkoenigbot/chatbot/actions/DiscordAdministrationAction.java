@@ -98,6 +98,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 		try {
 			message = message.trim();
+			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Received message: " + message);
 
 			if (message.toLowerCase().startsWith("!nodebug")) {
 				if (DiscordChannelDecisionMaker.isLocalDebug()) {
