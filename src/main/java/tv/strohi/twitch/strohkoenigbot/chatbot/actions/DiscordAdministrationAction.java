@@ -98,25 +98,24 @@ public class DiscordAdministrationAction extends ChatAction {
 
 		try {
 			message = message.trim();
-			var lowercaseMessage = message.toLowerCase();
 
-			if (lowercaseMessage.startsWith("!nodebug")) {
+			if (message.toLowerCase().startsWith("!nodebug")) {
 				if (DiscordChannelDecisionMaker.isLocalDebug()) {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Debug mode enabled - stopping possible execution");
 					return;
 				}
 
-				message = message.substring("!nodebug ".length());
-				lowercaseMessage = lowercaseMessage.substring("!nodebug ".length());
-			} else if (lowercaseMessage.startsWith("!debug")) {
+				message = message.substring("!nodebug ".length()).trim();
+			} else if (message.toLowerCase().startsWith("!debug")) {
 				if (!DiscordChannelDecisionMaker.isLocalDebug()) {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Debug mode disabled - stopping possible execution");
 					return;
 				}
 
-				message = message.substring("!debug ".length());
-				lowercaseMessage = lowercaseMessage.substring("!debug ".length());
+				message = message.substring("!debug ".length()).trim();
 			}
+
+			var lowercaseMessage = message.toLowerCase();
 
 			if (lowercaseMessage.startsWith("!start")) {
 				Account account = accountRepository.findAll().stream()
