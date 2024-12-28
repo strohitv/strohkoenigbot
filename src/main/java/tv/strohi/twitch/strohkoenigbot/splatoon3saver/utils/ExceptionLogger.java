@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -14,7 +15,7 @@ public class ExceptionLogger {
 	private final LogSender logSender;
 
 	public void logException(Logger logger, Exception e) {
-		logExceptionAsAttachment(logger, "An Exception has occurred!", e);
+		logExceptionAsAttachment(logger, String.format("An Exception has occurred! IsDebug: `%s`", DiscordChannelDecisionMaker.isLocalDebug()), e);
 	}
 
 	public void logExceptionAsAttachment(Logger logger, String title, Exception e) {
