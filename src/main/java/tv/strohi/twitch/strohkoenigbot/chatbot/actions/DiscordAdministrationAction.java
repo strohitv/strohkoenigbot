@@ -29,6 +29,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
+import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
@@ -610,6 +611,9 @@ public class DiscordAdministrationAction extends ChatAction {
 				}
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished exporting missed s3s entries to file.");
+			} else if (lowercaseMessage.startsWith("!computername get")) {
+				var computerName = ComputerNameEvaluator.getComputerName();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Computer name: `%s`", computerName));
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
