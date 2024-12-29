@@ -11,6 +11,8 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.Schedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
@@ -61,6 +63,10 @@ public class SchedulingService {
 	@Scheduled(fixedDelay = 5000)
 	private void run() {
 		LocalDateTime now = LocalDateTime.now();
+
+		var computerName = ComputerNameEvaluator.getComputerName();
+		var debug = DiscordChannelDecisionMaker.isLocalDebug();
+
 		var executor = Executors.newSingleThreadExecutor();
 
 		for (int i = 0; i < singleRunSchedules.size(); i++) {
@@ -81,10 +87,10 @@ public class SchedulingService {
 
 					if (ex instanceof TimeoutException) {
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("## Timeout\nRunnable '**%s**' ran into timeout!!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule));
+							String.format("## Timeout\nSingle Runnable '**%s**' (%s, debug: `%s`) ran into timeout!!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
 					} else if (schedule.isFailed(MAX_ERRORS_SINGLE)) {
 						exceptionLogger.logExceptionAsAttachment(logger,
-							String.format("Single Runnable failed **%d** times and got removed from Scheduler!! Schedule:\n```\n%s\n```", MAX_ERRORS_SINGLE, schedule),
+							String.format("Single Runnable failed **%d** times and got removed from Scheduler (%s, debug: `%s`)!! Schedule:\n```\n%s\n```", MAX_ERRORS_SINGLE, computerName, debug, schedule),
 							ex);
 						singleRunSchedules.remove(i);
 						i--;
@@ -108,7 +114,7 @@ public class SchedulingService {
 
 					if (ex instanceof TimeoutException) {
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("## Timeout\nRunnable '**%s**' ran into timeout!!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule));
+							String.format("## Timeout\nRunnable '**%s**' (%s, debug: `%s`) ran into timeout!!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
 					} else {
 						exceptionLogger.logExceptionAsAttachment(logger,
 							String.format("Runnable '**%s**' ran into an unexpected Exception!!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule),
@@ -118,18 +124,18 @@ public class SchedulingService {
 
 					if (schedule.getErrorCleanUpRunnable() != null) {
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("Running error cleanup runnable for schedule '**%s**'!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule));
+							String.format("Running error cleanup runnable for schedule '**%s**' (%s, debug: `%s`)!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
 
 						transactionalRunner.run(schedule.getErrorCleanUpRunnable());
 
 						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-							String.format("Done running error cleanup runnable for schedule '**%s**'!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule));
+							String.format("Done running error cleanup runnable for schedule '**%s**' (%s, debug: `%s`)!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
 					}
 				}
 
 				if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
 					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-						String.format("Repeated Runnable '**%s**' failed **%d** times and got removed from Scheduler!! Schedule:\n```\n%s\n```", schedule.getName(), MAX_ERRORS_REPEATED, schedule));
+						String.format("Repeated Runnable '**%s**' (%s, debug: `%s`) failed **%d** times and got removed from Scheduler!! Schedule:\n```\n%s\n```", schedule.getName(), computerName, debug, MAX_ERRORS_REPEATED, schedule));
 
 					List<Exception> exceptions = schedule.getErrors();
 					Exception exception = exceptions.get(exceptions.size() - 1);
@@ -179,7 +185,7 @@ public class SchedulingService {
 		if (config == null) {
 			config = configurationRepository.save(new Configuration(0, configName, defaultValue));
 			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-				String.format("Added new Schedule: id = `%d`, name = `%s`, value = `%s`", config.getId(), configName, defaultValue));
+				String.format("Added new Schedule: id = `%d`, name = `%s`, value = `%s` (%s, debug: `%s`)", config.getId(), configName, defaultValue, ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug()));
 		}
 
 		schedules.add(createFromSettings(configName, config.getConfigValue(), runnable, errorCleanUpRunnable));
