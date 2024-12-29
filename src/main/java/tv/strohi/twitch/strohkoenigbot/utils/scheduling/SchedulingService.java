@@ -78,7 +78,7 @@ public class SchedulingService {
 				try {
 					executor
 						.submit(getScheduleAsCallable(schedule))
-						.get(10, TimeUnit.MINUTES);
+						.get(11, TimeUnit.MINUTES);
 
 					singleRunSchedules.remove(i);
 					i--;
@@ -108,7 +108,7 @@ public class SchedulingService {
 				try {
 					executor
 						.submit(getScheduleAsCallable(schedule))
-						.get(10, TimeUnit.MINUTES);
+						.get(11, TimeUnit.MINUTES);
 				} catch (Exception ex) {
 					schedule.increaseErrorCount();
 
