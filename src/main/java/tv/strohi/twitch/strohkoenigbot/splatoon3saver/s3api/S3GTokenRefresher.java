@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ConfigFileConnector;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
@@ -20,7 +19,7 @@ public class S3GTokenRefresher {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 
-	private final ConfigFileConnector configFileConnector;
+//	private final ConfigFileConnector configFileConnector;
 	private final ExceptionLogger exceptionLogger;
 
 	public boolean refreshGToken(Runtime rt, String configFileLocation, String completeCommand) {
@@ -69,7 +68,7 @@ public class S3GTokenRefresher {
 				}
 
 				if (!process.waitFor(5, TimeUnit.MINUTES)) {
-					logSender.sendLogs(logger, String.format("Result was %d before the import even started!", result));
+					logSender.sendLogs(logger, "S3S did not exit after in 5 minutes!");
 					logSender.sendLogsAsAttachment(logger, "s3s command output", sb.toString());
 
 					try {

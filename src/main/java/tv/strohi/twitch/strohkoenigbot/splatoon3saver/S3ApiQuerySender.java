@@ -42,25 +42,8 @@ public class S3ApiQuerySender {
 
 	public String queryS3Api(Account account, S3RequestKey key, String additionalHeader, String additionalContent) {
 		var actionHash = requestKeyUtil.load(key);
-
 		logger.info("Sending request for hash '{}', additional header  '{}' and additional content '{}'", actionHash, additionalHeader, additionalContent);
-
-		String result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, additionalHeader, additionalContent);
-
-		if (result == null) {
-			if (DiscordChannelDecisionMaker.isLocalDebug()) logSender.sendLogs(logger, "Didn't receive a result, retrying after refreshing tokens...");
-
-			// Tokens might be outdated -> retry once with refreshed Tokens
-			S3AuthenticationData authenticationData = authenticator.refreshAccess(account.getSplatoonSessionToken());
-			account.setGTokenSplatoon3(authenticationData.getGToken());
-			account.setBulletTokenSplatoon3(authenticationData.getBulletToken());
-
-			account = accountRepository.save(account);
-			result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, additionalHeader, additionalContent);
-			if (DiscordChannelDecisionMaker.isLocalDebug()) logSender.sendLogs(logger, String.format("is result null again? %b", result == null));
-		}
-
-		return result;
+		return doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, additionalHeader, additionalContent);
 	}
 
 	public String queryS3ApiPaged(Account account, S3RequestKey key, String id, int page, int first, String cursor) {

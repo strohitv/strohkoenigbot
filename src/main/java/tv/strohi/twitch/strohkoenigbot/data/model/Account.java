@@ -13,7 +13,7 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Account {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

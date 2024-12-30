@@ -19,7 +19,6 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchSoAccount;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAuthRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.*;
@@ -53,7 +52,6 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final ExceptionLogger exceptionLogger;
 	private final StrohkoenigbotApplication strohkoenigbotApplication;
 
-	private final TwitchAuthRepository authRepository;
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 	private final TwitchSoAccountRepository twitchSoAccountRepository;
@@ -69,6 +67,8 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final DailyStatsSender dailyStatsSender;
 
 	private final ObsController obsController;
+
+	private final S3TokenRefresher tokenRefresher;
 
 	private final S3Downloader s3Downloader;
 	private final S3S3sRunner s3sRunner;
@@ -618,6 +618,10 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Fixing image paths...");
 				imageService.fixImagePaths();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Image paths fixed.");
+			} else if (lowercaseMessage.startsWith("!refresh tokens")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to refresh s3s tokens...");
+				tokenRefresher.refreshToken();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "s3s tokens refreshed.");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
