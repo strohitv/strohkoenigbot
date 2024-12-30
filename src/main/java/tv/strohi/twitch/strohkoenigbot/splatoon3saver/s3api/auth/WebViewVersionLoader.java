@@ -1,9 +1,11 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3CookieHandler;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.S3RequestSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
@@ -15,9 +17,11 @@ import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Component
+@RequiredArgsConstructor
 public class WebViewVersionLoader {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final S3RequestSender s3RequestSender = new S3RequestSender();
+	private final S3RequestSender s3RequestSender;
 
 	public String refreshWebViewVersion(String gToken) {
 		var client = HttpClient.newBuilder()

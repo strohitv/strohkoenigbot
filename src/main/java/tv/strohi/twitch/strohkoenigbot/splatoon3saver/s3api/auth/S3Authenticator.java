@@ -35,7 +35,7 @@ public class S3Authenticator {
 	private final FTokenRetriever fTokenRetriever = new FTokenRetriever();
 	private final NsoAppVersionRetriever nsoAppVersionRetriever = new NsoAppVersionRetriever();
 	private final SplatoonTokenRetriever splatoonTokenRetriever = new SplatoonTokenRetriever();
-	private final WebViewVersionLoader webViewVersionLoader = new WebViewVersionLoader();
+	private final WebViewVersionLoader webViewVersionLoader;
 	private final BulletTokenLoader bulletTokenLoader;
 
 	private final S3S3sRunner s3sRunner;

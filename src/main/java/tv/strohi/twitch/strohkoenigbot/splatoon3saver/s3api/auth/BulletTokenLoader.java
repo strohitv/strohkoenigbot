@@ -25,7 +25,7 @@ import static tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authen
 @RequiredArgsConstructor
 public class BulletTokenLoader {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final S3RequestSender s3RequestSender = new S3RequestSender();
+	private final S3RequestSender s3RequestSender;
 	private final ConfigurationRepository configurationRepository;
 
 	public String getBulletToken(String gToken, UserInfo userInfo) {

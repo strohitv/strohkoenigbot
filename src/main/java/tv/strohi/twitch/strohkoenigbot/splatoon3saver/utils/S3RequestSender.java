@@ -1,8 +1,10 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.CookieRefreshException;
 
 import java.io.ByteArrayInputStream;
@@ -13,8 +15,10 @@ import java.net.http.HttpResponse;
 import java.util.zip.GZIPInputStream;
 
 @Component
+@RequiredArgsConstructor
 public class S3RequestSender {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+	private final ImageService imageService;
 
 	public String sendRequestAndParseGzippedJson(HttpClient client, HttpRequest request) {
 		String body = "";
@@ -33,6 +37,10 @@ public class S3RequestSender {
 					if (response.headers().map().containsKey("Content-Encoding") && !response.headers().map().get("Content-Encoding").isEmpty() && "gzip".equals(response.headers().map().get("Content-Encoding").get(0))) {
 						body = new String(new GZIPInputStream(new ByteArrayInputStream(response.body())).readAllBytes());
 					}
+
+					try {
+						imageService.shortenJson(body);
+					} catch (Exception ignored) {}
 
 					return body;
 				} else {
