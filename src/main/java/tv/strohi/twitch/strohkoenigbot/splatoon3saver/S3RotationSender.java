@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 import org.apache.logging.log4j.LogManager;
@@ -11,6 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.rest.SplatNet3DataController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3RotationSenderService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrRotationService;
@@ -27,6 +29,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
@@ -43,6 +46,8 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class S3RotationSender implements ScheduledService {
 	private final ObjectMapper mapper = new ObjectMapper();
+	private final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {
+	};
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
@@ -58,18 +63,24 @@ public class S3RotationSender implements ScheduledService {
 
 	private final Splatoon3RotationSenderService rotationSenderService;
 
+	private final SplatNet3DataController splatNet3DataController;
+
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(ScheduleRequest.builder()
 			.name("S3RotationSender_schedule")
-			.schedule(CronSchedule.getScheduleString("30 0 * * * *"))
+			.schedule(CronSchedule.getScheduleString("5 0 * * * *"))
 			.runnable(this::refreshRotations)
 			.build());
 	}
 
 	@Override
 	public List<ScheduleRequest> createSingleRunRequests() {
-		return List.of();
+		return List.of(ScheduleRequest.builder()
+			.name("S3RotationSender_boot_schedule")
+			.schedule(TickSchedule.getScheduleString(1))
+			.runnable(this::refreshRotations)
+			.build());
 	}
 
 	@Getter
@@ -103,7 +114,7 @@ public class S3RotationSender implements ScheduledService {
 
 	@Transactional
 	public void importRotationsToDatabase() {
-		Account account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
+		var account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
 		if (account == null) {
 			logSender.sendLogs(logger, "No account found to import rotations to database!");
@@ -114,8 +125,10 @@ public class S3RotationSender implements ScheduledService {
 		try {
 			importSrRotationsFromGameResultsFolder(account);
 
-			String allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules);
-			RotationSchedulesResult rotationSchedulesResult = new ObjectMapper().readValue(allRotationsResponse, RotationSchedulesResult.class);
+			var allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules);
+			var rotationSchedulesResult = mapper.readValue(allRotationsResponse, RotationSchedulesResult.class);
+
+			splatNet3DataController.refresh(SplatNet3DataController.STORE_KEY, mapper.readValue(allRotationsResponse, typeRef));
 
 			Arrays.stream(rotationSchedulesResult.getData().getVsStages().getNodes())
 				.forEach(vsRotationService::ensureStageExists);
@@ -243,7 +256,7 @@ public class S3RotationSender implements ScheduledService {
 			exceptionLogger.logException(logger, e);
 		}
 
-		logger.info("Done posting rotations to discord");
+		logger.info("Done posting rotations to discord using the old way");
 	}
 
 	private void sendSalmonRotations(CoopGroupingSchedule coopGroupingSchedule, boolean force) {
@@ -372,7 +385,7 @@ public class S3RotationSender implements ScheduledService {
 		String image2 = firstRotation.getRotationMatchSetting().getVsStages()[1].getImage().getUrl();
 
 		StringBuilder builder = new StringBuilder("**").append(mode).append("**: ")
-			.append("**").append(getEmoji(firstRotation.getRotationMatchSetting().getVsRule().getName())).append(firstRotation.getRotationMatchSetting().getVsRule().getName()).append("**\n")
+			.append("**").append(rotationSenderService.getEmoji(firstRotation.getRotationMatchSetting().getVsRule().getName())).append(firstRotation.getRotationMatchSetting().getVsRule().getName()).append("**\n")
 			.append("- Stage A: **").append(firstRotation.getRotationMatchSetting().getVsStages()[0].getName()).append("**\n")
 			.append("- Stage B: **").append(firstRotation.getRotationMatchSetting().getVsStages()[1].getName()).append("**\n\n")
 			.append("**Next rotations**");
@@ -389,7 +402,7 @@ public class S3RotationSender implements ScheduledService {
 					.append(" (<t:")
 					.append(r.getStartTime().getEpochSecond())
 					.append(":R>): ")
-					.append(getEmoji(r.getRotationMatchSetting().getVsRule().getName()))
+					.append(rotationSenderService.getEmoji(r.getRotationMatchSetting().getVsRule().getName()))
 					.append(r.getRotationMatchSetting().getVsRule().getName())
 					.append(" --- **")
 					.append(r.getRotationMatchSetting().getVsStages()[0].getName())
@@ -411,7 +424,7 @@ public class S3RotationSender implements ScheduledService {
 			.append("- Event: **").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getName()).append("**\n")
 			.append("- Description: **").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getDesc()).append("**\n")
 			.append("- Rules:\n```\n").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getRegulation().replace("<br />", "\n")).append("\n```\n")
-			.append("**Rotation details**\n- Game Rule: **").append(getEmoji(firstRotation.getLeagueMatchSetting().getVsRule().getName())).append(firstRotation.getLeagueMatchSetting().getVsRule().getName()).append("**\n")
+			.append("**Rotation details**\n- Game Rule: **").append(rotationSenderService.getEmoji(firstRotation.getLeagueMatchSetting().getVsRule().getName())).append(firstRotation.getLeagueMatchSetting().getVsRule().getName()).append("**\n")
 			.append("- Stage A: **").append(firstRotation.getLeagueMatchSetting().getVsStages()[0].getName()).append("**\n")
 			.append("- Stage B: **").append(firstRotation.getLeagueMatchSetting().getVsStages()[1].getName()).append("**\n\n");
 
@@ -419,7 +432,7 @@ public class S3RotationSender implements ScheduledService {
 			.filter(t -> t.getStartTimeAsInstant().isAfter(Instant.now()))
 			.sorted(Comparator.comparing(RotationSchedulesResult.TimePeriod::getStartTimeAsInstant))
 			.collect(Collectors.toList());
-		if (futureSlots.size() > 0) {
+		if (!futureSlots.isEmpty()) {
 			builder.append("**Future Slots**");
 
 			futureSlots.forEach(fs -> builder.append("\n- <t:")
@@ -448,7 +461,7 @@ public class S3RotationSender implements ScheduledService {
 					.append(":R>) --- **")
 					.append(r.getLeagueMatchSetting().getLeagueMatchEvent().getName())
 					.append("** --- ")
-					.append(getEmoji(r.getLeagueMatchSetting().getVsRule().getName()))
+					.append(rotationSenderService.getEmoji(r.getLeagueMatchSetting().getVsRule().getName()))
 					.append(r.getLeagueMatchSetting().getVsRule().getName())
 					.append(" --- **")
 					.append(r.getLeagueMatchSetting().getVsStages()[0].getName())
@@ -458,31 +471,6 @@ public class S3RotationSender implements ScheduledService {
 			);
 
 		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1, image2);
-	}
-
-
-	private String getEmoji(String modeId) {
-		String emoji;
-
-		switch (modeId) {
-			case "Splat Zones":
-				emoji = "<:zones:1047644886368796673> ";
-				break;
-			case "Rainmaker":
-				emoji = "<:rainmaker:1047644903326359702> ";
-				break;
-			case "Tower Control":
-				emoji = "<:tower:1047644913967300749> ";
-				break;
-			case "Clam Blitz":
-				emoji = "<:clams:1047644923710677072> ";
-				break;
-			default:
-				emoji = "";
-				break;
-		}
-
-		return emoji;
 	}
 
 	private String getGameModeName(String channelName) {

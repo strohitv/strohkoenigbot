@@ -1,13 +1,14 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
-import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.rest.SplatNet3DataController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.OwnedGearAndWeaponsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.SplatNetShopResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
@@ -18,6 +19,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -27,12 +29,15 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class S3NewGearChecker implements ScheduledService {
-//	private static final String ALL_GEAR_GRAPHQL_KEY = "d29cd0c2b5e6bac90dd5b817914832f8";
-//	private static final String SPLATNET_SHOP_GRAPHQL_KEY = "a43dd44899a09013bcfd29b4b13314ff";
-
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
+
+	private final ObjectMapper mapper;
+	private final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {
+	};
+
+	private final SplatNet3DataController splatNet3DataController;
 
 
 	private final List<Gear> allOwnedGear = new ArrayList<>();
@@ -69,18 +74,19 @@ public class S3NewGearChecker implements ScheduledService {
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(ScheduleRequest.builder()
 			.name("S3NewGearChecker_schedule")
-			.schedule(CronSchedule.getScheduleString("15 1 * * * *"))
+			.schedule(CronSchedule.getScheduleString("5 0 * * * *"))
 			.runnable(this::checkForNewGearInSplatNetShop)
 			.build());
 	}
 
 	@Override
 	public List<ScheduleRequest> createSingleRunRequests() {
-		return List.of();
+		return List.of(ScheduleRequest.builder()
+			.name("S3NewGearChecker_boot_schedule")
+			.schedule(TickSchedule.getScheduleString(1))
+			.runnable(this::checkForNewGearInSplatNetShop)
+			.build());
 	}
-//	public void registerSchedule() {
-//		schedulingService.register("S3NewGearChecker_schedule", CronSchedule.getScheduleString("15 * * * * *"), this::checkForNewGearInSplatNetShop);
-//	}
 
 
 	public void checkForNewGearInSplatNetShop() {
@@ -88,20 +94,17 @@ public class S3NewGearChecker implements ScheduledService {
 	}
 
 	public void checkForNewGearInSplatNetShop(boolean skipPosts) {
-		List<Account> accounts = accountRepository.findByEnableSplatoon3(true);
+		var accounts = accountRepository.findByEnableSplatoon3(true);
 
-		for (Account account : accounts) {
+		for (var account : accounts) {
 			try {
-//				SplatNetShopResult result = new ObjectMapper().readValue(new File("C:\\Users\\marco\\Documents\\win 8.1 vorteile\\test\\splatnetshop_test.txt").toURI().toURL(), SplatNetShopResult.class);
-//				System.out.println(result);
+				var allGearResponse = requestSender.queryS3Api(account, S3RequestKey.OwnedWeaponsAndGear);
+				var ownedGear = mapper.readValue(allGearResponse, OwnedGearAndWeaponsResult.class);
 
-				String allGearResponse = requestSender.queryS3Api(account, S3RequestKey.OwnedWeaponsAndGear);
-				OwnedGearAndWeaponsResult ownedGear = new ObjectMapper().readValue(allGearResponse, OwnedGearAndWeaponsResult.class);
+				var splatNetGearResponse = requestSender.queryS3Api(account, S3RequestKey.SplatNetShop);
+				var splatNetOffers = mapper.readValue(splatNetGearResponse, SplatNetShopResult.class);
 
-//				ownedGear.getData().getHeadGears().setNodes(Arrays.stream(ownedGear.getData().getHeadGears().getNodes()).filter(g -> !"Classic Bowler".equals(g.getName())).toArray(Gear[]::new));
-
-				String splatNetGearResponse = requestSender.queryS3Api(account, S3RequestKey.SplatNetShop);
-				SplatNetShopResult splatNetOffers = new ObjectMapper().readValue(splatNetGearResponse, SplatNetShopResult.class);
+				splatNet3DataController.refresh(SplatNet3DataController.STORE_KEY, mapper.readValue(splatNetGearResponse, typeRef));
 
 				if (account.getIsMainAccount()) {
 					List<Gear> allGear = new ArrayList<>();
@@ -117,25 +120,14 @@ public class S3NewGearChecker implements ScheduledService {
 					continue;
 				}
 
-				for (GearOffer offer : splatNetOffers.getAllOffers()) {
-					Gear[] gearToSearch;
+				for (var offer : splatNetOffers.getAllOffers()) {
+					var gearToSearch = getGearToSearch(offer, ownedGear);
 
-					if ("HeadGear".equals(offer.getGear().get__typename())) {
-						gearToSearch = ownedGear.getData().getHeadGears().getNodes();
-					} else if ("ClothingGear".equals(offer.getGear().get__typename())) {
-						gearToSearch = ownedGear.getData().getClothingGears().getNodes();
-					} else if ("ShoesGear".equals(offer.getGear().get__typename())) {
-						gearToSearch = ownedGear.getData().getShoesGears().getNodes();
-					} else {
-						throw new RuntimeException(String.format("Unkown gear type '%s'", offer.getGear().get__typename()));
-					}
-
-					boolean isNew = Arrays.stream(gearToSearch).noneMatch(gear -> gear.getName().trim().equals(trim(offer.getGear().getName())));
-
-					long hours = Duration.between(Instant.now(), offer.getSaleEndTimeAsInstant()).abs().toHours() + 1;
+					var isNew = Arrays.stream(gearToSearch).noneMatch(gear -> gear.getName().trim().equals(trim(offer.getGear().getName())));
+					var hours = Duration.between(Instant.now(), offer.getSaleEndTimeAsInstant()).abs().toHours() + 1;
 
 					if (isNew && (hours == 1 || hours == 24)) {
-						String discordMessage = String.format("__**There's gear in splatnet gear shop which you don't own yet!**__\n\n" +
+						var discordMessage = String.format("__**There's gear in splatnet gear shop which you don't own yet!**__\n\n" +
 								"Type: **%s**\n" +
 								"Brand: **%s**\n" +
 								"Name: **%s**\n" +
@@ -157,7 +149,7 @@ public class S3NewGearChecker implements ScheduledService {
 							offer.getGear().getAdditionalGearPowers().size(),
 							hours);
 
-						List<String> images = new ArrayList<>(Arrays.asList(
+						var images = new ArrayList<>(Arrays.asList(
 							offer.getGear().getImage().getUrl(),
 							offer.getGear().getPrimaryGearPower().getImage().getUrl()
 						));
@@ -180,6 +172,22 @@ public class S3NewGearChecker implements ScheduledService {
 				exceptionLogger.logException(logger, e);
 			}
 		}
+	}
+
+	private static Gear[] getGearToSearch(GearOffer offer, OwnedGearAndWeaponsResult ownedGear) {
+		Gear[] gearToSearch;
+
+		if ("HeadGear".equals(offer.getGear().get__typename())) {
+			gearToSearch = ownedGear.getData().getHeadGears().getNodes();
+		} else if ("ClothingGear".equals(offer.getGear().get__typename())) {
+			gearToSearch = ownedGear.getData().getClothingGears().getNodes();
+		} else if ("ShoesGear".equals(offer.getGear().get__typename())) {
+			gearToSearch = ownedGear.getData().getShoesGears().getNodes();
+		} else {
+			throw new RuntimeException(String.format("Unkown gear type '%s'", offer.getGear().get__typename()));
+		}
+
+		return gearToSearch;
 	}
 
 	private String trim(String stringToTrim) {

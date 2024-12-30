@@ -128,7 +128,7 @@ public class Splatoon3RotationSenderService {
 			.filter(t -> t.getStartTime().isAfter(Instant.now()))
 			.sorted(Comparator.comparing(Splatoon3VsRotationSlot::getStartTime))
 			.collect(Collectors.toList());
-		if (futureSlots.size() > 0) {
+		if (!futureSlots.isEmpty()) {
 			builder.append("**Future Slots**");
 
 			futureSlots.forEach(fs -> builder.append("\n- **<t:")
@@ -189,7 +189,7 @@ public class Splatoon3RotationSenderService {
 		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getStage().getImage().getUrl());
 	}
 
-	private String getEmoji(String modeId) {
+	public String getEmoji(String modeId) {
 		String emoji;
 
 		switch (modeId) {
