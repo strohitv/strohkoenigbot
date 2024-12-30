@@ -246,6 +246,8 @@ public class TwitchBotClient implements ScheduledService {
 				.orElse(null);
 
 			var client = TwitchClientBuilder.builder()
+				.withTimeout(10000)
+
 				.withClientId(clientId)
 				.withClientSecret(clientSecret)
 				.withRedirectUrl("http://localhost:8080/twitch-api")
@@ -543,7 +545,8 @@ public class TwitchBotClient implements ScheduledService {
 		return channelId != null
 			&& !channelId.isBlank()
 			&&
-			(client != null && !client.getHelix().getStreams(null, null, null, null, null, null, Collections.singletonList(channelId), null).execute()
+			(client != null && !client.getHelix().getStreams(null, null, null, null, null, null, Collections.singletonList(channelId), null)
+				.execute()
 				.getStreams().isEmpty());
 	}
 
