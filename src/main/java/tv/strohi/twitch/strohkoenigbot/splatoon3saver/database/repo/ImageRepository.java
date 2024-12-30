@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
@@ -9,9 +10,11 @@ import java.util.Optional;
 
 @Repository
 public interface ImageRepository extends CrudRepository<Image, Long> {
-	Optional<Image> findById(long id);
+	@NotNull Optional<Image> findById(long id);
 
-	Optional<Image> findByUrl(String imageUrl);
+	@NotNull Optional<Image> findByUrl(String imageUrl);
 
-	List<Image> findByFilePathNullAndFailedDownloadCountLessThanEqual(int maxFailedDownloadCount);
+	@NotNull List<Image> findAll();
+
+	@NotNull List<Image> findByFilePathNullAndFailedDownloadCountLessThanEqual(int maxFailedDownloadCount);
 }

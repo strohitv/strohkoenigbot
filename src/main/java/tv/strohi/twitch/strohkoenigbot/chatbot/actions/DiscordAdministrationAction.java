@@ -614,6 +614,10 @@ public class DiscordAdministrationAction extends ChatAction {
 			} else if (lowercaseMessage.startsWith("!computername get")) {
 				var computerName = ComputerNameEvaluator.getComputerName();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Computer name: `%s`", computerName));
+			} else if (lowercaseMessage.startsWith("!fix image paths")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Fixing image paths...");
+				imageService.fixImagePaths();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Image paths fixed.");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
