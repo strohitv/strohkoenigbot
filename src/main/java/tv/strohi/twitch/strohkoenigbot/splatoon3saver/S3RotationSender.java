@@ -128,7 +128,7 @@ public class S3RotationSender implements ScheduledService {
 			var allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules);
 			var rotationSchedulesResult = mapper.readValue(allRotationsResponse, RotationSchedulesResult.class);
 
-			splatNet3DataController.refresh(SplatNet3DataController.STORE_KEY, mapper.readValue(allRotationsResponse, typeRef));
+			splatNet3DataController.refresh(SplatNet3DataController.ROTATIONS_KEY, mapper.readValue(allRotationsResponse, typeRef));
 
 			Arrays.stream(rotationSchedulesResult.getData().getVsStages().getNodes())
 				.forEach(vsRotationService::ensureStageExists);
