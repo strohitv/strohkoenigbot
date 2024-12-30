@@ -79,7 +79,7 @@ public class S3RotationSender implements ScheduledService {
 		return List.of(ScheduleRequest.builder()
 			.name("S3RotationSender_boot_schedule")
 			.schedule(TickSchedule.getScheduleString(1))
-			.runnable(this::refreshRotations)
+			.runnable(this::importRotationsToDatabase)
 			.build());
 	}
 
@@ -172,7 +172,7 @@ public class S3RotationSender implements ScheduledService {
 			exceptionLogger.logException(logger, e);
 		}
 
-		logger.info("Done posting rotations to discord");
+		logger.info("Done importing rotations to database");
 	}
 
 	@Transactional

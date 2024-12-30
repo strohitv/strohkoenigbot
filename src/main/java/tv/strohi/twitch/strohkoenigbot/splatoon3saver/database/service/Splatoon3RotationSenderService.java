@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
@@ -23,6 +24,7 @@ import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class Splatoon3RotationSenderService {
 	private final DiscordBot discordBot;
 
@@ -47,6 +49,8 @@ public class Splatoon3RotationSenderService {
 			srRotationRepository.findByModeAndStartTimeLessThanEqualAndEndTimeGreaterThan(channel.getMode(), time, time)
 				.filter(rotation -> force || Math.abs(rotation.getStartTime().getEpochSecond() - now.getEpochSecond()) <= 300)
 				.ifPresent(rotation -> sendSrRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), rotation)));
+
+		log.info("Done posting rotations to discord");
 	}
 
 	private void sendVsRotationToDiscord(String channelName, Splatoon3VsRotation rotation) {

@@ -84,7 +84,7 @@ public class S3NewGearChecker implements ScheduledService {
 		return List.of(ScheduleRequest.builder()
 			.name("S3NewGearChecker_boot_schedule")
 			.schedule(TickSchedule.getScheduleString(1))
-			.runnable(this::checkForNewGearInSplatNetShop)
+			.runnable(() -> checkForNewGearInSplatNetShop(true))
 			.build());
 	}
 
