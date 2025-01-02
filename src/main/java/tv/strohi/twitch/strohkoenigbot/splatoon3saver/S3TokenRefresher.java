@@ -105,10 +105,12 @@ public class S3TokenRefresher implements ScheduledService {
 
 						if (homeResponse != null && homeResponse.contains("\"data\":{\"currentPlayer\"")) {
 							accountRepository.save(accountWithNewTokens);
-							logSender.sendLogs(log, "S3TokenRefresher successful.");
+							log.info("S3TokenRefresher successful.");
 						} else {
 							logSender.sendLogs(log, "### ERROR during S3TokenRefresh\nHomepage response did not load successfully, tokens were invalid.");
 						}
+					} else {
+						logSender.sendLogs(log, "### ERROR during S3TokenRefresh\n S3TokenRefresher did not find a newer token!");
 					}
 
 				} catch (Exception e) {
