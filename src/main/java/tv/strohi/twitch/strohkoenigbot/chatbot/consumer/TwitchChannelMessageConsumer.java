@@ -15,10 +15,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Log4j2
-public class ChannelMessageConsumer implements Consumer<ChannelMessageEvent> {
+public class TwitchChannelMessageConsumer implements Consumer<ChannelMessageEvent> {
 	private final List<IChatAction> botActions;
 
-	public ChannelMessageConsumer(List<IChatAction> botActions) {
+	public TwitchChannelMessageConsumer(List<IChatAction> botActions) {
 		this.botActions = botActions;
 	}
 

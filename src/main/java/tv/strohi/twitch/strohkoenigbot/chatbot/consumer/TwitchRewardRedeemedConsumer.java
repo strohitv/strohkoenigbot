@@ -12,10 +12,10 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class RewardRedeemedConsumer implements Consumer<RewardRedeemedEvent> {
+public class TwitchRewardRedeemedConsumer implements Consumer<RewardRedeemedEvent> {
 	private final List<IChatAction> botActions;
 
-	public RewardRedeemedConsumer(List<IChatAction> botActions) {
+	public TwitchRewardRedeemedConsumer(List<IChatAction> botActions) {
 		this.botActions = botActions;
 	}
 

@@ -15,10 +15,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Log4j2
-public class PrivateMessageConsumer implements Consumer<PrivateMessageEvent> {
+public class TwitchPrivateMessageConsumer implements Consumer<PrivateMessageEvent> {
 	private final List<IChatAction> botActions;
 
-	public PrivateMessageConsumer(List<IChatAction> botActions) {
+	public TwitchPrivateMessageConsumer(List<IChatAction> botActions) {
 		this.botActions = botActions;
 	}
 

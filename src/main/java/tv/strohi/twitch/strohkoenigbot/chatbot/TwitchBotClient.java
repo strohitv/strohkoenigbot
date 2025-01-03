@@ -33,10 +33,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.AutoSoAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
-import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.ChannelMessageConsumer;
-import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.PrivateMessageConsumer;
-import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.RaidEventConsumer;
-import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.RewardRedeemedConsumer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.TwitchChannelMessageConsumer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.TwitchPrivateMessageConsumer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.TwitchRaidEventConsumer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.TwitchRewardRedeemedConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.model.*;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
@@ -276,7 +276,7 @@ public class TwitchBotClient implements ScheduledService {
 					client.getClientHelper().enableClipEventListener(channelName);
 
 					client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, access.getUserId());
-					client.getEventManager().onEvent(RewardRedeemedEvent.class, new RewardRedeemedConsumer(botActions));
+					client.getEventManager().onEvent(RewardRedeemedEvent.class, new TwitchRewardRedeemedConsumer(botActions));
 				}
 
 				var allAlerts = twitchGoingLiveAlertRepository.findAll().stream().map(TwitchGoingLiveAlert::getTwitchChannelName).distinct().collect(Collectors.toList());
@@ -313,9 +313,9 @@ public class TwitchBotClient implements ScheduledService {
 					}
 				});
 
-				client.getEventManager().onEvent(RaidEvent.class, new RaidEventConsumer(botActions));
-				client.getEventManager().onEvent(ChannelMessageEvent.class, new ChannelMessageConsumer(botActions));
-				client.getEventManager().onEvent(PrivateMessageEvent.class, new PrivateMessageConsumer(botActions));
+				client.getEventManager().onEvent(RaidEvent.class, new TwitchRaidEventConsumer(botActions));
+				client.getEventManager().onEvent(ChannelMessageEvent.class, new TwitchChannelMessageConsumer(botActions));
+				client.getEventManager().onEvent(PrivateMessageEvent.class, new TwitchPrivateMessageConsumer(botActions));
 				logSender.sendLogs(logger, "fully connected twitch bot client for messages");
 			} else {
 				client.getEventManager().onEvent(ChannelAdBreakBeginEvent.class, this::reactToAdBreakBeginEvent);

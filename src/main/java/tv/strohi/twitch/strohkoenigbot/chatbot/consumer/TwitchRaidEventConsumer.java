@@ -10,10 +10,10 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class RaidEventConsumer implements Consumer<RaidEvent> {
+public class TwitchRaidEventConsumer implements Consumer<RaidEvent> {
 	private final List<IChatAction> botActions;
 
-	public RaidEventConsumer(List<IChatAction> botActions) {
+	public TwitchRaidEventConsumer(List<IChatAction> botActions) {
 		this.botActions = botActions;
 	}
 
