@@ -5,6 +5,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -18,6 +19,10 @@ public class RaidEventConsumer implements Consumer<RaidEvent> {
 
 	@Override
 	public void accept(RaidEvent raidEvent) {
+		if (DiscordChannelDecisionMaker.isLocalDebug()) {
+			return;
+		}
+
 		ActionArgs args = new ActionArgs();
 
 		args.setReason(TriggerReason.Raid);

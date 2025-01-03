@@ -22,11 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ConnectionAccepted;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.DiscordChannelMessageConsumer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.DiscordPrivateMessageConsumer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
@@ -77,7 +75,7 @@ public class DiscordBot {
 
 	private GatewayDiscordClient getGateway() {
 		List<Configuration> tokens = configurationRepository.findAllByConfigName("discordToken");
-		if (gateway == null && tokens.size() > 0) {
+		if (gateway == null && !tokens.isEmpty()) {
 			DiscordClient client = DiscordClient.create(tokens.get(0).getConfigValue());
 			gateway = client.login().retry(5).block();
 
@@ -92,55 +90,11 @@ public class DiscordBot {
 								subscribers.forEach(s -> s.accept(author.getId().asLong()))
 							);
 						} else {
-							event.getMessage().getAuthor().ifPresent(author -> {
-									if (!"strohkoenigbot#6833".equals(author.getTag())) {
-										ActionArgs args = new ActionArgs();
-
-										args.setReason(TriggerReason.DiscordPrivateMessage);
-										args.setUser(author.getTag());
-										args.setUserId(author.getId().asString());
-
-										args.getArguments().put(ArgumentKey.Event, event);
-										args.getArguments().put(ArgumentKey.Message, message.getContent());
-
-										args.setReplySender(
-											new TwitchDiscordMessageSender(null, this, args)
-										);
-
-										botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.DiscordPrivateMessage)).forEach(action -> action.run(args));
-									}
-								}
-							);
+							event.getMessage().getAuthor().ifPresent(author -> new DiscordPrivateMessageConsumer(botActions, this).accept(event));
 						}
 					} else if (channel instanceof TextChannel) {
 						// public channel on my discord
-						event.getMessage().getAuthor().ifPresent(author -> {
-								if (!"strohkoenigbot#6833".equals(author.getTag())) {
-									TextChannel textChannel = (TextChannel) channel;
-
-									ActionArgs args = new ActionArgs();
-
-									args.setReason(TriggerReason.DiscordMessage);
-									args.setUser(author.getTag());
-									args.setUserId(author.getId().asString());
-
-									args.getArguments().put(ArgumentKey.Event, event);
-									args.getArguments().put(ArgumentKey.Message, message.getContent());
-									args.getArguments().put(ArgumentKey.MessageNonce, message.getId());
-									args.getArguments().put(ArgumentKey.MessageObject, message);
-
-									args.getArguments().put(ArgumentKey.ChannelObject, textChannel);
-									args.getArguments().put(ArgumentKey.ChannelName, textChannel.getName());
-									args.getArguments().put(ArgumentKey.ChannelId, textChannel.getId().asString());
-
-									args.setReplySender(
-										new TwitchDiscordMessageSender(null, this, args)
-									);
-
-									botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.DiscordMessage)).forEach(action -> action.run(args));
-								}
-							}
-						);
+						event.getMessage().getAuthor().ifPresent(author -> new DiscordChannelMessageConsumer(botActions, this, (TextChannel) channel).accept(event));
 					}
 				});
 			}
@@ -188,7 +142,7 @@ public class DiscordBot {
 		Long result = null;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-		if (guilds != null && guilds.size() > 0) {
+		if (guilds != null && !guilds.isEmpty()) {
 			List<Member> allMembersOfAllServers = guilds.stream()
 				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 				.collect(Collectors.toList());
@@ -211,7 +165,7 @@ public class DiscordBot {
 		String result = null;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-		if (guilds != null && guilds.size() > 0) {
+		if (guilds != null && !guilds.isEmpty()) {
 			List<Member> allMembersOfAllServers = guilds.stream()
 				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 				.collect(Collectors.toList());
@@ -242,7 +196,7 @@ public class DiscordBot {
 		boolean result = false;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-		if (guilds != null && guilds.size() > 0) {
+		if (guilds != null && !guilds.isEmpty()) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 				.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 				.collect(Collectors.toList());
@@ -276,7 +230,7 @@ public class DiscordBot {
 		boolean result = false;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-		if (guilds != null && guilds.size() > 0) {
+		if (guilds != null && !guilds.isEmpty()) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 				.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 				.collect(Collectors.toList());
@@ -310,7 +264,7 @@ public class DiscordBot {
 		boolean result = false;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-		if (guilds != null && guilds.size() > 0) {
+		if (guilds != null && !guilds.isEmpty()) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 				.filter(g -> g.getId().asLong() == guildId)
 				.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
@@ -345,7 +299,7 @@ public class DiscordBot {
 		boolean result = false;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-		if (guilds != null && guilds.size() > 0) {
+		if (guilds != null && !guilds.isEmpty()) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 				.filter(g -> g.getId().asLong() == guildId)
 				.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
@@ -376,7 +330,7 @@ public class DiscordBot {
 		boolean result = false;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-		if (guilds != null && guilds.size() > 0) {
+		if (guilds != null && !guilds.isEmpty()) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 
 			if (channel != null) {
@@ -396,7 +350,7 @@ public class DiscordBot {
 		boolean result = false;
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-		if (guilds != null && guilds.size() > 0) {
+		if (guilds != null && !guilds.isEmpty()) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 
 			if (channel != null) {
@@ -531,7 +485,7 @@ public class DiscordBot {
 			boolean result = false;
 
 			List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-			if (guilds != null && guilds.size() > 0) {
+			if (guilds != null && !guilds.isEmpty()) {
 				PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 				if (channel != null) {
 					Message msg = channel.createMessage(singleMessage)
@@ -556,7 +510,7 @@ public class DiscordBot {
 		}
 
 		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).block();
-		if (guilds != null && guilds.size() > 0) {
+		if (guilds != null && !guilds.isEmpty()) {
 			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
 				channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).retry(5).onErrorResume(e -> Mono.empty()).block();

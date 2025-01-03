@@ -100,21 +100,6 @@ public class DiscordAdministrationAction extends ChatAction {
 		try {
 			message = message.trim();
 
-			if (message.toLowerCase().startsWith("!debug")) {
-				// only debug should execute
-				if (!DiscordChannelDecisionMaker.isLocalDebug()) {
-					return;
-				}
-
-				message = message.substring("!debug".length()).trim();
-			} else if (message.toLowerCase().startsWith("!all")) {
-				// all instances should execute
-				message = message.substring("!all".length()).trim();
-			} else if (DiscordChannelDecisionMaker.isLocalDebug()) {
-				// only prod should execute regular commands
-				return;
-			}
-
 			discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Handling the command `%s` from bot instance = %s, debug = %s", message, ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug()));
 
 			var lowercaseMessage = message.toLowerCase();

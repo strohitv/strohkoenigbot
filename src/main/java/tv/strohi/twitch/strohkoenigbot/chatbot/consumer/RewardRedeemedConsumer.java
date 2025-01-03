@@ -7,6 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -20,6 +21,10 @@ public class RewardRedeemedConsumer implements Consumer<RewardRedeemedEvent> {
 
 	@Override
 	public void accept(RewardRedeemedEvent pointEvent) {
+		if (DiscordChannelDecisionMaker.isLocalDebug()) {
+			return;
+		}
+
 		ActionArgs args = new ActionArgs();
 
 		args.setReason(TriggerReason.ChannelPointReward);
@@ -33,7 +38,7 @@ public class RewardRedeemedConsumer implements Consumer<RewardRedeemedEvent> {
 		args.getArguments().put(ArgumentKey.ChannelId, pointEvent.getRedemption().getChannelId());
 
 		args.setReplySender(
-				new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
+			new TwitchDiscordMessageSender(TwitchMessageSender.getBotTwitchMessageSender(), null, args)
 		);
 
 		botActions.stream().filter(action -> action.getCauses().contains(TriggerReason.ChannelPointReward)).forEach(action -> action.run(args));
