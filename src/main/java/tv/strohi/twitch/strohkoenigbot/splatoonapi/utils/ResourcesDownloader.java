@@ -74,13 +74,13 @@ public class ResourcesDownloader {
 					}
 
 					String newPath = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
-					discordBot.sendServerMessageWithImageUrls(DiscordChannelDecisionMaker.getDebugChannelName(), "I downloaded an image!", newPath);
+					discordBot.sendServerMessageWithImageUrls(DiscordChannelDecisionMaker.getDebugImageChannelName(), "I downloaded an image!", newPath);
 
 					logger.info("image download successful, path: '{}'", path);
 
 					return newPath;
 				} catch (IOException e) {
-					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not download an image because of an Exception!");
+					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugImageChannelName(), "Could not download an image because of an Exception!");
 					logger.error("exception occured!!!");
 					logger.error(e);
 					return splatNetResourceUrl;

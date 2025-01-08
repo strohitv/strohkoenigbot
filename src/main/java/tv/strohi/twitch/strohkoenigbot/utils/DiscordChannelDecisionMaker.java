@@ -4,6 +4,7 @@ public class DiscordChannelDecisionMaker {
 	private final static String debugTempChannel = "debug-logs-temp";
 
 	private final static String debugChannel = "debug-logs";
+	private final static String debugImageChannel = "debug-image-logs";
 
 	// Splatoon 2
 	private final static String s2SplatNetGearChannel = "s2-splatnet-gear";
@@ -53,6 +54,14 @@ public class DiscordChannelDecisionMaker {
 			return debugTempChannel;
 		} else {
 			return debugChannel;
+		}
+	}
+
+	public static String getDebugImageChannelName() {
+		if (isLocalDebug) {
+			return debugTempChannel;
+		} else {
+			return debugImageChannel;
 		}
 	}
 
