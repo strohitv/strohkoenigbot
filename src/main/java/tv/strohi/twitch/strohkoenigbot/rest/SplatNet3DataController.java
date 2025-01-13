@@ -9,16 +9,15 @@ import org.apache.commons.codec.binary.Base64;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3TokenRefresher;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -36,7 +35,6 @@ public class SplatNet3DataController {
 	private final S3TokenRefresher s3TokenRefresher;
 	private final ConfigurationRepository configurationRepository;
 	private final LogSender logSender;
-	private final ObjectMapper mapper;
 
 	private final Map<String, Bucket> buckets;
 
@@ -49,7 +47,6 @@ public class SplatNet3DataController {
 		this.s3TokenRefresher = s3TokenRefresher;
 		this.configurationRepository = configurationRepository;
 		this.logSender = logSender;
-		this.mapper = mapper;
 
 		var now = Instant.now().toEpochMilli();
 
@@ -72,7 +69,7 @@ public class SplatNet3DataController {
 					.refillGreedy(10, Duration.ofMinutes(1))
 					.build())
 				.build(),
-			"upload-s3s-config", Bucket.builder()
+			"refresh-tokens", Bucket.builder()
 				.addLimit(Bandwidth.builder()
 					.capacity(10)
 					.refillGreedy(10, Duration.ofMinutes(1))
@@ -107,15 +104,15 @@ public class SplatNet3DataController {
 		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
 	}
 
-	@PostMapping(value = "upload-s3s-config", consumes = "application/json")
-	public ResponseEntity<Void> uploadConfig(@RequestHeader("Authorization") String auth, @RequestBody ConfigFile configFile) {
-		if (buckets.get("upload-s3s-config").tryConsume(1)) {
+	@PostMapping(value = "refresh-tokens", consumes = "application/json")
+	public ResponseEntity<Void> uploadConfig(@RequestHeader("Authorization") String auth) {
+		if (buckets.get("refresh-tokens").tryConsume(1)) {
 			var user = configurationRepository.findAllByConfigName("uploadS3sConfigUser").stream().findFirst();
 			var pass = configurationRepository.findAllByConfigName("uploadS3sConfigPassword").stream().findFirst();
 
 			if (user.isEmpty() || pass.isEmpty()) {
 				logSender.sendLogs(log, "### ERROR during s3s config file upload!\nAuth credentials could not be found!");
-				return ResponseEntity.internalServerError().build();
+				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
 			}
 
 			var comparisonString = String.format("Basic %s", Base64.encodeBase64String(String.format("%s:%s", user, pass).getBytes(StandardCharsets.UTF_8)));
@@ -126,26 +123,11 @@ public class SplatNet3DataController {
 
 			var oldNextTimeTokenExpires = nextTimeTokenExpires;
 
-			var s3sLocation = configurationRepository.findAllByConfigName("s3sLocation").stream().findFirst();
-			if (s3sLocation.isEmpty() || !new File(s3sLocation.get().getConfigValue()).exists()) {
-				logSender.sendLogs(log, "### ERROR during s3s config file upload!\nConfig file directory could not be found!");
-				return ResponseEntity.internalServerError().build();
-			}
-
-			var s3sConfigFileLocation = new File(Paths.get(s3sLocation.get().getConfigValue(), "config.txt").toString());
-
-			try {
-				mapper.writeValue(s3sConfigFileLocation, configFile);
-			} catch (IOException e) {
-				logSender.sendLogs(log, "### ERROR during s3s config file upload!\nCould not write config file to disk!");
-				return ResponseEntity.badRequest().build();
-			}
-
 			s3TokenRefresher.refreshToken();
 
 			if (nextTimeTokenExpires == oldNextTimeTokenExpires) {
-				// refresh could not get newer tokens
-				return ResponseEntity.badRequest().build();
+				// refresh could not find newer tokens
+				return ResponseEntity.notFound().build();
 			}
 
 			return ResponseEntity.ok().build();
