@@ -11,9 +11,6 @@ import tv.strohi.twitch.strohkoenigbot.rest.SplatNet3DataController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -21,12 +18,11 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Log4j2
-public class S3TokenRefresher implements ScheduledService {
+public class S3TokenRefresher {
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
@@ -39,20 +35,6 @@ public class S3TokenRefresher implements ScheduledService {
 	private final ObjectMapper mapper;
 	private final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {
 	};
-
-	@Override
-	public List<ScheduleRequest> createScheduleRequests() {
-		return List.of(ScheduleRequest.builder()
-			.name("S3TokenRefresher_schedule")
-			.schedule(CronSchedule.getScheduleString("0 55 * * * *"))
-			.runnable(this::refreshToken)
-			.build());
-	}
-
-	@Override
-	public List<ScheduleRequest> createSingleRunRequests() {
-		return List.of();
-	}
 
 	public void refreshToken() {
 		accountRepository.findByEnableSplatoon3(true).stream()
