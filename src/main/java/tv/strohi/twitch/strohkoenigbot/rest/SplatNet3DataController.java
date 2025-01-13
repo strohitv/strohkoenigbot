@@ -104,7 +104,7 @@ public class SplatNet3DataController {
 		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
 	}
 
-	@PostMapping(value = "refresh-tokens", consumes = "application/json")
+	@PostMapping(value = "refresh-tokens")
 	public ResponseEntity<Void> uploadConfig(@RequestHeader("Authorization") String auth) {
 		if (buckets.get("refresh-tokens").tryConsume(1)) {
 			var user = configurationRepository.findAllByConfigName("uploadS3sConfigUser").stream().findFirst();
