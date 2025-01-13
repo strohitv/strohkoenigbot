@@ -115,7 +115,7 @@ public class SplatNet3DataController {
 				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
 			}
 
-			var comparisonString = String.format("Basic %s", Base64.encodeBase64String(String.format("%s:%s", user, pass).getBytes(StandardCharsets.UTF_8)));
+			var comparisonString = String.format("Basic %s", Base64.encodeBase64String(String.format("%s:%s", user.get(), pass.get()).getBytes(StandardCharsets.UTF_8)));
 			if (!comparisonString.equals(auth)) {
 				logSender.sendLogs(log, "### ERROR during s3s config file upload!\nUser and/or password were not correct!");
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
