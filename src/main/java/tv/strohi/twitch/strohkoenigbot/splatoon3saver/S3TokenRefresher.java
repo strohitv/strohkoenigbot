@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.rest.SplatNet3DataController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
@@ -104,6 +105,7 @@ public class S3TokenRefresher implements ScheduledService {
 						var homeResponse = requestSender.queryS3Api(accountWithNewTokens, S3RequestKey.Home, "naCountry", "US");
 
 						if (homeResponse != null && homeResponse.contains("\"data\":{\"currentPlayer\"")) {
+							SplatNet3DataController.setNextTimeTokenExpires(newTokenExp);
 							accountRepository.save(accountWithNewTokens);
 							log.info("S3TokenRefresher successful.");
 						} else {

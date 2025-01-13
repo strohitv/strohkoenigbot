@@ -51,7 +51,7 @@ public class DiscordPrivateMessageConsumer implements Consumer<MessageCreateEven
 			args.setUserId(author.getId().asString());
 
 			args.getArguments().put(ArgumentKey.Event, event);
-			args.getArguments().put(ArgumentKey.Message, event.getMessage().getContent());
+			args.getArguments().put(ArgumentKey.Message, message);
 
 			args.setReplySender(
 				new TwitchDiscordMessageSender(null, discordBot, args)
