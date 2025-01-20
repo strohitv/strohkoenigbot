@@ -335,6 +335,20 @@ public class S3DailyStatsSender implements ScheduledService {
 				.append(")");
 		}
 
+		var requiredKoWinsFor4StarGrind = requiredExpFor4StarGrind / 2_500 + 1;
+		var yesterdayKoWins = yesterdayStats.getPreviousRequiredExpFor4StarGrind() != null
+			? yesterdayStats.getPreviousRequiredExpFor4StarGrind() / 2_500 + 1
+			: requiredExpFor4StarGrind / 2_500 + 1;
+
+		expBuilder.append("\n- = **").append(requiredKoWinsFor4StarGrind).append("** knockout wins");
+
+		if (!Objects.equals(yesterdayKoWins, requiredKoWinsFor4StarGrind)) {
+			expBuilder.append(" (")
+				.append(yesterdayKoWins < requiredKoWinsFor4StarGrind ? "+" : "-")
+				.append(df.format(Math.abs(yesterdayKoWins - requiredKoWinsFor4StarGrind)).replaceAll(",", " "))
+				.append(")");
+		}
+
 		expBuilder.append("\n- I will need roughly **").append(requiredExpFor4StarGrind / 50_000 + 1).append(" days** if I farm 50k exp every day.");
 
 		yesterdayStats.setPreviousRequiredExpFor4StarGrind(requiredExpFor4StarGrind);
