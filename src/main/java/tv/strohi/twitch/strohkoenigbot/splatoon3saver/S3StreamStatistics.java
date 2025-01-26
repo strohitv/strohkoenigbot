@@ -1,5 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
@@ -12,6 +14,8 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Match;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 
 import java.io.File;
@@ -29,6 +33,8 @@ import java.util.stream.Collectors;
 @Component
 @Log4j2
 public class S3StreamStatistics {
+	private final ObjectMapper mapper = new ObjectMapper();
+
 	private final Splatoon3VsRotationRepository rotationRepository;
 	private final Splatoon3VsModeRepository modeRepository;
 	private final ImageService imageService;
@@ -174,6 +180,67 @@ public class S3StreamStatistics {
 				return;
 			}
 
+			var lastMatchWasOpenWithFriends = lastMatch.getMode().getApiMode().equals("BANKARA") && lastMatch.getMode().getApiModeDistinction().equals("OPEN") && lastMatch.getShortenedJson().contains("\"bankaraPower\":{\"power\":");
+			Double openCurrentPower = null;
+			Double openPreviousPower = null;
+			Double openMaxPower = null;
+			boolean openZonesHidden = true, openTowerHidden = true, openRainmakerHidden = true, openClamsHidden = true;
+			if (lastMatchWasOpenWithFriends) {
+				switch (lastMatch.getRule().getApiRule()) {
+					case "AREA":
+						openZonesHidden = false;
+						break;
+					case "LOFT":
+						openTowerHidden = false;
+						break;
+					case "GOAL":
+						openRainmakerHidden = false;
+						break;
+					case "CLAM":
+						openClamsHidden = false;
+						break;
+					default:
+						return;
+				}
+
+				var allOpenMatchesThisRotation = includedMatches.stream()
+					.filter(m -> m.getRotation().equals(lastMatch.getRotation()))
+					.collect(Collectors.toList());
+
+				try {
+					var currentMatchParsed = mapper.readValue(imageService.restoreJson(lastMatch.getShortenedJson()), BattleResult.class)
+						.getData()
+						.getVsHistoryDetail()
+						.getBankaraMatch();
+
+					openCurrentPower = currentMatchParsed.getBankaraPower() != null ? currentMatchParsed.getBankaraPower().getPower() : null;
+
+					if (allOpenMatchesThisRotation.size() > 1) {
+						var previousMatchParsed = mapper.readValue(imageService.restoreJson(allOpenMatchesThisRotation.get(allOpenMatchesThisRotation.size() - 2).getShortenedJson()), BattleResult.class)
+							.getData()
+							.getVsHistoryDetail()
+							.getBankaraMatch();
+
+						openPreviousPower = previousMatchParsed.getBankaraPower() != null ? currentMatchParsed.getBankaraPower().getPower() : null;
+					}
+				} catch (JsonProcessingException ignored) {
+				}
+
+				openMaxPower = allOpenMatchesThisRotation.stream()
+					.map(m -> {
+						try {
+							return mapper.readValue(imageService.restoreJson(m.getShortenedJson()), BattleResult.class);
+						} catch (JsonProcessingException e) {
+							return null;
+						}
+					})
+					.filter(Objects::nonNull)
+					.map(m -> m.getData().getVsHistoryDetail().getBankaraMatch().getBankaraPower())
+					.filter(Objects::nonNull)
+					.map(Match.BankaraPower::getPower).max(Comparator.naturalOrder())
+					.orElse(null);
+			}
+
 			var startExpWeapon = getWeaponExp(weaponStatsStart.getStats().getLevel(), weaponStatsStart.getStats().getExpToLevelUp());
 			var currentExpWeapon = getWeaponExp(weaponStatsCurrent.getStats().getLevel(), weaponStatsCurrent.getStats().getExpToLevelUp());
 			var expWeaponGain = currentExpWeapon - startExpWeapon;
@@ -231,12 +298,26 @@ public class S3StreamStatistics {
 					.replace("{rainmaker-icon-hidden}", rainmakerHidden ? "hidden" : "")
 					.replace("{clams-icon-hidden}", clamsHidden ? "hidden" : "")
 					.replace("{x-stats-hidden}", lastMatch.getMode().getApiMode().equals("X_MATCH") ? "" : "hidden")
-					.replace("{current-x}", buildCurrentX(currentPower))
+					.replace("{current-x}", buildCurrentPower(currentPower))
 					.replace("{x-change-hidden}", currentPower == null
 						|| startPower == null
 						|| currentPower.doubleValue() == startPower.doubleValue() ? "hidden" : "")
 					.replace("{x-change}", buildPowerDiff(startPower, currentPower))
 					.replace("{x-change-color}", getPowerDiffColor(startPower, currentPower))
+
+					.replace("{open-stats-hidden}", lastMatchWasOpenWithFriends ? "" : "hidden")
+					.replace("{open-zones-icon-hidden}", openZonesHidden ? "hidden" : "")
+					.replace("{open-tower-icon-hidden}", openTowerHidden ? "hidden" : "")
+					.replace("{open-rainmaker-icon-hidden}", openRainmakerHidden ? "hidden" : "")
+					.replace("{open-clams-icon-hidden}", openClamsHidden ? "hidden" : "")
+					.replace("{open-change-hidden}", openCurrentPower == null
+						|| openPreviousPower == null
+						|| openCurrentPower.doubleValue() == openPreviousPower.doubleValue() ? "" : "hidden")
+					.replace("{open-change-color}", getPowerDiffColor(openPreviousPower, openCurrentPower))
+					.replace("{open-max-hidden}", openMaxPower != null ? "" : "hidden")
+					.replace("{current-open}", buildCurrentPower(openCurrentPower))
+					.replace("{open-change}", buildPowerDiff(openPreviousPower, openCurrentPower))
+					.replace("{open-max}", buildCurrentPower(openMaxPower))
 
 					.replace("{weapon-star-1-hidden}", weaponStatsCurrent.getStats().getLevel() >= 1 ? "" : "hidden")
 					.replace("{weapon-star-2-hidden}", weaponStatsCurrent.getStats().getLevel() >= 2 ? "" : "hidden")
@@ -381,7 +462,7 @@ public class S3StreamStatistics {
 		return currentExp;
 	}
 
-	private String buildCurrentX(Double currentPower) {
+	private String buildCurrentPower(Double currentPower) {
 		if (currentPower == null) {
 			return "-";
 		} else {
