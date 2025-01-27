@@ -90,6 +90,7 @@ public class S3TokenRefresher {
 							var config = configurationRepository.findByConfigName("SplatNet3NextTimeTokenExpires")
 								.orElse(Configuration.builder().configName("SplatNet3NextTimeTokenExpires").configValue(String.format("%d", Instant.now().getEpochSecond())).build());
 							config.setConfigValue(String.format("%d", newTokenExp));
+							configurationRepository.save(config);
 
 							accountRepository.save(accountWithNewTokens);
 							log.info("S3TokenRefresher successful.");
