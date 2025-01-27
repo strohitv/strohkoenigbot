@@ -237,7 +237,9 @@ public class S3StreamStatistics {
 					.filter(Objects::nonNull)
 					.map(m -> m.getData().getVsHistoryDetail().getBankaraMatch().getBankaraPower())
 					.filter(Objects::nonNull)
-					.map(Match.BankaraPower::getPower).max(Comparator.naturalOrder())
+					.map(Match.BankaraPower::getPower)
+					.filter(Objects::nonNull)
+					.max(Comparator.naturalOrder())
 					.orElse(null);
 			}
 
