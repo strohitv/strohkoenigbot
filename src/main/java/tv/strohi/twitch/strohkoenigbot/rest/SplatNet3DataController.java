@@ -95,8 +95,8 @@ public class SplatNet3DataController {
 	@GetMapping(value = "remaining-token-duration-minutes", produces = "text/plain")
 	public ResponseEntity<String> getRemaining() {
 		if (buckets.get("remaining-token-duration-minutes").tryConsume(1)) {
-			var config = configurationRepository.findByConfigName("SplatNet3NextTimeTokenExpires")
-				.orElse(Configuration.builder().configName("SplatNet3NextTimeTokenExpires").configValue(String.format("%d", Instant.now().getEpochSecond())).build());
+			var config = configurationRepository.findByConfigName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME)
+				.orElse(Configuration.builder().configName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME).configValue(String.format("%d", Instant.now().getEpochSecond())).build());
 
 			var nextTimeTokenExpires = Long.parseLong(config.getConfigValue());
 
@@ -123,15 +123,15 @@ public class SplatNet3DataController {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 			}
 
-			var config = configurationRepository.findByConfigName("SplatNet3NextTimeTokenExpires")
-				.orElse(Configuration.builder().configName("SplatNet3NextTimeTokenExpires").configValue(String.format("%d", Instant.now().getEpochSecond())).build());
+			var config = configurationRepository.findByConfigName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME)
+				.orElse(Configuration.builder().configName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME).configValue(String.format("%d", Instant.now().getEpochSecond())).build());
 
 			var oldNextTimeTokenExpires = Long.parseLong(config.getConfigValue());
 
 			s3TokenRefresher.refreshToken();
 
-			var newConfig = configurationRepository.findByConfigName("SplatNet3NextTimeTokenExpires")
-				.orElse(Configuration.builder().configName("SplatNet3NextTimeTokenExpires").configValue(String.format("%d", Instant.now().getEpochSecond())).build());
+			var newConfig = configurationRepository.findByConfigName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME)
+				.orElse(Configuration.builder().configName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME).configValue(String.format("%d", Instant.now().getEpochSecond())).build());
 
 			var nextTimeTokenExpires = Long.parseLong(newConfig.getConfigValue());
 

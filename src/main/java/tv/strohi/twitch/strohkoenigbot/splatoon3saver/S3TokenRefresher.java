@@ -23,6 +23,8 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 @Log4j2
 public class S3TokenRefresher {
+	public static final String SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME = "SplatNet3NextTimeTokenExpires";
+
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
@@ -87,8 +89,8 @@ public class S3TokenRefresher {
 						var homeResponse = requestSender.queryS3Api(accountWithNewTokens, S3RequestKey.Home, "naCountry", "US");
 
 						if (homeResponse != null && homeResponse.contains("\"data\":{\"currentPlayer\"")) {
-							var config = configurationRepository.findByConfigName("SplatNet3NextTimeTokenExpires")
-								.orElse(Configuration.builder().configName("SplatNet3NextTimeTokenExpires").configValue(String.format("%d", Instant.now().getEpochSecond())).build());
+							var config = configurationRepository.findByConfigName(SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME)
+								.orElse(Configuration.builder().configName(SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME).configValue(String.format("%d", Instant.now().getEpochSecond())).build());
 							config.setConfigValue(String.format("%d", newTokenExp));
 							configurationRepository.save(config);
 
