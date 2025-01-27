@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.http.HttpStatus;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3TokenRefresher;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
@@ -39,9 +39,6 @@ public class SplatNet3DataController {
 	private final Map<String, Bucket> buckets;
 
 	private final Map<String, Object> data = new HashMap<>();
-
-	@Setter
-	private static long nextTimeTokenExpires = Instant.now().getEpochSecond();
 
 	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogSender logSender, ObjectMapper mapper) {
 		this.s3TokenRefresher = s3TokenRefresher;
@@ -98,6 +95,11 @@ public class SplatNet3DataController {
 	@GetMapping(value = "remaining-token-duration-minutes", produces = "text/plain")
 	public ResponseEntity<String> getRemaining() {
 		if (buckets.get("remaining-token-duration-minutes").tryConsume(1)) {
+			var config = configurationRepository.findByConfigName("SplatNet3NextTimeTokenExpires")
+				.orElse(Configuration.builder().configName("SplatNet3NextTimeTokenExpires").configValue(String.format("%d", Instant.now().getEpochSecond())).build());
+
+			var nextTimeTokenExpires = Long.parseLong(config.getConfigValue());
+
 			return ResponseEntity.ok(String.format("%d", (nextTimeTokenExpires - Instant.now().getEpochSecond()) / 60));
 		}
 
@@ -121,9 +123,17 @@ public class SplatNet3DataController {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 			}
 
-			var oldNextTimeTokenExpires = nextTimeTokenExpires;
+			var config = configurationRepository.findByConfigName("SplatNet3NextTimeTokenExpires")
+				.orElse(Configuration.builder().configName("SplatNet3NextTimeTokenExpires").configValue(String.format("%d", Instant.now().getEpochSecond())).build());
+
+			var oldNextTimeTokenExpires = Long.parseLong(config.getConfigValue());
 
 			s3TokenRefresher.refreshToken();
+
+			var newConfig = configurationRepository.findByConfigName("SplatNet3NextTimeTokenExpires")
+				.orElse(Configuration.builder().configName("SplatNet3NextTimeTokenExpires").configValue(String.format("%d", Instant.now().getEpochSecond())).build());
+
+			var nextTimeTokenExpires = Long.parseLong(newConfig.getConfigValue());
 
 			if (nextTimeTokenExpires == oldNextTimeTokenExpires) {
 				// refresh could not find newer tokens
