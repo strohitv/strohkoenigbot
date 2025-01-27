@@ -314,7 +314,7 @@ public class S3StreamStatistics {
 					.replace("{open-clams-icon-hidden}", openClamsHidden ? "hidden" : "")
 					.replace("{open-change-hidden}", openCurrentPower == null
 						|| openPreviousPower == null
-						|| openCurrentPower.doubleValue() == openPreviousPower.doubleValue() ? "" : "hidden")
+						|| openCurrentPower.doubleValue() == openPreviousPower.doubleValue() ? "hidden" : "")
 					.replace("{open-change-color}", getPowerDiffColor(openPreviousPower, openCurrentPower))
 					.replace("{open-max-hidden}", openMaxPower != null ? "" : "hidden")
 					.replace("{current-open}", buildCurrentPower(openCurrentPower))
