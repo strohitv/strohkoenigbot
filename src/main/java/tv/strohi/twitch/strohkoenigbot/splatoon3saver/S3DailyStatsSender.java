@@ -221,7 +221,8 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		var minTop500XPowers = xLeaderboardDownloader.loadTop500MinPower();
 
-		var requiredExpFor4StarGrind = getExpNeededFor4StarGrind();
+		var allWeaponsBelow4Stars = weaponDownloader.getWeapons().stream().filter(w -> w.getStats().getLevel() < 4).collect(Collectors.toList());
+		var requiredExpFor4StarGrind = getExpNeededFor4StarGrind(allWeaponsBelow4Stars);
 
 		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
 		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
@@ -231,7 +232,7 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
 		sendWeaponExpNumbersToDiscord(weaponExpTierNumbers, yesterdayStats, account);
-		sendRequiredExpFor4StarGrindToDiscord(requiredExpFor4StarGrind, yesterdayStats, account);
+		sendRequiredExpFor4StarGrindToDiscord(requiredExpFor4StarGrind, yesterdayStats, allWeaponsBelow4Stars, account);
 
 		sendMinTop500XPowersToDiscord(minTop500XPowers, yesterdayStats, account);
 
@@ -318,9 +319,9 @@ public class S3DailyStatsSender implements ScheduledService {
 		return currentWeaponExp - (currentWeaponExp % 10_000);
 	}
 
-	private void sendRequiredExpFor4StarGrindToDiscord(int requiredExpFor4StarGrind, DailyStatsSaveModel yesterdayStats, Account account) {
+	private void sendRequiredExpFor4StarGrindToDiscord(int requiredExpFor4StarGrind, DailyStatsSaveModel yesterdayStats, List<Weapon> unfinishedWeapons, Account account) {
 		var df = new DecimalFormat("#,###,###");
-		var yesterdayExp = yesterdayStats.getPreviousRequiredExpFor4StarGrind() != null
+		var yesterdayExpRequired = yesterdayStats.getPreviousRequiredExpFor4StarGrind() != null
 			? yesterdayStats.getPreviousRequiredExpFor4StarGrind()
 			: requiredExpFor4StarGrind;
 
@@ -328,10 +329,10 @@ public class S3DailyStatsSender implements ScheduledService {
 			.append(df.format(requiredExpFor4StarGrind).replaceAll(",", " "))
 			.append("** exp");
 
-		if (!Objects.equals(yesterdayExp, requiredExpFor4StarGrind)) {
+		if (!Objects.equals(yesterdayExpRequired, requiredExpFor4StarGrind)) {
 			expBuilder.append(" (")
-				.append(yesterdayExp < requiredExpFor4StarGrind ? "+" : "-")
-				.append(df.format(Math.abs(yesterdayExp - requiredExpFor4StarGrind)).replaceAll(",", " "))
+				.append(yesterdayExpRequired < requiredExpFor4StarGrind ? "+" : "-")
+				.append(df.format(Math.abs(yesterdayExpRequired - requiredExpFor4StarGrind)).replaceAll(",", " "))
 				.append(")");
 		}
 
@@ -351,14 +352,29 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		expBuilder.append("\n- I will need roughly **").append(requiredExpFor4StarGrind / 50_000 + 1).append(" days** if I farm 50k exp every day.");
 
+		var todayAverage = 160_000 - (requiredExpFor4StarGrind / unfinishedWeapons.size() + 1);
+		expBuilder.append("\n- On average, I have  **").append(df.format(todayAverage).replaceAll(",", " ")).append(" exp** on every remaining weapon");
+
+		var yesterdayUnfinishedCount = yesterdayStats.getPreviousWeaponStarsCount().keySet().stream()
+			.filter(k -> !k.contains("4") && !k.contains("5"))
+			.map((a) -> yesterdayStats.getPreviousWeaponStarsCount().get(a))
+			.reduce(Integer::sum)
+			.orElse(143);
+		var yesterdayAverage = 160_000 - (yesterdayExpRequired / yesterdayUnfinishedCount + 1);
+
+		if (todayAverage != yesterdayAverage) {
+			expBuilder.append(" (")
+				.append(yesterdayKoWins < requiredKoWinsFor4StarGrind ? "+" : "-")
+				.append(df.format(Math.abs(yesterdayKoWins - requiredKoWinsFor4StarGrind)).replaceAll(",", " "))
+				.append(")");
+		}
+
 		yesterdayStats.setPreviousRequiredExpFor4StarGrind(requiredExpFor4StarGrind);
 
 		discordBot.sendPrivateMessage(account.getDiscordId(), expBuilder.toString());
 	}
 
-	private int getExpNeededFor4StarGrind() {
-		var unfinishedWeapons = weaponDownloader.getWeapons().stream().filter(w -> w.getStats().getLevel() < 4).collect(Collectors.toList());
-
+	private int getExpNeededFor4StarGrind(List<Weapon> unfinishedWeapons) {
 		int requiredExp = 0;
 
 		for (var weapon : unfinishedWeapons) {
