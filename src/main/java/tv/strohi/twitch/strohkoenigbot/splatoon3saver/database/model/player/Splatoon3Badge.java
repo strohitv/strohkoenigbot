@@ -1,9 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 
 import javax.persistence.*;
@@ -17,7 +14,7 @@ import javax.persistence.*;
 public class Splatoon3Badge {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	private String apiId;
 
@@ -27,5 +24,6 @@ public class Splatoon3Badge {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "image_id")
+	@EqualsAndHashCode.Exclude
 	private Image image;
 }

@@ -28,15 +28,16 @@ public class Splatoon3SrBoss {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "image_id")
+	@EqualsAndHashCode.Exclude
 	private Image image;
 
 	// ---
 
-	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "boss")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrRotation> rotations;
 
-	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "boss")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrBossResult> bossResults;
 }

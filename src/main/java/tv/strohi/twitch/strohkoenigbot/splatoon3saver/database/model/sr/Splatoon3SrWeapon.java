@@ -27,20 +27,25 @@ public class Splatoon3SrWeapon {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "image_id", nullable = false)
+	@EqualsAndHashCode.Exclude
 	private Image image;
 
 	// ---
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "weapon1")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrRotation> rotationsWeapon1;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "weapon2")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrRotation> rotationsWeapon2;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "weapon3")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrRotation> rotationsWeapon3;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "weapon4")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrRotation> rotationsWeapon4;
 
 	public List<Splatoon3SrRotation> getAllRotations() {

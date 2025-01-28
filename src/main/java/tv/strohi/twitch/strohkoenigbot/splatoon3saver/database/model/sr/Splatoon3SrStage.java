@@ -26,14 +26,17 @@ public class Splatoon3SrStage {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "image_id")
+	@EqualsAndHashCode.Exclude
 	private Image image;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "thumbnail_image_id")
+	@EqualsAndHashCode.Exclude
 	private Image thumbnailImage;
 
 	// ---
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "stage")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrRotation> rotations;
 }
