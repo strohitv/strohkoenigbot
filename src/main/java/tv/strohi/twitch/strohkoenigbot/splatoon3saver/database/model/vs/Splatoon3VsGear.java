@@ -1,9 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 
 import javax.persistence.*;
@@ -27,13 +24,16 @@ public class Splatoon3VsGear {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "original_image_id")
+	@EqualsAndHashCode.Exclude
 	private Image originalImage;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "thumbnail_image_id")
+	@EqualsAndHashCode.Exclude
 	private Image thumbnailImage;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "brand_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsBrand brand;
 }

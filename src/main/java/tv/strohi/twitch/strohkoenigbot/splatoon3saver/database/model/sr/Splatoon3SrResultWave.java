@@ -34,15 +34,17 @@ public class Splatoon3SrResultWave {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "result_id", nullable = false, insertable = false, updatable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrResult result;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "event_wave_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrEventWave eventWave;
 
 	// ---
 
-	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "resultWave")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrResultWavePlayerWeapon> playerWeapons;
 }

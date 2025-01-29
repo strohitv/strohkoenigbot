@@ -23,5 +23,6 @@ public class Splatoon3VsRotationSlot {
 	// ---
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "rotation_id", nullable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsRotation rotation;
 }

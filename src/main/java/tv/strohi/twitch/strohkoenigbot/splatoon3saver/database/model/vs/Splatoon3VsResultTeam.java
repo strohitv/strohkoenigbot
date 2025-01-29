@@ -59,8 +59,10 @@ public class Splatoon3VsResultTeam {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "result_id", insertable = false, updatable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsResult result;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "team")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3VsResultTeamPlayer> teamPlayers;
 }

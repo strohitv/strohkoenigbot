@@ -53,39 +53,44 @@ public class Splatoon3SrResult {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "mode_id", nullable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrMode mode;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "rotation_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrRotation rotation;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "boss_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrBoss boss;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "stage_id", nullable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrStage stage;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "after_grade_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrGrade afterGrade;
 
 	// ---
 
-	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrResultPlayer> players;
 
-	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrResultWave> waves;
 
-	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrResultEnemy> enemyStats;
 
-	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrBossResult> bossResults;
 }

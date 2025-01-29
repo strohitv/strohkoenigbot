@@ -30,7 +30,7 @@ public class Splatoon3SrMode {
 
 	// ---
 
-	@EqualsAndHashCode.Exclude
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "mode")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3SrModeDiscordChannel> discordChannels;
 }

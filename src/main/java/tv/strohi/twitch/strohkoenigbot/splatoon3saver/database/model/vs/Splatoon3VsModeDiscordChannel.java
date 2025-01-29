@@ -1,9 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -20,6 +17,7 @@ public class Splatoon3VsModeDiscordChannel {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "mode_id", insertable = false, updatable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsMode mode;
 
 	private String discordChannelName;

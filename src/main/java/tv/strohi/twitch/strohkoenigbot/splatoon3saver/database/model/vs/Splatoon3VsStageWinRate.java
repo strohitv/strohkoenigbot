@@ -1,9 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -34,5 +31,6 @@ public class Splatoon3VsStageWinRate {
 	// ---
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "stage_id", nullable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsStage stage;
 }

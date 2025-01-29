@@ -36,22 +36,27 @@ public class Splatoon3VsResult {
 	// ---
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3VsResultTeam> teams;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "mode_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsMode mode;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "rule_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsRule rule;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "rotation_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsRotation rotation;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "stage_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsStage stage;
 
 	@ManyToMany(fetch = FetchType.EAGER)
@@ -61,5 +66,6 @@ public class Splatoon3VsResult {
 		joinColumns = @JoinColumn(name = "result_id"),
 		inverseJoinColumns = @JoinColumn(name = "award_id")
 	)
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3VsAward> awards;
 }

@@ -22,11 +22,13 @@ public class Splatoon3SrBossResult {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "result_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrResult result;
 
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "boss_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrBoss boss;
 }

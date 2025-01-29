@@ -1,9 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -22,6 +19,7 @@ public class Splatoon3SrResultWaveUsedSpecialWeapon {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "result_id", nullable = false, insertable = false, updatable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrResult result;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -29,9 +27,11 @@ public class Splatoon3SrResultWaveUsedSpecialWeapon {
 		@JoinColumn(name = "result_id", nullable = false),
 		@JoinColumn(name = "wave_number", nullable = false)
 	})
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrResultWave resultWave;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "special_weapon_id", nullable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3SrSpecialWeapon specialWeapon;
 }

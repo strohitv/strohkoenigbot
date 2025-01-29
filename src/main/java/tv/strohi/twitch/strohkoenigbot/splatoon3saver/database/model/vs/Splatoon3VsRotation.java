@@ -29,27 +29,33 @@ public class Splatoon3VsRotation {
 
 	@ManyToOne
 	@JoinColumn(name = "stage_1_id", nullable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsStage stage1;
 
 	@ManyToOne
 	@JoinColumn(name = "stage_2_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsStage stage2;
 
 	@ManyToOne
 	@JoinColumn(name = "mode_id", nullable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsMode mode;
 
 	@ManyToOne
 	@JoinColumn(name = "rule_id", nullable = false)
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsRule rule;
 
 	@ManyToOne
 	@JoinColumn(name = "event_regulation_id")
+	@EqualsAndHashCode.Exclude
 	private Splatoon3VsEventRegulation eventRegulation;
 
 	// ---
 
 	@OneToMany
 	@JoinColumn(name = "rotation_id")
+	@EqualsAndHashCode.Exclude
 	private List<Splatoon3VsRotationSlot> slots;
 }
