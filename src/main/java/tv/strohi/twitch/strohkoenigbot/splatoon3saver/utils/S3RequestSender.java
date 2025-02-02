@@ -52,7 +52,10 @@ public class S3RequestSender {
 					logSender.sendLogs(logger, "Response:");
 					logSender.sendLogs(logger, String.format("```\n%s\n```", serializeResponse(response)));
 
-					return null;
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException ignored) {
+					}
 				}
 			} catch (IOException | InterruptedException e) {
 				if (e instanceof IOException && e.getCause() != null && e.getCause() instanceof CookieRefreshException) {
@@ -70,7 +73,7 @@ public class S3RequestSender {
 					logger.error("retry count: {} of 4", retryCount);
 
 					try {
-						Thread.sleep(1000);
+						Thread.sleep(5000);
 					} catch (InterruptedException ignored) {
 					}
 				}
