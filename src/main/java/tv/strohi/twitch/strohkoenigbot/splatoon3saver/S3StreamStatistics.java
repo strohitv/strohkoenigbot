@@ -101,8 +101,8 @@ public class S3StreamStatistics {
 		if (!includedMatches.isEmpty()) {
 			lastUpdate = Instant.now();
 
-			long victoryCount = includedMatches.stream().filter(m -> m.getOwnJudgement().equalsIgnoreCase("win")).count();
-			long defeatCount = includedMatches.stream().filter(m -> m.getOwnJudgement().equalsIgnoreCase("lose") || m.getOwnJudgement().equalsIgnoreCase("deemed_lose")).count();
+			long victoryCount = includedMatches.stream().filter(m -> "win".equalsIgnoreCase(m.getOwnJudgement())).count();
+			long defeatCount = includedMatches.stream().filter(m -> "lose".equalsIgnoreCase(m.getOwnJudgement()) || "deemed_lose".equalsIgnoreCase(m.getOwnJudgement())).count();
 
 			var lastMatch = includedMatches.stream()
 				.min((a, b) -> b.getPlayedTime().compareTo(a.getPlayedTime()))
@@ -180,7 +180,7 @@ public class S3StreamStatistics {
 				return;
 			}
 
-			var lastMatchWasOpenWithFriends = lastMatch.getMode().getApiMode().equals("BANKARA") && lastMatch.getMode().getApiModeDistinction().equals("OPEN") && lastMatch.getShortenedJson().contains("\"bankaraPower\":{\"power\":");
+			var lastMatchWasOpenWithFriends = "BANKARA".equals(lastMatch.getMode().getApiMode()) && "OPEN".equals(lastMatch.getMode().getApiModeDistinction()) && lastMatch.getShortenedJson() != null && lastMatch.getShortenedJson().contains("\"bankaraPower\":{\"power\":");
 			Double openCurrentPower = null;
 			Double openPreviousPower = null;
 			Double openMaxPower = null;
@@ -204,7 +204,7 @@ public class S3StreamStatistics {
 				}
 
 				var allOpenMatchesThisRotation = includedMatches.stream()
-					.filter(m -> m.getRotation().equals(lastMatch.getRotation()))
+					.filter(m -> Objects.equals(m.getRotation(), lastMatch.getRotation()))
 					.collect(Collectors.toList());
 
 				try {
@@ -299,7 +299,7 @@ public class S3StreamStatistics {
 					.replace("{tower-icon-hidden}", towerHidden ? "hidden" : "")
 					.replace("{rainmaker-icon-hidden}", rainmakerHidden ? "hidden" : "")
 					.replace("{clams-icon-hidden}", clamsHidden ? "hidden" : "")
-					.replace("{x-stats-hidden}", lastMatch.getMode().getApiMode().equals("X_MATCH") ? "" : "hidden")
+					.replace("{x-stats-hidden}", "X_MATCH".equals(lastMatch.getMode().getApiMode()) ? "" : "hidden")
 					.replace("{current-x}", buildCurrentPower(currentPower))
 					.replace("{x-change-hidden}", currentPower == null
 						|| startPower == null
