@@ -1,5 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,8 +19,11 @@ import java.util.zip.GZIPInputStream;
 @Component
 @RequiredArgsConstructor
 public class S3RequestSender {
+	private final LogSender logSender;
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final ImageService imageService;
+
+	private final ObjectMapper mapper;
 
 	public String sendRequestAndParseGzippedJson(HttpClient client, HttpRequest request) {
 		String body = "";
@@ -44,21 +49,20 @@ public class S3RequestSender {
 
 					return body;
 				} else {
-					logger.info("request:");
-					logger.info(request);
-					logger.info("response:");
-					logger.info(response);
+					logSender.sendLogs(logger, "request:");
+					logSender.sendLogs(logger, String.format("```\n%s\n```", serializeObject(request)));
+					logSender.sendLogs(logger, "response:");
+					logSender.sendLogs(logger, String.format("```\n%s\n```", serializeObject(response)));
 
 					return null;
 				}
 			} catch (IOException | InterruptedException e) {
 				if (e instanceof IOException && e.getCause() != null && e.getCause() instanceof CookieRefreshException) {
-					logger.error("The cookie for account wasn't valid anymore and no session token has been set!");
+					logSender.sendLogs(logger, "The cookie for account wasn't valid anymore and no session token has been set!");
 
 					return null;
 				} else {
 					// log and retry in a second
-
 					logger.error("exception while sending request, retrying...");
 					logger.error("response body: '{}'", body);
 
@@ -75,6 +79,15 @@ public class S3RequestSender {
 			}
 		}
 
+		logSender.sendLogs(logger, "S3RequestSender failed 5 times in a row.");
 		return null;
+	}
+
+	private String serializeObject(Object obj) {
+		try {
+			return mapper.writeValueAsString(obj);
+		} catch (JsonProcessingException e) {
+			return "";
+		}
 	}
 }

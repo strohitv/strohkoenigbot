@@ -312,7 +312,7 @@ public class S3Downloader implements ScheduledService {
 		try {
 			return objectMapper.readValue(gameList, BattleResults.class);
 		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
+			return null;
 		}
 	}
 
@@ -325,21 +325,23 @@ public class S3Downloader implements ScheduledService {
 	}
 
 	private Stream<BattleResults.HistoryGroupsNodes> streamResults(BattleResults results) {
-		var unboxed = results.getData();
-		if (unboxed.getLatestBattleHistories() != null) {
-			return Arrays.stream(unboxed.getLatestBattleHistories().getHistoryGroups().getNodes());
-		} else if (unboxed.getRegularBattleHistories() != null) {
-			return Arrays.stream(unboxed.getRegularBattleHistories().getHistoryGroups().getNodes());
-		} else if (unboxed.getBankaraBattleHistories() != null) {
-			return Arrays.stream(unboxed.getBankaraBattleHistories().getHistoryGroups().getNodes());
-		} else if (unboxed.getXBattleHistories() != null) {
-			return Arrays.stream(unboxed.getXBattleHistories().getHistoryGroups().getNodes());
-		} else if (unboxed.getEventBattleHistories() != null) {
-			return Arrays.stream(unboxed.getEventBattleHistories().getHistoryGroups().getNodes());
-		} else if (unboxed.getPrivateBattleHistories() != null) {
-			return Arrays.stream(unboxed.getPrivateBattleHistories().getHistoryGroups().getNodes());
-		} else if (unboxed.getCoopResult() != null) {
-			return Arrays.stream(unboxed.getCoopResult().getHistoryGroups().getNodes());
+		if (results != null) {
+			var unboxed = results.getData();
+			if (unboxed.getLatestBattleHistories() != null) {
+				return Arrays.stream(unboxed.getLatestBattleHistories().getHistoryGroups().getNodes());
+			} else if (unboxed.getRegularBattleHistories() != null) {
+				return Arrays.stream(unboxed.getRegularBattleHistories().getHistoryGroups().getNodes());
+			} else if (unboxed.getBankaraBattleHistories() != null) {
+				return Arrays.stream(unboxed.getBankaraBattleHistories().getHistoryGroups().getNodes());
+			} else if (unboxed.getXBattleHistories() != null) {
+				return Arrays.stream(unboxed.getXBattleHistories().getHistoryGroups().getNodes());
+			} else if (unboxed.getEventBattleHistories() != null) {
+				return Arrays.stream(unboxed.getEventBattleHistories().getHistoryGroups().getNodes());
+			} else if (unboxed.getPrivateBattleHistories() != null) {
+				return Arrays.stream(unboxed.getPrivateBattleHistories().getHistoryGroups().getNodes());
+			} else if (unboxed.getCoopResult() != null) {
+				return Arrays.stream(unboxed.getCoopResult().getHistoryGroups().getNodes());
+			}
 		}
 
 		return Stream.of();
