@@ -91,7 +91,6 @@ public class S3ApiQuerySender {
 		do {
 			if (attempt > 0) {
 				try {
-					logSender.sendLogs(logger, "need another attempt in S3ApiQuerySender");
 					Thread.sleep(5000);
 				} catch (InterruptedException ex) {
 					logger.error(ex);
@@ -133,6 +132,10 @@ public class S3ApiQuerySender {
 			result = s3RequestSender.sendRequestAndParseGzippedJson(client, request);
 			attempt++;
 		} while (result != null && attempt < 5);
+
+		if (result == null) {
+			logSender.sendLogs(logger, "S3ApiQuerySender could not fulfill request after 5 attempts.");
+		}
 
 		return result;
 	}

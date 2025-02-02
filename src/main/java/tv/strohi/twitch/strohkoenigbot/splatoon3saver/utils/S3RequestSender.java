@@ -1,7 +1,5 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,10 +18,9 @@ import java.util.zip.GZIPInputStream;
 @RequiredArgsConstructor
 public class S3RequestSender {
 	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final ImageService imageService;
-
-	private final ObjectMapper mapper;
 
 	public String sendRequestAndParseGzippedJson(HttpClient client, HttpRequest request) {
 		String body = "";
@@ -45,14 +42,15 @@ public class S3RequestSender {
 
 					try {
 						imageService.shortenJson(body);
-					} catch (Exception ignored) {}
+					} catch (Exception ignored) {
+					}
 
 					return body;
 				} else {
-					logSender.sendLogs(logger, "request:");
-					logSender.sendLogs(logger, String.format("```\n%s\n```", serializeObject(request)));
-					logSender.sendLogs(logger, "response:");
-					logSender.sendLogs(logger, String.format("```\n%s\n```", serializeObject(response)));
+					logSender.sendLogs(logger, "Request could not be fulfilled.\nRequest:");
+					logSender.sendLogs(logger, String.format("```\n%s\n```", serializeRequest(request)));
+					logSender.sendLogs(logger, "Response:");
+					logSender.sendLogs(logger, String.format("```\n%s\n```", serializeResponse(response)));
 
 					return null;
 				}
@@ -63,10 +61,10 @@ public class S3RequestSender {
 					return null;
 				} else {
 					// log and retry in a second
-					logger.error("exception while sending request, retrying...");
+					logSender.sendLogs(logger, "exception while sending request, retrying...");
 					logger.error("response body: '{}'", body);
 
-					logger.error(e);
+					exceptionLogger.logException(logger, e);
 
 					retryCount++;
 					logger.error("retry count: {} of 4", retryCount);
@@ -83,11 +81,37 @@ public class S3RequestSender {
 		return null;
 	}
 
-	private String serializeObject(Object obj) {
-		try {
-			return mapper.writeValueAsString(obj);
-		} catch (JsonProcessingException e) {
-			return "";
+	private String serializeRequest(HttpRequest request) {
+		StringBuilder result = new StringBuilder("URL: ").append(request.uri()).append("\nHeaders:");
+
+		for (var header : request.headers().map().keySet()) {
+			request.headers().map().get(header).forEach(value -> result.append("\n").append(header).append(": ").append(value));
 		}
+
+		return result.toString();
+	}
+
+	private String serializeResponse(HttpResponse<byte[]> response) {
+		StringBuilder result = new StringBuilder("URL: ").append(response.uri()).append("\nStatuscode: ").append(response.statusCode()).append("\nHeaders:");
+
+		for (var header : response.headers().map().keySet()) {
+			response.headers().map().get(header).forEach(value -> result.append("\n").append(header).append(": ").append(value));
+		}
+
+		if (response.body() != null) {
+			var body = new String(response.body());
+
+			if (response.headers().map().containsKey("Content-Encoding") && !response.headers().map().get("Content-Encoding").isEmpty() && "gzip".equals(response.headers().map().get("Content-Encoding").get(0))) {
+				try {
+					body = new String(new GZIPInputStream(new ByteArrayInputStream(response.body())).readAllBytes());
+				} catch (IOException e) {
+					logger.error(e);
+				}
+			}
+
+			result.append("\nBody: \n").append(body);
+		}
+
+		return result.toString();
 	}
 }
