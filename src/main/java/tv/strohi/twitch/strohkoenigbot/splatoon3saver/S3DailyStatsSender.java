@@ -151,7 +151,8 @@ public class S3DailyStatsSender implements ScheduledService {
 		var responseCodeMessage = responseCodes.entrySet().stream()
 			.sorted((a, b) -> b.getValue().compareTo(a.getValue()))
 			.map(e -> String.format("- **%s**: %s times", e.getKey(), e.getValue()))
-			.reduce((a, b) -> String.format("%s\n%s", a, b));
+			.reduce((a, b) -> String.format("%s\n%s", a, b))
+			.orElse("- **no calls** to the api were detected!");
 		discordBot.sendPrivateMessage(account.getDiscordId(), String.format("These response codes were retrieved from SplatNet:\n%s", responseCodeMessage));
 
 		var useNewWay = configurationRepository.findAllByConfigName("s3UseDatabase").stream()
