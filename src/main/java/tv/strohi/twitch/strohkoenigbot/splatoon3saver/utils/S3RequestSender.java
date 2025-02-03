@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,6 +13,8 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 @Component
@@ -21,6 +24,9 @@ public class S3RequestSender {
 	private final ExceptionLogger exceptionLogger;
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final ImageService imageService;
+
+	@Getter
+	private final Map<Integer, Integer> responseCodes = new HashMap<>();
 
 	public String sendRequestAndParseGzippedJson(HttpClient client, HttpRequest request) {
 		String body = "";
@@ -32,6 +38,10 @@ public class S3RequestSender {
 				HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
 				logger.debug("got response with status code {}:", response.statusCode());
+
+				var responseCodeNumber = responseCodes.getOrDefault(response.statusCode(), 0);
+				responseCodeNumber++;
+				responseCodes.put(response.statusCode(), responseCodeNumber);
 
 				if (response.statusCode() < 300) {
 					body = new String(response.body());
@@ -47,13 +57,15 @@ public class S3RequestSender {
 
 					return body;
 				} else {
-					logSender.sendLogs(logger, "Request could not be fulfilled.\nRequest:");
-					logSender.sendLogs(logger, String.format("```\n%s\n```", serializeRequest(request)));
-					logSender.sendLogs(logger, "Response:");
-					logSender.sendLogs(logger, String.format("```\n%s\n```", serializeResponse(response)));
+					var sleepTime = 5000;
+					if (response.statusCode() < 500) {
+//						logSender.sendLogs(logger, String.format("Request could not be fulfilled.\nRequest:\n```\n%s\n```", serializeRequest(request)));
+						logSender.sendLogs(logger, String.format("Request could not be fulfilled.\nResponse:\n```\n%s\n```", serializeResponse(response)));
+						sleepTime *= 3;
+					}
 
 					try {
-						Thread.sleep(5000);
+						Thread.sleep(sleepTime);
 					} catch (InterruptedException ignored) {
 					}
 				}

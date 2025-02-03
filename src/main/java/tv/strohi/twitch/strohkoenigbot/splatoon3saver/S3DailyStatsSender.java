@@ -23,6 +23,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.S3RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
@@ -60,10 +61,11 @@ public class S3DailyStatsSender implements ScheduledService {
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
 	private final DiscordBot discordBot;
-	private final S3Downloader downloader;
 	private final S3NewGearChecker newGearChecker;
 	private final S3WeaponDownloader weaponDownloader;
 	private final S3XLeaderboardDownloader xLeaderboardDownloader;
+
+	private final S3RequestSender s3RequestSender;
 
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
@@ -144,6 +146,13 @@ public class S3DailyStatsSender implements ScheduledService {
 		Map<String, Integer> salmonRunWeaponsYesterday = new HashMap<>();
 		Map<String, Integer> yesterdayWaves = new HashMap<>();
 		Map<String, Integer> yesterdayTides = new HashMap<>();
+
+		var responseCodes = s3RequestSender.getResponseCodes();
+		var responseCodeMessage = responseCodes.entrySet().stream()
+			.sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+			.map(e -> String.format("- **%s**: %s times", e.getKey(), e.getValue()))
+			.reduce((a, b) -> String.format("%s\n%s", a, b));
+		discordBot.sendPrivateMessage(account.getDiscordId(), String.format("These response codes were retrieved from SplatNet:\n%s", responseCodeMessage));
 
 		var useNewWay = configurationRepository.findAllByConfigName("s3UseDatabase").stream()
 			.map(c -> "true".equalsIgnoreCase(c.getConfigValue()))
