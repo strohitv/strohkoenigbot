@@ -71,6 +71,8 @@ public class S3RequestSender {
 						logSender.sendLogs(logger, String.format("Request could not be fulfilled.\nResponse:\n```\n%s\n```", serializeResponse(response)));
 						sleepTime *= 3;
 					} else if (response.statusCode() == 401) {
+						logSender.sendLogs(logger, "Reset token duration because a 401 error was received.");
+
 						var config = configurationRepository.findByConfigName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME)
 							.orElse(Configuration.builder().configName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME).configValue(String.format("%d", Instant.now().getEpochSecond())).build());
 						config.setConfigValue(String.format("%d", Instant.now().getEpochSecond()));
