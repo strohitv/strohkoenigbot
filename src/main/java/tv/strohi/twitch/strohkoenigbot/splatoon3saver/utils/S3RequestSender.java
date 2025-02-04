@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3TokenRefresher;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.CookieRefreshException;
 
@@ -13,6 +16,7 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -25,6 +29,8 @@ public class S3RequestSender {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final ImageService imageService;
 
+	private final ConfigurationRepository configurationRepository;
+
 	@Getter
 	private final Map<Integer, Integer> responseCodes = new HashMap<>();
 
@@ -33,6 +39,8 @@ public class S3RequestSender {
 		int retryCount = 0;
 
 		while (retryCount < 5) {
+			retryCount++;
+
 			try {
 				logger.debug("RequestSender sending new request to '{}'", request.uri().toString());
 				HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
@@ -62,6 +70,13 @@ public class S3RequestSender {
 //						logSender.sendLogs(logger, String.format("Request could not be fulfilled.\nRequest:\n```\n%s\n```", serializeRequest(request)));
 						logSender.sendLogs(logger, String.format("Request could not be fulfilled.\nResponse:\n```\n%s\n```", serializeResponse(response)));
 						sleepTime *= 3;
+					} else if (response.statusCode() == 401) {
+						var config = configurationRepository.findByConfigName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME)
+							.orElse(Configuration.builder().configName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME).configValue(String.format("%d", Instant.now().getEpochSecond())).build());
+						config.setConfigValue(String.format("%d", Instant.now().getEpochSecond()));
+						configurationRepository.save(config);
+
+						return null;
 					}
 
 					try {
@@ -81,7 +96,6 @@ public class S3RequestSender {
 
 					exceptionLogger.logException(logger, e);
 
-					retryCount++;
 					logger.error("retry count: {} of 4", retryCount);
 
 					try {

@@ -86,55 +86,43 @@ public class S3ApiQuerySender {
 
 	private String doRequest(String gToken, String bulletToken, String body) {
 		String result;
-		int attempt = 0;
 
-		do {
-			if (attempt > 0) {
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException ex) {
-					logger.error(ex);
-				}
-			}
+		String webViewVersion = configurationRepository.findAllByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
+			.findFirst()
+			.map(Configuration::getConfigValue)
+			.orElse("");
 
-			String webViewVersion = configurationRepository.findAllByConfigName(SPLATOON3_WEBVIEWVERSION_CONFIG_NAME).stream()
-				.findFirst()
-				.map(Configuration::getConfigValue)
-				.orElse("");
+		String address = "https://api.lp1.av5ja.srv.nintendo.net/api/graphql";
 
-			String address = "https://api.lp1.av5ja.srv.nintendo.net/api/graphql";
+		URI uri = URI.create(address);
 
-			URI uri = URI.create(address);
-
-			HttpRequest request = HttpRequest.newBuilder()
-				.POST(HttpRequest.BodyPublishers.ofString(body))
-				.uri(uri)
-				.setHeader("Authorization", String.format("Bearer %s", bulletToken))
-				.setHeader("Accept-Language", "en-US")
-				.setHeader("Accept-Encoding", "gzip,deflate,br")
+		HttpRequest request = HttpRequest.newBuilder()
+			.POST(HttpRequest.BodyPublishers.ofString(body))
+			.uri(uri)
+			.setHeader("Authorization", String.format("Bearer %s", bulletToken))
+			.setHeader("Accept-Language", "en-US")
+			.setHeader("Accept-Encoding", "gzip,deflate,br")
 //			.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
-				.setHeader("User-Agent", RequestSender.getDefaultUserAgent())
-				.setHeader("X-Web-View-Ver", webViewVersion)
-				.setHeader("Content-Type", "application/json")
-				.setHeader("Accept", "*/*")
-				.setHeader("Origin", "https://api.lp1.av5ja.srv.nintendo.net")
-				.setHeader("X-Requested-With", "com.nintendo.znca")
-				.setHeader("Referer", "https://api.lp1.av5ja.srv.nintendo.net/?lang=en-US&na_country=US&na_lang=en-US")
+			.setHeader("User-Agent", RequestSender.getDefaultUserAgent())
+			.setHeader("X-Web-View-Ver", webViewVersion)
+			.setHeader("Content-Type", "application/json")
+			.setHeader("Accept", "*/*")
+			.setHeader("Origin", "https://api.lp1.av5ja.srv.nintendo.net")
+			.setHeader("X-Requested-With", "com.nintendo.znca")
+			.setHeader("Referer", "https://api.lp1.av5ja.srv.nintendo.net/?lang=en-US&na_country=US&na_lang=en-US")
 //				.setHeader("Accept-Encoding", "gzip, deflate")
-				.build();
+			.build();
 
-			var client = HttpClient.newBuilder()
-				.connectTimeout(Duration.ofSeconds(120))
-				.version(HttpClient.Version.HTTP_2)
-				.cookieHandler(new S3CookieHandler(gToken, false))
-				.build();
+		var client = HttpClient.newBuilder()
+			.connectTimeout(Duration.ofSeconds(120))
+			.version(HttpClient.Version.HTTP_2)
+			.cookieHandler(new S3CookieHandler(gToken, false))
+			.build();
 
-			result = s3RequestSender.sendRequestAndParseGzippedJson(client, request);
-			attempt++;
-		} while (result != null && attempt < 5);
+		result = s3RequestSender.sendRequestAndParseGzippedJson(client, request);
 
 		if (result == null) {
-			logSender.sendLogs(logger, "S3ApiQuerySender could not fulfill request after 5 attempts.");
+			logSender.sendLogs(logger, "S3ApiQuerySender could not fulfill request.");
 		}
 
 		return result;
