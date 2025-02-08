@@ -42,7 +42,7 @@ public class S3RequestSender {
 		int retryCount = 0;
 
 		var maxRetriesConfig = configurationRepository.findByConfigName(SPLATNET_3_MAX_RETRIES_CONFIG_NAME)
-			.orElse(configurationRepository.save(Configuration.builder().configName(SPLATNET_3_MAX_RETRIES_CONFIG_NAME).configValue(String.format("%d", SPLATNET_3_DEFAULT_MAX_RETRIES)).build()));
+			.orElseGet(() -> configurationRepository.save(Configuration.builder().configName(SPLATNET_3_MAX_RETRIES_CONFIG_NAME).configValue(String.format("%d", SPLATNET_3_DEFAULT_MAX_RETRIES)).build()));
 
 		var maxRetries = parseMaxRetryCount(maxRetriesConfig.getConfigValue());
 
