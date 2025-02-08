@@ -24,6 +24,9 @@ import java.util.zip.GZIPInputStream;
 @Component
 @RequiredArgsConstructor
 public class S3RequestSender {
+	public static final String SPLATNET_3_MAX_RETRIES_CONFIG_NAME = "SplatNet3MaxRetryCount";
+	private static final int SPLATNET_3_DEFAULT_MAX_RETRIES = 3;
+
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
@@ -38,7 +41,12 @@ public class S3RequestSender {
 		String body = "";
 		int retryCount = 0;
 
-		while (retryCount < 5) {
+		var maxRetriesConfig = configurationRepository.findByConfigName(SPLATNET_3_MAX_RETRIES_CONFIG_NAME)
+			.orElse(configurationRepository.save(Configuration.builder().configName(SPLATNET_3_MAX_RETRIES_CONFIG_NAME).configValue(String.format("%d", SPLATNET_3_DEFAULT_MAX_RETRIES)).build()));
+
+		var maxRetries = parseMaxRetryCount(maxRetriesConfig.getConfigValue());
+
+		while (retryCount < maxRetries) {
 			retryCount++;
 
 			try {
@@ -66,20 +74,20 @@ public class S3RequestSender {
 					return body;
 				} else {
 					var sleepTime = 5000;
-					if (response.statusCode() < 500) {
+					if (response.statusCode() == 401) {
+						logSender.sendLogs(logger, "Reset token duration because a 401 error was received.");
+
+						var tokenExpirationConfig = configurationRepository.findByConfigName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME)
+							.orElse(Configuration.builder().configName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME).configValue(String.format("%d", Instant.now().getEpochSecond())).build());
+						tokenExpirationConfig.setConfigValue(String.format("%d", Instant.now().getEpochSecond()));
+						configurationRepository.save(tokenExpirationConfig);
+
+						return null;
+					} else if (response.statusCode() < 500) {
 //						logSender.sendLogs(logger, String.format("Request could not be fulfilled.\nRequest:\n```\n%s\n```", serializeRequest(request)));
 						logSender.sendLogs(logger, String.format("Request could not be fulfilled.\nResponse:\n```\n%s\n```", serializeResponse(response)));
 						sleepTime *= 3;
-					} else if (response.statusCode() == 401) {
-						logSender.sendLogs(logger, "Reset token duration because a 401 error was received.");
-
-						var config = configurationRepository.findByConfigName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME)
-							.orElse(Configuration.builder().configName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME).configValue(String.format("%d", Instant.now().getEpochSecond())).build());
-						config.setConfigValue(String.format("%d", Instant.now().getEpochSecond()));
-						configurationRepository.save(config);
-
-						return null;
-					}
+					} 
 
 					try {
 						Thread.sleep(sleepTime);
@@ -108,7 +116,7 @@ public class S3RequestSender {
 			}
 		}
 
-		logSender.sendLogs(logger, "S3RequestSender failed 5 times in a row.");
+		logSender.sendLogs(logger, String.format("S3RequestSender failed %d times in a row.", maxRetries));
 		return null;
 	}
 
@@ -120,6 +128,21 @@ public class S3RequestSender {
 		}
 
 		return result.toString();
+	}
+
+	private int parseMaxRetryCount(String configValue) {
+		int retryCount = SPLATNET_3_DEFAULT_MAX_RETRIES;
+
+		try {
+			retryCount = Integer.parseInt(configValue);
+		} catch (Exception ignored) {
+		}
+
+		if (retryCount <= 0) {
+			retryCount = 1;
+		}
+
+		return retryCount;
 	}
 
 	private String serializeResponse(HttpResponse<byte[]> response) {
