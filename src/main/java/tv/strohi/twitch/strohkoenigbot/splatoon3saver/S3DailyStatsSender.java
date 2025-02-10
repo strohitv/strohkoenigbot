@@ -374,8 +374,8 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		if (todayAverage != yesterdayAverage) {
 			expBuilder.append(" (")
-				.append(yesterdayKoWins < requiredKoWinsFor4StarGrind ? "+" : "-")
-				.append(df.format(Math.abs(yesterdayKoWins - requiredKoWinsFor4StarGrind)).replaceAll(",", " "))
+				.append(yesterdayAverage < todayAverage ? "+" : "-")
+				.append(df.format(Math.abs(yesterdayAverage - todayAverage)).replaceAll(",", " "))
 				.append(")");
 		}
 

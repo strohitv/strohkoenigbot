@@ -204,7 +204,8 @@ public class S3StreamStatistics {
 				}
 
 				var allOpenMatchesThisRotation = includedMatches.stream()
-					.filter(m -> Objects.equals(m.getRotation(), lastMatch.getRotation()))
+					.filter(m -> m.getRotation() != null)
+					.filter(m -> Objects.equals(m.getRotation().getId(), lastMatch.getRotation().getId()))
 					.collect(Collectors.toList());
 
 				try {
