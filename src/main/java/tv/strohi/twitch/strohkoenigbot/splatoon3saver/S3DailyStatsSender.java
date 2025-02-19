@@ -240,9 +240,9 @@ public class S3DailyStatsSender implements ScheduledService {
 		sendGearStatsToDiscord(gearStars, gearStarCountPerBrand, yesterdayStats, account);
 		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
 
+		sendRequiredExpFor4StarGrindToDiscord(requiredExpFor4StarGrind, yesterdayStats, allWeaponsBelow4Stars, account);
 		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
 		sendWeaponExpNumbersToDiscord(weaponExpTierNumbers, yesterdayStats, account);
-		sendRequiredExpFor4StarGrindToDiscord(requiredExpFor4StarGrind, yesterdayStats, allWeaponsBelow4Stars, account);
 
 		sendMinTop500XPowersToDiscord(minTop500XPowers, yesterdayStats, account);
 
@@ -362,21 +362,32 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		expBuilder.append("\n- I will need roughly **").append(requiredExpFor4StarGrind / 50_000 + 1).append(" days** if I farm 50k exp every day.");
 
-		var todayAverage = 160_000 - (requiredExpFor4StarGrind / unfinishedWeapons.size() + 1);
-		expBuilder.append("\n- On average, I have  **").append(df.format(todayAverage).replaceAll(",", " ")).append(" exp** on every remaining weapon");
+		var todayAverage = 160_000 - (1 + requiredExpFor4StarGrind / unfinishedWeapons.size());
+		expBuilder.append("\n- On average, I have  **")
+			.append(df.format(todayAverage).replaceAll(",", " "))
+			.append(" exp** on every of the ")
+			.append(unfinishedWeapons.size() + 1)
+			.append(" remaining weapons");
 
-		var yesterdayUnfinishedCount = yesterdayStats.getPreviousWeaponStarsCount().keySet().stream()
+		int yesterdayUnfinishedCount = yesterdayStats.getPreviousWeaponStarsCount().keySet().stream()
 			.filter(k -> !k.contains("4") && !k.contains("5"))
 			.map((a) -> yesterdayStats.getPreviousWeaponStarsCount().get(a))
 			.reduce(Integer::sum)
 			.orElse(143);
-		var yesterdayAverage = 160_000 - (yesterdayExpRequired / yesterdayUnfinishedCount + 1);
+
+		var yesterdayAverage = 160_000 - (1 + yesterdayExpRequired / yesterdayUnfinishedCount);
 
 		if (todayAverage != yesterdayAverage) {
 			expBuilder.append(" (")
 				.append(yesterdayAverage < todayAverage ? "+" : "-")
 				.append(df.format(Math.abs(yesterdayAverage - todayAverage)).replaceAll(",", " "))
 				.append(")");
+
+			expBuilder.append("\n- yesterday, you needed **")
+				.append(yesterdayAverage)
+				.append(" exp** on a total of ")
+				.append(yesterdayUnfinishedCount + 1)
+				.append(" remaining weapons on average");
 		}
 
 		yesterdayStats.setPreviousRequiredExpFor4StarGrind(requiredExpFor4StarGrind);
