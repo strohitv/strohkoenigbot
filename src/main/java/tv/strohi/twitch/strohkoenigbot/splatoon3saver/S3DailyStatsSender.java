@@ -393,6 +393,12 @@ public class S3DailyStatsSender implements ScheduledService {
 		yesterdayStats.setPreviousRequiredExpFor4StarGrind(requiredExpFor4StarGrind);
 
 		discordBot.sendPrivateMessage(account.getDiscordId(), expBuilder.toString());
+		discordBot.sendPrivateMessage(account.getDiscordId(), String.format("Entries in yesterday_stats.previousWeaponStarsCount:%s",
+			yesterdayStats.getPreviousWeaponStarsCount().keySet().stream()
+				.map(k -> String.format("\n- %s -> %d",
+					k,
+					yesterdayStats.getPreviousWeaponStarsCount().get(k)))
+				.reduce((a, b) -> String.format("%s%s", a, b))));
 	}
 
 	private int getExpNeededFor4StarGrind(List<Weapon> unfinishedWeapons) {
