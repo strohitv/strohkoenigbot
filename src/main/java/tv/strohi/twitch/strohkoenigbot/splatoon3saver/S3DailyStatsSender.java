@@ -896,6 +896,13 @@ public class S3DailyStatsSender implements ScheduledService {
 			yesterdayStats.getPreviousWeaponExpTierCount().put(stat.getKey(), stat.getValue());
 		}
 
+		var removedStats = yesterdayStats.getPreviousWeaponExpTierCount().keySet().stream()
+			.filter(k -> sortedStats.stream().noneMatch(stat -> Objects.equals(stat.getKey(), k)))
+			.collect(Collectors.toList());
+		for (var stat : removedStats) {
+			yesterdayStats.getPreviousWeaponExpTierCount().remove(stat);
+		}
+
 		var keyList = new ArrayList<>(yesterdayStats.getPreviousWeaponExpTierCount().keySet());
 		for (var statKey : keyList) {
 			if (!todayStats.containsKey(statKey)) {
