@@ -310,7 +310,7 @@ public class S3StreamStatistics {
 				openChangeHidden,
 				openCurrentPower == null,
 				openPreviousPower == null,
-				openCurrentPower.doubleValue() == openPreviousPower.doubleValue()));
+				Objects.equals(openCurrentPower, openPreviousPower)));
 
 			try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-statistics-template.html");) {
 				assert is != null;
