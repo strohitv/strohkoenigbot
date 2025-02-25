@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
@@ -13,6 +14,10 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class LogSender {
 	private final DiscordBot discordBot;
+
+	public void sendLogs(Logger logger, @NonNull String message, Object... args) {
+		sendLogs(logger, String.format(message, args));
+	}
 
 	public void sendLogs(Logger logger, String message) {
 		logger.info(message);

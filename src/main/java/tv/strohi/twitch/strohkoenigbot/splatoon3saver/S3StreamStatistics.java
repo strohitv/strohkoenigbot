@@ -17,6 +17,8 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageServ
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Match;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -38,6 +40,8 @@ public class S3StreamStatistics {
 	private final Splatoon3VsRotationRepository rotationRepository;
 	private final Splatoon3VsModeRepository modeRepository;
 	private final ImageService imageService;
+	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
 
 	private final DecimalFormat df = new DecimalFormat("#,###,###");
 
@@ -70,10 +74,14 @@ public class S3StreamStatistics {
 
 	public S3StreamStatistics(@Autowired Splatoon3VsRotationRepository vsRotationRepository,
 							  @Autowired Splatoon3VsModeRepository vsModeRepository,
-							  @Autowired ImageService imageService) {
+							  @Autowired ImageService imageService,
+							  @Autowired LogSender logSender,
+							  @Autowired ExceptionLogger exceptionLogger) {
 		rotationRepository = vsRotationRepository;
 		modeRepository = vsModeRepository;
 		this.imageService = imageService;
+		this.logSender = logSender;
+		this.exceptionLogger = exceptionLogger;
 		reset();
 	}
 
@@ -216,15 +224,32 @@ public class S3StreamStatistics {
 
 					openCurrentPower = currentMatchParsed.getBankaraPower() != null ? currentMatchParsed.getBankaraPower().getPower() : null;
 
-					if (allOpenMatchesThisRotation.size() > 1) {
-						var previousMatchParsed = mapper.readValue(imageService.restoreJson(allOpenMatchesThisRotation.get(allOpenMatchesThisRotation.size() - 2).getShortenedJson()), BattleResult.class)
-							.getData()
-							.getVsHistoryDetail()
-							.getBankaraMatch();
+					logSender.sendLogs(log, "number of matches in this rotation: `%d`", allOpenMatchesThisRotation.size());
 
-						openPreviousPower = previousMatchParsed.getBankaraPower() != null ? currentMatchParsed.getBankaraPower().getPower() : null;
+					if (allOpenMatchesThisRotation.size() > 1) {
+						var previousMatch = allOpenMatchesThisRotation.stream().findFirst();
+						for (var match: allOpenMatchesThisRotation) {
+							if (match.getId().doubleValue() == lastMatch.getId().doubleValue()) {
+								break;
+							}
+
+							previousMatch = Optional.of(match);
+						}
+
+						if (previousMatch.isPresent()) {
+							var unpackedPreviousMatch = previousMatch.get();
+
+							var previousMatchParsed = mapper.readValue(imageService.restoreJson(unpackedPreviousMatch.getShortenedJson()), BattleResult.class)
+								.getData()
+								.getVsHistoryDetail()
+								.getBankaraMatch();
+
+							openPreviousPower = previousMatchParsed.getBankaraPower() != null ? currentMatchParsed.getBankaraPower().getPower() : null;
+						}
 					}
-				} catch (JsonProcessingException ignored) {
+				} catch (JsonProcessingException ex) {
+					logSender.sendLogs(log, "Exception occured during JSON processing! `%s`", ex.getMessage());
+					exceptionLogger.logException(log, ex);
 				}
 
 				openMaxPower = allOpenMatchesThisRotation.stream()
@@ -275,6 +300,18 @@ public class S3StreamStatistics {
 			String shoesGearSub2 = player.getShoesSecondaryAbility2() != null ? getImageEncoded(player.getShoesSecondaryAbility2().getImage()) : null;
 			String shoesGearSub3 = player.getShoesSecondaryAbility3() != null ? getImageEncoded(player.getShoesSecondaryAbility3().getImage()) : null;
 
+			var openChangeHidden = openCurrentPower == null
+				|| openPreviousPower == null
+				|| openCurrentPower.doubleValue() == openPreviousPower.doubleValue();
+
+			logSender.sendLogs(log, String.format("openCurrentPower: `%s`, openPreviousPower: `%s`, openChangeHidden: `%s`, openCurrentPower == null: `%s`, openPreviousPower == null: `%s`, openCurrentPower.doubleValue() == openPreviousPower.doubleValue(): `%s`",
+				openCurrentPower != null ? String.format("%.1f", openCurrentPower) : "null",
+				openPreviousPower != null ? String.format("%.1f", openPreviousPower) : "null",
+				openChangeHidden,
+				openCurrentPower == null,
+				openPreviousPower == null,
+				openCurrentPower.doubleValue() == openPreviousPower.doubleValue()));
+
 			try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-statistics-template.html");) {
 				assert is != null;
 				currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
@@ -313,9 +350,7 @@ public class S3StreamStatistics {
 					.replace("{open-tower-icon-hidden}", openTowerHidden ? "hidden" : "")
 					.replace("{open-rainmaker-icon-hidden}", openRainmakerHidden ? "hidden" : "")
 					.replace("{open-clams-icon-hidden}", openClamsHidden ? "hidden" : "")
-					.replace("{open-change-hidden}", openCurrentPower == null
-						|| openPreviousPower == null
-						|| openCurrentPower.doubleValue() == openPreviousPower.doubleValue() ? "hidden" : "")
+					.replace("{open-change-hidden}", openChangeHidden ? "hidden" : "")
 					.replace("{open-change-color}", getPowerDiffColor(openPreviousPower, openCurrentPower))
 					.replace("{open-max-hidden}", openMaxPower != null ? "" : "hidden")
 					.replace("{current-open}", buildCurrentPower(openCurrentPower))
