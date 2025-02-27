@@ -362,18 +362,18 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		expBuilder.append("\n- I will need roughly **").append(requiredExpFor4StarGrind / 50_000 + 1).append(" days** if I farm 50k exp every day.");
 
-		var todayAverage = 160_000 - (1 + requiredExpFor4StarGrind / unfinishedWeapons.size());
+		var todayAverage = 160_000 - (1 + requiredExpFor4StarGrind / Math.max(1, unfinishedWeapons.size()));
 		expBuilder.append("\n- On average, I have  **")
 			.append(df.format(todayAverage).replaceAll(",", " "))
 			.append(" exp** on every of the ")
-			.append(unfinishedWeapons.size() + 1)
+			.append(Math.max(1, unfinishedWeapons.size()))
 			.append(" remaining weapons");
 
-		int yesterdayUnfinishedCount = yesterdayStats.getPreviousWeaponStarsCount().keySet().stream()
+		int yesterdayUnfinishedCount = Math.max(1, yesterdayStats.getPreviousWeaponStarsCount().keySet().stream()
 			.filter(k -> !k.contains("4") && !k.contains("5"))
 			.map((a) -> yesterdayStats.getPreviousWeaponStarsCount().get(a))
 			.reduce(Integer::sum)
-			.orElse(143);
+			.orElse(143));
 
 		var yesterdayAverage = 160_000 - (1 + yesterdayExpRequired / yesterdayUnfinishedCount);
 
@@ -384,7 +384,7 @@ public class S3DailyStatsSender implements ScheduledService {
 				.append(")");
 
 			expBuilder.append("\n- yesterday, you needed **")
-				.append(yesterdayAverage)
+				.append(df.format(yesterdayAverage).replaceAll(",", " "))
 				.append(" exp** on a total of ")
 				.append(yesterdayUnfinishedCount + 1)
 				.append(" remaining weapons on average");
