@@ -227,14 +227,9 @@ public class S3StreamStatistics {
 					logSender.sendLogs(log, "number of matches in this rotation: `%d`", allOpenMatchesThisRotation.size());
 
 					if (allOpenMatchesThisRotation.size() > 1) {
-						var previousMatch = allOpenMatchesThisRotation.stream().findFirst();
-						for (var match: allOpenMatchesThisRotation) {
-							if (match.getId().doubleValue() == lastMatch.getId().doubleValue()) {
-								break;
-							}
-
-							previousMatch = Optional.of(match);
-						}
+						var previousMatch = allOpenMatchesThisRotation.stream()
+							.filter(m -> m.getPlayedTime() != null && m.getPlayedTime().isBefore(lastMatch.getPlayedTime()))
+							.max(Comparator.comparing(Splatoon3VsResult::getPlayedTime));
 
 						if (previousMatch.isPresent()) {
 							var unpackedPreviousMatch = previousMatch.get();
