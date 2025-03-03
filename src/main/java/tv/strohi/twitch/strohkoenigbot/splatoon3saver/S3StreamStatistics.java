@@ -224,13 +224,14 @@ public class S3StreamStatistics {
 
 					openCurrentPower = currentMatchParsed.getBankaraPower() != null ? currentMatchParsed.getBankaraPower().getPower() : null;
 
-					logSender.sendLogs(log, "number of matches in this rotation: `%d`", allOpenMatchesThisRotation.size());
-
-					logSender.sendLogs(log, "Power of games in this rotation: \n%s", includedMatches.stream()
-						.filter(m -> m.getRotation() != null)
-						.filter(m -> Objects.equals(m.getRotation().getId(), lastMatch.getRotation().getId()))
-						.map(m -> String.format("- power: `%s` - time: `%s` - id: `%s` - rotation-id: `%s`", getPower(m), m.getPlayedTime(), m.getId(), m.getRotation().getId()))
-						.reduce((a, b) -> String.format("%s\n%s", a, b)));
+//					logSender.sendLogs(log, "number of matches in this rotation: `%d`", allOpenMatchesThisRotation.size());
+//
+//					logSender.sendLogs(log, "Power of games in this rotation: \n%s", includedMatches.stream()
+//						.filter(m -> m.getRotation() != null)
+//						.filter(m -> Objects.equals(m.getRotation().getId(), lastMatch.getRotation().getId()))
+//						.map(m -> String.format("- power: `%s` - time: `%s` - id: `%s` - rotation-id: `%s`", getPower(m), m.getPlayedTime(), m.getId(), m.getRotation().getId()))
+//						.reduce((a, b) -> String.format("%s\n%s", a, b))
+//						.orElse(""));
 
 					if (allOpenMatchesThisRotation.size() > 1) {
 						var previousMatch = allOpenMatchesThisRotation.stream()
@@ -436,19 +437,19 @@ public class S3StreamStatistics {
 		}
 	}
 
-	private Double getPower(Splatoon3VsResult m) {
-		Match previousMatchParsed = null;
-		try {
-			previousMatchParsed = mapper.readValue(imageService.restoreJson(m.getShortenedJson()), BattleResult.class)
-				.getData()
-				.getVsHistoryDetail()
-				.getBankaraMatch();
-
-			return previousMatchParsed.getBankaraPower() != null ? previousMatchParsed.getBankaraPower().getPower() : null;
-		} catch (JsonProcessingException ignored) {
-			return null;
-		}
-	}
+//	private Double getPower(Splatoon3VsResult m) {
+//		Match previousMatchParsed = null;
+//		try {
+//			previousMatchParsed = mapper.readValue(imageService.restoreJson(m.getShortenedJson()), BattleResult.class)
+//				.getData()
+//				.getVsHistoryDetail()
+//				.getBankaraMatch();
+//
+//			return previousMatchParsed.getBankaraPower() != null ? previousMatchParsed.getBankaraPower().getPower() : null;
+//		} catch (JsonProcessingException ignored) {
+//			return null;
+//		}
+//	}
 
 	private int getExpGoal(Integer level) {
 		var expGoal = 0;
@@ -471,8 +472,8 @@ public class S3StreamStatistics {
 				expGoal = 1160000;
 				break;
 			}
-			default:
-			case 0: {
+			case 0:
+			default: {
 				expGoal = 5000;
 				break;
 			}
@@ -505,8 +506,8 @@ public class S3StreamStatistics {
 				currentExp = 1160000;
 				break;
 			}
-			default:
-			case 0: {
+			case 0:
+			default: {
 				currentExp = 5000 - expToLevelUp;
 				break;
 			}
