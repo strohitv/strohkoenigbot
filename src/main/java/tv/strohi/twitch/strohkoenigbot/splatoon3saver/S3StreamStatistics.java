@@ -226,6 +226,12 @@ public class S3StreamStatistics {
 
 					logSender.sendLogs(log, "number of matches in this rotation: `%d`", allOpenMatchesThisRotation.size());
 
+					logSender.sendLogs(log, "Power of games in this rotation: \n%s", includedMatches.stream()
+						.filter(m -> m.getRotation() != null)
+						.filter(m -> Objects.equals(m.getRotation().getId(), lastMatch.getRotation().getId()))
+						.map(m -> String.format("- power: `%s` - time: `%s` - id: `%s` - rotation-id: `%s`", getPower(m), m.getPlayedTime(), m.getId(), m.getRotation().getId()))
+						.reduce((a, b) -> String.format("%s\n%s", a, b)));
+
 					if (allOpenMatchesThisRotation.size() > 1) {
 						var previousMatch = allOpenMatchesThisRotation.stream()
 							.filter(m -> m.getPlayedTime() != null && m.getPlayedTime().isBefore(lastMatch.getPlayedTime()))
@@ -239,7 +245,7 @@ public class S3StreamStatistics {
 								.getVsHistoryDetail()
 								.getBankaraMatch();
 
-							openPreviousPower = previousMatchParsed.getBankaraPower() != null ? currentMatchParsed.getBankaraPower().getPower() : null;
+							openPreviousPower = previousMatchParsed.getBankaraPower() != null ? previousMatchParsed.getBankaraPower().getPower() : null;
 						}
 					}
 				} catch (JsonProcessingException ex) {
@@ -427,6 +433,20 @@ public class S3StreamStatistics {
 			} catch (Exception e) {
 				log.error(e);
 			}
+		}
+	}
+
+	private Double getPower(Splatoon3VsResult m) {
+		Match previousMatchParsed = null;
+		try {
+			previousMatchParsed = mapper.readValue(imageService.restoreJson(m.getShortenedJson()), BattleResult.class)
+				.getData()
+				.getVsHistoryDetail()
+				.getBankaraMatch();
+
+			return previousMatchParsed.getBankaraPower() != null ? previousMatchParsed.getBankaraPower().getPower() : null;
+		} catch (JsonProcessingException ignored) {
+			return null;
 		}
 	}
 
