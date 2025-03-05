@@ -306,13 +306,13 @@ public class S3StreamStatistics {
 				|| openPreviousPower == null
 				|| openCurrentPower.doubleValue() == openPreviousPower.doubleValue();
 
-			logSender.sendLogs(log, String.format("openCurrentPower: `%s`, openPreviousPower: `%s`, openChangeHidden: `%s`, openCurrentPower == null: `%s`, openPreviousPower == null: `%s`, openCurrentPower.doubleValue() == openPreviousPower.doubleValue(): `%s`",
-				openCurrentPower != null ? String.format("%.1f", openCurrentPower) : "null",
-				openPreviousPower != null ? String.format("%.1f", openPreviousPower) : "null",
-				openChangeHidden,
-				openCurrentPower == null,
-				openPreviousPower == null,
-				Objects.equals(openCurrentPower, openPreviousPower)));
+//			logSender.sendLogs(log, String.format("openCurrentPower: `%s`, openPreviousPower: `%s`, openChangeHidden: `%s`, openCurrentPower == null: `%s`, openPreviousPower == null: `%s`, openCurrentPower.doubleValue() == openPreviousPower.doubleValue(): `%s`",
+//				openCurrentPower != null ? String.format("%.1f", openCurrentPower) : "null",
+//				openPreviousPower != null ? String.format("%.1f", openPreviousPower) : "null",
+//				openChangeHidden,
+//				openCurrentPower == null,
+//				openPreviousPower == null,
+//				Objects.equals(openCurrentPower, openPreviousPower)));
 
 			try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-statistics-template.html");) {
 				assert is != null;
