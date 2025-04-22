@@ -81,7 +81,7 @@ public class S3Downloader implements ScheduledService {
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(ScheduleRequest.builder()
 				.name("S3Downloader_schedule")
-				.schedule(CronSchedule.getScheduleString("20 * * * * *"))
+				.schedule(CronSchedule.getScheduleString("20 */2 * * * *"))
 				.runnable(this::downloadBattles)
 				.errorCleanUpRunnable(this::resetSemaphore)
 				.build(),
