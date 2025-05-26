@@ -68,7 +68,7 @@ public class S3DailySpecialWinsRefresher implements ScheduledService {
 
 		int numberOfDays = 0;
 		while (today.isAfter((lastSavedDay = lastSavedDay.plusDays(1)))
-			|| (numberOfDays = numberOfDays + 1) >= limitOfRefreshesPerRun) {
+			&& (numberOfDays = numberOfDays + 1) <= limitOfRefreshesPerRun) {
 			var allSpecialWinsOfDay = resultRepository.findSpecialWinsByDateBetween(lastSavedDay.atStartOfDay().toInstant(ZoneOffset.UTC), lastSavedDay.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC));
 
 			var winsAdded = new HashMap<String, String>();
