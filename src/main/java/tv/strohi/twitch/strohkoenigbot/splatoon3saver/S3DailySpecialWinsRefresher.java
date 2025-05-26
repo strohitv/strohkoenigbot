@@ -8,7 +8,6 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsSpecialBadgeWins;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsSpecialWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsSpecialBadgeWinsRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsSpecialWeaponRepository;
@@ -119,11 +118,5 @@ public class S3DailySpecialWinsRefresher implements ScheduledService {
 				discordBot.sendPrivateMessage(acc.getDiscordId(), statMessageBuilder.toString());
 			}
 		);
-	}
-
-	private Map<Splatoon3VsSpecialWeapon, Integer> createEmptyMap(List<Splatoon3VsSpecialWeapon> weapons) {
-		var result = new HashMap<Splatoon3VsSpecialWeapon, Integer>();
-		weapons.forEach(w -> result.put(w, 0));
-		return result;
 	}
 }
