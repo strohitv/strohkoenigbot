@@ -462,6 +462,17 @@ public class DiscordAdministrationAction extends ChatAction {
 				} else {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No gToken for you tsk tsk tsk");
 				}
+			} else if (lowercaseMessage.startsWith("!bullettoken retrieve")) {
+				Account account = accountRepository.findAll().stream()
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.orElse(null);
+
+				if (account != null) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("BulletToken: ||`%s`||", account.getBulletTokenSplatoon3()));
+				} else {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "No bulletToken for you tsk tsk tsk");
+				}
 			} else if (lowercaseMessage.startsWith("!reimport s3")) {
 				s3Downloader.downloadBattles(true);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished reimport");
