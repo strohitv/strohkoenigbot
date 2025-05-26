@@ -74,6 +74,7 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final S3S3sRunner s3sRunner;
 	private final S3RotationSender s3RotationSender;
 	private final S3DailyStatsSender s3DailyStatsSender;
+	private final S3DailySpecialWinsRefresher s3DailySpecialWinsRefresher;
 	private final S3NewGearChecker s3NewGearChecker;
 	private final S3GameExporter s3GameExporter;
 
@@ -619,6 +620,10 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to refresh s3s tokens...");
 				tokenRefresher.refreshToken();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "s3s tokens refreshed.");
+			} else if (lowercaseMessage.startsWith("!refresh special win stats")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to refresh daily special win stats...");
+				s3DailySpecialWinsRefresher.refreshSpecialWins();
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Daily special win stats refreshed.");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");

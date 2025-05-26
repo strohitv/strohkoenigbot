@@ -11,8 +11,11 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsSpecialWeapon;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3BadgeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.SpecialWinCount;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Match;
@@ -31,6 +34,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @Log4j2
@@ -39,9 +43,12 @@ public class S3StreamStatistics {
 
 	private final Splatoon3VsRotationRepository rotationRepository;
 	private final Splatoon3VsModeRepository modeRepository;
+	private final Splatoon3BadgeRepository badgeRepository;
+
 	private final ImageService imageService;
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
+	private final S3BadgeSender badgeSender;
 
 	private final DecimalFormat df = new DecimalFormat("#,###,###");
 
@@ -51,6 +58,8 @@ public class S3StreamStatistics {
 	private Double currentXZones, currentXTower, currentXRainmaker, currentXClams;
 
 	private List<Weapon> startWeaponStats, currentWeaponStats;
+
+	private Map<Splatoon3VsSpecialWeapon, Integer> startSpecialWinStats, currentSpecialWinStats;
 
 	private final String path = String.format("%s/src/main/resources/html/s3/onstream-statistics-filled.html", Paths.get(".").toAbsolutePath().normalize());
 
@@ -72,16 +81,21 @@ public class S3StreamStatistics {
 	@Getter
 	private Instant lastUpdate = null;
 
-	public S3StreamStatistics(@Autowired Splatoon3VsRotationRepository vsRotationRepository,
-							  @Autowired Splatoon3VsModeRepository vsModeRepository,
+	public S3StreamStatistics(@Autowired Splatoon3VsRotationRepository rotationRepository,
+							  @Autowired Splatoon3VsModeRepository modeRepository,
+							  @Autowired Splatoon3BadgeRepository badgeRepository,
 							  @Autowired ImageService imageService,
 							  @Autowired LogSender logSender,
-							  @Autowired ExceptionLogger exceptionLogger) {
-		rotationRepository = vsRotationRepository;
-		modeRepository = vsModeRepository;
+							  @Autowired ExceptionLogger exceptionLogger,
+							  @Autowired S3BadgeSender badgeSender) {
+		this.rotationRepository = rotationRepository;
+		this.modeRepository = modeRepository;
+		this.badgeRepository = badgeRepository;
 		this.imageService = imageService;
 		this.logSender = logSender;
 		this.exceptionLogger = exceptionLogger;
+		this.badgeSender = badgeSender;
+
 		reset();
 	}
 
@@ -89,6 +103,7 @@ public class S3StreamStatistics {
 		includedMatches.clear();
 		startXZones = startXTower = startXRainmaker = startXClams = currentXZones = currentXTower = currentXRainmaker = currentXClams = null;
 		startWeaponStats = currentWeaponStats = null;
+		startSpecialWinStats = currentSpecialWinStats = null;
 
 		try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/afterstream-statistics-template.html")) {
 			assert is != null;
@@ -193,6 +208,11 @@ public class S3StreamStatistics {
 			Double openPreviousPower = null;
 			Double openMaxPower = null;
 			boolean openZonesHidden = true, openTowerHidden = true, openRainmakerHidden = true, openClamsHidden = true;
+
+			Splatoon3VsSpecialWeapon specialWeapon = null;
+			int specialWeaponWins = 0;
+			int specialWeaponWinsDifference = 0;
+			var badgeImageBase64 = getImageEncoded(player.getWeapon().getSpecialWeapon().getImage());
 			if (lastMatchWasOpenWithFriends) {
 				switch (lastMatch.getRule().getApiRule()) {
 					case "AREA":
@@ -252,6 +272,54 @@ public class S3StreamStatistics {
 				} catch (JsonProcessingException ex) {
 					logSender.sendLogs(log, "Exception occured during JSON processing! `%s`", ex.getMessage());
 					exceptionLogger.logException(log, ex);
+				}
+
+				specialWeapon = extractSpecialWeapon(lastMatch);
+
+				if (specialWeapon != null) {
+					specialWeaponWins = currentSpecialWinStats.getOrDefault(specialWeapon, 0);
+					final int tempSpecialWeaponWins = specialWeaponWins;
+					var possibleBadgeVariants = Stream.of(30, 180, 1200)
+						.filter(pbv -> pbv <= tempSpecialWeaponWins)
+						.collect(Collectors.toList());
+
+					specialWeaponWinsDifference = specialWeaponWins - startSpecialWinStats.getOrDefault(specialWeapon, specialWeaponWins);
+
+					final var finalSpecialWeapon = specialWeapon;
+					var badges = badgeRepository.findAll()
+						.stream()
+						.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("Wins with %s", finalSpecialWeapon.getName())))
+						.collect(Collectors.toList());
+
+					for (var badgeVariant : possibleBadgeVariants) {
+						var badgeInDb = badges.stream()
+							.filter(bDb -> bDb.getDescription()
+								.split(" ")[0]
+								.replaceAll("[^0-9]", "")
+								.equals(String.format("%d", badgeVariant)))
+							.findFirst()
+							.orElse(null);
+
+						if (badgeInDb == null) {
+							badgeSender.reloadBadges();
+							badges = badgeRepository.findAll()
+								.stream()
+								.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("Wins with %s", finalSpecialWeapon.getName())))
+								.collect(Collectors.toList());
+
+							badgeInDb = badges.stream()
+								.filter(bDb -> bDb.getDescription()
+									.split(" ")[0]
+									.replaceAll("[^0-9]", "")
+									.equals(String.format("%d", badgeVariant)))
+								.findFirst()
+								.orElse(null);
+
+							if (badgeInDb == null) continue;
+						}
+
+						badgeImageBase64 = getImageEncoded(badgeInDb.getImage());
+					}
 				}
 
 				openMaxPower = allOpenMatchesThisRotation.stream()
@@ -314,7 +382,7 @@ public class S3StreamStatistics {
 //				openPreviousPower == null,
 //				Objects.equals(openCurrentPower, openPreviousPower)));
 
-			try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-statistics-template.html");) {
+			try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-statistics-template.html")) {
 				assert is != null;
 				currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
@@ -334,6 +402,12 @@ public class S3StreamStatistics {
 					.replace("{shoes}", String.format("data:image/png;base64,%s", shoesGear))
 					.replace("{shoes-main}", String.format("data:image/png;base64,%s", shoesGearMain))
 					.replace("{shoes-sub-1}", String.format("data:image/png;base64,%s", shoesGearSub1))
+
+					.replace("{special-weapon-badge-hidden}", (specialWeapon == null) ? "hidden" : "")
+					.replace("{special-weapon-wins-change-hidden}", (specialWeaponWinsDifference <= 0) ? "hidden" : "")
+					.replace("{special-weapon-badge}", String.format("data:image/png;base64,%s", badgeImageBase64))
+					.replace("{special-weapon-wins}", df.format(specialWeaponWins).replaceAll(",", " "))
+					.replace("{special-weapon-wins-change}", df.format(specialWeaponWinsDifference).replaceAll(",", " "))
 
 					.replace("{zones-icon-hidden}", zonesHidden ? "hidden" : "")
 					.replace("{tower-icon-hidden}", towerHidden ? "hidden" : "")
@@ -551,7 +625,31 @@ public class S3StreamStatistics {
 	}
 
 	public void addGames(List<Splatoon3VsResult> games) {
-		includedMatches.addAll(games.stream().filter(g -> !includedMatches.contains(g)).collect(Collectors.toList()));
+		var newGames = games.stream()
+			.filter(game -> !includedMatches.contains(game))
+			.collect(Collectors.toList());
+
+		newGames.forEach(game -> {
+			if (!game.getMode().getName().toLowerCase().contains("private") && game.getOwnJudgement().toLowerCase().contains("win")) {
+				var specialWeapon = extractSpecialWeapon(game);
+				if (specialWeapon == null) return;
+
+				currentSpecialWinStats.putIfAbsent(specialWeapon, 0);
+				currentSpecialWinStats.put(specialWeapon, currentSpecialWinStats.get(specialWeapon) + 1);
+			}
+		});
+
+		includedMatches.addAll(newGames);
+	}
+
+	private Splatoon3VsSpecialWeapon extractSpecialWeapon(Splatoon3VsResult result) {
+		return result.getTeams().stream()
+			.filter(Splatoon3VsResultTeam::getIsMyTeam)
+			.flatMap(t -> t.getTeamPlayers().stream())
+			.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
+			.findFirst()
+			.map(tp -> tp.getWeapon().getSpecialWeapon())
+			.orElse(null);
 	}
 
 	public void setCurrentXPowers(Double zones, Double tower, Double rainmaker, Double clams) {
@@ -580,6 +678,16 @@ public class S3StreamStatistics {
 		}
 
 		currentWeaponStats = Arrays.stream(allWeapons).collect(Collectors.toList());
+	}
+
+	public void setCurrentSpecialWins(List<SpecialWinCount> specialWins) {
+		if (startSpecialWinStats == null) {
+			startSpecialWinStats = new HashMap<>();
+			specialWins.forEach(sw -> startSpecialWinStats.put(sw.getSpecialWeapon(), sw.getWinCount()));
+		}
+
+		currentSpecialWinStats = new HashMap<>();
+		specialWins.forEach(sw -> currentSpecialWinStats.put(sw.getSpecialWeapon(), sw.getWinCount()));
 	}
 
 	private Instant getSlotStartTime(Instant base) {

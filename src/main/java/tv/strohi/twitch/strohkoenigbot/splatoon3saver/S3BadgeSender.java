@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Badge;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3BadgeRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.HistoryResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Badge;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
@@ -28,9 +31,7 @@ import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,7 @@ public class S3BadgeSender implements ScheduledService {
 	private final ExceptionLogger exceptionLogger;
 
 	private final List<Badge> allOwnedBadges = new ArrayList<>();
+	private final ImageService imageService;
 
 	private void setAllOwnedBadges(List<Badge> allBadges) {
 		allOwnedBadges.clear();
@@ -60,6 +62,7 @@ public class S3BadgeSender implements ScheduledService {
 	private final ResourcesDownloader resourcesDownloader;
 
 	private final AccountRepository accountRepository;
+	private final Splatoon3BadgeRepository badgeRepository;
 
 	private final S3ApiQuerySender requestSender;
 
@@ -94,6 +97,43 @@ public class S3BadgeSender implements ScheduledService {
 				if (account.getIsMainAccount()) {
 					var allBadges = history.getData().getPlayHistory().getAllBadges();
 					setAllOwnedBadges(allBadges);
+				}
+
+				var allMessages = new StringBuilder();
+
+				for (var badge : allOwnedBadges) {
+					var badgeInDb = badgeRepository.findByApiId(badge.getId())
+						.orElseGet(() -> badgeRepository.save(
+							new Splatoon3Badge(null,
+								badge.getId(),
+								false,
+								null,
+								imageService.ensureExists(badge.getImage().getUrl()))));
+
+					if (!Objects.equals(badgeInDb.getOwned(), true)) {
+						badgeInDb.setOwned(true);
+						badgeRepository.save(badgeInDb);
+
+						allMessages.append("\n- Successfully set badge `")
+							.append(badgeInDb.getId())
+							.append("` to `owned = true`");
+					}
+
+					if (!Objects.equals(badge.getDescription(), badgeInDb.getDescription())) {
+						badgeInDb.setDescription(badge.getDescription());
+						badgeRepository.save(badgeInDb);
+
+						allMessages.append("\n- Successfully set description of badge `")
+							.append(badgeInDb.getId())
+							.append("` to `")
+							.append(badgeInDb.getDescription())
+							.append("`");
+					}
+				}
+
+				if (allMessages.length() > 0) {
+					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+						String.format("## Changes to badge database table%s", allMessages));
 				}
 
 				var allBadgesYesterday = loadBadgesFailsafe();

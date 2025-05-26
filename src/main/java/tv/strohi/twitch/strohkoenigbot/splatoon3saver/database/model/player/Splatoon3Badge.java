@@ -20,6 +20,8 @@ public class Splatoon3Badge {
 
 	private Boolean owned;
 
+	private String description;
+
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)

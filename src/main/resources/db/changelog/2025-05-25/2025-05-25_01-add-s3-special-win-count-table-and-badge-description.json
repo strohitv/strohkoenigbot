@@ -1,0 +1,66 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2025-05-25_01-add-s3-special-win-count-table-and-badge-description",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addColumn": {
+              "tableName": "splatoon_3_badge",
+              "columns": [
+                {
+                  "column": {
+                    "name": "description",
+                    "type": "varchar(200)",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "createTable": {
+              "tableName": "splatoon_3_vs_special_badge_wins",
+              "columns": [
+                {
+                  "column": {
+                    "name": "special_weapon_id",
+                    "type": "bigint",
+                    "autoIncrement": false,
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false,
+                      "primaryKeyName": "pk_vs_special_badge_wins",
+                      "foreignKeyName": "fk_vs_special_badge_wins_vs_special_weapon",
+                      "references": "splatoon_3_vs_special_weapon(id)"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "stat_day",
+                    "type": "date",
+                    "constraints": {
+                      "primaryKey": true,
+                      "nullable": false,
+                      "primaryKeyName": "pk_vs_special_badge_wins"
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "win_count",
+                    "type": "int"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

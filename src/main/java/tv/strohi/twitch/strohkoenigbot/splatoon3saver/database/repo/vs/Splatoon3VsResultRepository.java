@@ -13,6 +13,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.Mod
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.SpecialWinCount;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.TeamPlayerSize;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,4 +68,18 @@ public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsR
 		" AND result.mode.apiMode not like '%PRIVATE%'" +
 		" GROUP BY specialWeapon")
 	List<SpecialWinCount> findSpecialWins();
+
+	@Query(value = "SELECT new tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.SpecialWinCount(specialWeapon, COUNT(*))" +
+		" FROM splatoon_3_vs_result_team_player player" +
+		" JOIN splatoon_3_vs_weapon weapon on weapon = player.weapon" +
+		" JOIN splatoon_3_vs_special_weapon specialWeapon on specialWeapon = weapon.specialWeapon" +
+		" JOIN splatoon_3_vs_result result on result.id = player.resultId" +
+		" WHERE player.isMyself = true" +
+		" AND player.specials > 0" +
+		" AND result.ownJudgement = 'WIN'" +
+		" AND result.mode.apiMode not like '%PRIVATE%'" +
+		" AND result.playedTime >= :start" +
+		" AND result.playedTime < :end" +
+		" GROUP BY specialWeapon")
+	List<SpecialWinCount> findSpecialWinsByDateBetween(Instant start, Instant end);
 }

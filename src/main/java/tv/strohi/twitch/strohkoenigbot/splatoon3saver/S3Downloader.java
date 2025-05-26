@@ -72,6 +72,7 @@ public class S3Downloader implements ScheduledService {
 	private final S3StreamStatistics streamStatistics;
 	private final S3XPowerDownloader xPowerDownloader;
 	private final S3WeaponStatsDownloader weaponStatsDownloader;
+	private final S3SpecialWeaponWinStatsFiller specialWeaponWinStatsFiller;
 
 	private final S3S3sRunner s3sRunner;
 
@@ -125,6 +126,7 @@ public class S3Downloader implements ScheduledService {
 		streamStatistics.reset();
 		xPowerDownloader.fillXPower();
 		weaponStatsDownloader.fillWeaponStats();
+		specialWeaponWinStatsFiller.fillSpecialWeaponStats();
 
 		logSender.sendLogs(logger, "went live on twitch!");
 	}
