@@ -22,6 +22,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
@@ -55,6 +56,7 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 	private final TwitchSoAccountRepository twitchSoAccountRepository;
+	private final Splatoon3VsResultRepository resultRepository;
 
 	private final DiscordAccountLoader discordAccountLoader;
 	private final TwitchMessageSender twitchMessageSender;
@@ -624,6 +626,13 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to refresh daily special win stats...");
 				s3DailySpecialWinsRefresher.refreshSpecialWins();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Daily special win stats refreshed.");
+			} else if (lowercaseMessage.startsWith("!get special wins")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to get special win stats...");
+				var results = resultRepository.findSpecialWins();
+				var builder = new StringBuilder("## Special Wins right now");
+				results.forEach(r -> builder.append("\n- **").append(r.getSpecialWeapon().getName()).append("**: ").append(r.getWinCount()).append(" wins"));
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Special win stats received.");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");

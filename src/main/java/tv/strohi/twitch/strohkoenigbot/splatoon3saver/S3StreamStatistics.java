@@ -278,6 +278,12 @@ public class S3StreamStatistics {
 
 				if (specialWeapon != null) {
 					specialWeaponWins = currentSpecialWinStats.getOrDefault(specialWeapon, 0);
+
+					logSender.sendLogs(log,
+						"special weapon found! It is: `%s`, wins: `%d`",
+						specialWeapon.getName(),
+						specialWeaponWins);
+
 					final int tempSpecialWeaponWins = specialWeaponWins;
 					var possibleBadgeVariants = Stream.of(30, 180, 1200)
 						.filter(pbv -> pbv <= tempSpecialWeaponWins)
@@ -318,8 +324,14 @@ public class S3StreamStatistics {
 							if (badgeInDb == null) continue;
 						}
 
+						logSender.sendLogs(log,
+							"Setting badge to `%s`",
+							badgeInDb.getDescription());
+
 						badgeImageBase64 = getImageEncoded(badgeInDb.getImage());
 					}
+				} else {
+					logSender.sendLogs(log, "special weapon is null wtf, last result: `%d`", lastMatch.getId());
 				}
 
 				openMaxPower = allOpenMatchesThisRotation.stream()
@@ -634,8 +646,13 @@ public class S3StreamStatistics {
 				var specialWeapon = extractSpecialWeapon(game);
 				if (specialWeapon == null) return;
 
+
 				currentSpecialWinStats.putIfAbsent(specialWeapon, 0);
 				currentSpecialWinStats.put(specialWeapon, currentSpecialWinStats.get(specialWeapon) + 1);
+				logSender.sendLogs(log,
+					"special weapon found! It is: `%s`, wins: `%d`",
+					specialWeapon.getName(),
+					currentSpecialWinStats.get(specialWeapon));
 			}
 		});
 
@@ -684,10 +701,18 @@ public class S3StreamStatistics {
 		if (startSpecialWinStats == null) {
 			startSpecialWinStats = new HashMap<>();
 			specialWins.forEach(sw -> startSpecialWinStats.put(sw.getSpecialWeapon(), sw.getWinCount()));
+
+			var builder = new StringBuilder("## Start special Wins found\n__Start stats__:");
+			specialWins.forEach(r -> builder.append("\n- **").append(r.getSpecialWeapon().getName()).append("**: ").append(r.getWinCount()).append(" wins"));
+			logSender.sendLogs(log, builder.toString());
 		}
 
 		currentSpecialWinStats = new HashMap<>();
 		specialWins.forEach(sw -> currentSpecialWinStats.put(sw.getSpecialWeapon(), sw.getWinCount()));
+
+		var builder = new StringBuilder("## Current Special Wins found\n__Current stats__:");
+		specialWins.forEach(r -> builder.append("\n- **").append(r.getSpecialWeapon().getName()).append("**: ").append(r.getWinCount()).append(" wins"));
+		logSender.sendLogs(log, builder.toString());
 	}
 
 	private Instant getSlotStartTime(Instant base) {
