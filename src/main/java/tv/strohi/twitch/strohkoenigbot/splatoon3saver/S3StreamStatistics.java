@@ -209,10 +209,6 @@ public class S3StreamStatistics {
 			Double openMaxPower = null;
 			boolean openZonesHidden = true, openTowerHidden = true, openRainmakerHidden = true, openClamsHidden = true;
 
-			Splatoon3VsSpecialWeapon specialWeapon = null;
-			int specialWeaponWins = 0;
-			int specialWeaponWinsDifference = 0;
-			var badgeImageBase64 = getImageEncoded(player.getWeapon().getSpecialWeapon().getImage());
 			if (lastMatchWasOpenWithFriends) {
 				switch (lastMatch.getRule().getApiRule()) {
 					case "AREA":
@@ -274,66 +270,6 @@ public class S3StreamStatistics {
 					exceptionLogger.logException(log, ex);
 				}
 
-				specialWeapon = extractSpecialWeapon(lastMatch);
-
-				if (specialWeapon != null) {
-					specialWeaponWins = currentSpecialWinStats.getOrDefault(specialWeapon, 0);
-
-					logSender.sendLogs(log,
-						"special weapon found! It is: `%s`, wins: `%d`",
-						specialWeapon.getName(),
-						specialWeaponWins);
-
-					final int tempSpecialWeaponWins = specialWeaponWins;
-					var possibleBadgeVariants = Stream.of(30, 180, 1200)
-						.filter(pbv -> pbv <= tempSpecialWeaponWins)
-						.collect(Collectors.toList());
-
-					specialWeaponWinsDifference = specialWeaponWins - startSpecialWinStats.getOrDefault(specialWeapon, specialWeaponWins);
-
-					final var finalSpecialWeapon = specialWeapon;
-					var badges = badgeRepository.findAll()
-						.stream()
-						.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("Wins with %s", finalSpecialWeapon.getName())))
-						.collect(Collectors.toList());
-
-					for (var badgeVariant : possibleBadgeVariants) {
-						var badgeInDb = badges.stream()
-							.filter(bDb -> bDb.getDescription()
-								.split(" ")[0]
-								.replaceAll("[^0-9]", "")
-								.equals(String.format("%d", badgeVariant)))
-							.findFirst()
-							.orElse(null);
-
-						if (badgeInDb == null) {
-							badgeSender.reloadBadges();
-							badges = badgeRepository.findAll()
-								.stream()
-								.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("Wins with %s", finalSpecialWeapon.getName())))
-								.collect(Collectors.toList());
-
-							badgeInDb = badges.stream()
-								.filter(bDb -> bDb.getDescription()
-									.split(" ")[0]
-									.replaceAll("[^0-9]", "")
-									.equals(String.format("%d", badgeVariant)))
-								.findFirst()
-								.orElse(null);
-
-							if (badgeInDb == null) continue;
-						}
-
-						logSender.sendLogs(log,
-							"Setting badge to `%s`",
-							badgeInDb.getDescription());
-
-						badgeImageBase64 = getImageEncoded(badgeInDb.getImage());
-					}
-				} else {
-					logSender.sendLogs(log, "special weapon is null wtf, last result: `%d`", lastMatch.getId());
-				}
-
 				openMaxPower = allOpenMatchesThisRotation.stream()
 					.map(m -> {
 						try {
@@ -349,6 +285,69 @@ public class S3StreamStatistics {
 					.filter(Objects::nonNull)
 					.max(Comparator.naturalOrder())
 					.orElse(null);
+			}
+
+			var specialWeapon = extractSpecialWeapon(lastMatch);
+			int specialWeaponWins = 0;
+			int specialWeaponWinsDifference = 0;
+			var badgeImageBase64 = getImageEncoded(player.getWeapon().getSpecialWeapon().getImage());
+
+			if (specialWeapon != null) {
+				specialWeaponWins = currentSpecialWinStats.getOrDefault(specialWeapon, 0);
+
+				logSender.sendLogs(log,
+					"special weapon found in export! It is: `%s`, wins: `%d`",
+					specialWeapon.getName(),
+					specialWeaponWins);
+
+				final int tempSpecialWeaponWins = specialWeaponWins;
+				var possibleBadgeVariants = Stream.of(30, 180, 1200)
+					.filter(pbv -> pbv <= tempSpecialWeaponWins)
+					.collect(Collectors.toList());
+
+				specialWeaponWinsDifference = specialWeaponWins - startSpecialWinStats.getOrDefault(specialWeapon, specialWeaponWins);
+
+				final var finalSpecialWeapon = specialWeapon;
+				var badges = badgeRepository.findAll()
+					.stream()
+					.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("Wins with %s", finalSpecialWeapon.getName())))
+					.collect(Collectors.toList());
+
+				for (var badgeVariant : possibleBadgeVariants) {
+					var badgeInDb = badges.stream()
+						.filter(bDb -> bDb.getDescription()
+							.split(" ")[0]
+							.replaceAll("[^0-9]", "")
+							.equals(String.format("%d", badgeVariant)))
+						.findFirst()
+						.orElse(null);
+
+					if (badgeInDb == null) {
+						badgeSender.reloadBadges();
+						badges = badgeRepository.findAll()
+							.stream()
+							.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("Wins with %s", finalSpecialWeapon.getName())))
+							.collect(Collectors.toList());
+
+						badgeInDb = badges.stream()
+							.filter(bDb -> bDb.getDescription()
+								.split(" ")[0]
+								.replaceAll("[^0-9]", "")
+								.equals(String.format("%d", badgeVariant)))
+							.findFirst()
+							.orElse(null);
+
+						if (badgeInDb == null) continue;
+					}
+
+					logSender.sendLogs(log,
+						"Setting badge to `%s`",
+						badgeInDb.getDescription());
+
+					badgeImageBase64 = getImageEncoded(badgeInDb.getImage());
+				}
+			} else {
+				logSender.sendLogs(log, "special weapon is null wtf, last result: `%d`", lastMatch.getId());
 			}
 
 			var startExpWeapon = getWeaponExp(weaponStatsStart.getStats().getLevel(), weaponStatsStart.getStats().getExpToLevelUp());
@@ -650,7 +649,7 @@ public class S3StreamStatistics {
 				currentSpecialWinStats.putIfAbsent(specialWeapon, 0);
 				currentSpecialWinStats.put(specialWeapon, currentSpecialWinStats.get(specialWeapon) + 1);
 				logSender.sendLogs(log,
-					"special weapon found! It is: `%s`, wins: `%d`",
+					"special weapon found in game!! It is: `%s`, wins: `%d`",
 					specialWeapon.getName(),
 					currentSpecialWinStats.get(specialWeapon));
 			}
