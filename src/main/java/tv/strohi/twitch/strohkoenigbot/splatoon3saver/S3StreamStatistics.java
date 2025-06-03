@@ -360,6 +360,29 @@ public class S3StreamStatistics {
 			var remainingExpRatio = 100.0 - alreadyOwnedExpRatio - earnedExpStreamRatio;
 
 			String mainWeaponUrl = getImageEncoded(player.getWeapon().getImage());
+
+			if (weaponStatsCurrent.getStats().getLevel() >= 5) {
+				// example: 5★ S-BLAST '91 User
+				var weaponBadge = badgeRepository.findAll()
+					.stream()
+					.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("5★ %s User", weaponStatsCurrent.getName())))
+					.findFirst();
+
+				if (weaponBadge.isEmpty()) {
+					badgeSender.reloadBadges();
+
+					weaponBadge = badgeRepository.findAll()
+						.stream()
+						.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("5★ %s User", weaponStatsCurrent.getName())))
+						.findFirst();
+				}
+
+				if (weaponBadge.isPresent()) {
+					// make 5 stars badge the main weapon image
+					mainWeaponUrl = getImageEncoded(weaponBadge.get().getImage());
+				}
+			}
+
 			String subWeaponUrl = getImageEncoded(player.getWeapon().getSubWeapon().getImage());
 			String specialWeaponUrl = getImageEncoded(player.getWeapon().getSpecialWeapon().getImage());
 
