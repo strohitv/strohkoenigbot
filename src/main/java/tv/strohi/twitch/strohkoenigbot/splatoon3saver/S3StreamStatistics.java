@@ -127,6 +127,9 @@ public class S3StreamStatistics {
 			long victoryCount = includedMatches.stream().filter(m -> "win".equalsIgnoreCase(m.getOwnJudgement())).count();
 			long defeatCount = includedMatches.stream().filter(m -> "lose".equalsIgnoreCase(m.getOwnJudgement()) || "deemed_lose".equalsIgnoreCase(m.getOwnJudgement())).count();
 
+			long victoryRatio = 100 * victoryCount / (victoryCount + defeatCount);
+			long defeatRatio = 100 - victoryRatio;
+
 			var lastMatch = includedMatches.stream()
 				.min((a, b) -> b.getPlayedTime().compareTo(a.getPlayedTime()))
 				.orElse(null);
@@ -201,6 +204,28 @@ public class S3StreamStatistics {
 
 			if (weaponStatsStart == null || weaponStatsCurrent == null) {
 				return;
+			}
+
+			String kills = "-", assists = "-", deaths = "-", specials = "-", paint = "-";
+			String killsColor = "", assistsColor = "", deathsColor = "", specialsColor = "";
+			if (player.getKills() != null) {
+				killsColor = "green";
+				kills = String.valueOf(player.getKills());
+			}
+			if (player.getAssists() != null) {
+				assistsColor = "light-yellow";
+				assists = String.valueOf(player.getAssists());
+			}
+			if (player.getDeaths() != null) {
+				deathsColor = "red";
+				deaths = String.valueOf(player.getDeaths());
+			}
+			if (player.getSpecials() != null) {
+				specialsColor = "aqua";
+				specials = String.valueOf(player.getSpecials());
+			}
+			if (player.getPaint() != null) {
+				paint = df.format(player.getPaint()).replaceAll(",", " ");
 			}
 
 			var lastMatchWasOpenWithFriends = "BANKARA".equals(lastMatch.getMode().getApiMode()) && "OPEN".equals(lastMatch.getMode().getApiModeDistinction()) && lastMatch.getShortenedJson() != null && lastMatch.getShortenedJson().contains("\"bankaraPower\":{\"power\":");
@@ -423,6 +448,48 @@ public class S3StreamStatistics {
 				currentHtml = currentHtml
 					.replace("{wins}", String.format("%d", victoryCount))
 					.replace("{defeats}", String.format("%d", defeatCount))
+					.replace("{win-ratio}", String.format("%d", victoryRatio))
+					.replace("{defeat-ratio}", String.format("%d", defeatRatio))
+
+					.replace("{kills}", kills)
+					.replace("{kills-color}", killsColor)
+					.replace("{assists}", assists)
+					.replace("{assists-color}", assistsColor)
+					.replace("{deaths}", deaths)
+					.replace("{deaths-color}", deathsColor)
+					.replace("{specials}", specials)
+					.replace("{specials-color}", specialsColor)
+					.replace("{paint}", paint)
+
+					.replace("{special-tab}", (specialWeapon != null) ? "tab" : "")
+					.replace("{special-weapon-badge}", String.format("data:image/png;base64,%s", badgeImageBase64))
+					.replace("{special-weapon-wins}", df.format(specialWeaponWins).replaceAll(",", " "))
+					.replace("{special-weapon-wins-change-hidden}", (specialWeaponWinsDifference <= 0) ? "hidden" : "")
+					.replace("{special-weapon-wins-change}", df.format(specialWeaponWinsDifference).replaceAll(",", " "))
+
+					.replace("{zones-icon-hidden}", zonesHidden ? "hidden" : "")
+					.replace("{tower-icon-hidden}", towerHidden ? "hidden" : "")
+					.replace("{rainmaker-icon-hidden}", rainmakerHidden ? "hidden" : "")
+					.replace("{clams-icon-hidden}", clamsHidden ? "hidden" : "")
+					.replace("{x-tab}", "X_MATCH".equals(lastMatch.getMode().getApiMode()) ? "tab" : "")
+					.replace("{current-x}", buildCurrentPower(currentPower))
+					.replace("{x-change-hidden}", currentPower == null
+						|| startPower == null
+						|| currentPower.doubleValue() == startPower.doubleValue() ? "hidden" : "")
+					.replace("{x-change}", buildPowerDiff(startPower, currentPower))
+					.replace("{x-change-color}", getPowerDiffColor(startPower, currentPower))
+
+					.replace("{open-tab}", lastMatchWasOpenWithFriends ? "tab" : "")
+					.replace("{open-zones-icon-hidden}", openZonesHidden ? "hidden" : "")
+					.replace("{open-tower-icon-hidden}", openTowerHidden ? "hidden" : "")
+					.replace("{open-rainmaker-icon-hidden}", openRainmakerHidden ? "hidden" : "")
+					.replace("{open-clams-icon-hidden}", openClamsHidden ? "hidden" : "")
+					.replace("{open-change-hidden}", openChangeHidden ? "hidden" : "")
+					.replace("{open-change-color}", getPowerDiffColor(openPreviousPower, openCurrentPower))
+					.replace("{open-max-hidden}", openMaxPower != null ? "" : "hidden")
+					.replace("{current-open}", buildCurrentPower(openCurrentPower))
+					.replace("{open-change}", buildPowerDiff(openPreviousPower, openCurrentPower))
+					.replace("{open-max}", buildCurrentPower(openMaxPower))
 
 					.replace("{main-weapon}", String.format("data:image/png;base64,%s", mainWeaponUrl))
 					.replace("{sub-weapon}", String.format("data:image/png;base64,%s", subWeaponUrl))
@@ -436,36 +503,6 @@ public class S3StreamStatistics {
 					.replace("{shoes}", String.format("data:image/png;base64,%s", shoesGear))
 					.replace("{shoes-main}", String.format("data:image/png;base64,%s", shoesGearMain))
 					.replace("{shoes-sub-1}", String.format("data:image/png;base64,%s", shoesGearSub1))
-
-					.replace("{special-weapon-badge-hidden}", (specialWeapon == null) ? "hidden" : "")
-					.replace("{special-weapon-wins-change-hidden}", (specialWeaponWinsDifference <= 0) ? "hidden" : "")
-					.replace("{special-weapon-badge}", String.format("data:image/png;base64,%s", badgeImageBase64))
-					.replace("{special-weapon-wins}", df.format(specialWeaponWins).replaceAll(",", " "))
-					.replace("{special-weapon-wins-change}", df.format(specialWeaponWinsDifference).replaceAll(",", " "))
-
-					.replace("{zones-icon-hidden}", zonesHidden ? "hidden" : "")
-					.replace("{tower-icon-hidden}", towerHidden ? "hidden" : "")
-					.replace("{rainmaker-icon-hidden}", rainmakerHidden ? "hidden" : "")
-					.replace("{clams-icon-hidden}", clamsHidden ? "hidden" : "")
-					.replace("{x-stats-hidden}", "X_MATCH".equals(lastMatch.getMode().getApiMode()) ? "" : "hidden")
-					.replace("{current-x}", buildCurrentPower(currentPower))
-					.replace("{x-change-hidden}", currentPower == null
-						|| startPower == null
-						|| currentPower.doubleValue() == startPower.doubleValue() ? "hidden" : "")
-					.replace("{x-change}", buildPowerDiff(startPower, currentPower))
-					.replace("{x-change-color}", getPowerDiffColor(startPower, currentPower))
-
-					.replace("{open-stats-hidden}", lastMatchWasOpenWithFriends ? "" : "hidden")
-					.replace("{open-zones-icon-hidden}", openZonesHidden ? "hidden" : "")
-					.replace("{open-tower-icon-hidden}", openTowerHidden ? "hidden" : "")
-					.replace("{open-rainmaker-icon-hidden}", openRainmakerHidden ? "hidden" : "")
-					.replace("{open-clams-icon-hidden}", openClamsHidden ? "hidden" : "")
-					.replace("{open-change-hidden}", openChangeHidden ? "hidden" : "")
-					.replace("{open-change-color}", getPowerDiffColor(openPreviousPower, openCurrentPower))
-					.replace("{open-max-hidden}", openMaxPower != null ? "" : "hidden")
-					.replace("{current-open}", buildCurrentPower(openCurrentPower))
-					.replace("{open-change}", buildPowerDiff(openPreviousPower, openCurrentPower))
-					.replace("{open-max}", buildCurrentPower(openMaxPower))
 
 					.replace("{weapon-star-1-hidden}", weaponStatsCurrent.getStats().getLevel() >= 1 ? "" : "hidden")
 					.replace("{weapon-star-2-hidden}", weaponStatsCurrent.getStats().getLevel() >= 2 ? "" : "hidden")
