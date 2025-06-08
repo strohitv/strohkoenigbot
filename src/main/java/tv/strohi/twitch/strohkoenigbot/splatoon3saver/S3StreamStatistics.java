@@ -446,6 +446,37 @@ public class S3StreamStatistics {
 				currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
 				currentHtml = currentHtml
+					.replace("{main-weapon}", String.format("data:image/png;base64,%s", mainWeaponUrl))
+					.replace("{sub-weapon}", String.format("data:image/png;base64,%s", subWeaponUrl))
+					.replace("{special-weapon}", String.format("data:image/png;base64,%s", specialWeaponUrl))
+					.replace("{head}", String.format("data:image/png;base64,%s", headGear))
+					.replace("{head-main}", String.format("data:image/png;base64,%s", headGearMain))
+					.replace("{head-sub-1}", String.format("data:image/png;base64,%s", headGearSub1))
+					.replace("{clothing}", String.format("data:image/png;base64,%s", clothesGear))
+					.replace("{clothing-main}", String.format("data:image/png;base64,%s", clothesGearMain))
+					.replace("{clothing-sub-1}", String.format("data:image/png;base64,%s", clothesGearSub1))
+					.replace("{shoes}", String.format("data:image/png;base64,%s", shoesGear))
+					.replace("{shoes-main}", String.format("data:image/png;base64,%s", shoesGearMain))
+					.replace("{shoes-sub-1}", String.format("data:image/png;base64,%s", shoesGearSub1))
+
+					.replace("{weapon-star-1-hidden}", weaponStatsCurrent.getStats().getLevel() >= 1 ? "" : "hidden")
+					.replace("{weapon-star-2-hidden}", weaponStatsCurrent.getStats().getLevel() >= 2 ? "" : "hidden")
+					.replace("{weapon-star-3-hidden}", weaponStatsCurrent.getStats().getLevel() >= 3 ? "" : "hidden")
+					.replace("{weapon-star-4-hidden}", weaponStatsCurrent.getStats().getLevel() >= 4 ? "" : "hidden")
+					.replace("{weapon-star-5-hidden}", weaponStatsCurrent.getStats().getLevel() >= 5 ? "" : "hidden")
+					.replace("{exp-hidden}", weaponStatsCurrent.getStats().getLevel() == 5 ? "hidden" : "")
+					.replace("{weapon-win-count}", df.format(weaponStatsCurrent.getStats().getWin()).replaceAll(",", " "))
+
+					.replace("{weapon-exp-start}", df.format(startExpWeapon).replaceAll(",", " "))
+					.replace("{weapon-exp}", df.format(currentExpWeapon).replaceAll(",", " "))
+
+					.replace("{weapon-exp-gain-hidden}", currentExpWeapon == startExpWeapon ? "hidden" : "")
+					.replace("{weapon-exp-gain}", df.format(expWeaponGain).replaceAll(",", " "))
+
+					.replace("{already-owned-exp-ratio}", String.format(Locale.US, "%.2f", alreadyOwnedExpRatio))
+					.replace("{earned-exp-stream-ratio}", String.format(Locale.US, "%.2f", earnedExpStreamRatio))
+					.replace("{remaining-exp-ratio}", String.format(Locale.US, "%.2f", remainingExpRatio))
+
 					.replace("{wins}", String.format("%d", victoryCount))
 					.replace("{defeats}", String.format("%d", defeatCount))
 					.replace("{win-ratio}", String.format("%d", victoryRatio))
@@ -490,37 +521,6 @@ public class S3StreamStatistics {
 					.replace("{current-open}", buildCurrentPower(openCurrentPower))
 					.replace("{open-change}", buildPowerDiff(openPreviousPower, openCurrentPower))
 					.replace("{open-max}", buildCurrentPower(openMaxPower))
-
-					.replace("{main-weapon}", String.format("data:image/png;base64,%s", mainWeaponUrl))
-					.replace("{sub-weapon}", String.format("data:image/png;base64,%s", subWeaponUrl))
-					.replace("{special-weapon}", String.format("data:image/png;base64,%s", specialWeaponUrl))
-					.replace("{head}", String.format("data:image/png;base64,%s", headGear))
-					.replace("{head-main}", String.format("data:image/png;base64,%s", headGearMain))
-					.replace("{head-sub-1}", String.format("data:image/png;base64,%s", headGearSub1))
-					.replace("{clothing}", String.format("data:image/png;base64,%s", clothesGear))
-					.replace("{clothing-main}", String.format("data:image/png;base64,%s", clothesGearMain))
-					.replace("{clothing-sub-1}", String.format("data:image/png;base64,%s", clothesGearSub1))
-					.replace("{shoes}", String.format("data:image/png;base64,%s", shoesGear))
-					.replace("{shoes-main}", String.format("data:image/png;base64,%s", shoesGearMain))
-					.replace("{shoes-sub-1}", String.format("data:image/png;base64,%s", shoesGearSub1))
-
-					.replace("{weapon-star-1-hidden}", weaponStatsCurrent.getStats().getLevel() >= 1 ? "" : "hidden")
-					.replace("{weapon-star-2-hidden}", weaponStatsCurrent.getStats().getLevel() >= 2 ? "" : "hidden")
-					.replace("{weapon-star-3-hidden}", weaponStatsCurrent.getStats().getLevel() >= 3 ? "" : "hidden")
-					.replace("{weapon-star-4-hidden}", weaponStatsCurrent.getStats().getLevel() >= 4 ? "" : "hidden")
-					.replace("{weapon-star-5-hidden}", weaponStatsCurrent.getStats().getLevel() >= 5 ? "" : "hidden")
-					.replace("{exp-hidden}", weaponStatsCurrent.getStats().getLevel() == 5 ? "hidden" : "")
-					.replace("{weapon-win-count}", df.format(weaponStatsCurrent.getStats().getWin()).replaceAll(",", " "))
-
-					.replace("{weapon-exp-start}", df.format(startExpWeapon).replaceAll(",", " "))
-					.replace("{weapon-exp-gain}", df.format(expWeaponGain).replaceAll(",", " "))
-					.replace("{weapon-exp}", df.format(currentExpWeapon).replaceAll(",", " "))
-
-					.replace("{weapon-exp-gain-hidden}", currentExpWeapon == startExpWeapon ? "hidden" : "")
-
-					.replace("{already-owned-exp-ratio}", String.format(Locale.US, "%.2f", alreadyOwnedExpRatio))
-					.replace("{earned-exp-stream-ratio}", String.format(Locale.US, "%.2f", earnedExpStreamRatio))
-					.replace("{remaining-exp-ratio}", String.format(Locale.US, "%.2f", remainingExpRatio))
 				;
 
 				if (headGearSub2 != null) {
