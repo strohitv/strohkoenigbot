@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CurrentSeason;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Nameplate;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
@@ -48,23 +49,6 @@ public class XRankStats {
 		public XStats statsCl;
 		public XStats statsGl;
 		public XStats statsLf;
-	}
-
-	@Getter
-	@Setter
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public static class CurrentSeason {
-		public String id;
-		public String name;
-		public Instant startTime;
-		public Instant endTime;
-		public Instant lastUpdateTime;
-		public boolean isCurrent;
-		public XRankingAr xRankingAr;
-		public XRankingCl xRankingCl;
-		public XRankingGl xRankingGl;
-		public XRankingLf xRankingLf;
 	}
 
 	@Getter

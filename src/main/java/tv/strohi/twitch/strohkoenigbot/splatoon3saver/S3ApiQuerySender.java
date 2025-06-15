@@ -1,6 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -9,17 +11,17 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3CookieHandler;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3AuthenticationData;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authenticator;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.S3RequestSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
-import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import static tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authenticator.SPLATOON3_WEBVIEWVERSION_CONFIG_NAME;
 
@@ -43,7 +45,13 @@ public class S3ApiQuerySender {
 	public String queryS3Api(Account account, S3RequestKey key, String additionalHeader, String additionalContent) {
 		var actionHash = requestKeyUtil.load(key);
 		logger.info("Sending request for hash '{}', additional header  '{}' and additional content '{}'", actionHash, additionalHeader, additionalContent);
-		return doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, additionalHeader, additionalContent);
+
+		var variables = new HashMap<>(key.getAdditionalVars());
+		if (additionalHeader != null) {
+			variables.put(additionalHeader, additionalContent);
+		}
+
+		return doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, variables);
 	}
 
 	public String queryS3ApiPaged(Account account, S3RequestKey key, String id, int page, int first, String cursor) {
@@ -51,36 +59,25 @@ public class S3ApiQuerySender {
 
 		logger.info("Sending request for hash '{}', id  '{}', page '{}', first '{}' and cursor '{}'", actionHash, id, page, first, cursor);
 
-		String result = doRequestPaged(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, id, page, first, cursor);
+		var variables = new HashMap<>(key.getAdditionalVars());
+		variables.put("cursor", cursor);
+		variables.put("first", first);
+		variables.put("page", page);
+		variables.put("id", id);
 
-		if (result == null) {
-			if (DiscordChannelDecisionMaker.isLocalDebug()) logSender.sendLogs(logger, "Didn't receive a result, retrying after refreshing tokens...");
-
-			// Tokens might be outdated -> retry once with refreshed Tokens
-			S3AuthenticationData authenticationData = authenticator.refreshAccess(account.getSplatoonSessionToken());
-			account.setGTokenSplatoon3(authenticationData.getGToken());
-			account.setBulletTokenSplatoon3(authenticationData.getBulletToken());
-
-			account = accountRepository.save(account);
-			result = doRequestPaged(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, id, page, first, cursor);
-			if (DiscordChannelDecisionMaker.isLocalDebug()) logSender.sendLogs(logger, String.format("is result null again? %b", result == null));
-		}
-
-		return result;
+		return doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, variables);
 	}
 
-	private String doRequest(String gToken, String bulletToken, String actionHash, String additionalHeader, String additionalContent) {
-		String body = String.format("{\"variables\":{},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", actionHash);
+	private String doRequest(String gToken, String bulletToken, String actionHash, Map<String, Object> variables) {
+		var requestObject = new S3RequestBody(variables, new Extensions(new PersistedQuery(actionHash)));
 
-		if (additionalHeader != null && additionalContent != null) {
-			body = String.format("{\"variables\":{\"%s\":\"%s\"},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", additionalHeader, additionalContent, actionHash);
+		var body = "";
+		try {
+			body = new ObjectMapper().writeValueAsString(requestObject);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
 		}
 
-		return doRequest(gToken, bulletToken, body);
-	}
-
-	private String doRequestPaged(String gToken, String bulletToken, String actionHash, String id, int page, int first, String cursor) {
-		String body = String.format("{\"variables\":{\"cursor\":\"%s\",\"first\":%d,\"page\":%d,\"id\":\"%s\"},\"extensions\":{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"%s\"}}}", cursor, first, page, id, actionHash);
 		return doRequest(gToken, bulletToken, body);
 	}
 
@@ -126,5 +123,31 @@ public class S3ApiQuerySender {
 		}
 
 		return result;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class S3RequestBody {
+		public Map<String, Object> variables;
+		public Extensions extensions;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Extensions {
+		public PersistedQuery persistedQuery;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class PersistedQuery {
+		public String sha256Hash;
+		public final Integer version = 1;
 	}
 }

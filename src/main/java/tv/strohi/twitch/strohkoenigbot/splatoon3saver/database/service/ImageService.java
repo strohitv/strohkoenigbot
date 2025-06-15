@@ -53,9 +53,6 @@ public class ImageService implements ScheduledService {
 		return logSender;
 	}
 
-	private final Pattern imageUrlPattern = Pattern.compile("https://api\\.lp1\\.av5ja\\.srv\\.nintendo\\.net[^\"]+");
-	private final Pattern imagePlaceholderPattern = Pattern.compile("<<<[0-9]+>>>");
-
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(ScheduleRequest.builder()
@@ -183,29 +180,44 @@ public class ImageService implements ScheduledService {
 
 	@Transactional
 	public String shortenJson(@NonNull String json) {
-		var endResult = json;
-		var results = imageUrlPattern.matcher(json).results().collect(Collectors.toList());
+		var endResultBuilder = new StringBuilder();
 
-		for (var result : results) {
-			endResult = endResult.replaceAll(Pattern.quote(result.group()), String.format("<<<%d>>>", ensureExists(result.group()).getId()));
+		int previousStartIndex = 0;
+		int startIndex = -1;
+		while ((startIndex = json.indexOf("https://api.lp1.av5ja.srv.nintendo.net", startIndex + 1)) > -1) {
+			var imageUrl = json.substring(startIndex, json.indexOf('"', startIndex));
+			var replacement = String.format("<<<%d>>>", ensureExists(imageUrl).getId());
+
+			endResultBuilder.append(json, previousStartIndex, startIndex);
+			endResultBuilder.append(replacement);
+			previousStartIndex = startIndex = json.indexOf('"', startIndex);
 		}
 
-		return endResult;
+		endResultBuilder.append(json.substring(previousStartIndex));
+
+		return endResultBuilder.toString();
 	}
 
 	@Transactional
 	public String restoreJson(@NonNull String json) {
-		var endResult = json;
-		var results = imagePlaceholderPattern.matcher(json).results().collect(Collectors.toList());
+		var endResultBuilder = new StringBuilder();
 
-		for (var result : results) {
-			long id = Long.parseLong(result.group().replaceAll("[^0-9]", ""));
+		int previousStartIndex = 0;
+		int startIndex = -1;
+		while ((startIndex = json.indexOf("<<<", startIndex + 1)) > -1) {
+			var imageReplacement = json.substring(startIndex, json.indexOf(">>>", startIndex) + 3);
+
+			long id = Long.parseLong(imageReplacement.replaceAll("[^0-9]", ""));
 			var imageUrl = imageRepository.findById(id).map(Image::getUrl).orElseThrow();
 
-			endResult = endResult.replaceAll(Pattern.quote(result.group()), imageUrl);
+			endResultBuilder.append(json, previousStartIndex, startIndex);
+			endResultBuilder.append(imageUrl);
+			previousStartIndex = startIndex = json.indexOf('"', startIndex);
 		}
 
-		return endResult;
+		endResultBuilder.append(json.substring(previousStartIndex));
+
+		return endResultBuilder.toString();
 	}
 
 	private final List<Image> brokenImages = new ArrayList<>();

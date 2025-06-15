@@ -231,7 +231,10 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		var minTop500XPowers = xLeaderboardDownloader.loadTop500MinPower();
 
-		var allWeaponsBelow4Stars = weaponDownloader.getWeapons().stream().filter(w -> w.getStats().getLevel() < 4).collect(Collectors.toList());
+		var allWeaponsBelow4Stars = weaponDownloader.getWeapons().stream()
+			.filter(w -> w.getStats() == null || w.getStats().getLevel() < 4)
+			.collect(Collectors.toList());
+
 		var requiredExpFor4StarGrind = getExpNeededFor4StarGrind(allWeaponsBelow4Stars);
 
 		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
@@ -320,8 +323,24 @@ public class S3DailyStatsSender implements ScheduledService {
 				nextExpGoal = 160_000;
 				break;
 			case 4:
-			default:
 				nextExpGoal = 1_160_000;
+				break;
+			case 5:
+				nextExpGoal = 2_000_000;
+				break;
+			case 6:
+				nextExpGoal = 3_000_000;
+				break;
+			case 7:
+				nextExpGoal = 4_000_000;
+				break;
+			case 8:
+				nextExpGoal = 5_000_000;
+				break;
+			case 9:
+			case 10:
+			default:
+				nextExpGoal = 6_000_000;
 				break;
 		}
 

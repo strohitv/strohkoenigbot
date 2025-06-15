@@ -8,6 +8,8 @@ import java.time.Instant;
 @Getter
 @Setter
 public class Stats {
+	private String __typename;
+
 	private Integer exp;
 	private Long paint;
 
@@ -23,6 +25,9 @@ public class Stats {
 	private Integer expToLevelUp;
 	private Integer win;
 	private Double vibes;
+
+	private Double maxWeaponPower;
+	private Nothing currentWeaponPowerOrder;
 
 	public Instant getLastUsedTimeAsInstant() {
 		return Instant.parse(lastUsedTime);

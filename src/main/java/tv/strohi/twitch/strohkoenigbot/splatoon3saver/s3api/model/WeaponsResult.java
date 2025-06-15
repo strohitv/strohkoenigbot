@@ -4,9 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,17 +20,85 @@ public class WeaponsResult implements Serializable {
 	@Setter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	// @Accessors(fluent = true)
 	public static class Data implements Serializable {
 		private WeaponNodes weaponRecords;
+		private WeaponNodes allWeapons;
+		private WeaponNodes ownedWeapons;
+
+		private PlayHistory playHistory;
+
+		private WeaponCategoryNodes weaponCategories;
+		private SubWeaponNodes subWeapons;
+		private SpecialWeaponNodes specialWeapons;
+
+		private BestNineRanking bestNineRanking;
 	}
 
 	@Getter
 	@Setter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	// @Accessors(fluent = true)
 	public static class WeaponNodes implements Serializable {
 		private Weapon[] nodes;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponCategoryNodes implements Serializable {
+		private WeaponCategory[] nodes;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SubWeaponNodes implements Serializable {
+		private WeaponDetail[] nodes;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SpecialWeaponNodes implements Serializable {
+		private WeaponDetail[] nodes;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class PlayHistory implements Serializable {
+		private Double maxWeaponPowerTotal;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class BestNineRanking {
+		public CurrentSeason currentSeason;
+		public CurrentPlayer currentPlayer;
+		public PastSeasons pastSeasons;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class PastSeasons {
+		public List<Nothing> edges;
+		public PastSeasonPageInfo pageInfo;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class PastSeasonPageInfo {
+		public String endCursor;
+		public Boolean hasNextPage;
 	}
 }

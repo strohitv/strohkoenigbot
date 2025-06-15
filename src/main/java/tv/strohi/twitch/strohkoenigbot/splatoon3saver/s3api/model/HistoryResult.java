@@ -21,29 +21,7 @@ public class HistoryResult implements Serializable {
 	@AllArgsConstructor
 	// @Accessors(fluent = true)
 	public static class Data implements Serializable {
-		private Player currentPlayer;
+		private CurrentPlayer currentPlayer;
 		private PlayHistory playHistory;
-	}
-
-	@Getter
-	@Setter
-	@NoArgsConstructor
-	@AllArgsConstructor
-	// @Accessors(fluent = true)
-	public static class Player implements Serializable {
-		private String __isPlayer;
-		private String byname;
-		private String name;
-		private String nameId;
-
-		private Nameplate nameplate;
-
-		private Weapon weapon;
-
-		private Gear headGear;
-		private Gear clothingGear;
-		private Gear shoesGear;
-
-		private Image userIcon;
 	}
 }
