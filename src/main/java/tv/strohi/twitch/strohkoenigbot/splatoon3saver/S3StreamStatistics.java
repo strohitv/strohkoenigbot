@@ -3,11 +3,13 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Badge;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
@@ -386,26 +388,18 @@ public class S3StreamStatistics {
 
 			String mainWeaponUrl = getImageEncoded(player.getWeapon().getImage());
 
-			if (weaponStatsCurrent.getStats().getLevel() >= 5) {
-				// example: 5★ S-BLAST '91 User
-				var weaponBadge = badgeRepository.findAll()
-					.stream()
-					.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("5★ %s User", weaponStatsCurrent.getName())))
-					.findFirst();
+			var currentLevelToCheck = 5;
+			var hasReloaded = false;
+			while (weaponStatsCurrent.getStats().getLevel() >= currentLevelToCheck) {
+				var badgeSearchResult = searchForBadge(currentLevelToCheck, weaponStatsCurrent.getName(), !hasReloaded);
 
-				if (weaponBadge.isEmpty()) {
-					badgeSender.reloadBadges();
-
-					weaponBadge = badgeRepository.findAll()
-						.stream()
-						.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("5★ %s User", weaponStatsCurrent.getName())))
-						.findFirst();
+				hasReloaded |= badgeSearchResult.isHasReloaded();
+				if (badgeSearchResult.getBadge().isPresent()) {
+					// make the found badge the main weapon image
+					mainWeaponUrl = getImageEncoded(badgeSearchResult.getBadge().get().getImage());
 				}
 
-				if (weaponBadge.isPresent()) {
-					// make 5 stars badge the main weapon image
-					mainWeaponUrl = getImageEncoded(weaponBadge.get().getImage());
-				}
+				currentLevelToCheck++;
 			}
 
 			String subWeaponUrl = getImageEncoded(player.getWeapon().getSubWeapon().getImage());
@@ -464,7 +458,10 @@ public class S3StreamStatistics {
 					.replace("{weapon-star-3-hidden}", weaponStatsCurrent.getStats().getLevel() >= 3 ? "" : "hidden")
 					.replace("{weapon-star-4-hidden}", weaponStatsCurrent.getStats().getLevel() >= 4 ? "" : "hidden")
 					.replace("{weapon-star-5-hidden}", weaponStatsCurrent.getStats().getLevel() >= 5 ? "" : "hidden")
-					.replace("{exp-hidden}", weaponStatsCurrent.getStats().getLevel() == 5 ? "hidden" : "")
+					.replace("{weapon-star-low-hidden}", weaponStatsCurrent.getStats().getLevel() < 6 ? "" : "hidden")
+					.replace("{weapon-star-high-hidden}", weaponStatsCurrent.getStats().getLevel() >= 6 ? "" : "hidden")
+					.replace("{weapon-level}", String.format("%d", weaponStatsCurrent.getStats().getLevel()))
+					.replace("{exp-hidden}", weaponStatsCurrent.getStats().getLevel() >= 10 ? "hidden" : "")
 					.replace("{weapon-win-count}", df.format(weaponStatsCurrent.getStats().getWin()).replaceAll(",", " "))
 
 					.replace("{weapon-exp-start}", df.format(startExpWeapon).replaceAll(",", " "))
@@ -612,9 +609,29 @@ public class S3StreamStatistics {
 				expGoal = 160000;
 				break;
 			}
-			case 4:
-			case 5: {
+			case 4: {
 				expGoal = 1160000;
+				break;
+			}
+			case 5: {
+				expGoal = 2000000;
+				break;
+			}
+			case 6: {
+				expGoal = 3000000;
+				break;
+			}
+			case 7: {
+				expGoal = 4000000;
+				break;
+			}
+			case 8: {
+				expGoal = 5000000;
+				break;
+			}
+			case 9:
+			case 10: {
+				expGoal = 6000000;
 				break;
 			}
 			case 0:
@@ -648,7 +665,27 @@ public class S3StreamStatistics {
 				break;
 			}
 			case 5: {
-				currentExp = 1160000;
+				currentExp = 2000000 - expToLevelUp;
+				break;
+			}
+			case 6: {
+				currentExp = 3000000 - expToLevelUp;
+				break;
+			}
+			case 7: {
+				currentExp = 4000000 - expToLevelUp;
+				break;
+			}
+			case 8: {
+				currentExp = 5000000 - expToLevelUp;
+				break;
+			}
+			case 9: {
+				currentExp = 6000000 - expToLevelUp;
+				break;
+			}
+			case 10: {
+				currentExp = 6000000;
 				break;
 			}
 			case 0:
@@ -659,6 +696,34 @@ public class S3StreamStatistics {
 		}
 
 		return currentExp;
+	}
+
+	private BadgeReloadResult searchForBadge(int level, String weaponName, boolean reloadAllowed) {
+		// example: 5★ S-BLAST '91 User
+		var weaponBadge = badgeRepository.findAll()
+			.stream()
+			.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("%d★ %s User", level, weaponName)))
+			.findFirst();
+
+		var hasReloaded = false;
+		if (weaponBadge.isEmpty() && reloadAllowed) {
+			badgeSender.reloadBadges();
+			hasReloaded = true;
+
+			weaponBadge = badgeRepository.findAll()
+				.stream()
+				.filter(b -> b.getDescription() != null && b.getDescription().contains(String.format("%d★ %s User", level, weaponName)))
+				.findFirst();
+		}
+
+		return new BadgeReloadResult(hasReloaded, weaponBadge);
+	}
+
+	@Getter
+	@RequiredArgsConstructor
+	private static class BadgeReloadResult {
+		private final boolean hasReloaded;
+		private final Optional<Splatoon3Badge> badge;
 	}
 
 	private String buildCurrentPower(Double currentPower) {
