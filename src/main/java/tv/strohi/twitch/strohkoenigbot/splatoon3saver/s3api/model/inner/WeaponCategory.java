@@ -15,4 +15,7 @@ public class WeaponCategory implements Serializable {
 	private Image image;
 
 	private Integer weaponCategoryId;
+
+	// history menu
+	private String category;
 }

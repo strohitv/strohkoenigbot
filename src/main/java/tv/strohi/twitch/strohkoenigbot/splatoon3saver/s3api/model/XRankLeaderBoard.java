@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Nameplate;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.PageInfo;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 
 @Getter
@@ -35,15 +36,6 @@ public class XRankLeaderBoard {
 		public XRankingBoard xRankingCl;
 
 		public String id;
-	}
-
-	@Getter
-	@Setter
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public static class PageInfo {
-		String endCursor;
-		Boolean hasNextPage;
 	}
 
 	@Getter

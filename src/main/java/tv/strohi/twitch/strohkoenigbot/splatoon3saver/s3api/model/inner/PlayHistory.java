@@ -44,9 +44,12 @@ public class PlayHistory implements Serializable {
 
 	private List<Weapon> frequentlyUsedWeapons;
 
-	private Object weaponHistory;
+	private Nothing weaponHistory;
 	@JsonProperty("xMatchSeasonHistory")
-	private Object xMatchSeasonHistory;
+	private Nothing xMatchSeasonHistory;
+
+	private WeaponHistories weaponHistories;
+	private SeasonHistories seasonHistories;
 
 	private MatchPlayHistory bankaraMatchOpenPlayHistory;
 	private MatchPlayHistory leagueMatchPlayHistory;
@@ -54,6 +57,13 @@ public class PlayHistory implements Serializable {
 	private List<Id> badges;
 	private List<Badge> recentBadges;
 	private List<Badge> allBadges;
+
+	private Integer weaponPowerMeasureNum;
+	private Double maxWeaponPowerTotal;
+	private Integer maxBestNineRank;
+	private String maxBestNineRankSeasonName;
+	private Double maxBestNinePower;
+	private String maxBestNinePowerSeasonName;
 
 	@Getter
 	@Setter
@@ -65,5 +75,113 @@ public class PlayHistory implements Serializable {
 		private Integer bronze;
 		private Integer silver;
 		private Integer gold;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponHistories {
+		public List<WeaponHistoriesEdge> edges;
+		public PageInfo pageInfo;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponHistoriesEdge {
+		public WeaponHistoriesNode node;
+		public String cursor;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponHistoriesNode {
+		public String __typename;
+		public String seasonName;
+		public String startTime;
+		public String endTime;
+		public Boolean isMonthly;
+		public List<WeaponHistoriesWeaponCategories> weaponCategories;
+		public List<WeaponHistoriesWeapons> weapons;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponHistoriesWeaponCategories {
+		public WeaponCategory weaponCategory;
+		public Double utilRatio;
+		public List<WeaponHistoriesWeaponCategoriesWeapon> weapons;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponHistoriesWeaponCategoriesWeapon {
+		public Weapon weapon;
+		public Double utilRatio;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponHistoriesWeapons {
+		public Weapon weapon;
+		public Double utilRatio;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SeasonHistories {
+		public List<SeasonHistoriesEdge> edges;
+		public PageInfo pageInfo;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SeasonHistoriesEdge {
+		public SeasonHistoriesNode node;
+		public String cursor;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SeasonHistoriesNode {
+		public String __typename;
+		public String id;
+		public String seasonName;
+		public Nothing bestNineHistory;
+		@JsonProperty("xMatchHistory")
+		public XMatchHistory xMatchHistory;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class XMatchHistory {
+		@JsonProperty("xRankingSeasonId")
+		public String xRankingSeasonId;
+		public Double powerAr;
+		public Integer rankAr;
+		public Double powerLf;
+		public Integer rankLf;
+		public Double powerGl;
+		public Integer rankGl;
+		public Double powerCl;
+		public Integer rankCl;
 	}
 }

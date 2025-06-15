@@ -90,15 +90,6 @@ public class WeaponsResult implements Serializable {
 	@AllArgsConstructor
 	public static class PastSeasons {
 		public List<Nothing> edges;
-		public PastSeasonPageInfo pageInfo;
-	}
-
-	@Getter
-	@Setter
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public static class PastSeasonPageInfo {
-		public String endCursor;
-		public Boolean hasNextPage;
+		public PageInfo pageInfo;
 	}
 }

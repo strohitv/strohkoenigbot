@@ -4,10 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CurrentSeason;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Image;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Nameplate;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
 
 import java.time.Instant;
 import java.util.List;
@@ -76,7 +73,7 @@ public class XRankStats {
 	@AllArgsConstructor
 	public static class PastSeasons {
 		public List<PastSeasonEdge> edges;
-		public PastSeasonPageInfo pageInfo;
+		public PageInfo pageInfo;
 	}
 
 	@Getter
@@ -98,15 +95,6 @@ public class XRankStats {
 		public String __typename;
 		public Instant startTime;
 		public Instant endTime;
-	}
-
-	@Getter
-	@Setter
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public static class PastSeasonPageInfo {
-		public String endCursor;
-		public Boolean hasNextPage;
 	}
 
 	@Getter
