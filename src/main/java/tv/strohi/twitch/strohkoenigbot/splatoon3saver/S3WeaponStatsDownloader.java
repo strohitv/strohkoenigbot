@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.WeaponsResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 
 @Component
 @RequiredArgsConstructor
@@ -18,6 +19,7 @@ public class S3WeaponStatsDownloader {
 
 	private final AccountRepository accountRepository;
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+	private final ExceptionLogger exceptionLogger;
 
 	public void fillWeaponStats() {
 		var account = accountRepository.findByEnableSplatoon3(true).stream()
@@ -34,6 +36,7 @@ public class S3WeaponStatsDownloader {
 				streamStatistics.setCurrentWeaponRecords(allWeapons);
 			} catch (Exception ex) {
 				log.error("could not refresh weapon stats", ex);
+				exceptionLogger.logException(log, ex);
 			}
 		}
 	}

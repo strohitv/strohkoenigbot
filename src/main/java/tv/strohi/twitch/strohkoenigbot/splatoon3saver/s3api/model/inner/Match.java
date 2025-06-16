@@ -7,16 +7,16 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-// @Accessors(fluent = true)
 public class Match implements Serializable {
 	private String mode;
 	private Integer earnedUdemaePoint;
+
 	private Double lastXPower;
 	private BankaraPower bankaraPower;
+	private Double weaponPower;
 
 	@Getter
 	@Setter
-	// @Accessors(fluent = true)
 	public static class BankaraPower implements Serializable {
 		private Double power;
 	}

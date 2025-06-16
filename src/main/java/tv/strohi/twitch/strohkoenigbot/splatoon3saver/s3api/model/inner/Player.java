@@ -33,6 +33,7 @@ public class Player implements Serializable {
 
 	// Splatfest
 	private String festGrade;
+	private Nothing callSign;
 
 	// Salmon Run
 	private IdAndNameAndImage uniform;

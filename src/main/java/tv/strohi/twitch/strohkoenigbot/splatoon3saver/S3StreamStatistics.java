@@ -10,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Badge;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsSpecialWeapon;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3BadgeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
@@ -211,19 +208,36 @@ public class S3StreamStatistics {
 			String kills = "-", assists = "-", deaths = "-", specials = "-", paint = "-";
 			String killsColor = "", assistsColor = "", deathsColor = "", specialsColor = "";
 			if (player.getKills() != null) {
+				if (player.getKills() >= 10) {
+					deathsColor = "green";
+				} else if (player.getKills() <= 3) {
+					deathsColor = "red";
+				}
+
 				killsColor = "green";
 				kills = String.valueOf(player.getKills());
 			}
 			if (player.getAssists() != null) {
-				assistsColor = "light-yellow";
+				if (player.getAssists() >= 5) {
+					assistsColor = "green";
+				}
+
 				assists = String.valueOf(player.getAssists());
 			}
 			if (player.getDeaths() != null) {
-				deathsColor = "red";
+				if (player.getDeaths() >= 8) {
+					deathsColor = "red";
+				} else if (player.getDeaths() <= 3) {
+					deathsColor = "green";
+				}
+
 				deaths = String.valueOf(player.getDeaths());
 			}
 			if (player.getSpecials() != null) {
-				specialsColor = "aqua";
+				if (player.getSpecials() >= 5) {
+					specialsColor = "green";
+				}
+
 				specials = String.valueOf(player.getSpecials());
 			}
 			if (player.getPaint() != null) {
@@ -313,6 +327,99 @@ public class S3StreamStatistics {
 					.max(Comparator.naturalOrder())
 					.orElse(null);
 			}
+
+			var openChangeHidden = openCurrentPower == null
+				|| openPreviousPower == null
+				|| openCurrentPower.doubleValue() == openPreviousPower.doubleValue();
+
+			var lastMatchWasSeries = "BANKARA".equals(lastMatch.getMode().getApiMode()) && "CHALLENGE".equals(lastMatch.getMode().getApiModeDistinction());
+			Double seriesCurrentPower = null;
+			Double seriesPreviousPower = null;
+			Double seriesMaxPower = null;
+
+			if (lastMatchWasSeries) {
+				var allSeriesMatchesOfThisWeapon = includedMatches.stream()
+					.filter(m -> "BANKARA".equals(m.getMode().getApiMode()) && "CHALLENGE".equals(m.getMode().getApiModeDistinction()))
+					.filter(m ->
+						player.getWeapon().equals(m.getTeams().stream()
+							.filter(Splatoon3VsResultTeam::getIsMyTeam)
+							.flatMap(t -> t.getTeamPlayers().stream())
+							.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
+							.map(Splatoon3VsResultTeamPlayer::getWeapon)
+							.findFirst()
+							.orElse(null)))
+					.collect(Collectors.toList());
+
+				try {
+					var currentMatchParsed = mapper.readValue(imageService.restoreJson(lastMatch.getShortenedJson()), BattleResult.class)
+						.getData()
+						.getVsHistoryDetail()
+						.getBankaraMatch();
+
+					seriesCurrentPower = currentMatchParsed.getWeaponPower();
+
+//					logSender.sendLogs(log, "number of matches in this rotation: `%d`", allSeriesMatchesOfThisWeapon.size());
+//
+//					logSender.sendLogs(log, "Power of games in this rotation: \n%s", includedMatches.stream()
+//						.filter(m -> m.getRotation() != null)
+//						.filter(m -> Objects.equals(m.getRotation().getId(), lastMatch.getRotation().getId()))
+//						.map(m -> String.format("- power: `%s` - time: `%s` - id: `%s` - rotation-id: `%s`", getPower(m), m.getPlayedTime(), m.getId(), m.getRotation().getId()))
+//						.reduce((a, b) -> String.format("%s\n%s", a, b))
+//						.orElse(""));
+
+					if (allSeriesMatchesOfThisWeapon.size() > 1) {
+						var previousMatch = allSeriesMatchesOfThisWeapon.stream()
+							.filter(m -> m.getPlayedTime() != null && m.getPlayedTime().isBefore(lastMatch.getPlayedTime()))
+							.max(Comparator.comparing(Splatoon3VsResult::getPlayedTime));
+
+						if (previousMatch.isPresent()) {
+							var unpackedPreviousMatch = previousMatch.get();
+
+							var previousMatchParsed = mapper.readValue(imageService.restoreJson(unpackedPreviousMatch.getShortenedJson()), BattleResult.class)
+								.getData()
+								.getVsHistoryDetail()
+								.getBankaraMatch();
+
+							seriesPreviousPower = previousMatchParsed.getWeaponPower();
+						}
+					}
+				} catch (JsonProcessingException ex) {
+					logSender.sendLogs(log, "Exception occured during JSON processing! `%s`", ex.getMessage());
+					exceptionLogger.logException(log, ex);
+				}
+
+				seriesMaxPower =
+					allSeriesMatchesOfThisWeapon.stream()
+						.map(m -> {
+							try {
+								return mapper.readValue(imageService.restoreJson(m.getShortenedJson()), BattleResult.class);
+							} catch (JsonProcessingException e) {
+								return null;
+							}
+						})
+						.filter(Objects::nonNull)
+						.map(m -> m.getData().getVsHistoryDetail().getBankaraMatch())
+						.filter(Objects::nonNull)
+						.map(Match::getWeaponPower)
+						.filter(Objects::nonNull)
+						.max(Comparator.naturalOrder())
+						.orElse(null);
+
+				var weaponMaxPower =
+					startWeaponStats.stream()
+						.filter(sws -> Objects.equals(player.getWeapon().getName(), sws.getName()))
+						.findFirst()
+						.map(w -> w.getStats().getMaxWeaponPower())
+						.orElse(null);
+
+				if (seriesMaxPower == null || weaponMaxPower != null && weaponMaxPower > seriesMaxPower) {
+					seriesMaxPower = weaponMaxPower;
+				}
+			}
+
+			var seriesChangeHidden = seriesCurrentPower == null
+				|| seriesPreviousPower == null
+				|| seriesCurrentPower.doubleValue() == seriesPreviousPower.doubleValue();
 
 			var specialWeapon = extractSpecialWeapon(lastMatch);
 			int specialWeaponWins = 0;
@@ -423,10 +530,6 @@ public class S3StreamStatistics {
 			String shoesGearSub2 = player.getShoesSecondaryAbility2() != null ? getImageEncoded(player.getShoesSecondaryAbility2().getImage()) : null;
 			String shoesGearSub3 = player.getShoesSecondaryAbility3() != null ? getImageEncoded(player.getShoesSecondaryAbility3().getImage()) : null;
 
-			var openChangeHidden = openCurrentPower == null
-				|| openPreviousPower == null
-				|| openCurrentPower.doubleValue() == openPreviousPower.doubleValue();
-
 //			logSender.sendLogs(log, String.format("openCurrentPower: `%s`, openPreviousPower: `%s`, openChangeHidden: `%s`, openCurrentPower == null: `%s`, openPreviousPower == null: `%s`, openCurrentPower.doubleValue() == openPreviousPower.doubleValue(): `%s`",
 //				openCurrentPower != null ? String.format("%.1f", openCurrentPower) : "null",
 //				openPreviousPower != null ? String.format("%.1f", openPreviousPower) : "null",
@@ -518,6 +621,15 @@ public class S3StreamStatistics {
 					.replace("{current-open}", buildCurrentPower(openCurrentPower))
 					.replace("{open-change}", buildPowerDiff(openPreviousPower, openCurrentPower))
 					.replace("{open-max}", buildCurrentPower(openMaxPower))
+
+					.replace("{series-tab}", lastMatchWasSeries ? "tab" : "")
+					.replace("{series-weapon-icon}", lastMatchWasSeries ? String.format("data:image/png;base64,%s", getImageEncoded(player.getWeapon().getImage())) : "data:image/png;base64,0")
+					.replace("{series-change-hidden}", seriesChangeHidden ? "hidden" : "")
+					.replace("{series-change-color}", getPowerDiffColor(seriesPreviousPower, seriesCurrentPower))
+					.replace("{series-max-hidden}", seriesMaxPower != null ? "" : "hidden")
+					.replace("{current-series}", buildCurrentPower(seriesCurrentPower))
+					.replace("{series-change}", buildPowerDiff(seriesPreviousPower, seriesCurrentPower))
+					.replace("{series-max}", buildCurrentPower(seriesMaxPower))
 				;
 
 				if (headGearSub2 != null) {
@@ -766,15 +878,21 @@ public class S3StreamStatistics {
 			.collect(Collectors.toList());
 
 		newGames.forEach(game -> {
-			if (!game.getMode().getName().toLowerCase().contains("private") && game.getOwnJudgement().toLowerCase().contains("win")) {
+			if (!game.getMode().getName().toLowerCase().contains("private")
+				&& game.getOwnJudgement().toLowerCase().contains("win")
+				&& game.getTeams().stream()
+				.filter(Splatoon3VsResultTeam::getIsMyTeam)
+				.flatMap(t -> t.getTeamPlayers().stream())
+				.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
+				.findFirst().map(Splatoon3VsResultTeamPlayer::getSpecials).orElse(0) > 0) {
+
 				var specialWeapon = extractSpecialWeapon(game);
 				if (specialWeapon == null) return;
-
 
 				currentSpecialWinStats.putIfAbsent(specialWeapon, 0);
 				currentSpecialWinStats.put(specialWeapon, currentSpecialWinStats.get(specialWeapon) + 1);
 				logSender.sendLogs(log,
-					"special weapon found in game!! It is: `%s`, wins: `%d`",
+					"special weapon found in game! It is: `%s`, wins: `%d`",
 					specialWeapon.getName(),
 					currentSpecialWinStats.get(specialWeapon));
 			}

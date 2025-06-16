@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-// @Accessors(fluent = true)
 public class CurrentPlayer implements Serializable {
 	private String __isPlayer;
 	private String byname;
@@ -29,5 +29,31 @@ public class CurrentPlayer implements Serializable {
 
 	private Image userIcon;
 
-	private Nothing bestNine;
+	private BestNine bestNine;
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class BestNine implements Serializable {
+		private Double powerTotal;
+		private WeaponPowerOrders weaponPowerOrders;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponPowerOrders implements Serializable {
+		private List<WeaponPowerOrderNodes> nodes;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponPowerOrderNodes implements Serializable {
+		private String id;
+		private Weapon weapon;
+	}
 }

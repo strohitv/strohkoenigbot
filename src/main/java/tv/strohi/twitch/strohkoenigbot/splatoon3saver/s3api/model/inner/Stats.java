@@ -1,8 +1,11 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 @Getter
@@ -27,9 +30,19 @@ public class Stats {
 	private Double vibes;
 
 	private Double maxWeaponPower;
-	private Nothing currentWeaponPowerOrder;
+	private CurrentWeaponPowerOrder currentWeaponPowerOrder;
 
 	public Instant getLastUsedTimeAsInstant() {
 		return Instant.parse(lastUsedTime);
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class CurrentWeaponPowerOrder implements Serializable {
+		private String id;
+		private Double order;
+		private Integer weaponPower;
 	}
 }
