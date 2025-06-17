@@ -216,6 +216,10 @@ public class S3StreamStatistics {
 
 				killsColor = "green";
 				kills = String.valueOf(player.getKills());
+
+				if (player.getAssists() != null) {
+					kills = String.valueOf(player.getKills() - player.getAssists());
+				}
 			}
 			if (player.getAssists() != null) {
 				if (player.getAssists() >= 5) {
