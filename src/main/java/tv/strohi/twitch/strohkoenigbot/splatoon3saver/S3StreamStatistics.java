@@ -429,10 +429,10 @@ public class S3StreamStatistics {
 			if (specialWeapon != null) {
 				specialWeaponWins = currentSpecialWinStats.getOrDefault(specialWeapon, 0);
 
-				logSender.sendLogs(log,
-					"special weapon found in export! It is: `%s`, wins: `%d`",
-					specialWeapon.getName(),
-					specialWeaponWins);
+//				logSender.sendLogs(log,
+//					"special weapon found in export! It is: `%s`, wins: `%d`",
+//					specialWeapon.getName(),
+//					specialWeaponWins);
 
 				final int tempSpecialWeaponWins = specialWeaponWins;
 				var possibleBadgeVariants = Stream.of(30, 180, 1200)
@@ -474,9 +474,9 @@ public class S3StreamStatistics {
 						if (badgeInDb == null) continue;
 					}
 
-					logSender.sendLogs(log,
-						"Setting badge to `%s`",
-						badgeInDb.getDescription());
+//					logSender.sendLogs(log,
+//						"Setting badge to `%s`",
+//						badgeInDb.getDescription());
 
 					badgeImageBase64 = getImageEncoded(badgeInDb.getImage());
 				}
@@ -891,10 +891,10 @@ public class S3StreamStatistics {
 
 				currentSpecialWinStats.putIfAbsent(specialWeapon, 0);
 				currentSpecialWinStats.put(specialWeapon, currentSpecialWinStats.get(specialWeapon) + 1);
-				logSender.sendLogs(log,
-					"special weapon found in game! It is: `%s`, wins: `%d`",
-					specialWeapon.getName(),
-					currentSpecialWinStats.get(specialWeapon));
+//				logSender.sendLogs(log,
+//					"special weapon found in game! It is: `%s`, wins: `%d`",
+//					specialWeapon.getName(),
+//					currentSpecialWinStats.get(specialWeapon));
 			}
 		});
 
