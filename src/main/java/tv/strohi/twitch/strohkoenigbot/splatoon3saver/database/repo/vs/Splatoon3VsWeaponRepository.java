@@ -20,7 +20,7 @@ public interface Splatoon3VsWeaponRepository extends CrudRepository<Splatoon3VsW
 			"\n JOIN splatoon_3_vs_result_team S3VRT on S3VRTP.resultId = S3VRT.resultId AND S3VRTP.teamOrder = S3VRT.teamOrder" +
 			"\n JOIN splatoon_3_vs_result S3R on S3VRT.resultId = S3R.id" +
 			"\n JOIN splatoon_3_vs_mode m on S3R.mode = m" +
-			"\n WHERE (m.id != 9 AND NOT :returnPrivateBattles = true) AND (m.id = 9 AND :returnPrivateBattles = true)" +
+			"\n WHERE ((m.id != 9 AND NOT :returnPrivateBattles = true) OR (m.id = 9 AND :returnPrivateBattles = true))" +
 			"\n AND S3VRT.judgement in ('WIN', 'LOSE')" +
 			"\n AND S3VRTP.isMyself = :returnOwnStats" +
 			"\n GROUP BY w, S3VRT.isMyTeam")
