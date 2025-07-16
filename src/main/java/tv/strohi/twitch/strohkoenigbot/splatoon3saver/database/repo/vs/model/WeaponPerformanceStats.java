@@ -1,6 +1,5 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model;
 
-import lombok.Builder;
 import lombok.Data;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsWeapon;
 
@@ -8,7 +7,6 @@ import javax.persistence.Cacheable;
 
 @Cacheable(false)
 @Data
-@Builder(toBuilder = true)
 public class WeaponPerformanceStats {
 	private final Splatoon3VsWeapon weapon;
 	private final boolean isMyTeam;
