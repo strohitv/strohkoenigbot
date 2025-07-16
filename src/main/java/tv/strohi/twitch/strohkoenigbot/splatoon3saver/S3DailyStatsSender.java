@@ -302,13 +302,13 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		var defeatStatsMyselfSoloQ = performanceStatsMyselfSoloQ.stream()
 			.filter(stats -> stats.getTotalGames() >= 10)
-			.sorted(Comparator.comparingDouble(WeaponPerformanceStats::getDefeatRate))
+			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(15L)
 			.collect(Collectors.toList());
 
 		var defeatStatsMyselfPbs = performanceStatsMyselfPbs.stream()
 			.filter(stats -> stats.getTotalGames() >= 10)
-			.sorted(Comparator.comparingDouble(WeaponPerformanceStats::getDefeatRate))
+			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(15L)
 			.collect(Collectors.toList());
 
@@ -330,14 +330,14 @@ public class S3DailyStatsSender implements ScheduledService {
 		var defeatStatsOwnTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
 			.filter(stats -> stats.getTotalGames() >= 10)
 			.filter(WeaponPerformanceStats::isMyTeam)
-			.sorted(Comparator.comparingDouble(WeaponPerformanceStats::getDefeatRate))
+			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(15L)
 			.collect(Collectors.toList());
 
 		var defeatStatsOwnTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
 			.filter(stats -> stats.getTotalGames() >= 10)
 			.filter(WeaponPerformanceStats::isMyTeam)
-			.sorted(Comparator.comparingDouble(WeaponPerformanceStats::getDefeatRate))
+			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(15L)
 			.collect(Collectors.toList());
 
@@ -359,14 +359,14 @@ public class S3DailyStatsSender implements ScheduledService {
 		var defeatStatsOpposingTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
 			.filter(stats -> stats.getTotalGames() >= 10)
 			.filter(stats -> !stats.isMyTeam())
-			.sorted(Comparator.comparingDouble(WeaponPerformanceStats::getDefeatRate))
+			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(15L)
 			.collect(Collectors.toList());
 
 		var defeatStatsOpposingTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
 			.filter(stats -> stats.getTotalGames() >= 10)
 			.filter(stats -> !stats.isMyTeam())
-			.sorted(Comparator.comparingDouble(WeaponPerformanceStats::getDefeatRate))
+			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(15L)
 			.collect(Collectors.toList());
 
@@ -385,7 +385,7 @@ public class S3DailyStatsSender implements ScheduledService {
 		sendWeaponPerformanceStatsToDiscord(account, "PBs", "opposing team", defeatStatsOpposingTeamPlayersPbs, false);
 	}
 
-	private void sendWeaponPerformanceStatsToDiscord(Account account, String gameMode, String groupName, List<WeaponPerformanceStats> stats, boolean sendDefeats) {
+	private void sendWeaponPerformanceStatsToDiscord(Account account, String gameMode, String groupName, List<WeaponPerformanceStats> stats, boolean sendWins) {
 		var responseBuilder = new StringBuilder("## Top ")
 			.append(stats.size())
 			.append(" Weapons of __")
@@ -393,11 +393,11 @@ public class S3DailyStatsSender implements ScheduledService {
 			.append("__ in __")
 			.append(gameMode)
 			.append("__ by __")
-			.append(!sendDefeats ? "Win" : "Defeat")
+			.append(sendWins ? "Win" : "Defeat")
 			.append("__ ratio");
 
 		stats.forEach(stat -> responseBuilder.append("\n- `")
-			.append(String.format("%02.2f", !sendDefeats ? stat.getWinRate() : stat.getDefeatRate()))
+			.append(String.format("%02.2f", sendWins ? stat.getWinRate() : stat.getDefeatRate()))
 			.append("%`: **")
 			.append(stat.getWeapon().getName())
 			.append("** (")
