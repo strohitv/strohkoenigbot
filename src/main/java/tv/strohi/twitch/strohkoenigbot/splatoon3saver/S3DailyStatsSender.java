@@ -285,6 +285,10 @@ public class S3DailyStatsSender implements ScheduledService {
 		final var requiredGameCount = 20;
 		final var limit = 15L;
 
+		sendWeaponPerformanceStatsToDiscord(account, requiredGameCount, limit);
+	}
+
+	public void sendWeaponPerformanceStatsToDiscord(Account account, int requiredGameCount, long limit) {
 		final var performanceStatsMyselfSoloQ = vsWeaponRepository.getPerformanceStats(true, false);
 		final var performanceStatsMyselfPbs = vsWeaponRepository.getPerformanceStats(true, true);
 		final var performanceStatsOtherPlayersSoloQ = vsWeaponRepository.getPerformanceStats(false, false);
@@ -399,17 +403,24 @@ public class S3DailyStatsSender implements ScheduledService {
 			.append(sendWins ? "Win" : "Defeat")
 			.append("__ ratio");
 
-		stats.forEach(stat -> responseBuilder.append("\n- `")
-			.append(String.format("%02.2f", sendWins ? stat.getWinRate() : stat.getDefeatRate()))
-			.append("%`: **")
-			.append(stat.getWeapon().getName())
-			.append("** (")
-			.append(stat.getTotalGames())
-			.append(" g = ")
-			.append(stat.getTotalWins())
-			.append(" w + ")
-			.append(stat.getTotalDefeats())
-			.append(" d)"));
+		int index = 1;
+		for (var stat : stats) {
+			responseBuilder
+				.append("\n")
+				.append(index)
+				.append(". `")
+				.append(String.format("%02.2f", sendWins ? stat.getWinRate() : stat.getDefeatRate()))
+				.append("%`: **")
+				.append(stat.getWeapon().getName())
+				.append("** (")
+				.append(stat.getTotalGames())
+				.append(" g = ")
+				.append(stat.getTotalWins())
+				.append(" w + ")
+				.append(stat.getTotalDefeats())
+				.append(" d)");
+			index++;
+		}
 
 		discordBot.sendPrivateMessage(account.getDiscordId(), responseBuilder.toString());
 	}

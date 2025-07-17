@@ -633,6 +633,20 @@ public class DiscordAdministrationAction extends ChatAction {
 				results.forEach(r -> builder.append("\n- **").append(r.getSpecialWeapon().getName()).append("**: ").append(r.getWinCount()).append(" wins"));
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Special win stats received.");
+			} else if (lowercaseMessage.startsWith("!get full game stats")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to get full game stats...");
+				var account = accountRepository.findAll().stream()
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.orElse(null);
+
+				if (account == null) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "ERROR: ACCOUNT IS NULL!");
+					return;
+				}
+
+				s3DailyStatsSender.sendWeaponPerformanceStatsToDiscord(account, 0, 1000);
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Full game stats sent.");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
