@@ -282,13 +282,21 @@ public class S3DailyStatsSender implements ScheduledService {
 	}
 
 	private void sendWeaponPerformanceStatsToDiscord(Account account) {
-		final var requiredGameCount = 20;
+		final var requiredGamesConfigValue = configurationRepository.findByConfigName("S3DailyStatsSender_requiredGamesCount")
+			.map(c -> c.toBuilder().configValue(c.getConfigValue().replaceAll("[^0-9]", "")).build())
+			.orElseGet(() -> configurationRepository.save(Configuration.builder()
+				.configName("S3DailyStatsSender_requiredGamesCount")
+				.configValue("20")
+				.build()))
+			.getConfigValue();
+
+		final var requiredGamesCount = Integer.parseInt(!requiredGamesConfigValue.isEmpty() ? requiredGamesConfigValue : "20");
 		final var limit = 15L;
 
-		sendWeaponPerformanceStatsToDiscord(account, requiredGameCount, limit);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, limit);
 	}
 
-	public void sendWeaponPerformanceStatsToDiscord(Account account, int requiredGameCount, long limit) {
+	public void sendWeaponPerformanceStatsToDiscord(Account account, int requiredGamesCount, long limit) {
 		final var performanceStatsMyselfSoloQ = vsWeaponRepository.getPerformanceStats(true, false);
 		final var performanceStatsMyselfPbs = vsWeaponRepository.getPerformanceStats(true, true);
 		final var performanceStatsOtherPlayersSoloQ = vsWeaponRepository.getPerformanceStats(false, false);
@@ -296,53 +304,53 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		// Own stats
 		final var winStatsMyselfSoloQ = performanceStatsMyselfSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
 		final var winStatsMyselfPbs = performanceStatsMyselfPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
 		final var defeatStatsMyselfSoloQ = performanceStatsMyselfSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
 		final var defeatStatsMyselfPbs = performanceStatsMyselfPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
 		// Own team stats
 		final var winStatsOwnTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.filter(WeaponPerformanceStats::isMyTeam)
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
 		final var winStatsOwnTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.filter(WeaponPerformanceStats::isMyTeam)
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
 		final var defeatStatsOwnTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.filter(WeaponPerformanceStats::isMyTeam)
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
 		final var defeatStatsOwnTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.filter(WeaponPerformanceStats::isMyTeam)
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(limit)
@@ -350,49 +358,49 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		// Opposing team stats
 		final var winStatsOpposingTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.filter(stats -> !stats.isMyTeam())
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
 		final var winStatsOpposingTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.filter(stats -> !stats.isMyTeam())
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
 		final var defeatStatsOpposingTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.filter(stats -> !stats.isMyTeam())
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
 		final var defeatStatsOpposingTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
+			.filter(stats -> stats.getTotalGames() >= requiredGamesCount)
 			.filter(stats -> !stats.isMyTeam())
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
 			.limit(limit)
 			.collect(Collectors.toList());
 
-		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "myself", winStatsMyselfSoloQ, true);
-		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "myself", defeatStatsMyselfSoloQ, false);
-		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "own team", winStatsOwnTeamPlayersSoloQ, true);
-		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "own team", defeatStatsOwnTeamPlayersSoloQ, false);
-		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "opposing team", winStatsOpposingTeamPlayersSoloQ, true);
-		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "opposing team", defeatStatsOpposingTeamPlayersSoloQ, false);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "SoloQ", "myself", winStatsMyselfSoloQ, true);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "SoloQ", "myself", defeatStatsMyselfSoloQ, false);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "SoloQ", "own team", winStatsOwnTeamPlayersSoloQ, true);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "SoloQ", "own team", defeatStatsOwnTeamPlayersSoloQ, false);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "SoloQ", "opposing team", winStatsOpposingTeamPlayersSoloQ, true);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "SoloQ", "opposing team", defeatStatsOpposingTeamPlayersSoloQ, false);
 
-		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "myself", winStatsMyselfPbs, true);
-		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "myself", defeatStatsMyselfPbs, false);
-		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "own team", winStatsOwnTeamPlayersPbs, true);
-		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "own team", defeatStatsOwnTeamPlayersPbs, false);
-		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "opposing team", winStatsOpposingTeamPlayersPbs, true);
-		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "opposing team", defeatStatsOpposingTeamPlayersPbs, false);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "PBs", "myself", winStatsMyselfPbs, true);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "PBs", "myself", defeatStatsMyselfPbs, false);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "PBs", "own team", winStatsOwnTeamPlayersPbs, true);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "PBs", "own team", defeatStatsOwnTeamPlayersPbs, false);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "PBs", "opposing team", winStatsOpposingTeamPlayersPbs, true);
+		sendWeaponPerformanceStatsToDiscord(account, requiredGamesCount, "PBs", "opposing team", defeatStatsOpposingTeamPlayersPbs, false);
 	}
 
-	private void sendWeaponPerformanceStatsToDiscord(Account account, long limit, String gameMode, String groupName, List<WeaponPerformanceStats> stats, boolean sendWins) {
+	private void sendWeaponPerformanceStatsToDiscord(Account account, long requiredGamesCount, String gameMode, String groupName, List<WeaponPerformanceStats> stats, boolean sendWins) {
 		var responseBuilder = new StringBuilder("## Top ")
 			.append(stats.size())
 			.append(" Weapons of __")
@@ -402,7 +410,7 @@ public class S3DailyStatsSender implements ScheduledService {
 			.append("__ by __")
 			.append(sendWins ? "Win" : "Defeat")
 			.append("__ ratio\nOnly ranking weapons with at least **")
-			.append(limit)
+			.append(requiredGamesCount)
 			.append("** games.");
 
 		int index = 1;
