@@ -409,7 +409,7 @@ public class S3DailyStatsSender implements ScheduledService {
 			.append(gameMode)
 			.append("__ by __")
 			.append(sendWins ? "Win" : "Defeat")
-			.append("__ ratio\nOnly ranking weapons with at least **")
+			.append("__ rate\nOnly ranking weapons with at least **")
 			.append(requiredGamesCount)
 			.append("** games.");
 
