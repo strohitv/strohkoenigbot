@@ -403,12 +403,12 @@ public class S3DailyStatsSender implements ScheduledService {
 	private void sendWeaponPerformanceStatsToDiscord(Account account, long requiredGamesCount, String gameMode, String groupName, List<WeaponPerformanceStats> stats, boolean sendWins) {
 		var responseBuilder = new StringBuilder("## Top ")
 			.append(stats.size())
-			.append(" Weapons of __")
+			.append(" weapons of __")
 			.append(groupName)
 			.append("__ in __")
 			.append(gameMode)
 			.append("__ by __")
-			.append(sendWins ? "Win" : "Defeat")
+			.append(sendWins ? "win" : "defeat")
 			.append("__ rate\nOnly ranking weapons with at least **")
 			.append(requiredGamesCount)
 			.append("** games.");
