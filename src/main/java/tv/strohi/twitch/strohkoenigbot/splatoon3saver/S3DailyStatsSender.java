@@ -419,7 +419,7 @@ public class S3DailyStatsSender implements ScheduledService {
 				.append("\n")
 				.append(index)
 				.append(". `")
-				.append(String.format("%02.2f", sendWins ? stat.getWinRate() : stat.getDefeatRate()))
+				.append(String.format("%05.2f", sendWins ? stat.getWinRate() : stat.getDefeatRate()))
 				.append("%`: **")
 				.append(stat.getWeapon().getName())
 				.append("** (")
