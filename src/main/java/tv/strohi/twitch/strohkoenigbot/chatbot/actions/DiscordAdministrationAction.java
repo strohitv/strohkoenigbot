@@ -635,6 +635,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Special win stats received.");
 			} else if (lowercaseMessage.startsWith("!get full game stats")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to get full game stats...");
+
 				var account = accountRepository.findAll().stream()
 					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.findFirst()
@@ -645,7 +646,14 @@ public class DiscordAdministrationAction extends ChatAction {
 					return;
 				}
 
-				s3DailyStatsSender.sendWeaponPerformanceStatsToDiscord(account, 0, 1000);
+				var requiredGameCount = 0;
+
+				var number = lowercaseMessage.replaceAll("[^0-9]", "");
+				if (!number.isEmpty()) {
+					requiredGameCount = Integer.parseInt(number);
+				}
+
+				s3DailyStatsSender.sendWeaponPerformanceStatsToDiscord(account, requiredGameCount, 10_000);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Full game stats sent.");
 			}
 		} catch (Exception e) {
