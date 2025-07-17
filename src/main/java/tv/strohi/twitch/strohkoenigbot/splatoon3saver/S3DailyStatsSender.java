@@ -282,92 +282,95 @@ public class S3DailyStatsSender implements ScheduledService {
 	}
 
 	private void sendWeaponPerformanceStatsToDiscord(Account account) {
-		var performanceStatsMyselfSoloQ = vsWeaponRepository.getPerformanceStats(true, false);
-		var performanceStatsMyselfPbs = vsWeaponRepository.getPerformanceStats(true, true);
-		var performanceStatsOtherPlayersSoloQ = vsWeaponRepository.getPerformanceStats(false, false);
-		var performanceStatsOtherPlayersPbs = vsWeaponRepository.getPerformanceStats(false, true);
+		final var requiredGameCount = 20;
+		final var limit = 15L;
+
+		final var performanceStatsMyselfSoloQ = vsWeaponRepository.getPerformanceStats(true, false);
+		final var performanceStatsMyselfPbs = vsWeaponRepository.getPerformanceStats(true, true);
+		final var performanceStatsOtherPlayersSoloQ = vsWeaponRepository.getPerformanceStats(false, false);
+		final var performanceStatsOtherPlayersPbs = vsWeaponRepository.getPerformanceStats(false, true);
 
 		// Own stats
-		var winStatsMyselfSoloQ = performanceStatsMyselfSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var winStatsMyselfSoloQ = performanceStatsMyselfSoloQ.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
-		var winStatsMyselfPbs = performanceStatsMyselfPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var winStatsMyselfPbs = performanceStatsMyselfPbs.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
-		var defeatStatsMyselfSoloQ = performanceStatsMyselfSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var defeatStatsMyselfSoloQ = performanceStatsMyselfSoloQ.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
-		var defeatStatsMyselfPbs = performanceStatsMyselfPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var defeatStatsMyselfPbs = performanceStatsMyselfPbs.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
 		// Own team stats
-		var winStatsOwnTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var winStatsOwnTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.filter(WeaponPerformanceStats::isMyTeam)
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
-		var winStatsOwnTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var winStatsOwnTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.filter(WeaponPerformanceStats::isMyTeam)
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
-		var defeatStatsOwnTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var defeatStatsOwnTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.filter(WeaponPerformanceStats::isMyTeam)
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
-		var defeatStatsOwnTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var defeatStatsOwnTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.filter(WeaponPerformanceStats::isMyTeam)
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
 		// Opposing team stats
-		var winStatsOpposingTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var winStatsOpposingTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.filter(stats -> !stats.isMyTeam())
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
-		var winStatsOpposingTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var winStatsOpposingTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.filter(stats -> !stats.isMyTeam())
 			.sorted((a, b) -> Double.compare(b.getWinRate(), a.getWinRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
-		var defeatStatsOpposingTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var defeatStatsOpposingTeamPlayersSoloQ = performanceStatsOtherPlayersSoloQ.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.filter(stats -> !stats.isMyTeam())
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
-		var defeatStatsOpposingTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
-			.filter(stats -> stats.getTotalGames() >= 10)
+		final var defeatStatsOpposingTeamPlayersPbs = performanceStatsOtherPlayersPbs.stream()
+			.filter(stats -> stats.getTotalGames() >= requiredGameCount)
 			.filter(stats -> !stats.isMyTeam())
 			.sorted((a, b) -> Double.compare(b.getDefeatRate(), a.getDefeatRate()))
-			.limit(15L)
+			.limit(limit)
 			.collect(Collectors.toList());
 
 		sendWeaponPerformanceStatsToDiscord(account, "SoloQ", "myself", winStatsMyselfSoloQ, true);
