@@ -377,22 +377,22 @@ public class S3DailyStatsSender implements ScheduledService {
 			.limit(limit)
 			.collect(Collectors.toList());
 
-		sendWeaponPerformanceStatsToDiscord(account, "SoloQ", "myself", winStatsMyselfSoloQ, true);
-		sendWeaponPerformanceStatsToDiscord(account, "SoloQ", "myself", defeatStatsMyselfSoloQ, false);
-		sendWeaponPerformanceStatsToDiscord(account, "SoloQ", "own team", winStatsOwnTeamPlayersSoloQ, true);
-		sendWeaponPerformanceStatsToDiscord(account, "SoloQ", "own team", defeatStatsOwnTeamPlayersSoloQ, false);
-		sendWeaponPerformanceStatsToDiscord(account, "SoloQ", "opposing team", winStatsOpposingTeamPlayersSoloQ, true);
-		sendWeaponPerformanceStatsToDiscord(account, "SoloQ", "opposing team", defeatStatsOpposingTeamPlayersSoloQ, false);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "myself", winStatsMyselfSoloQ, true);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "myself", defeatStatsMyselfSoloQ, false);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "own team", winStatsOwnTeamPlayersSoloQ, true);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "own team", defeatStatsOwnTeamPlayersSoloQ, false);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "opposing team", winStatsOpposingTeamPlayersSoloQ, true);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "SoloQ", "opposing team", defeatStatsOpposingTeamPlayersSoloQ, false);
 
-		sendWeaponPerformanceStatsToDiscord(account, "PBs", "myself", winStatsMyselfPbs, true);
-		sendWeaponPerformanceStatsToDiscord(account, "PBs", "myself", defeatStatsMyselfPbs, false);
-		sendWeaponPerformanceStatsToDiscord(account, "PBs", "own team", winStatsOwnTeamPlayersPbs, true);
-		sendWeaponPerformanceStatsToDiscord(account, "PBs", "own team", defeatStatsOwnTeamPlayersPbs, false);
-		sendWeaponPerformanceStatsToDiscord(account, "PBs", "opposing team", winStatsOpposingTeamPlayersPbs, true);
-		sendWeaponPerformanceStatsToDiscord(account, "PBs", "opposing team", defeatStatsOpposingTeamPlayersPbs, false);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "myself", winStatsMyselfPbs, true);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "myself", defeatStatsMyselfPbs, false);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "own team", winStatsOwnTeamPlayersPbs, true);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "own team", defeatStatsOwnTeamPlayersPbs, false);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "opposing team", winStatsOpposingTeamPlayersPbs, true);
+		sendWeaponPerformanceStatsToDiscord(account, limit, "PBs", "opposing team", defeatStatsOpposingTeamPlayersPbs, false);
 	}
 
-	private void sendWeaponPerformanceStatsToDiscord(Account account, String gameMode, String groupName, List<WeaponPerformanceStats> stats, boolean sendWins) {
+	private void sendWeaponPerformanceStatsToDiscord(Account account, long limit, String gameMode, String groupName, List<WeaponPerformanceStats> stats, boolean sendWins) {
 		var responseBuilder = new StringBuilder("## Top ")
 			.append(stats.size())
 			.append(" Weapons of __")
@@ -401,7 +401,9 @@ public class S3DailyStatsSender implements ScheduledService {
 			.append(gameMode)
 			.append("__ by __")
 			.append(sendWins ? "Win" : "Defeat")
-			.append("__ ratio");
+			.append("__ ratio\nOnly ranking weapons with at least **")
+			.append(limit)
+			.append("** games.");
 
 		int index = 1;
 		for (var stat : stats) {
