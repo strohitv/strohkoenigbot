@@ -27,6 +27,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
+import javax.transaction.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -117,17 +118,24 @@ public class RotationWatcher implements ScheduledService {
 	}
 
 	//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
+	@Transactional
 	public void sendDiscordNotificationsOnLocalDebug() {
 		if (DiscordChannelDecisionMaker.isLocalDebug()) {
-			sendDiscordNotifications();
+			sendDiscordNotifications(true);
 		}
+	}
+
+	@Transactional
+	public void sendDiscordNotifications() {
+		sendDiscordNotifications(false);
 	}
 
 	// ON LOCAL DEBUG: Remember lines 119, 125, 131!!
 //	@Scheduled(cron = "20 0 * * * *")
 //	@Scheduled(cron = "20 * * * * *")
-	public void sendDiscordNotifications() {
-		if (DiscordChannelDecisionMaker.isLocalDebug()) {
+	@Transactional
+	public void sendDiscordNotifications(boolean force) {
+		if (!force && DiscordChannelDecisionMaker.isLocalDebug()) {
 			return;
 		}
 
