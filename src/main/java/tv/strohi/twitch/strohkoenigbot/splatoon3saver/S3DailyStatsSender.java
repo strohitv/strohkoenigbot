@@ -449,7 +449,7 @@ public class S3DailyStatsSender implements ScheduledService {
 			if (weapon.getStats() == null || weapon.getStats().getLevel() == null) {
 				// not purchased yet
 				tierName = "Not purchased yet";
-			} else if (weapon.getStats().getLevel() < 5) {
+			} else if (weapon.getStats().getLevel() < 10) {
 				var currentExpLowerBound = getCurrentExpLowerBound(weapon);
 				var currentExpUpperBound = currentExpLowerBound + 10_000;
 
@@ -1109,7 +1109,7 @@ public class S3DailyStatsSender implements ScheduledService {
 		var rightValue = 0;
 
 		if ("Max Exp".equalsIgnoreCase(a)) {
-			leftValue = 1_000_000;
+			leftValue = 6_000_000;
 		} else if ("Not purchased yet".equalsIgnoreCase(a)) {
 			leftValue = -1_000_000;
 		} else {
@@ -1117,7 +1117,7 @@ public class S3DailyStatsSender implements ScheduledService {
 		}
 
 		if ("Max Exp".equalsIgnoreCase(b)) {
-			rightValue = 1_000_000;
+			rightValue = 6_000_000;
 		} else if ("Not purchased yet".equalsIgnoreCase(b)) {
 			rightValue = -1_000_000;
 		} else {
