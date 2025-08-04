@@ -497,9 +497,19 @@ public class S3StreamStatistics {
 			var earnedExpStreamRatio = expWeaponGain * 100.0 / expGoal;
 			var remainingExpRatio = 100.0 - alreadyOwnedExpRatio - earnedExpStreamRatio;
 
-			String mainWeaponUrl = getImageEncoded(player.getWeapon().getImage());
+			var mainWeaponImage = player.getWeapon().getImage();
 
-			var currentLevelToCheck = 5;
+			if (weaponStatsCurrent.getStats().getLevel() < 4) {
+				if (player.getWeapon().getImage3D() != null) {
+					mainWeaponImage = player.getWeapon().getImage3D();
+				} else if (player.getWeapon().getImage3DThumbnail() != null) {
+					mainWeaponImage = player.getWeapon().getImage3DThumbnail();
+				}
+			}
+
+			var mainWeaponUrl = getImageEncoded(mainWeaponImage);
+
+			var currentLevelToCheck = 4;
 			var hasReloaded = false;
 			while (weaponStatsCurrent.getStats().getLevel() >= currentLevelToCheck) {
 				var badgeSearchResult = searchForBadge(currentLevelToCheck, weaponStatsCurrent.getName(), !hasReloaded);
