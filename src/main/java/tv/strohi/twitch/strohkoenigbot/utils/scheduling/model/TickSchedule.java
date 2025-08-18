@@ -24,6 +24,10 @@ public class TickSchedule implements Schedule {
 
 	private int currentTick = 0;
 
+	public static int ofMinutes(int minutes) {
+		return minutes * 12;
+	}
+
 	public static int everyMinutes(int minutes) {
 		return minutes * 12;
 	}

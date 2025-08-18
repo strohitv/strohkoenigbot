@@ -38,7 +38,7 @@ public class S3RequestKeyLoader implements ScheduledService {
 	public List<ScheduleRequest> createSingleRunRequests() {
 		return List.of(ScheduleRequest.builder()
 			.name("S3RequestKeyLoader_refreshRequestKeys")
-			.schedule(TickSchedule.getScheduleString(TickSchedule.everyMinutes(1)))
+			.schedule(TickSchedule.getScheduleString(TickSchedule.ofMinutes(1)))
 			.runnable(this::refreshRequestKeys)
 			.build());
 	}
