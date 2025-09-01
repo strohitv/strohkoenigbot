@@ -89,7 +89,7 @@ public class WeaponsResult implements Serializable {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class PastSeasons {
-		public List<Nothing> edges;
+		public List<PastSeasonEdge> edges;
 		public PageInfo pageInfo;
 	}
 }

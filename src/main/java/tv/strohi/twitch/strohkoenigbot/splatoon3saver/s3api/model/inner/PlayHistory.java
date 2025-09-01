@@ -44,9 +44,9 @@ public class PlayHistory implements Serializable {
 
 	private List<Weapon> frequentlyUsedWeapons;
 
-	private Nothing weaponHistory;
+	private WeaponHistories weaponHistory;
 	@JsonProperty("xMatchSeasonHistory")
-	private Nothing xMatchSeasonHistory;
+	private XMatchSeasonHistories xMatchSeasonHistory;
 
 	private WeaponHistories weaponHistories;
 	private SeasonHistories seasonHistories;
@@ -150,8 +150,26 @@ public class PlayHistory implements Serializable {
 	@Setter
 	@NoArgsConstructor
 	@AllArgsConstructor
+	public static class XMatchSeasonHistories {
+		public List<XMatchSeasonHistoriesEdge> edges;
+		public PageInfo pageInfo;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
 	public static class SeasonHistoriesEdge {
 		public SeasonHistoriesNode node;
+		public String cursor;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class XMatchSeasonHistoriesEdge {
+		public XMatchHistoryNode node;
 		public String cursor;
 	}
 
@@ -163,9 +181,48 @@ public class PlayHistory implements Serializable {
 		public String __typename;
 		public String id;
 		public String seasonName;
-		public Nothing bestNineHistory;
+		public BestNineHistory bestNineHistory;
 		@JsonProperty("xMatchHistory")
 		public XMatchHistory xMatchHistory;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class BestNineHistory {
+		public String __typename;
+		public String bestNineRankingSeasonId;
+		public Integer rank;
+		public BestNine bestNine;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class BestNine {
+		public Double powerTotal;
+		public WeaponPowerOrdersNodes weaponPowerOrders;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponPowerOrdersNodes {
+		public List<WeaponPowerOrdersNode> nodes;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class WeaponPowerOrdersNode {
+		public String id;
+		public Integer order;
+		public Weapon weapon;
+		public Double weaponPower;
 	}
 
 	@Getter
@@ -183,5 +240,23 @@ public class PlayHistory implements Serializable {
 		public Integer rankGl;
 		public Double powerCl;
 		public Integer rankCl;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class XMatchHistoryNode {
+		@JsonProperty("xRankingSeason")
+		public IdAndName xRankingSeason;
+		public Double powerAr;
+		public Integer rankAr;
+		public Double powerLf;
+		public Integer rankLf;
+		public Double powerGl;
+		public Integer rankGl;
+		public Double powerCl;
+		public Integer rankCl;
+		public String __typename;
 	}
 }

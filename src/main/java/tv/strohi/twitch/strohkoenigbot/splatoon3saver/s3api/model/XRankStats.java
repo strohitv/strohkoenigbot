@@ -80,27 +80,6 @@ public class XRankStats {
 	@Setter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class PastSeasonEdge {
-		public PastSeasonNode node;
-		public String cursor;
-	}
-
-	@Getter
-	@Setter
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public static class PastSeasonNode {
-		public String id;
-		public String name;
-		public String __typename;
-		public Instant startTime;
-		public Instant endTime;
-	}
-
-	@Getter
-	@Setter
-	@NoArgsConstructor
-	@AllArgsConstructor
 	public static class XStats {
 		public Weapon weapon;
 		public double lastXPower;
