@@ -23,7 +23,15 @@ public class PastSeasonEdge {
 		public String id;
 		public String name;
 		public String __typename;
-		public Instant startTime;
-		public Instant endTime;
+		public String startTime;
+		public String endTime;
+
+		public Instant getStartTimeAsInstant() {
+			return Instant.parse(startTime);
+		}
+
+		public Instant getEndTimeAsInstant() {
+			return Instant.parse(endTime);
+		}
 	}
 }
