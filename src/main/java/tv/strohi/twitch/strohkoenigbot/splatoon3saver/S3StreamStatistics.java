@@ -126,7 +126,7 @@ public class S3StreamStatistics {
 			long victoryCount = includedMatches.stream().filter(m -> "win".equalsIgnoreCase(m.getOwnJudgement())).count();
 			long defeatCount = includedMatches.stream().filter(m -> "lose".equalsIgnoreCase(m.getOwnJudgement()) || "deemed_lose".equalsIgnoreCase(m.getOwnJudgement())).count();
 
-			long victoryRatio = 100 * victoryCount / (victoryCount + defeatCount);
+			long victoryRatio = 100 * victoryCount / Math.max(victoryCount + defeatCount, 1);
 			long defeatRatio = 100 - victoryRatio;
 
 			var lastMatch = includedMatches.stream()
