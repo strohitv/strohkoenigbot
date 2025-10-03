@@ -535,7 +535,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Issuing shutdown");
 				strohkoenigbotApplication.shutdown();
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Issued shutdown");
-			} else if (lowercaseMessage.startsWith("!force twitch live")) {
+			} else if (lowercaseMessage.startsWith("!force twitch live") || lowercaseMessage.startsWith("!ftl")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing twitch going live state");
 				var account = accountRepository.findAll().stream()
 					.filter(a -> a.getTwitchUserId() != null && !a.getTwitchUserId().isBlank())
@@ -549,7 +549,7 @@ public class DiscordAdministrationAction extends ChatAction {
 					twitchBotClient.forceLive();
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Successfully forced twitch going live state without twitch user id");
 				}
-			} else if (lowercaseMessage.startsWith("!force twitch offline")) {
+			} else if (lowercaseMessage.startsWith("!force twitch offline") || lowercaseMessage.startsWith("!fto")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Forcing twitch going offline state");
 
 				var account = accountRepository.findAll().stream()
