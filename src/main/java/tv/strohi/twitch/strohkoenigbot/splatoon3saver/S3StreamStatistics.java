@@ -10,13 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Badge;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsSpecialWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3BadgeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.SpecialWinCount;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Match;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
@@ -57,6 +61,8 @@ public class S3StreamStatistics {
 	private Double currentXZones, currentXTower, currentXRainmaker, currentXClams;
 
 	private List<Weapon> startWeaponStats, currentWeaponStats;
+
+	private List<Gear> headGears, clothingGears, shoesGears;
 
 	private Map<Splatoon3VsSpecialWeapon, Integer> startSpecialWinStats, currentSpecialWinStats;
 
@@ -531,18 +537,33 @@ public class S3StreamStatistics {
 			String headGearSub1 = getImageEncoded(player.getHeadGearSecondaryAbility1().getImage());
 			String headGearSub2 = player.getHeadGearSecondaryAbility2() != null ? getImageEncoded(player.getHeadGearSecondaryAbility2().getImage()) : null;
 			String headGearSub3 = player.getHeadGearSecondaryAbility3() != null ? getImageEncoded(player.getHeadGearSecondaryAbility3().getImage()) : null;
+			var headGearRarity = headGears.stream()
+				.filter(g -> g.getName().equalsIgnoreCase(player.getHeadGear().getName()))
+				.findFirst()
+				.map(Gear::getRarity)
+				.orElse(2);
 
 			String clothesGear = getImageEncoded(player.getClothingGear().getOriginalImage());
 			String clothesGearMain = getImageEncoded(player.getClothingMainAbility().getImage());
 			String clothesGearSub1 = getImageEncoded(player.getClothingSecondaryAbility1().getImage());
 			String clothesGearSub2 = player.getClothingSecondaryAbility2() != null ? getImageEncoded(player.getClothingSecondaryAbility2().getImage()) : null;
 			String clothesGearSub3 = player.getClothingSecondaryAbility3() != null ? getImageEncoded(player.getClothingSecondaryAbility3().getImage()) : null;
+			var clothingGearRarity = clothingGears.stream()
+				.filter(g -> g.getName().equalsIgnoreCase(player.getClothingGear().getName()))
+				.findFirst()
+				.map(Gear::getRarity)
+				.orElse(2);
 
 			String shoesGear = getImageEncoded(player.getShoesGear().getOriginalImage());
 			String shoesGearMain = getImageEncoded(player.getShoesMainAbility().getImage());
 			String shoesGearSub1 = getImageEncoded(player.getShoesSecondaryAbility1().getImage());
 			String shoesGearSub2 = player.getShoesSecondaryAbility2() != null ? getImageEncoded(player.getShoesSecondaryAbility2().getImage()) : null;
 			String shoesGearSub3 = player.getShoesSecondaryAbility3() != null ? getImageEncoded(player.getShoesSecondaryAbility3().getImage()) : null;
+			var shoesGearRarity = shoesGears.stream()
+				.filter(g -> g.getName().equalsIgnoreCase(player.getShoesGear().getName()))
+				.findFirst()
+				.map(Gear::getRarity)
+				.orElse(2);
 
 //			logSender.sendLogs(log, String.format("openCurrentPower: `%s`, openPreviousPower: `%s`, openChangeHidden: `%s`, openCurrentPower == null: `%s`, openPreviousPower == null: `%s`, openCurrentPower.doubleValue() == openPreviousPower.doubleValue(): `%s`",
 //				openCurrentPower != null ? String.format("%.1f", openCurrentPower) : "null",
@@ -561,12 +582,15 @@ public class S3StreamStatistics {
 					.replace("{sub-weapon}", String.format("data:image/png;base64,%s", subWeaponUrl))
 					.replace("{special-weapon}", String.format("data:image/png;base64,%s", specialWeaponUrl))
 					.replace("{head}", String.format("data:image/png;base64,%s", headGear))
+					.replace("{head-stars}", String.format("%d", headGearRarity))
 					.replace("{head-main}", String.format("data:image/png;base64,%s", headGearMain))
 					.replace("{head-sub-1}", String.format("data:image/png;base64,%s", headGearSub1))
 					.replace("{clothing}", String.format("data:image/png;base64,%s", clothesGear))
+					.replace("{clothing-stars}", String.format("%d", clothingGearRarity))
 					.replace("{clothing-main}", String.format("data:image/png;base64,%s", clothesGearMain))
 					.replace("{clothing-sub-1}", String.format("data:image/png;base64,%s", clothesGearSub1))
 					.replace("{shoes}", String.format("data:image/png;base64,%s", shoesGear))
+					.replace("{shoes-stars}", String.format("%d", shoesGearRarity))
 					.replace("{shoes-main}", String.format("data:image/png;base64,%s", shoesGearMain))
 					.replace("{shoes-sub-1}", String.format("data:image/png;base64,%s", shoesGearSub1))
 
@@ -951,6 +975,12 @@ public class S3StreamStatistics {
 		}
 
 		currentWeaponStats = Arrays.stream(allWeapons).collect(Collectors.toList());
+	}
+
+	public void setCurrentGears(Gear[] allHeadGears, Gear[] allClothingGears, Gear[] allShoesGears) {
+		headGears = Arrays.stream(allHeadGears).collect(Collectors.toList());
+		clothingGears = Arrays.stream(allClothingGears).collect(Collectors.toList());
+		shoesGears = Arrays.stream(allShoesGears).collect(Collectors.toList());
 	}
 
 	public void setCurrentSpecialWins(List<SpecialWinCount> specialWins) {

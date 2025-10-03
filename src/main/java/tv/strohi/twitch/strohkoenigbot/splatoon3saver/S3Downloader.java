@@ -71,6 +71,7 @@ public class S3Downloader implements ScheduledService {
 	private final S3RotationSender rotationSender;
 	private final S3StreamStatistics streamStatistics;
 	private final S3XPowerDownloader xPowerDownloader;
+	private final S3GearDownloader gearDownloader;
 	private final S3WeaponStatsDownloader weaponStatsDownloader;
 	private final S3SpecialWeaponWinStatsFiller specialWeaponWinStatsFiller;
 
@@ -125,6 +126,7 @@ public class S3Downloader implements ScheduledService {
 		wentLiveInstant = wentLiveTime;
 		streamStatistics.reset();
 		xPowerDownloader.fillXPower();
+		gearDownloader.fillGears();
 		weaponStatsDownloader.fillWeaponStats();
 		specialWeaponWinStatsFiller.fillSpecialWeaponStats();
 
@@ -185,6 +187,7 @@ public class S3Downloader implements ScheduledService {
 			try {
 				if (wentLiveInstant != null) {
 					xPowerDownloader.fillXPower();
+					gearDownloader.fillGears();
 					weaponStatsDownloader.fillWeaponStats();
 				}
 
