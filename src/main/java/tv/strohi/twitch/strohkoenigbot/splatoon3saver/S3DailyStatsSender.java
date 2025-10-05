@@ -123,8 +123,6 @@ public class S3DailyStatsSender implements ScheduledService {
 	public void sendStatsToDiscord(String folderName, Account account) {
 		logger.info("Loading Splatoon 3 salmon run games for account with folder name '{}'...", folderName);
 
-		countMapOccurrenceStatsAndSendToDiscord(account);
-
 		var yesterdayStats = loadYesterdayStats();
 
 		Map<String, Integer> wonOnlineGames = new HashMap<>();
@@ -251,6 +249,7 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		var requiredExpFor4StarGrind = getExpNeededFor4StarGrind(allWeaponsBelow4Stars);
 
+		countMapOccurrenceStatsAndSendToDiscord(account);
 		sendWeaponPerformanceStatsToDiscord(account);
 
 		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
