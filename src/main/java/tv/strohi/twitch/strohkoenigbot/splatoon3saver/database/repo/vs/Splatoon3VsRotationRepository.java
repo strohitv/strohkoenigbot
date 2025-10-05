@@ -15,4 +15,6 @@ public interface Splatoon3VsRotationRepository extends CrudRepository<Splatoon3V
 
 	Optional<Splatoon3VsRotation> findByModeAndStartTime(Splatoon3VsMode mode, Instant startTime);
 	List<Splatoon3VsRotation> findByModeAndStartTimeAfter(Splatoon3VsMode mode, Instant startTimeAfter);
+
+	List<Splatoon3VsRotation> findByStartTimeAfterAndStartTimeBefore(Instant startTimeAfter, Instant startTimeBefore);
 }

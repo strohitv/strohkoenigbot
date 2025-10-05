@@ -15,9 +15,14 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsMode;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotation;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsStage;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultEnemyRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsStageRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.WeaponPerformanceStats;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.DailyStatsSaveModel;
@@ -57,6 +62,8 @@ public class S3DailyStatsSender implements ScheduledService {
 	private final ConfigurationRepository configurationRepository;
 	private final Splatoon3VsWeaponRepository vsWeaponRepository;
 	private final Splatoon3VsResultRepository vsResultRepository;
+	private final Splatoon3VsStageRepository vsStageRepository;
+	private final Splatoon3VsRotationRepository vsRotationRepository;
 
 	private final Splatoon3SrResultRepository srResultRepository;
 	private final Splatoon3SrResultEnemyRepository srResultEnemyRepository;
@@ -69,6 +76,8 @@ public class S3DailyStatsSender implements ScheduledService {
 	private final S3XLeaderboardDownloader xLeaderboardDownloader;
 
 	private final S3RequestSender s3RequestSender;
+
+	private final List<String> ignoredVsStages = List.of("", "Random", "Grand Splatlands Bowl");
 
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
@@ -113,6 +122,8 @@ public class S3DailyStatsSender implements ScheduledService {
 
 	public void sendStatsToDiscord(String folderName, Account account) {
 		logger.info("Loading Splatoon 3 salmon run games for account with folder name '{}'...", folderName);
+
+		countMapOccurrenceStatsAndSendToDiscord(account);
 
 		var yesterdayStats = loadYesterdayStats();
 
@@ -240,9 +251,10 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		var requiredExpFor4StarGrind = getExpNeededFor4StarGrind(allWeaponsBelow4Stars);
 
+		sendWeaponPerformanceStatsToDiscord(account);
+
 		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
 		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
-		sendWeaponPerformanceStatsToDiscord(account);
 
 		sendGearStatsToDiscord(gearStars, gearStarCountPerBrand, yesterdayStats, account);
 		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
@@ -279,6 +291,32 @@ public class S3DailyStatsSender implements ScheduledService {
 		refreshYesterdayStats(yesterdayStats);
 
 		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
+	}
+
+	private void countMapOccurrenceStatsAndSendToDiscord(Account account) {
+		var allStages = vsStageRepository.findAll().stream()
+			.filter(stage -> !ignoredVsStages.contains(stage.getName()))
+			.collect(Collectors.toList());
+
+		var baseForFilter = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.SECONDS);
+		var allRotationsYesterday = vsRotationRepository.findByStartTimeAfterAndStartTimeBefore(baseForFilter.minus(1, ChronoUnit.DAYS), baseForFilter);
+
+		var allModesYesterday = allRotationsYesterday.stream()
+			.map(Splatoon3VsRotation::getMode)
+			.distinct()
+			.sorted(Comparator.comparingLong(Splatoon3VsMode::getId))
+			.collect(Collectors.toList());
+
+		sendMapOccurrenceStatsToDiscord("all modes", allRotationsYesterday, allStages, account);
+		for (var mode : allModesYesterday) {
+			sendMapOccurrenceStatsToDiscord(
+				mode.getName(),
+				allRotationsYesterday.stream()
+					.filter(r -> r.getMode().equals(mode))
+					.collect(Collectors.toList()),
+				allStages,
+				account);
+		}
 	}
 
 	private void sendWeaponPerformanceStatsToDiscord(Account account) {
@@ -1363,6 +1401,35 @@ public class S3DailyStatsSender implements ScheduledService {
 		}
 
 		discordBot.sendPrivateMessage(account.getDiscordId(), statMessageBuilder.toString());
+	}
+
+	private void sendMapOccurrenceStatsToDiscord(String modeName, List<Splatoon3VsRotation> rotations, List<Splatoon3VsStage> allStages, Account account) {
+		final var stats = new HashMap<String, Integer>();
+
+		for (var stage : allStages) {
+			stats.putIfAbsent(stage.getName(), 0);
+		}
+
+		for (var rotation : rotations) {
+			stats.put(rotation.getStage1().getName(), stats.get(rotation.getStage1().getName()) + 1);
+			stats.put(rotation.getStage2().getName(), stats.get(rotation.getStage2().getName()) + 1);
+		}
+
+		final var sortedStats = stats.entrySet().stream()
+			.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+			.collect(Collectors.toList());
+		final var occurrenceMessageBuilder = new StringBuilder("## Yesterday's map occurrences in **").append(modeName).append("**");
+
+		for (var entry : sortedStats) {
+			occurrenceMessageBuilder
+				.append("\n - **")
+				.append(entry.getValue())
+				.append("** times: **")
+				.append(entry.getKey())
+				.append("**");
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), occurrenceMessageBuilder.toString());
 	}
 
 	private void countSalmonRunEnemyDefeatAndWeaponResults(Map.Entry<String, ConfigFile.StoredGame> game, Path directory, Map<String, Integer> defeatedSalmonRunBosses,
