@@ -14,6 +14,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.rest.SplatNet3DataController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3RotationNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3RotationSenderService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrRotationService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3VsRotationService;
@@ -53,6 +54,7 @@ public class S3RotationSender implements ScheduledService {
 	private final LogSender logSender;
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
+	private final Splatoon3RotationNotificationRepository notificationRepository;
 
 	private final S3ApiQuerySender requestSender;
 	private final DiscordBot discordBot;
@@ -323,33 +325,32 @@ public class S3RotationSender implements ScheduledService {
 					&& currentRotation.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES)))
 			) {
 				// new rotation -> send notifications
-				List<Rotation> rotations = Arrays.stream(schedule.getNodes()).collect(Collectors.toList());
+				var rotations = Arrays.stream(schedule.getNodes()).collect(Collectors.toList());
 
 				if (currentRotation.getBankaraMatchSettings() != null) {
 					// WONDERFUL, special case thanks to different class design here...
-					String seriesChannelName = DiscordChannelDecisionMaker.getS3AnarchySeriesChannel();
-					String openChannelName = DiscordChannelDecisionMaker.getS3AnarchyOpenChannel();
+					var seriesChannelName = DiscordChannelDecisionMaker.getS3AnarchySeriesChannel();
+					var openChannelName = DiscordChannelDecisionMaker.getS3AnarchyOpenChannel();
 
-					List<RotationMatchSettingWithTime> seriesRotations = getAnarchyRotationSettingsWithTimes(rotations, "CHALLENGE");
-					List<RotationMatchSettingWithTime> openRotations = getAnarchyRotationSettingsWithTimes(rotations, "OPEN");
+					var seriesRotations = getAnarchyRotationSettingsWithTimes(rotations, "CHALLENGE");
+					var openRotations = getAnarchyRotationSettingsWithTimes(rotations, "OPEN");
 
 					sendRotationToDiscord(seriesChannelName, "Anarchy Series", seriesRotations);
 					sendRotationToDiscord(openChannelName, "Anarchy Open", openRotations);
 				} else if (currentRotation.getFestMatchSettings() != null) {
-					String proChannelName = DiscordChannelDecisionMaker.getS3SplatfestProChannel();
-					String openChannelName = DiscordChannelDecisionMaker.getS3SplatfestOpenChannel();
+					var proChannelName = DiscordChannelDecisionMaker.getS3SplatfestProChannel();
+					var openChannelName = DiscordChannelDecisionMaker.getS3SplatfestOpenChannel();
 
-					List<RotationMatchSettingWithTime> proRotations = getSplatFestRotationSettingsWithTimes(rotations, "CHALLENGE");
-					List<RotationMatchSettingWithTime> openRotations = getSplatFestRotationSettingsWithTimes(rotations, "REGULAR");
+					var proRotations = getSplatFestRotationSettingsWithTimes(rotations, "CHALLENGE");
+					var openRotations = getSplatFestRotationSettingsWithTimes(rotations, "REGULAR");
 
 					sendRotationToDiscord(proChannelName, "Splatfest Pro", proRotations);
 					sendRotationToDiscord(openChannelName, "Splatfest Open", openRotations);
 				} else {
-					String channelName = decideChannelToPostIn(currentRotation);
+					var channelName = decideChannelToPostIn(currentRotation);
 
 					if (channelName != null) {
-						List<RotationMatchSettingWithTime> rotationMatchSettingsWithTimes = getRotationSettingsWithTimes(rotations);
-
+						var rotationMatchSettingsWithTimes = getRotationSettingsWithTimes(rotations);
 						sendRotationToDiscord(channelName, getGameModeName(channelName), rotationMatchSettingsWithTimes);
 					}
 				}
@@ -365,7 +366,7 @@ public class S3RotationSender implements ScheduledService {
 					&& c.getStartTimeAsInstant().isAfter(Instant.now().minus(5, ChronoUnit.MINUTES))))
 		) {
 			// new rotation -> send notifications
-			String channelName = DiscordChannelDecisionMaker.getS3ChallengeChannel();
+			var channelName = DiscordChannelDecisionMaker.getS3ChallengeChannel();
 
 			if (channelName != null) {
 				sendChallengeRotationToDiscord(channelName, eventSchedules.getNodes());
@@ -374,17 +375,17 @@ public class S3RotationSender implements ScheduledService {
 	}
 
 	private void sendRotationToDiscord(String channelName, String mode, List<RotationMatchSettingWithTime> rotations) {
-		RotationMatchSettingWithTime firstRotation = rotations.stream().min(Comparator.comparing(RotationMatchSettingWithTime::getStartTime)).orElseThrow();
+		var firstRotation = rotations.stream().min(Comparator.comparing(RotationMatchSettingWithTime::getStartTime)).orElseThrow();
 
 		if (firstRotation.getRotationMatchSetting() == null) {
 			// Splatfest whenever a fest is not active.
 			return;
 		}
 
-		String image1 = firstRotation.getRotationMatchSetting().getVsStages()[0].getImage().getUrl();
-		String image2 = firstRotation.getRotationMatchSetting().getVsStages()[1].getImage().getUrl();
+		var image1 = firstRotation.getRotationMatchSetting().getVsStages()[0].getImage().getUrl();
+		var image2 = firstRotation.getRotationMatchSetting().getVsStages()[1].getImage().getUrl();
 
-		StringBuilder builder = new StringBuilder("**").append(mode).append("**: ")
+		var builder = new StringBuilder("**").append(mode).append("**: ")
 			.append("**").append(rotationSenderService.getEmoji(firstRotation.getRotationMatchSetting().getVsRule().getName())).append(firstRotation.getRotationMatchSetting().getVsRule().getName()).append("**\n")
 			.append("- Stage A: **").append(firstRotation.getRotationMatchSetting().getVsStages()[0].getName()).append("**\n")
 			.append("- Stage B: **").append(firstRotation.getRotationMatchSetting().getVsStages()[1].getName()).append("**\n\n")
@@ -417,10 +418,10 @@ public class S3RotationSender implements ScheduledService {
 	private void sendChallengeRotationToDiscord(String channelName, RotationSchedulesResult.EventNode[] challenges) {
 		var firstRotation = Arrays.stream(challenges).findFirst().orElseThrow();
 
-		String image1 = firstRotation.getLeagueMatchSetting().getVsStages()[0].getImage().getUrl();
-		String image2 = firstRotation.getLeagueMatchSetting().getVsStages()[1].getImage().getUrl();
+		var image1 = firstRotation.getLeagueMatchSetting().getVsStages()[0].getImage().getUrl();
+		var image2 = firstRotation.getLeagueMatchSetting().getVsStages()[1].getImage().getUrl();
 
-		StringBuilder builder = new StringBuilder("**Challenge**:\n")
+		var builder = new StringBuilder("**Challenge**:\n")
 			.append("- Event: **").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getName()).append("**\n")
 			.append("- Description: **").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getDesc()).append("**\n")
 			.append("- Rules:\n```\n").append(firstRotation.getLeagueMatchSetting().getLeagueMatchEvent().getRegulation().replace("<br />", "\n")).append("\n```\n")
@@ -560,7 +561,7 @@ public class S3RotationSender implements ScheduledService {
 	}
 
 	private String decideChannelToPostIn(Rotation currentRotation) {
-		String channelName = DiscordChannelDecisionMaker.getDebugChannelName();
+		var channelName = DiscordChannelDecisionMaker.getDebugChannelName();
 
 		if (currentRotation.getRegularMatchSetting() != null) {
 			channelName = DiscordChannelDecisionMaker.getS3TurfWarChannel();

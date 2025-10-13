@@ -10,7 +10,8 @@ public enum RuleFilter {
 	SplatZones("Splat Zones", "Splatzones", "Splat", "Zones", "sz"),
 	Rainmaker("Rainmaker", "Rain", "Maker", "rm"),
 	TowerControl("Tower Control", "Towercontrol", "Tower", "Control", "tc"),
-	ClamBlitz("Clam Blitz", "Clamblitz", "Clams", "Clam", "Blitz", "cb");
+	ClamBlitz("Clam Blitz", "Clamblitz", "Clams", "Clam", "Blitz", "cb"),
+	TricolorTurfWar("Tricolor Turf War", "Tricolor Turf", "TricolorTurfWar", "Tricolor", "Tricolor Turf", "ttw");
 
 	private final String name;
 	private final String[] altNames;
@@ -22,6 +23,7 @@ public enum RuleFilter {
 
 	public static final EnumSet<RuleFilter> All = EnumSet.allOf(RuleFilter.class);
 	public static final EnumSet<RuleFilter> RankedModes = EnumSet.of(SplatZones, Rainmaker, TowerControl, ClamBlitz);
+	public static final EnumSet<RuleFilter> TwoTeamModes = EnumSet.of(TurfWar, SplatZones, Rainmaker, TowerControl, ClamBlitz);
 
 	public static RuleFilter getFromSplatNetApiName(String name) {
 		RuleFilter rule = SplatZones;

@@ -3433,6 +3433,12 @@
         "path": "/2025-05-25",
         "relativeToChangelogFile": true
       }
+    },
+    {
+      "includeAll": {
+        "path": "/2025-10-13",
+        "relativeToChangelogFile": true
+      }
     }
   ]
 }

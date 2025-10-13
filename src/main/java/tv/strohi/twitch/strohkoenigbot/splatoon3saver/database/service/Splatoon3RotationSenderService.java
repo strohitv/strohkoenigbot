@@ -3,22 +3,28 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ModeFilter;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.RuleFilter;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.Splatoon3Stage;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotation;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotationNotification;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotationSlot;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrModeDiscordChannelRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrRotationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3RotationNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeDiscordChannelRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationSlotRepository;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import javax.transaction.Transactional;
-import java.time.Instant;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,6 +37,7 @@ public class Splatoon3RotationSenderService {
 	private final Splatoon3VsModeDiscordChannelRepository vsModeDiscordChannelRepository;
 	private final Splatoon3VsRotationRepository vsRotationRepository;
 	private final Splatoon3VsRotationSlotRepository vsRotationSlotRepository;
+	private final Splatoon3RotationNotificationRepository notificationRepository;
 	private final Splatoon3SrModeDiscordChannelRepository srModeDiscordChannelRepository;
 	private final Splatoon3SrRotationRepository srRotationRepository;
 
@@ -38,12 +45,21 @@ public class Splatoon3RotationSenderService {
 	public void sendRotationsFromDatabase(boolean force) {
 		var now = Instant.now();
 		var time = getSlotStartTime(now);
+		var timeNextDay = getSlotStartTime(now.plus(24, ChronoUnit.HOURS));
 
 		vsModeDiscordChannelRepository.findAll().forEach(channel ->
 			vsRotationSlotRepository.findByStartTime(time).stream()
 				.filter(slot -> slot.getRotation().getMode().equals(channel.getMode()))
 				.filter(slot -> force || Math.abs(slot.getStartTime().getEpochSecond() - Instant.now().getEpochSecond()) <= 300)
 				.forEach(slot -> sendVsRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), slot.getRotation())));
+
+		vsRotationSlotRepository.findByStartTime(time).stream()
+			.filter(slot -> force || Math.abs(slot.getStartTime().getEpochSecond() - Instant.now().getEpochSecond()) <= 300)
+			.forEach(this::sendDiscordNotificationsToUsers);
+
+		vsRotationSlotRepository.findByStartTime(timeNextDay).stream()
+			.filter(slot -> force || Math.abs(slot.getStartTime().getEpochSecond() - Instant.now().plus(24, ChronoUnit.HOURS).getEpochSecond()) <= 300)
+			.forEach(this::sendDiscordNotificationsToUsers);
 
 		srModeDiscordChannelRepository.findAll().forEach(channel ->
 			srRotationRepository.findByModeAndStartTimeLessThanEqualAndEndTimeGreaterThan(channel.getMode(), time, time)
@@ -225,5 +241,149 @@ public class Splatoon3RotationSenderService {
 			.withSecond(0)
 			.withNano(0)
 			.toInstant();
+	}
+
+	private void sendDiscordNotificationsToUsers(Splatoon3VsRotationSlot rotationSlot) {
+		var mode = ModeFilter.getFromSplatNetApiName(rotationSlot.getRotation().getMode().getName());
+		var rule = RuleFilter.getFromSplatNetApiName(rotationSlot.getRotation().getRule().getName());
+		var rotationNotifications = notificationRepository.findByModeAndRule(mode, rule);
+
+		for (var notification : rotationNotifications) {
+			// excluded stages
+			var excludedStages = Splatoon3Stage.resolveFromNumber(notification.getExcludedStages());
+			if (excludedStages.length > 0 && Arrays.stream(excludedStages).anyMatch(es -> es.getName().equals(rotationSlot.getRotation().getStage1().getName()) || (rotationSlot.getRotation().getStage2() != null && es.getName().equals(rotationSlot.getRotation().getStage2().getName())))) {
+				continue;
+			}
+
+			// included stages
+			var includedStages = Splatoon3Stage.resolveFromNumber(notification.getIncludedStages());
+			if (includedStages.length > 0 && Arrays.stream(includedStages).noneMatch(es -> es.getName().equals(rotationSlot.getRotation().getStage1().getName()) || (rotationSlot.getRotation().getStage2() != null && es.getName().equals(rotationSlot.getRotation().getStage2().getName())))) {
+				continue;
+			}
+
+			// times
+			if (notification.getZoneId() != null && !notification.getZoneId().isBlank()) {
+				// can check timezone
+				var startTime = rotationSlot.getStartTime().atZone(ZoneId.of(notification.getZoneId()));
+
+				if (isOutSideAllowedTime(notification, startTime)) {
+					continue;
+				}
+			}
+
+			var stages = Stream.of(rotationSlot.getRotation().getStage1(), rotationSlot.getRotation().getStage2())
+				.filter(Objects::nonNull)
+				.map(rs -> rs.getImage().getUrl())
+				.toArray(String[]::new);
+
+			sendDiscordMessageToUser(notification.getAccount().getDiscordId(),
+				formatDiscordMessage(rotationSlot, mode.getName(), notification.getZoneId()),
+				stages);
+		}
+	}
+
+	private String formatDiscordMessage(Splatoon3VsRotationSlot rotationSlot, String gameMode, String timezone) {
+		var isTurf = rotationSlot.getRotation().getRule().getApiRule().equalsIgnoreCase("turf_war");
+
+		var builder = new StringBuilder();
+
+		var hadTimeZone = timezone != null;
+		if (!hadTimeZone) {
+			timezone = "Europe/Berlin";
+		}
+
+		if (Instant.now().atZone(ZoneId.of(timezone)).plusHours(4).isAfter(rotationSlot.getStartTime().atZone(ZoneId.of(timezone)))) {
+			builder.append(String.format("## Current __%s__ rotation\n", gameMode));
+		} else {
+			builder.append(String.format("## New __%s__ rotation will start in __%d__ hours",
+				gameMode,
+				Duration.between(Instant.now(), rotationSlot.getStartTime()).abs().toHours() + 1));
+
+			builder.append(String.format("\nIt will start at **<t:%d:F>** (<t:%d:R>)", rotationSlot.getStartTime().getEpochSecond(), rotationSlot.getStartTime().getEpochSecond()));
+
+			builder.append("\n");
+		}
+
+		if (!isTurf) {
+			builder.append(String.format("- Rule: %s**%s**\n", getEmoji(rotationSlot.getRotation().getRule().getName()), rotationSlot.getRotation().getRule().getName()));
+		}
+
+		if (rotationSlot.getRotation().getEventRegulation() != null) {
+			builder.append("- Event: ").append(rotationSlot.getRotation().getEventRegulation().getName()).append("\n");
+			builder.append("```\n").append(rotationSlot.getRotation().getEventRegulation().getRegulation().replace("<br />", "\n")).append("\n```\n");
+		}
+
+		builder.append(String.format("- Stage 1: **%s**\n", rotationSlot.getRotation().getStage1().getName()));
+
+		if (rotationSlot.getRotation().getStage2() != null) {
+			builder.append(String.format("- Stage 2: **%s**\n\n", rotationSlot.getRotation().getStage2().getName()));
+		}
+
+		return builder.toString();
+	}
+
+	private void sendDiscordMessageToUser(long discordId, String message, String... imageUrls) {
+		log.info("Sending out discord notifications to server channel '{}'", discordId);
+		discordBot.sendPrivateMessageWithImageUrls(discordId, message, imageUrls);
+		log.info("Finished sending out discord notifications to server channel '{}'", discordId);
+	}
+
+	private boolean isOutSideAllowedTime(Splatoon3VsRotationNotification notification, ZonedDateTime startTime) {
+		var allowedStartHour = 0;
+		var allowedEndHour = 23;
+
+		switch (startTime.getDayOfWeek()) {
+			case MONDAY:
+				if (!notification.isNotifyMonday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeMonday();
+				allowedEndHour = notification.getEndTimeMonday();
+				break;
+			case TUESDAY:
+				if (!notification.isNotifyTuesday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeTuesday();
+				allowedEndHour = notification.getEndTimeTuesday();
+				break;
+			case WEDNESDAY:
+				if (!notification.isNotifyWednesday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeWednesday();
+				allowedEndHour = notification.getEndTimeWednesday();
+				break;
+			case THURSDAY:
+				if (!notification.isNotifyThursday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeThursday();
+				allowedEndHour = notification.getEndTimeThursday();
+				break;
+			case FRIDAY:
+				if (!notification.isNotifyFriday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeFriday();
+				allowedEndHour = notification.getEndTimeFriday();
+				break;
+			case SATURDAY:
+				if (!notification.isNotifySaturday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeSaturday();
+				allowedEndHour = notification.getEndTimeSaturday();
+				break;
+			case SUNDAY:
+				if (!notification.isNotifySunday()) {
+					return true;
+				}
+				allowedStartHour = notification.getStartTimeSunday();
+				allowedEndHour = notification.getEndTimeSunday();
+				break;
+		}
+
+		return startTime.getHour() < allowedStartHour || startTime.getHour() > allowedEndHour;
 	}
 }

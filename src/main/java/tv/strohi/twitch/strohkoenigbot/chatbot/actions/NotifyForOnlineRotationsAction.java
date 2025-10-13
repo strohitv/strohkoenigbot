@@ -68,14 +68,14 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 
 		ModeFilter mode;
 
-		if (message.startsWith("!ranked")) {
-			message = message.substring("!ranked".length()).trim();
+		if (message.startsWith("!s2ranked")) {
+			message = message.substring("!s2ranked".length()).trim();
 			mode = ModeFilter.Ranked;
-		} else if (message.startsWith("!league")) {
-			message = message.substring("!league".length()).trim();
+		} else if (message.startsWith("!s2league")) {
+			message = message.substring("!s2league".length()).trim();
 			mode = ModeFilter.League;
-		} else if (message.startsWith("!turf")) {
-			message = message.substring("!turf".length()).trim();
+		} else if (message.startsWith("!s2turf")) {
+			message = message.substring("!s2turf".length()).trim();
 			mode = ModeFilter.TurfWar;
 		} else {
 			return;
@@ -198,11 +198,11 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 		String notificationParameters = message.substring("notify".length()).trim();
 
 		// stages
-		List<SplatoonStage> excludedStages = new ArrayList<>();
-		notificationParameters = regexUtils.fillListAndReplaceText(notificationParameters, textFilters.getStageExcludeFilters(), excludedStages);
+		List<Splatoon2Stage> excludedStages = new ArrayList<>();
+		notificationParameters = regexUtils.fillListAndReplaceText(notificationParameters, textFilters.getS2stageExcludeFilters(), excludedStages);
 
-		List<SplatoonStage> includedStages = new ArrayList<>();
-		notificationParameters = regexUtils.fillListAndReplaceText(notificationParameters, textFilters.getStageIncludeFilters(), includedStages);
+		List<Splatoon2Stage> includedStages = new ArrayList<>();
+		notificationParameters = regexUtils.fillListAndReplaceText(notificationParameters, textFilters.getS2stageIncludeFilters(), includedStages);
 		includedStages.removeAll(excludedStages);
 
 		// rules
@@ -211,7 +211,7 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 		if (mode == ModeFilter.TurfWar) {
 			includedRules.add(RuleFilter.TurfWar);
 		} else {
-			notificationParameters = regexUtils.fillListAndReplaceText(notificationParameters, textFilters.getRuleFilters(), includedRules);
+			notificationParameters = regexUtils.fillListAndReplaceText(notificationParameters, textFilters.getRankedRuleFilters(), includedRules);
 
 			if (includedRules.size() == 0) {
 				includedRules.addAll(RuleFilter.RankedModes);
@@ -265,8 +265,8 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 			notification.setMode(mode);
 			notification.setRule(rule);
 
-			notification.setIncludedStages(SplatoonStage.resolveToNumber(includedStages));
-			notification.setExcludedStages(SplatoonStage.resolveToNumber(excludedStages));
+			notification.setIncludedStages(Splatoon2Stage.resolveToNumber(includedStages));
+			notification.setExcludedStages(Splatoon2Stage.resolveToNumber(excludedStages));
 
 			notification.setNotifyMonday(dayFilters.contains(DayFilter.Monday) || dayFiltersWithTime.stream().anyMatch(dfwt -> dfwt.getFilter() == DayFilter.Monday));
 			notification.setStartTimeMonday(dayFiltersWithTime.stream()
@@ -420,11 +420,11 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 			builder.append("Su: ").append(notification.getStartTimeSunday()).append("-").append(notification.getEndTimeSunday());
 		}
 
-		SplatoonStage[] included = SplatoonStage.resolveFromNumber(notification.getIncludedStages());
+		Splatoon2Stage[] included = Splatoon2Stage.resolveFromNumber(notification.getIncludedStages());
 		if (included.length > 0) {
 			builder.append("\n    - At least one of these stages: ");
 			atLeastSecond = false;
-			for (SplatoonStage stage : included) {
+			for (Splatoon2Stage stage : included) {
 				if (atLeastSecond) {
 					builder.append(", ");
 				}
@@ -433,11 +433,11 @@ public class NotifyForOnlineRotationsAction extends ChatAction {
 			}
 		}
 
-		SplatoonStage[] excluded = SplatoonStage.resolveFromNumber(notification.getExcludedStages());
+		Splatoon2Stage[] excluded = Splatoon2Stage.resolveFromNumber(notification.getExcludedStages());
 		if (excluded.length > 0) {
 			builder.append("\n    - None of these stages: ");
 			atLeastSecond = false;
-			for (SplatoonStage stage : excluded) {
+			for (Splatoon2Stage stage : excluded) {
 				if (atLeastSecond) {
 					builder.append(", ");
 				}

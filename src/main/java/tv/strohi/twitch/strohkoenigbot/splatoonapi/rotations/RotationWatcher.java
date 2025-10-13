@@ -6,13 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ModeFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.RuleFilter;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.SplatoonStage;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.Splatoon2Stage;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2RotationNotification;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Rotation;
-import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Stage;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Mode;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.Splatoon2Rule;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
@@ -258,10 +257,10 @@ public class RotationWatcher implements ScheduledService {
 				newRotation.setMode(Splatoon2Mode.getModeByName(rotation.getGame_mode().getKey()));
 				newRotation.setRule(Splatoon2Rule.getRuleByName(rotation.getRule().getKey()));
 
-				Splatoon2Stage stageA = stagesExporter.loadStage(rotation.getStage_a());
+				var stageA = stagesExporter.loadStage(rotation.getStage_a());
 				newRotation.setStageAId(stageA.getId());
 
-				Splatoon2Stage stageB = stagesExporter.loadStage(rotation.getStage_b());
+				var stageB = stagesExporter.loadStage(rotation.getStage_b());
 				newRotation.setStageBId(stageB.getId());
 
 				try {
@@ -298,13 +297,13 @@ public class RotationWatcher implements ScheduledService {
 			}
 
 			// excluded stages
-			SplatoonStage[] excludedStages = SplatoonStage.resolveFromNumber(notification.getExcludedStages());
+			var excludedStages = Splatoon2Stage.resolveFromNumber(notification.getExcludedStages());
 			if (excludedStages.length > 0 && Arrays.stream(excludedStages).anyMatch(es -> es.getName().equals(rotation.getStage_a().getName()) || es.getName().equals(rotation.getStage_b().getName()))) {
 				continue;
 			}
 
 			// included stages
-			SplatoonStage[] includedStages = SplatoonStage.resolveFromNumber(notification.getIncludedStages());
+			var includedStages = Splatoon2Stage.resolveFromNumber(notification.getIncludedStages());
 			if (includedStages.length > 0 && Arrays.stream(includedStages).noneMatch(es -> es.getName().equals(rotation.getStage_a().getName()) || es.getName().equals(rotation.getStage_b().getName()))) {
 				continue;
 			}

@@ -6,7 +6,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 @Getter
-public enum SplatoonStage {
+public enum Splatoon2Stage {
 	Reef(1, "The Reef", "Reef"),
 	Musselforge(2, "Musselforge Fitness", "Musselforge", "Fitness"),
 	Starfish(4, "Starfish Mainstage", "Starfish", "Mainstage"),
@@ -35,19 +35,19 @@ public enum SplatoonStage {
 	private final String name;
 	private final String[] altNames;
 
-	SplatoonStage(int flag, String name, String... altNames) {
+	Splatoon2Stage(int flag, String name, String... altNames) {
 		this.flag = flag;
 		this.name = name;
 		this.altNames = altNames;
 	}
 
-	public static final EnumSet<SplatoonStage> All = EnumSet.allOf(SplatoonStage.class);
+	public static final EnumSet<Splatoon2Stage> All = EnumSet.allOf(Splatoon2Stage.class);
 
-	public static SplatoonStage[] resolveFromNumber(int number) {
-		return All.stream().filter(s -> (s.flag & number) == s.flag).toArray(SplatoonStage[]::new);
+	public static Splatoon2Stage[] resolveFromNumber(int number) {
+		return All.stream().filter(s -> (s.flag & number) == s.flag).toArray(Splatoon2Stage[]::new);
 	}
 
-	public static int resolveToNumber(List<SplatoonStage> stages) {
+	public static int resolveToNumber(List<Splatoon2Stage> stages) {
 		return stages.stream().map(s -> s.flag).reduce(0, Integer::sum);
 	}
 }
