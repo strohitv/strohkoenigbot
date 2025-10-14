@@ -13,7 +13,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Log4j2
-public class S3SpecialWeaponWinStatsFiller {
+public class S3SpecialWeaponWinStatsDownloader {
 	private final ExceptionLogger exceptionLogger;
 	private final Splatoon3VsResultRepository resultRepository;
 

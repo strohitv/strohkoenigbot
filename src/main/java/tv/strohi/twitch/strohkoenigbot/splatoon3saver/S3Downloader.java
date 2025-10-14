@@ -71,11 +71,12 @@ public class S3Downloader implements ScheduledService {
 	private final Splatoon3SrRotationService srRotationService;
 	private final Splatoon3SrResultService srResultService;
 	private final S3RotationSender rotationSender;
+
 	private final S3StreamStatistics streamStatistics;
 	private final S3XPowerDownloader xPowerDownloader;
 	private final S3GearDownloader gearDownloader;
 	private final S3WeaponStatsDownloader weaponStatsDownloader;
-	private final S3SpecialWeaponWinStatsFiller specialWeaponWinStatsFiller;
+	private final S3SpecialWeaponWinStatsDownloader specialWeaponWinStatsDownloader;
 
 	private final S3S3sRunner s3sRunner;
 
@@ -135,7 +136,7 @@ public class S3Downloader implements ScheduledService {
 		wentLiveInstant = wentLiveTime;
 		streamStatistics.reset();
 
-		specialWeaponWinStatsFiller.downloadSpecialWeaponStats()
+		specialWeaponWinStatsDownloader.downloadSpecialWeaponStats()
 			.ifPresent(streamStatistics::setCurrentSpecialWins);
 
 		CompletableFuture.runAsync(this::fillStreamStatistics);
