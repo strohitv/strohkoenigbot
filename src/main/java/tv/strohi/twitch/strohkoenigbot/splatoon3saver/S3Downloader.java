@@ -30,6 +30,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
@@ -41,6 +42,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -79,6 +81,8 @@ public class S3Downloader implements ScheduledService {
 
 	private final Semaphore semaphore = new Semaphore(1);
 
+	private boolean shouldExportStreamStatisticsHtml = false;
+
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(ScheduleRequest.builder()
@@ -101,6 +105,11 @@ public class S3Downloader implements ScheduledService {
 				.name("S3Downloader_s3s_fix_broken_database_entries")
 				.schedule(CronSchedule.getScheduleString("35 5 * * * *"))
 				.runnable(this::fixBrokenDatabaseEntries)
+				.build(),
+			ScheduleRequest.builder()
+				.name("S3Downloader_export_stream_statistics_html")
+				.schedule(TickSchedule.getScheduleString(1))
+				.runnable(this::exportStreamStatisticsHtml)
 				.build());
 	}
 
@@ -125,10 +134,11 @@ public class S3Downloader implements ScheduledService {
 	public void goLive(Instant wentLiveTime) {
 		wentLiveInstant = wentLiveTime;
 		streamStatistics.reset();
-		xPowerDownloader.fillXPower();
-		gearDownloader.fillGears();
-		weaponStatsDownloader.fillWeaponStats();
-		specialWeaponWinStatsFiller.fillSpecialWeaponStats();
+
+		specialWeaponWinStatsFiller.downloadSpecialWeaponStats()
+			.ifPresent(streamStatistics::setCurrentSpecialWins);
+
+		CompletableFuture.runAsync(this::fillStreamStatistics);
 
 		logSender.sendLogs(logger, "went live on twitch!");
 	}
@@ -185,12 +195,6 @@ public class S3Downloader implements ScheduledService {
 			|| refreshMinutes.contains(LocalDateTime.now().getMinute())) {
 			logger.info("Loading Splatoon 3 games...");
 			try {
-				if (wentLiveInstant != null) {
-					xPowerDownloader.fillXPower();
-					gearDownloader.fillGears();
-					weaponStatsDownloader.fillWeaponStats();
-				}
-
 				downloadGamesDecideWay();
 			} catch (Exception e) {
 				try {
@@ -227,10 +231,29 @@ public class S3Downloader implements ScheduledService {
 		}
 	}
 
-	private void importResultsFromS3Api() {
-		List<Account> accounts = accountRepository.findByEnableSplatoon3(true);
+	private void exportStreamStatisticsHtml() {
+		if (shouldExportStreamStatisticsHtml) {
+			fillStreamStatistics();
+			streamStatistics.exportHtml();
 
-		for (Account account : accounts) {
+			shouldExportStreamStatisticsHtml = false;
+		}
+	}
+
+	private void fillStreamStatistics() {
+		var downloadedPowers = xPowerDownloader.downloadXPowers();
+		var downloadedGears = gearDownloader.downloadGears();
+		var downloadedWeapons = weaponStatsDownloader.downloadWeaponStats();
+
+		downloadedPowers.ifPresent(powers -> streamStatistics.setCurrentXPowers(powers.getZones(), powers.getTower(), powers.getRainmaker(), powers.getClams()));
+		downloadedGears.ifPresent(gears -> streamStatistics.setCurrentGears(gears.getHead(), gears.getClothing(), gears.getShoes()));
+		downloadedWeapons.ifPresent(streamStatistics::setCurrentWeaponRecords);
+	}
+
+	private void importResultsFromS3Api() {
+		var accounts = accountRepository.findByEnableSplatoon3(true);
+
+		for (var account : accounts) {
 			var importedVsGames = importVsResultsOfAccountFromS3Api(account);
 			var importedSrGames = importSrResultsOfAccountFromS3Api(account);
 
@@ -242,11 +265,11 @@ public class S3Downloader implements ScheduledService {
 				streamStatistics.addGames(allNewGamesDuringStream);
 
 				if (!allNewGamesDuringStream.isEmpty()) {
-					streamStatistics.exportHtml();
+					shouldExportStreamStatisticsHtml = true;
 				}
 			}
 
-			StringBuilder builder = new StringBuilder("Found new Splatoon 3 results:");
+			var builder = new StringBuilder("Found new Splatoon 3 results:");
 			importedVsGames.entrySet()
 				.stream()
 				.sorted(Comparator.comparing(entry -> entry.getKey().getName()))
@@ -279,13 +302,13 @@ public class S3Downloader implements ScheduledService {
 	private Map<Splatoon3VsMode, List<Splatoon3VsResult>> importVsResultsOfAccountFromS3Api(Account account) {
 		return S3RequestKey.getOnlineBattles().stream()
 			.flatMap(requestKey -> {
-				String gameListResponse = requestSender.queryS3Api(account, requestKey);
+				var gameListResponse = requestSender.queryS3Api(account, requestKey);
 				return streamResults(parseBattleResultsSneakyThrow(gameListResponse));
 			})
 			.flatMap(hgn -> Arrays.stream(hgn.getHistoryDetails().getNodes()))
 			.filter(vsResultService::notFound)
 			.map(hgn -> {
-				String matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail, "vsResultId", hgn.getId());
+				var matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail, "vsResultId", hgn.getId());
 				var parsed = parseSingleResultSneakyThrow(matchJson);
 				parsed.setJsonSave(matchJson);
 				return parsed;

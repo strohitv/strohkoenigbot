@@ -107,6 +107,7 @@ public class S3StreamStatistics {
 	public void reset() {
 		includedMatches.clear();
 		startXZones = startXTower = startXRainmaker = startXClams = currentXZones = currentXTower = currentXRainmaker = currentXClams = null;
+		headGears = clothingGears = shoesGears = null;
 		startWeaponStats = currentWeaponStats = null;
 		startSpecialWinStats = currentSpecialWinStats = null;
 
@@ -126,7 +127,7 @@ public class S3StreamStatistics {
 	}
 
 	public void exportHtml() {
-		if (!includedMatches.isEmpty()) {
+		if (!includedMatches.isEmpty() && startSpecialWinStats != null) {
 			lastUpdate = Instant.now();
 
 			long victoryCount = includedMatches.stream().filter(m -> "win".equalsIgnoreCase(m.getOwnJudgement())).count();
@@ -317,8 +318,7 @@ public class S3StreamStatistics {
 						}
 					}
 				} catch (JsonProcessingException ex) {
-					logSender.sendLogs(log, "Exception occured during JSON processing! `%s`", ex.getMessage());
-					exceptionLogger.logException(log, ex);
+					exceptionLogger.logExceptionAsAttachment(log, "Exception occured during JSON processing!", ex);
 				}
 
 				openMaxPower = allOpenMatchesThisRotation.stream()
@@ -394,8 +394,7 @@ public class S3StreamStatistics {
 						}
 					}
 				} catch (JsonProcessingException ex) {
-					logSender.sendLogs(log, "Exception occured during JSON processing! `%s`", ex.getMessage());
-					exceptionLogger.logException(log, ex);
+					exceptionLogger.logExceptionAsAttachment(log, "Exception occured during JSON processing!", ex);
 				}
 
 				seriesMaxPower =
@@ -502,6 +501,13 @@ public class S3StreamStatistics {
 			var alreadyOwnedExpRatio = startExpWeapon * 100.0 / expGoal;
 			var earnedExpStreamRatio = expWeaponGain * 100.0 / expGoal;
 			var remainingExpRatio = 100.0 - alreadyOwnedExpRatio - earnedExpStreamRatio;
+
+			if (weaponStatsCurrent.getStats().getLevel() >= 5) {
+				var previousLevelExp = getExpGoal(weaponStatsCurrent.getStats().getLevel() - 1);
+				alreadyOwnedExpRatio = (startExpWeapon - previousLevelExp) * 100.0 / (expGoal - previousLevelExp);
+				earnedExpStreamRatio = expWeaponGain * 100.0 / (expGoal - previousLevelExp);
+				remainingExpRatio = 100.0 - alreadyOwnedExpRatio - earnedExpStreamRatio;
+			}
 
 			var mainWeaponImage = player.getWeapon().getImage();
 
@@ -990,7 +996,7 @@ public class S3StreamStatistics {
 
 			var builder = new StringBuilder("## Start special Wins found\n__Start stats__:");
 			specialWins.forEach(r -> builder.append("\n- **").append(r.getSpecialWeapon().getName()).append("**: ").append(r.getWinCount()).append(" wins"));
-			logSender.sendLogs(log, builder.toString());
+			log.info(builder.toString());
 		}
 
 		currentSpecialWinStats = new HashMap<>();
@@ -998,7 +1004,7 @@ public class S3StreamStatistics {
 
 		var builder = new StringBuilder("## Current Special Wins found\n__Current stats__:");
 		specialWins.forEach(r -> builder.append("\n- **").append(r.getSpecialWeapon().getName()).append("**: ").append(r.getWinCount()).append(" wins"));
-		logSender.sendLogs(log, builder.toString());
+		log.info(builder.toString());
 	}
 
 	private Instant getSlotStartTime(Instant base) {
@@ -1012,17 +1018,25 @@ public class S3StreamStatistics {
 	}
 
 	private String getImageEncoded(Image image) {
-		var attemptedImage = imageService.ensureImageIsDownloaded(image);
+		try {
+			var attemptedImage = imageService.ensureImageIsDownloaded(image);
 
-		if (attemptedImage.isPresent()) {
-			try {
-				var fileContent = FileUtils.readFileToByteArray(new File(image.getFilePath()));
-				return Base64.getEncoder().encodeToString(fileContent);
-			} catch (IOException ignored) {
-				return "EXCEPTION DURING IMAGE CONVERSION TO BASE64";
+			if (attemptedImage.isPresent()) {
+				log.info("getImageEncoded present");
+				try {
+					var fileContent = FileUtils.readFileToByteArray(new File(image.getFilePath()));
+					return Base64.getEncoder().encodeToString(fileContent);
+				} catch (IOException ex) {
+					exceptionLogger.logExceptionAsAttachment(log, "getImageEncoded io exception", ex);
+					return "IO EXCEPTION DURING IMAGE CONVERSION TO BASE64";
+				}
+			} else {
+				logSender.sendLogs(log, "getImageEncoded not present");
+				return "UNABLE TO DOWNLOAD IMAGE TO DRIVE";
 			}
-		} else {
-			return "UNABLE TO DOWNLOAD IMAGE TO DRIVE";
+		} catch (Exception ex) {
+			exceptionLogger.logExceptionAsAttachment(log, "getImageEncoded global exception", ex);
+			return "UNKNOWN EXCEPTION DURING IMAGE CONVERSION TO BASE64";
 		}
 	}
 }

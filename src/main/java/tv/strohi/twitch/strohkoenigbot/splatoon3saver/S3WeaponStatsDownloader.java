@@ -8,20 +8,23 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.WeaponsResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 @Log4j2
 public class S3WeaponStatsDownloader {
-	private final S3ApiQuerySender apiQuerySender;
-	private final S3StreamStatistics streamStatistics;
-
-	private final AccountRepository accountRepository;
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+	private final S3ApiQuerySender apiQuerySender;
 	private final ExceptionLogger exceptionLogger;
 
-	public void fillWeaponStats() {
+	private final AccountRepository accountRepository;
+
+	public Optional<Weapon[]> downloadWeaponStats() {
 		var account = accountRepository.findByEnableSplatoon3(true).stream()
 			.filter(Account::getIsMainAccount)
 			.findFirst();
@@ -33,11 +36,11 @@ public class S3WeaponStatsDownloader {
 				var weaponStats = objectMapper.readValue(weaponsResponse, WeaponsResult.class);
 				var allWeapons = weaponStats.getData().getWeaponRecords().getNodes();
 
-				streamStatistics.setCurrentWeaponRecords(allWeapons);
+				return Optional.of(allWeapons);
 			} catch (Exception ex) {
-				log.error("could not refresh weapon stats", ex);
-				exceptionLogger.logException(log, ex);
+				exceptionLogger.logExceptionAsAttachment(log, "could not refresh weapon stats", ex);
 			}
 		}
+		return Optional.empty();
 	}
 }
