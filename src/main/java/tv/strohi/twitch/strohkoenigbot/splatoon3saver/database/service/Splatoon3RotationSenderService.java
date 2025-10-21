@@ -7,6 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ModeFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.RuleFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.Splatoon3Stage;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotationNotification;
@@ -22,9 +23,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import javax.transaction.Transactional;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -248,7 +247,15 @@ public class Splatoon3RotationSenderService {
 		var rule = RuleFilter.getFromSplatNetApiName(rotationSlot.getRotation().getRule().getName());
 		var rotationNotifications = notificationRepository.findByModeAndRule(mode, rule);
 
+		var userReceivedNotifications = new ArrayList<Account>();
+
 		for (var notification : rotationNotifications) {
+			if (userReceivedNotifications.contains(notification.getAccount())) {
+				continue;
+			}
+
+			userReceivedNotifications.add(notification.getAccount());
+
 			// excluded stages
 			var excludedStages = Splatoon3Stage.resolveFromNumber(notification.getExcludedStages());
 			if (excludedStages.length > 0 && Arrays.stream(excludedStages).anyMatch(es -> es.getName().equals(rotationSlot.getRotation().getStage1().getName()) || (rotationSlot.getRotation().getStage2() != null && es.getName().equals(rotationSlot.getRotation().getStage2().getName())))) {
