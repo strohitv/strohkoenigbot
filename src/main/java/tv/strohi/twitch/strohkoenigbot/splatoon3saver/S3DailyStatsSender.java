@@ -579,9 +579,9 @@ public class S3DailyStatsSender implements ScheduledService {
 		var todayAverage = 160_000 - (int) (Math.ceil(requiredExpFor4StarGrind / (double) Math.max(1, unfinishedWeapons.size())));
 		expBuilder.append("\n- On average, I have  **")
 			.append(df.format(todayAverage).replaceAll(",", " "))
-			.append(" exp** on every of the ")
+			.append(" exp** on every of the **")
 			.append(unfinishedWeapons.size())
-			.append(" remaining weapons");
+			.append("** remaining weapons");
 
 		int yesterdayUnfinishedCount = yesterdayStats.getPreviousWeaponStarsCount().keySet().stream()
 			.filter(k -> !k.contains("4") && !k.contains("5"))
@@ -597,11 +597,11 @@ public class S3DailyStatsSender implements ScheduledService {
 				.append(df.format(Math.abs(yesterdayAverage - todayAverage)).replaceAll(",", " "))
 				.append(")");
 
-			expBuilder.append("\n- yesterday, you needed **")
+			expBuilder.append("\n- yesterday, you had **")
 				.append(df.format(yesterdayAverage).replaceAll(",", " "))
-				.append(" exp** on a total of ")
+				.append(" exp** on average on **")
 				.append(yesterdayUnfinishedCount)
-				.append(" remaining weapons on average");
+				.append("** remaining weapons");
 		}
 
 		yesterdayStats.setPreviousRequiredExpFor4StarGrind(requiredExpFor4StarGrind);
