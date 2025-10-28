@@ -1410,8 +1410,13 @@ public class S3DailyStatsSender implements ScheduledService {
 		}
 
 		for (var rotation : rotations) {
-			stats.put(rotation.getStage1().getName(), stats.get(rotation.getStage1().getName()) + 1);
-			stats.put(rotation.getStage2().getName(), stats.get(rotation.getStage2().getName()) + 1);
+			if (rotation.getStage1() != null) {
+				stats.put(rotation.getStage1().getName(), stats.get(rotation.getStage1().getName()) + 1);
+			}
+
+			if (rotation.getStage2() != null) {
+				stats.put(rotation.getStage2().getName(), stats.get(rotation.getStage2().getName()) + 1);
+			}
 		}
 
 		final var sortedStats = stats.entrySet().stream()
