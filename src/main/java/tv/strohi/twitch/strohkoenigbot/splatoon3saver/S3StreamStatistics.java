@@ -2,8 +2,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,6 +146,102 @@ public class S3StreamStatistics {
 
 			if (team == null) {
 				return;
+			}
+
+			var otherTeams = lastMatch.getTeams().stream()
+				.filter(t -> !t.getIsMyTeam())
+				.collect(Collectors.toList());
+
+			var isTricolor = otherTeams.size() > 1;
+
+			if (otherTeams.isEmpty()) {
+				return;
+			}
+
+			var firstOtherTeam = otherTeams.get(0);
+			var secondOtherTeam = isTricolor ? otherTeams.get(1) : null;
+
+			var isTurf = team.getScore() == null;
+
+			var ownTeamScore = isTurf
+				? team.getPaintRatio() * 100
+				: team.getScore();
+
+			var firstOtherTeamScore = isTurf
+				? firstOtherTeam.getPaintRatio() * 100
+				: firstOtherTeam.getScore();
+
+			var secondOtherTeamScore = isTricolor
+				? secondOtherTeam.getPaintRatio() * 100
+				: 0.0;
+
+			var totalScored = ownTeamScore + firstOtherTeamScore + secondOtherTeamScore;
+
+			var firstTeamScoredRatio = (int) (firstOtherTeamScore * 100 / totalScored);
+			var secondTeamScoredRatio = (int) (secondOtherTeamScore * 100 / totalScored);
+			var ownTeamScoredRatio = 100 - firstTeamScoredRatio - secondTeamScoredRatio;
+
+			var ownTeamColor = new Color(team.getInkColorR(), team.getInkColorG(), team.getInkColorB(), team.getInkColorA());
+			var firstOtherTeamColor = new Color(firstOtherTeam.getInkColorR(), firstOtherTeam.getInkColorG(), firstOtherTeam.getInkColorB(), firstOtherTeam.getInkColorA());
+			var secondOtherTeamColor = isTricolor
+				? new Color(secondOtherTeam.getInkColorR(), secondOtherTeam.getInkColorG(), secondOtherTeam.getInkColorB(), secondOtherTeam.getInkColorA())
+				: new Color(0.0, 0.0, 0.0, 0.0);
+
+			if (isTricolor) {
+				int saved;
+				Color savedColor;
+				switch (team.getTricolorRole()) {
+					case "DEFENSE":
+						saved = firstTeamScoredRatio;
+						firstTeamScoredRatio = ownTeamScoredRatio;
+						ownTeamScoredRatio = saved;
+
+						savedColor = firstOtherTeamColor;
+						firstOtherTeamColor = ownTeamColor;
+						ownTeamColor = savedColor;
+
+						if (firstOtherTeam.getTricolorRole().equalsIgnoreCase("ATTACK2")) {
+							saved = ownTeamScoredRatio;
+							ownTeamScoredRatio = secondTeamScoredRatio;
+							secondTeamScoredRatio = saved;
+
+							savedColor = ownTeamColor;
+							ownTeamColor = secondOtherTeamColor;
+							secondOtherTeamColor = savedColor;
+						}
+						break;
+					case "ATTACK2":
+						saved = secondTeamScoredRatio;
+						secondTeamScoredRatio = ownTeamScoredRatio;
+						ownTeamScoredRatio = saved;
+
+						savedColor = secondOtherTeamColor;
+						secondOtherTeamColor = ownTeamColor;
+						ownTeamColor = savedColor;
+
+						if (firstOtherTeam.getTricolorRole().equalsIgnoreCase("DEFENSE")) {
+							saved = ownTeamScoredRatio;
+							ownTeamScoredRatio = firstTeamScoredRatio;
+							firstTeamScoredRatio = saved;
+
+							savedColor = ownTeamColor;
+							ownTeamColor = firstOtherTeamColor;
+							firstOtherTeamColor = savedColor;
+						}
+						break;
+					case "ATTACK1":
+					default:
+						if (firstOtherTeam.getTricolorRole().equalsIgnoreCase("ATTACK2")) {
+							saved = firstTeamScoredRatio;
+							firstTeamScoredRatio = secondTeamScoredRatio;
+							secondTeamScoredRatio = saved;
+
+							savedColor = firstOtherTeamColor;
+							firstOtherTeamColor = secondOtherTeamColor;
+							secondOtherTeamColor = savedColor;
+						}
+						break;
+				}
 			}
 
 			var player = team.getTeamPlayers().stream()
@@ -584,10 +679,56 @@ public class S3StreamStatistics {
 				currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
 				currentHtml = currentHtml
-					.replace("{match-color-r}", String.format("%d", (int)(team.getInkColorR() * 255)))
-					.replace("{match-color-g}", String.format("%d", (int)(team.getInkColorG() * 255)))
-					.replace("{match-color-b}", String.format("%d", (int)(team.getInkColorB() * 255)))
-					.replace("{match-color-a}", String.format("%f", team.getInkColorR()))
+					.replace("{two-team-match-hidden}", isTricolor ? "" : "hidden")
+
+					.replace("{prog-bar-match-color-r}", String.format("%d", (int) (ownTeamColor.getR() * 255)))
+					.replace("{prog-bar-match-color-g}", String.format("%d", (int) (ownTeamColor.getG() * 255)))
+					.replace("{prog-bar-match-color-b}", String.format("%d", (int) (ownTeamColor.getB() * 255)))
+					.replace("{prog-bar-match-color-a}", String.format("%f", ownTeamColor.getA()))
+					.replace("{own-match-width}", String.format("%d", ownTeamScoredRatio))
+
+					.replace("{prog-bar-match-color-opp-1-r}", String.format("%d", (int) (firstOtherTeamColor.getR() * 255)))
+					.replace("{prog-bar-match-color-opp-1-g}", String.format("%d", (int) (firstOtherTeamColor.getG() * 255)))
+					.replace("{prog-bar-match-color-opp-1-b}", String.format("%d", (int) (firstOtherTeamColor.getB() * 255)))
+					.replace("{prog-bar-match-color-opp-1-a}", String.format("%f", firstOtherTeamColor.getA()))
+					.replace("{opp-1-match-width}", String.format("%d", firstTeamScoredRatio))
+
+					.replace("{prog-bar-match-color-opp-2-r}", String.format("%d", (int) (secondOtherTeamColor.getR() * 255)))
+					.replace("{prog-bar-match-color-opp-2-g}", String.format("%d", (int) (secondOtherTeamColor.getG() * 255)))
+					.replace("{prog-bar-match-color-opp-2-b}", String.format("%d", (int) (secondOtherTeamColor.getB() * 255)))
+					.replace("{prog-bar-match-color-opp-2-a}", String.format("%f", secondOtherTeamColor.getA()))
+					.replace("{opp-2-match-width}", String.format("%d", secondTeamScoredRatio))
+
+					.replace("{match-color-r}", String.format("%d", (int) (team.getInkColorR() * 255)))
+					.replace("{match-color-g}", String.format("%d", (int) (team.getInkColorG() * 255)))
+					.replace("{match-color-b}", String.format("%d", (int) (team.getInkColorB() * 255)))
+					.replace("{match-color-a}", String.format("%f", team.getInkColorA()))
+					.replace("{own-match-result}", String.format("%s%s",
+						isTurf || isTricolor
+							? String.format("%.1f", ownTeamScore)
+							: String.format("%d", (int) ownTeamScore),
+						isTurf || isTricolor ? "%" : "p"))
+
+					.replace("{match-color-opp-1-r}", String.format("%d", (int) (firstOtherTeam.getInkColorR() * 255)))
+					.replace("{match-color-opp-1-g}", String.format("%d", (int) (firstOtherTeam.getInkColorG() * 255)))
+					.replace("{match-color-opp-1-b}", String.format("%d", (int) (firstOtherTeam.getInkColorB() * 255)))
+					.replace("{match-color-opp-1-a}", String.format("%f", firstOtherTeam.getInkColorA()))
+					.replace("{opp-1-match-result}", String.format("%s%s",
+						isTurf || isTricolor
+							? String.format("%.1f", firstOtherTeamScore)
+							: String.format("%d", (int) firstOtherTeamScore),
+						isTurf || isTricolor ? "%" : "p"))
+
+					.replace("{match-color-opp-2-r}", String.format("%d", (int) ((secondOtherTeam != null ? secondOtherTeam.getInkColorR() : 0.0) * 255)))
+					.replace("{match-color-opp-2-g}", String.format("%d", (int) ((secondOtherTeam != null ? secondOtherTeam.getInkColorG() : 0.0) * 255)))
+					.replace("{match-color-opp-2-b}", String.format("%d", (int) ((secondOtherTeam != null ? secondOtherTeam.getInkColorB() : 0.0) * 255)))
+					.replace("{match-color-opp-2-a}", String.format("%f", secondOtherTeam != null ? secondOtherTeam.getInkColorA() : 0.0))
+					.replace("{opp-2-match-result}", String.format("%s%s",
+						isTurf || isTricolor
+							? String.format("%.1f", secondOtherTeamScore)
+							: String.format("%d", (int) secondOtherTeamScore),
+						isTurf || isTricolor ? "%" : "p"))
+
 
 					.replace("{main-weapon}", String.format("data:image/png;base64,%s", mainWeaponUrl))
 					.replace("{sub-weapon}", String.format("data:image/png;base64,%s", subWeaponUrl))
@@ -682,6 +823,21 @@ public class S3StreamStatistics {
 					.replace("{series-change}", buildPowerDiff(seriesPreviousPower, seriesCurrentPower))
 					.replace("{series-max}", buildCurrentPower(seriesMaxPower))
 				;
+
+				if (isTricolor) {
+					currentHtml = currentHtml
+						.replace("$own-result-color$", "WIN".equalsIgnoreCase(team.getJudgement())
+							? "green"
+							: "LOSE".equalsIgnoreCase(team.getJudgement()) ? "red" : "")
+						.replace("$opp-1-result-color$",
+							"WIN".equalsIgnoreCase(firstOtherTeam.getJudgement())
+								? "green"
+								: "LOSE".equalsIgnoreCase(firstOtherTeam.getJudgement()) ? "red" : "")
+						.replace("$opp-2-result-color$",
+							"WIN".equalsIgnoreCase(secondOtherTeam.getJudgement())
+								? "green"
+								: "LOSE".equalsIgnoreCase(secondOtherTeam.getJudgement()) ? "red" : "");
+				}
 
 				if (headGearSub2 != null) {
 					currentHtml = currentHtml.replace("{head-sub-2}", String.format("data:image/png;base64,%s", headGearSub2))
@@ -1045,5 +1201,16 @@ public class S3StreamStatistics {
 			exceptionLogger.logExceptionAsAttachment(log, "getImageEncoded global exception", ex);
 			return "UNKNOWN EXCEPTION DURING IMAGE CONVERSION TO BASE64";
 		}
+	}
+
+	@RequiredArgsConstructor
+	@Getter
+	@Setter
+	@Builder
+	private static class Color {
+		private final Double r;
+		private final Double g;
+		private final Double b;
+		private final Double a;
 	}
 }
