@@ -584,6 +584,11 @@ public class S3StreamStatistics {
 				currentHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
 				currentHtml = currentHtml
+					.replace("{match-color-r}", String.format("%d", (int)(team.getInkColorR() * 255)))
+					.replace("{match-color-g}", String.format("%d", (int)(team.getInkColorG() * 255)))
+					.replace("{match-color-b}", String.format("%d", (int)(team.getInkColorB() * 255)))
+					.replace("{match-color-a}", String.format("%f", team.getInkColorR()))
+
 					.replace("{main-weapon}", String.format("data:image/png;base64,%s", mainWeaponUrl))
 					.replace("{sub-weapon}", String.format("data:image/png;base64,%s", subWeaponUrl))
 					.replace("{special-weapon}", String.format("data:image/png;base64,%s", specialWeaponUrl))
@@ -612,6 +617,7 @@ public class S3StreamStatistics {
 					.replace("{weapon-win-count}", df.format(weaponStatsCurrent.getStats().getWin()).replaceAll(",", " "))
 
 					.replace("{weapon-tab}", weaponStatsCurrent.getStats().getLevel() >= 10 ? "hidden" : "tab")
+					.replace("{wins-hidden}", weaponStatsCurrent.getStats().getLevel() >= 10 ? "" : "hidden")
 					.replace("{weapon-exp-start}", df.format(startExpWeapon).replaceAll(",", " "))
 					.replace("{weapon-exp}", df.format(currentExpWeapon).replaceAll(",", " "))
 
