@@ -235,7 +235,7 @@
 			allTabs[currTab].classList.remove("hidden")
 		}
 
-		setInterval(switchTab, 10000)
+		setInterval(switchTab, 5000)
 	</script>
 </head>
 
@@ -283,27 +283,6 @@
 
 			<div>
 				<span class="small-font">{weapon-win-count} wins</span>
-			</div>
-
-			<div class="vertical-space-medium {exp-hidden}"></div>
-
-			<div class="flex-row weapon-width {exp-hidden}">
-				<span class="exp-bar already-owned-exp"></span>
-				<span class="exp-bar earned-exp-stream"></span>
-				<span class="exp-bar remaining-exp"></span>
-			</div>
-			<div class="vertical-space-small"></div>
-
-			<div class="{exp-hidden}">
-				<p class="small-font yellow">
-					{weapon-exp-start}
-				</p>
-				<p class="small-font aqua {weapon-exp-gain-hidden}">
-					+ {weapon-exp-gain}
-				</p>
-				<p class="small-font">
-					= {weapon-exp}
-				</p>
 			</div>
 		</div>
 
@@ -414,8 +393,33 @@
 
 		<!-- stats-->
 		<div>
+			<!-- weapon exp -->
+			<div class="{weapon-tab} stats-min-height">
+				<div class="flex-column rounded-corners-bright body-sized fill-width">
+					<p>WEAPON EXP</p>
+					<div class="flex-row weapon-width {exp-hidden}">
+						<span class="exp-bar already-owned-exp"></span>
+						<span class="exp-bar earned-exp-stream"></span>
+						<span class="exp-bar remaining-exp"></span>
+					</div>
+					<div class="vertical-space-small"></div>
+
+					<div class="{exp-hidden}">
+						<p class="small-font yellow">
+							{weapon-exp-start}
+						</p>
+						<p class="small-font aqua {weapon-exp-gain-hidden}">
+							+ {weapon-exp-gain}
+						</p>
+						<p class="small-font">
+							= {weapon-exp}
+						</p>
+					</div>
+				</div>
+			</div>
+
 			<!-- wins, defeats -->
-			<div class="tab stats-min-height">
+			<div class="tab hidden stats-min-height">
 				<div class="flex-column rounded-corners-bright body-sized fill-width">
 					<p>STREAM</p>
 					<p>

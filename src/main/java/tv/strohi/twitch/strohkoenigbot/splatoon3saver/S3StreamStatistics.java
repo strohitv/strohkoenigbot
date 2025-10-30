@@ -611,6 +611,7 @@ public class S3StreamStatistics {
 					.replace("{exp-hidden}", weaponStatsCurrent.getStats().getLevel() >= 10 ? "hidden" : "")
 					.replace("{weapon-win-count}", df.format(weaponStatsCurrent.getStats().getWin()).replaceAll(",", " "))
 
+					.replace("{weapon-tab}", weaponStatsCurrent.getStats().getLevel() >= 10 ? "hidden" : "tab")
 					.replace("{weapon-exp-start}", df.format(startExpWeapon).replaceAll(",", " "))
 					.replace("{weapon-exp}", df.format(currentExpWeapon).replaceAll(",", " "))
 
