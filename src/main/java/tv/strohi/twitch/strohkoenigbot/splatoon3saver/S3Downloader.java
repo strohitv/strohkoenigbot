@@ -295,7 +295,7 @@ public class S3Downloader implements ScheduledService {
 			shouldRunS3s |= foundGames;
 
 			if (foundGames) {
-				logSender.sendLogs(logger, builder.toString());
+				logSender.sendLogsToDebugChannel(logger, builder.toString());
 			}
 		}
 	}
@@ -512,7 +512,7 @@ public class S3Downloader implements ScheduledService {
 					message = String.format("%s\n- **%d** new salmon run shifts", message, salmonShiftsToDownload.size());
 				}
 
-				logSender.sendLogs(logger, message);
+				logSender.sendLogsToDebugChannel(logger, message);
 
 				// start refresh of s3s script asynchronously
 				s3sRunner.runS3S();

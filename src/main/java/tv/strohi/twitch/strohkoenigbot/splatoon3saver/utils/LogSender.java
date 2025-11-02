@@ -6,6 +6,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -22,6 +23,11 @@ public class LogSender {
 	public void sendLogs(Logger logger, String message) {
 		logger.info(message);
 		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, message);
+	}
+
+	public void sendLogsToDebugChannel(Logger logger, String message) {
+		logger.info(message);
+		discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), message);
 	}
 
 	public void sendLogsAsAttachment(Logger logger, String message, String attachment) {

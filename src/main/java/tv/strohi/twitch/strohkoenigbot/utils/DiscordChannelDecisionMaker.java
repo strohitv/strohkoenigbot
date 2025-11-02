@@ -1,5 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.utils;
 
+import lombok.Getter;
+
 public class DiscordChannelDecisionMaker {
 	private final static String debugTempChannel = "debug-logs-temp";
 
@@ -32,11 +34,8 @@ public class DiscordChannelDecisionMaker {
 	private final static String s3EmotesChannel = "s3-emotes";
 	private final static String s3NameplatesChannel = "s3-banners";
 
+	@Getter
 	private static boolean isLocalDebug = false;
-
-	public static boolean isLocalDebug() {
-		return isLocalDebug;
-	}
 
 	public static void setIsLocalDebug(boolean isLocalDebug) {
 		DiscordChannelDecisionMaker.isLocalDebug = isLocalDebug;
