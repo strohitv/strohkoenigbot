@@ -584,7 +584,7 @@ public class S3DailyStatsSender implements ScheduledService {
 			.append("** remaining weapons");
 
 		int yesterdayUnfinishedCount = yesterdayStats.getPreviousWeaponStarsCount().keySet().stream()
-			.filter(k -> !k.contains("4") && !k.contains("5"))
+			.filter(k -> !k.contains("4") && !k.contains("5") && !k.contains("6") && !k.contains("7") && !k.contains("8") && !k.contains("9") && !k.contains("10"))
 			.map((a) -> yesterdayStats.getPreviousWeaponStarsCount().get(a))
 			.reduce(Integer::sum)
 			.orElse(0);
