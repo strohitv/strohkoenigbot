@@ -37,14 +37,14 @@ public class OverlayController {
 		if (twitchBotClient.getWentLiveTime() != null) {
 			var lastUpdateTime = s3StreamStatistics.getLastUpdate();
 			if (lastUpdateTime == null || Instant.now().minus(10, ChronoUnit.MINUTES).isAfter(lastUpdateTime)) {
-				logSender.sendLogs(log, "s3 stream statistics was not queried for 10 minutes, attempting to refresh s3 battles directly...");
+//				logSender.sendLogs(log, "s3 stream statistics was not queried for 10 minutes, attempting to refresh s3 battles directly...");
 				s3Downloader.downloadBattles(true);
 
-				if (lastUpdateTime != s3StreamStatistics.getLastUpdate()) {
-					logSender.sendLogs(log, "done");
-				} else {
-					logSender.sendLogs(log, "still no change! :(");
-				}
+//				if (lastUpdateTime != s3StreamStatistics.getLastUpdate()) {
+//					logSender.sendLogs(log, "done");
+//				} else {
+//					logSender.sendLogs(log, "still no change! :(");
+//				}
 			}
 		}
 

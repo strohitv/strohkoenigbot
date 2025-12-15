@@ -13,7 +13,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.rest.model.BotStatus;
-import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
 import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -33,16 +33,16 @@ public class BotController implements ScheduledService {
 	private final Bucket bucket;
 
 	private final DiscordBot discordBot;
+	private final S3Downloader s3Downloader;
 	private final TwitchBotClient twitchBotClient;
-	private final ResultsExporter resultsExporter;
 
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 
-	public BotController(DiscordBot discordBot, TwitchBotClient twitchBotClient, ResultsExporter resultsExporter, AccountRepository accountRepository, ConfigurationRepository configurationRepository) {
+	public BotController(DiscordBot discordBot, S3Downloader s3Downloader, TwitchBotClient twitchBotClient, AccountRepository accountRepository, ConfigurationRepository configurationRepository) {
 		this.discordBot = discordBot;
+		this.s3Downloader = s3Downloader;
 		this.twitchBotClient = twitchBotClient;
-		this.resultsExporter = resultsExporter;
 		this.accountRepository = accountRepository;
 		this.configurationRepository = configurationRepository;
 
@@ -77,9 +77,13 @@ public class BotController implements ScheduledService {
 			.orElse(new Account());
 
 		if (!twitchBotClient.isLive(account.getTwitchUserId())) {
-			twitchBotClient.setFakeDebug(true);
-			resultsExporter.start(account);
+			twitchBotClient.goLive(account.getTwitchUserId());
 		}
+	}
+
+	@PostMapping("import")
+	public void importGames() {
+		s3Downloader.downloadBattles(true);
 	}
 
 	@PostMapping("stop")
@@ -90,8 +94,7 @@ public class BotController implements ScheduledService {
 			.orElse(new Account());
 
 		if (twitchBotClient.isLive(account.getTwitchUserId())) {
-			twitchBotClient.setFakeDebug(false);
-			resultsExporter.stop(account);
+			twitchBotClient.goOffline(account.getTwitchUserId());
 		}
 	}
 
