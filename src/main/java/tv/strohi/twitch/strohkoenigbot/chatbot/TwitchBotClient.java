@@ -346,6 +346,8 @@ public class TwitchBotClient implements ScheduledService {
 		}
 
 		autoSoAction.endStream();
+
+		logSender.sendLogs(logger, "Went offline");
 	}
 
 	public void goLive(String channelId) {

@@ -93,9 +93,7 @@ public class BotController implements ScheduledService {
 			.findFirst()
 			.orElse(new Account());
 
-		if (twitchBotClient.isLive(account.getTwitchUserId())) {
-			twitchBotClient.goOffline(account.getTwitchUserId());
-		}
+		twitchBotClient.goOffline(account.getTwitchUserId());
 	}
 
 	@PostMapping("admin-message")
