@@ -15,6 +15,8 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ExtendedStatisticsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.Statistics;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -49,6 +51,19 @@ public class OverlayController {
 		}
 
 		return s3StreamStatistics.getFinishedHtml();
+	}
+
+	@GetMapping(value = "/s3/fullscreen", produces = "text/html")
+	public @ResponseBody String getS3FullscreenOverlay() {
+		var html = "<html></html>";
+
+		try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-between-games-template.html")) {
+			assert is != null;
+			html = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		} catch (IOException ignored) {
+		}
+
+		return html;
 	}
 
 	@GetMapping("")

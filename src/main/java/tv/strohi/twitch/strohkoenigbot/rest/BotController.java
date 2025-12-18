@@ -83,6 +83,7 @@ public class BotController implements ScheduledService {
 
 	@PostMapping("import")
 	public void importGames() {
+		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, String.format("Instance `%s`, debug = `%s` is importing games triggered by BotController", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug()));
 		s3Downloader.downloadBattles(true);
 	}
 
