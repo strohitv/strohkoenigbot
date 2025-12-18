@@ -238,6 +238,7 @@ public class S3Downloader implements ScheduledService {
 			streamStatistics.exportHtml();
 
 			shouldExportStreamStatisticsHtml = false;
+			logSender.sendLogsToDebugChannel(logger, "stream statistics were exported");
 		}
 	}
 
