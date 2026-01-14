@@ -44,4 +44,8 @@ public class Account {
 	private String bulletTokenSplatoon3;
 
 	private Boolean enableSplatoon3;
+
+	private Long sendouId;
+
+	private String sendouApiToken;
 }

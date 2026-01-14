@@ -17,6 +17,8 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import javax.annotation.PreDestroy;
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,6 +55,14 @@ public class StrohkoenigbotApplication {
 	@Bean
 	public RestTemplate restTemplate(RestTemplateBuilder builder) {
 		return builder.build();
+	}
+
+	@Bean
+	public HttpClient httpClient() {
+		return HttpClient.newBuilder()
+			.connectTimeout(Duration.ofSeconds(120))
+			.version(HttpClient.Version.HTTP_2)
+			.build();
 	}
 
 	public static void main(String[] args) {

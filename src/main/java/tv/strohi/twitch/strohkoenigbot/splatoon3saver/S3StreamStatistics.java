@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.sendou.model.out.SendouMatch;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Badge;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
@@ -55,6 +56,7 @@ public class S3StreamStatistics {
 	private final DecimalFormat df = new DecimalFormat("#,###,###");
 
 	private final List<Splatoon3VsResult> includedMatches = new ArrayList<>();
+	private SendouMatch currentSendouMatch = null;
 
 	private Double startXZones, startXTower, startXRainmaker, startXClams;
 	private Double currentXZones, currentXTower, currentXRainmaker, currentXClams;
@@ -887,6 +889,8 @@ public class S3StreamStatistics {
 						.replace("{shoes-sub3-hidden}", "hidden");
 				}
 
+				currentHtml = addSendouOverlay(currentHtml);
+
 				finishedHtml = currentHtml;
 
 				try (var myWriter = new FileWriter(path)) {
@@ -896,6 +900,27 @@ public class S3StreamStatistics {
 				log.error(e);
 			}
 		}
+	}
+
+	private String addSendouOverlay(String html) {
+		var replacement = "";
+
+		if (currentSendouMatch != null) {
+			try (var is = this.getClass().getClassLoader().getResourceAsStream("html/s3/onstream-sendou-result-template.html")) {
+				assert is != null;
+				var sendouHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+				replacement = sendouHtml
+					.replace("{own-sendou-team-name}", currentSendouMatch.getOwnTeam().getName())
+					.replace("{opponent-sendou-team-name}", currentSendouMatch.getOpponentTeam().getName())
+					.replace("{own-score}", String.format("%d", currentSendouMatch.getOwnScore()))
+					.replace("{opponent-score}", String.format("%d", currentSendouMatch.getOpponentScore()));
+			} catch (Exception e) {
+				log.error(e);
+			}
+		}
+
+		return html.replace("<sendoumatch></sendoumatch>", replacement);
 	}
 
 //	private Double getPower(Splatoon3VsResult m) {
@@ -1106,6 +1131,15 @@ public class S3StreamStatistics {
 		});
 
 		includedMatches.addAll(newGames);
+	}
+
+	public void setSendouMatchResult(SendouMatch sendouMatch) {
+		if (sendouMatch == null || sendouMatch.equals(currentSendouMatch)) {
+			return;
+		}
+
+		currentSendouMatch = sendouMatch;
+		exportHtml();
 	}
 
 	private Splatoon3VsSpecialWeapon extractSpecialWeapon(Splatoon3VsResult result) {

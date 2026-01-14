@@ -21,6 +21,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
+import tv.strohi.twitch.strohkoenigbot.sendou.SendouService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
@@ -87,6 +88,8 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final S3NameplateSender nameplateSender;
 
 	private final S3XLeaderboardDownloader leaderboardDownloader;
+
+	private final SendouService sendouService;
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
@@ -655,6 +658,64 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				s3DailyStatsSender.sendWeaponPerformanceStatsToDiscord(account, requiredGameCount, 10_000);
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Full game stats sent.");
+			} else if (lowercaseMessage.startsWith("!sendou id")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to set sendou id...");
+
+				var sendouId = message.substring("!sendou id".length()).trim();
+
+				if (sendouId.isEmpty() || !sendouId.matches("^[0-9]+$")) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "**!!! ERROR !!!** Either no id provided or id contained something other than numbers.");
+				}
+
+				accountRepository.findAll().stream()
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.ifPresent(acc -> accountRepository.save(acc.toBuilder().sendouId(Long.parseLong(sendouId)).build()));
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Sendou id was set successfully.");
+			} else if (lowercaseMessage.startsWith("!sendou token")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to set sendou token...");
+
+				var sendouToken = message.substring("!sendou token".length()).trim();
+
+				if (sendouToken.isEmpty()) {
+					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "**!!! ERROR !!!** No Token provided");
+				}
+
+				accountRepository.findAll().stream()
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.ifPresent(acc -> accountRepository.save(acc.toBuilder().sendouApiToken(sendouToken).build()));
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Sendou token was set successfully.");
+			} else if (lowercaseMessage.startsWith("!sendou sendouq")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to load active sendouq match id...");
+
+				accountRepository.findAll().stream()
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.ifPresent(acc ->
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("```%s```", sendouService.loadActiveSendouQMatchId(acc))));
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Active sendouq match id was loaded successfully...");
+			} else if (lowercaseMessage.startsWith("!sendou match")) {
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to load sendouq match...");
+
+				accountRepository.findAll().stream()
+					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+					.findFirst()
+					.ifPresent(acc -> {
+						var match = sendouService.loadSendouQMatch(acc, 77145L);
+
+						if (match.isPresent()) {
+							discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("```%s```", match.get()));
+
+							var mappedMatch = sendouService.mapToActiveMatch(acc, match.get());
+							mappedMatch.ifPresent(activeMatch -> discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("```%s```", activeMatch)));
+						}
+					});
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "SendouQ match was loaded successfully...");
 			}
 		} catch (Exception e) {
 			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");

@@ -1,0 +1,37 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "2026-01-03_01-add-sendou-ink-id-and-token",
+        "author": "strohkoenig",
+        "changes": [
+          {
+            "addColumn": {
+              "tableName": "account",
+              "columns": [
+                {
+                  "column": {
+                    "name": "sendou_id",
+                    "type": "bigint",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                },
+                {
+                  "column": {
+                    "name": "sendou_api_token",
+                    "type": "varchar(50)",
+                    "constraints": {
+                      "nullable": true
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
