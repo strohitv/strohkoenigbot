@@ -66,6 +66,8 @@ public class SendouService implements ScheduledService {
 			return Optional.empty();
 		}
 
+		sendouQMatchResponse.setMatchId(matchId);
+
 		return Optional.of(sendouQMatchResponse);
 	}
 
@@ -116,6 +118,7 @@ public class SendouService implements ScheduledService {
 
 		var result = SendouMatch.builder()
 			.matchActive(true)
+			.matchId(sendouQMatch.getMatchId())
 			.type(MatchType.SENDOU_Q)
 			.ownScore(ownTeam.getScore())
 			.opponentScore(otherTeam.getScore())

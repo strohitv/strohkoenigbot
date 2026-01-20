@@ -21,7 +21,7 @@
 		}
 
 		body {
-			font-family: Splatoon2, sans-serif;
+			font-family: Splatoon2, Splatoon1, sans-serif, serif;
 			font-size: 23px;
 			line-height: 32px;
 			font-weight: bold;
@@ -108,6 +108,14 @@
 			align-items: center;
 		}
 
+		.flex-to-right {
+			margin-left: auto;
+		}
+
+		.full-width {
+			width: 100%;
+		}
+
 		.rounded-corners-transparent {
 			background-color: rgba(68, 68, 68, 0.65);
 			border-radius: 12px;
@@ -116,9 +124,36 @@
 		}
 
 		.rounded-corners-sendou-foreground {
-			background-color: rgba(20, 15, 52, 0.65);
-			border-radius: 10px;
-			padding: 3px;
+			background-color: rgba(20, 15, 52, 0.8);
+			border-radius: 0 10px 10px 0;
+			padding: 5px 3px;
+		}
+
+		.no-rounded-corners-sendou {
+			background-color: rgba(20, 15, 52, 0.8);
+			border-radius: 0;
+			padding: 0 8px;
+			max-width: fit-content;
+		}
+
+		.sendou-header {
+			background-color: rgba(20, 15, 52, 0.8);
+			border-radius: 10px 10px 0 0;
+			padding: 0 8px;
+			max-width: fit-content;
+			margin-bottom: 0;
+		}
+
+		.sendou-footer {
+			background-color: rgba(20, 15, 52, 0.8);
+			border-radius: 0 0 10px 10px;
+			padding: 0 8px;
+			max-width: fit-content;
+			margin-top: -8px;
+		}
+
+		.mini-font {
+			font-size: 14px;
 		}
 
 		.rounded-corners-sendou-background {
@@ -129,6 +164,12 @@
 
 		.rounded-corners-bright {
 			background-color: rgba(187, 187, 187, 0.65);
+			border-radius: 10px;
+			padding: 3px;
+		}
+
+		.rounded-corners-dark-grey {
+			background-color: rgba(150, 150, 150, 1);
 			border-radius: 10px;
 			padding: 3px;
 		}
@@ -217,8 +258,21 @@
 
 		.sendou-team-name {
 			width: 45%;
-			min-width: 180px;
+			min-width: 120px;
 			max-width: 250px;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			text-align: center;
+		}
+
+		.sendou-left-team {
+			/*padding-right: 25px;*/
+			/*text-align: left;*/
+		}
+
+		.sendou-right-team {
+			/*padding-left: 25px;*/
+			/*text-align: right;*/
 		}
 
 		.sendou-result {

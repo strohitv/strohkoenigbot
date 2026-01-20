@@ -12,6 +12,8 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 public class SendouMatch {
+	private Long matchId;
+
 	private boolean matchActive;
 
 	private MatchType type;

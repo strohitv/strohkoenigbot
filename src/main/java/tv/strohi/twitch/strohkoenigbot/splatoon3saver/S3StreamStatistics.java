@@ -914,7 +914,8 @@ public class S3StreamStatistics {
 					.replace("{own-sendou-team-name}", currentSendouMatch.getOwnTeam().getName())
 					.replace("{opponent-sendou-team-name}", currentSendouMatch.getOpponentTeam().getName())
 					.replace("{own-score}", String.format("%d", currentSendouMatch.getOwnScore()))
-					.replace("{opponent-score}", String.format("%d", currentSendouMatch.getOpponentScore()));
+					.replace("{opponent-score}", String.format("%d", currentSendouMatch.getOpponentScore()))
+					.replace("{sendou-match-url}", String.format("https://sendou.ink/q/match/%d", currentSendouMatch.getMatchId()));
 			} catch (Exception e) {
 				log.error(e);
 			}

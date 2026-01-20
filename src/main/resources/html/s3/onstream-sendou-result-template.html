@@ -1,4 +1,7 @@
-<div class="rounded-corners-sendou-background">
+<div>
+	<div class="sendou-header mini-font">
+		&copy; Overlay: strohkoenig
+	</div>
 	<div class="rounded-corners-sendou-foreground flex-column">
 		<div class="flex-row">
 			<div class="horizontal-space-small"></div>
@@ -7,14 +10,17 @@
 			<span>SendouQ</span>
 			<div class="horizontal-space-small"></div>
 		</div>
-		<div class="flex-row">
+		<div class="flex-row full-width">
+			<span class="sendou-team-name sendou-left-team">Our Team</span>
 			<div class="horizontal-space-small"></div>
-			<span class="sendou-team-name">{own-sendou-team-name} (US)</span>
+			<span class="rounded-corners-dark-grey sendou-result">{own-score}:{opponent-score}</span>
 			<div class="horizontal-space-small"></div>
-			<span class="rounded-corners-bright sendou-result">{own-score}:{opponent-score}</span>
-			<div class="horizontal-space-small"></div>
-			<span class="sendou-team-name">{opponent-sendou-team-name}</span>
-			<div class="horizontal-space-small"></div>
+			<span class="sendou-team-name sendou-right-team">Opponents</span>
+		</div>
+	</div>
+	<div class="flex-row">
+		<div class="sendou-footer mini-font yellow">
+			{sendou-match-url}
 		</div>
 	</div>
 </div>
