@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.sendou.model.out.MatchType;
 import tv.strohi.twitch.strohkoenigbot.sendou.model.out.SendouMatch;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Badge;
@@ -107,6 +108,8 @@ public class S3StreamStatistics {
 
 	public void reset() {
 		includedMatches.clear();
+		currentSendouMatch = null;
+
 		startXZones = startXTower = startXRainmaker = startXClams = currentXZones = currentXTower = currentXRainmaker = currentXClams = null;
 		headGears = clothingGears = shoesGears = null;
 		startWeaponStats = currentWeaponStats = null;
@@ -128,6 +131,11 @@ public class S3StreamStatistics {
 	}
 
 	public void exportHtml() {
+		exportS3HtmlToCurrentHtml();
+		finishedHtml = addSendouOverlay(currentHtml);
+	}
+
+	private void exportS3HtmlToCurrentHtml() {
 		if (!includedMatches.isEmpty() && startSpecialWinStats != null) {
 			lastUpdate = Instant.now();
 
@@ -889,12 +897,10 @@ public class S3StreamStatistics {
 						.replace("{shoes-sub3-hidden}", "hidden");
 				}
 
-				currentHtml = addSendouOverlay(currentHtml);
-
-				finishedHtml = currentHtml;
-
 				try (var myWriter = new FileWriter(path)) {
 					myWriter.write(currentHtml);
+				} catch (IOException ex) {
+					exceptionLogger.logExceptionAsAttachment(log, "Exception during currentHtml export", ex);
 				}
 			} catch (Exception e) {
 				log.error(e);
@@ -911,11 +917,28 @@ public class S3StreamStatistics {
 				var sendouHtml = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
 				replacement = sendouHtml
+					.replace("{sendou-match-url}", Optional.ofNullable(currentSendouMatch.getUrl()).orElse(""))
+
 					.replace("{own-sendou-team-name}", currentSendouMatch.getOwnTeam().getName())
 					.replace("{opponent-sendou-team-name}", currentSendouMatch.getOpponentTeam().getName())
+					.replace("{own-sendou-team-logo}", currentSendouMatch.getOwnTeam().getLogoUrl() != null ? currentSendouMatch.getOwnTeam().getLogoUrl() : "")
+					.replace("{own-team-logo-hidden}", currentSendouMatch.getOwnTeam().getLogoUrl() != null && !currentSendouMatch.getOwnTeam().getLogoUrl().isBlank() ? "" : "hidden")
+					.replace("{opponent-sendou-team-logo}", currentSendouMatch.getOpponentTeam().getLogoUrl() != null ? currentSendouMatch.getOpponentTeam().getLogoUrl() : "")
+					.replace("{opponent-team-logo-hidden}", currentSendouMatch.getOpponentTeam().getLogoUrl() != null && !currentSendouMatch.getOpponentTeam().getLogoUrl().isBlank() ? "" : "hidden")
+
 					.replace("{own-score}", String.format("%d", currentSendouMatch.getOwnScore()))
 					.replace("{opponent-score}", String.format("%d", currentSendouMatch.getOpponentScore()))
-					.replace("{sendou-match-url}", String.format("https://sendou.ink/q/match/%d", currentSendouMatch.getMatchId()));
+
+					.replace("{sendouq-header-hidden}", MatchType.SENDOU_Q.equals(currentSendouMatch.getType()) ? "" : "hidden")
+
+					.replace("{sendou-tournament-header-hidden}", MatchType.TOURNAMENT.equals(currentSendouMatch.getType()) ? "" : "hidden")
+					.replace("{sendou-tournament-name}", Optional.ofNullable(currentSendouMatch.getTournamentName()).orElse("unknown Tournament"))
+					.replace("{sendou-tournament-logo-hidden}",
+						currentSendouMatch.getTournamentImageUrl() != null && !currentSendouMatch.getTournamentImageUrl().isBlank() ? "" : "hidden")
+					.replace("{sendou-tournament-image}", Optional.ofNullable(currentSendouMatch.getTournamentImageUrl()).orElse(""))
+					.replace("{sendou-tournament-bracket}", Optional.ofNullable(currentSendouMatch.getBracketName()).orElse(""))
+					.replace("{sendou-tournament-round}", Optional.ofNullable(currentSendouMatch.getRoundName()).orElse(""))
+					.replace("{sendou-tournament-win-condition}", Optional.ofNullable(currentSendouMatch.getWinCondition()).orElse(""));
 			} catch (Exception e) {
 				log.error(e);
 			}

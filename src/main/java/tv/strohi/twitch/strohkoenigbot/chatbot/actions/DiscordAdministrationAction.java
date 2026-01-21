@@ -695,7 +695,7 @@ public class DiscordAdministrationAction extends ChatAction {
 					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
 					.findFirst()
 					.ifPresent(acc ->
-						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("```%s```", sendouService.loadActiveSendouQMatchId(acc))));
+						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("```%s```", sendouService.loadActiveSendouQMatchId(acc, acc.getSendouId()))));
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Active sendouq match id was loaded successfully...");
 			} else if (lowercaseMessage.startsWith("!sendou match")) {
@@ -710,7 +710,7 @@ public class DiscordAdministrationAction extends ChatAction {
 						if (match.isPresent()) {
 							discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("```%s```", match.get()));
 
-							var mappedMatch = sendouService.mapToActiveMatch(acc, match.get());
+							var mappedMatch = sendouService.mapToActiveMatch(acc, acc.getSendouId(), match.get());
 							mappedMatch.ifPresent(activeMatch -> discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("```%s```", activeMatch)));
 						}
 					});

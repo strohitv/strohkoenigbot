@@ -5,7 +5,157 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="refresh" content="120">
 	<title>Splatoon 3 statistics</title>
+
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+
+			overflow: hidden;
+		}
+
+		html {
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			font-family: Splatoon2, Splatoon1, sans-serif, serif;
+			font-size: 23px;
+			line-height: 32px;
+			font-weight: bold;
+			-webkit-text-stroke: 1px black;
+			color: white;
+			text-align: center;
+
+			background-color: rgba(0, 0, 0, 0);
+
+			position: absolute;
+			margin: 5px;
+			/*top: 3px;*/
+			/*left: 3px;*/
+
+			/*width: 98vw;*/
+		}
+
+		.hidden {
+			display: none;
+			visibility: hidden;
+		}
+
+		.sendou-overlay {
+			margin-bottom: 5px;
+		}
+
+		.horizontal-space-small {
+			width: 7px;
+		}
+
+		.horizontal-space-medium {
+			width: 23px;
+		}
+
+		.flex-column {
+			display: flex;
+			flex-direction: column;
+
+			align-items: center;
+		}
+
+		.flex-row {
+			display: flex;
+			flex-direction: row;
+
+			align-items: center;
+		}
+
+		.full-width {
+			width: 100%;
+		}
+
+		.rounded-corners-sendou-foreground {
+			background-color: rgba(20, 15, 52, 0.8);
+			border-radius: 0 10px 10px 0;
+			padding: 5px 3px;
+		}
+
+		.rounded-corners-sendou-highlight {
+			background-color: rgba(169, 138, 255, 0.3);
+			border-radius: 10px;
+			padding: 5px 3px;
+		}
+
+		.sendou-header {
+			background-color: rgba(20, 15, 52, 0.8);
+			border-radius: 10px 10px 0 0;
+			padding: 0 8px;
+			max-width: fit-content;
+		}
+
+		.sendou-footer {
+			background-color: rgba(20, 15, 52, 0.8);
+			border-radius: 0 0 10px 10px;
+			padding: 0 8px;
+			max-width: fit-content;
+		}
+
+		.bottom-margin {
+			margin-bottom: 5px;
+		}
+
+		.rounded-corners-dark-grey {
+			background-color: rgba(150, 150, 150, 1);
+			border-radius: 10px;
+			padding: 3px;
+		}
+
+		.image-medium {
+			height: 35px;
+			width: 35px;
+		}
+
+		.image-circle {
+			clip-path: circle();
+		}
+
+		.yellow {
+			color: yellow;
+		}
+
+		.sendou-team-name {
+			width: 45%;
+			min-width: 120px;
+			max-width: 250px;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			text-align: center;
+		}
+
+		.sendou-result {
+			width: 10%;
+			min-width: 40px;
+			max-width: 60px;
+		}
+
+		.mini-font {
+			font-size: 18px;
+			line-height: 26px;
+			font-weight: bold;
+			-webkit-text-stroke: 1px black;
+		}
+
+		.micro-font {
+			font-size: 14px;
+			line-height: 22px;
+		}
+
+		.horizontal-padding {
+			padding-left: 5px;
+			padding-right: 5px;
+		}
+	</style>
 </head>
 <body>
+<sendoumatch></sendoumatch>
 </body>
 </html>

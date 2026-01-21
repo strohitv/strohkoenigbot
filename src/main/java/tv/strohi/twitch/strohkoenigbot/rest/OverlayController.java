@@ -5,8 +5,11 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.sendou.SendouService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3BadgeSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3EmoteSender;
@@ -19,12 +22,16 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.regex.Pattern;
 
 @RequestMapping("overlay")
 @Controller
 @RequiredArgsConstructor
 @Log4j2
 public class OverlayController {
+	private static final Pattern NUMBER_PATTERN = Pattern.compile("^[0-9]+$");
+	private static final Pattern BOOLEAN_NUMBER_PATTERN = Pattern.compile("^[01]$");
+
 	private final Statistics statistics;
 	private final S3StreamStatistics s3StreamStatistics;
 	private final ExtendedStatisticsExporter fullscreenExporter;
@@ -32,10 +39,15 @@ public class OverlayController {
 	private final S3EmoteSender emoteSender;
 	private final TwitchBotClient twitchBotClient;
 	private final S3Downloader s3Downloader;
+	private final SendouService sendouService;
 	private final LogSender logSender;
+	private final AccountRepository accountRepository;
 
 	@GetMapping("s3")
-	public @ResponseBody String getS3Overlay() {
+	public @ResponseBody String getS3Overlay(
+		@RequestParam(name = "sendou_id", required = false, defaultValue = "6238") String sendouAccountString,
+		@RequestParam(name = "tournament_id", required = false, defaultValue = "") String tournamentString,
+		@RequestParam(name = "search_sendouq", required = false, defaultValue = "1") String searchSendouQString) {
 		if (twitchBotClient.getWentLiveTime() != null) {
 			var lastUpdateTime = s3StreamStatistics.getLastUpdate();
 			if (lastUpdateTime == null || Instant.now().minus(10, ChronoUnit.MINUTES).isAfter(lastUpdateTime)) {
@@ -49,6 +61,19 @@ public class OverlayController {
 //				}
 			}
 		}
+
+		final Long sendouAccountId = NUMBER_PATTERN.matcher(sendouAccountString).matches()
+			? Long.parseLong(sendouAccountString)
+			: null;
+		final Long tournamentId = NUMBER_PATTERN.matcher(tournamentString).matches()
+			? Long.parseLong(tournamentString)
+			: null;
+		final boolean searchSendouQ = BOOLEAN_NUMBER_PATTERN.matcher(searchSendouQString).matches()
+			&& "1".equals(searchSendouQString);
+
+		sendouService.setSendouAccountId(sendouAccountId);
+		sendouService.setTournamentId(tournamentId);
+		sendouService.setSearchSendouQ(searchSendouQ);
 
 		return s3StreamStatistics.getFinishedHtml();
 	}

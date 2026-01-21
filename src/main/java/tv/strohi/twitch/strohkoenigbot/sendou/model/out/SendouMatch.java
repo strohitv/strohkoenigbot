@@ -12,7 +12,12 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 public class SendouMatch {
-	private Long matchId;
+	private String url;
+	private String tournamentName;
+	private String tournamentImageUrl;
+	private String bracketName;
+	private String roundName;
+	private String winCondition;
 
 	private boolean matchActive;
 

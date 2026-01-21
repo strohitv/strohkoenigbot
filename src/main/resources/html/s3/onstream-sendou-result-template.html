@@ -1,25 +1,57 @@
-<div>
-	<div class="sendou-header mini-font">
+<div class="sendou-overlay">
+	<div class="sendou-header micro-font">
 		&copy; Overlay: strohkoenig
 	</div>
 	<div class="rounded-corners-sendou-foreground flex-column">
-		<div class="flex-row">
-			<div class="horizontal-space-small"></div>
-			<img class="image-medium" src="https://sendou.ink/static-assets/img/layout/sendouq.avif"  alt="sendouq-logo"/>
-			<div class="horizontal-space-small"></div>
-			<span>SendouQ</span>
-			<div class="horizontal-space-small"></div>
+		<!--		SendouQ-->
+		<div class="full-width horizontal-padding {sendouq-header-hidden}">
+			<div class="flex-column rounded-corners-sendou-highlight bottom-margin">
+				<div class="flex-row ">
+					<div class="horizontal-space-small"></div>
+					<img class="image-medium" src="https://sendou.ink/static-assets/img/layout/sendouq.avif" alt="sendouq-logo"/>
+					<div class="horizontal-space-small"></div>
+					<span>SendouQ (bo7)</span>
+					<div class="horizontal-space-small"></div>
+				</div>
+			</div>
 		</div>
-		<div class="flex-row full-width">
-			<span class="sendou-team-name sendou-left-team">Our Team</span>
+		<!--		regular Tournament-->
+		<div class="full-width horizontal-padding {sendou-tournament-header-hidden}">
+			<div class="flex-column rounded-corners-sendou-highlight bottom-margin">
+				<div class="flex-row ">
+					<div class="horizontal-space-small {sendou-tournament-logo-hidden}"></div>
+					<img class="image-medium image-circle {sendou-tournament-logo-hidden}" src="{sendou-tournament-image}" alt="tournament-logo"/>
+					<div class="horizontal-space-small"></div>
+					<span>{sendou-tournament-name}</span>
+					<div class="horizontal-space-small"></div>
+				</div>
+				<div class="flex-row mini-font">
+					<div class="horizontal-space-small"></div>
+					<span>{sendou-tournament-bracket}</span>
+					<div class="horizontal-space-medium"></div>
+					<span>{sendou-tournament-round}</span>
+					<div class="horizontal-space-medium"></div>
+					<span>{sendou-tournament-win-condition}</span>
+					<div class="horizontal-space-small"></div>
+				</div>
+			</div>
+		</div>
+		<div class="flex-row full-width bottom-margin">
+			<div class="horizontal-space-small {own-team-logo-hidden}"></div>
+			<img class="image-medium image-circle {own-team-logo-hidden}" src="{own-sendou-team-logo}" alt="own-team-logo"/>
+			<div class="horizontal-space-small"></div>
+			<span class="sendou-team-name sendou-left-team">{own-sendou-team-name}</span>
 			<div class="horizontal-space-small"></div>
 			<span class="rounded-corners-dark-grey sendou-result">{own-score}:{opponent-score}</span>
 			<div class="horizontal-space-small"></div>
-			<span class="sendou-team-name sendou-right-team">Opponents</span>
+			<span class="sendou-team-name sendou-right-team">{opponent-sendou-team-name}</span>
+			<div class="horizontal-space-small"></div>
+			<img class="image-medium image-circle {opponent-team-logo-hidden}" src="{opponent-sendou-team-logo}" alt="opponent-team-logo"/>
+			<div class="horizontal-space-small {opponent-team-logo-hidden}"></div>
 		</div>
 	</div>
 	<div class="flex-row">
-		<div class="sendou-footer mini-font yellow">
+		<div class="sendou-footer micro-font yellow">
 			{sendou-match-url}
 		</div>
 	</div>

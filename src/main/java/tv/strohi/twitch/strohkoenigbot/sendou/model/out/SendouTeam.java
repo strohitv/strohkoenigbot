@@ -14,5 +14,6 @@ import java.util.List;
 public class SendouTeam {
 	private long id;
 	private String name;
+	private String logoUrl;
 	private List<SendouPlayer> players;
 }
