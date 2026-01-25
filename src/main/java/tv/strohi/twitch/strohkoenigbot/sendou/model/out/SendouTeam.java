@@ -15,5 +15,6 @@ public class SendouTeam {
 	private long id;
 	private String name;
 	private String logoUrl;
+	private Integer seed;
 	private List<SendouPlayer> players;
 }

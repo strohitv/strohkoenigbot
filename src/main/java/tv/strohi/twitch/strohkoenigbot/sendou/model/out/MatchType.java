@@ -4,6 +4,7 @@ import lombok.ToString;
 
 @ToString
 public enum MatchType {
+	NONE,
 	SENDOU_Q,
 	TOURNAMENT
 }

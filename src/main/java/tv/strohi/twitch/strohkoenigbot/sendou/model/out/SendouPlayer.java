@@ -12,5 +12,5 @@ import lombok.*;
 public class SendouPlayer {
 	private long id;
 	private String name;
-	private boolean isMyself;
+	private boolean myself;
 }

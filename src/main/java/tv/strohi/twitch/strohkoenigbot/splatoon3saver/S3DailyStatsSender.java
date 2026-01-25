@@ -14,6 +14,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.sendou.SendouService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsMode;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotation;
@@ -76,6 +77,7 @@ public class S3DailyStatsSender implements ScheduledService {
 	private final S3XLeaderboardDownloader xLeaderboardDownloader;
 
 	private final S3RequestSender s3RequestSender;
+	private final SendouService sendouService;
 
 	private final List<String> ignoredVsStages = List.of("", "Random", "Grand Splatlands Bowl");
 
@@ -159,13 +161,21 @@ public class S3DailyStatsSender implements ScheduledService {
 		Map<String, Integer> yesterdayWaves = new HashMap<>();
 		Map<String, Integer> yesterdayTides = new HashMap<>();
 
-		var responseCodes = s3RequestSender.getResponseCodes();
-		var responseCodeMessage = responseCodes.entrySet().stream()
+		var responseCodesSplatNet = s3RequestSender.getResponseCodes();
+		var responseCodeMessageSplatNet = responseCodesSplatNet.entrySet().stream()
 			.sorted((a, b) -> b.getValue().compareTo(a.getValue()))
 			.map(e -> String.format("- **%s**: %s times", e.getKey(), e.getValue()))
 			.reduce((a, b) -> String.format("%s\n%s", a, b))
 			.orElse("- **no calls** to the api were detected!");
-		discordBot.sendPrivateMessage(account.getDiscordId(), String.format("These response codes were retrieved from SplatNet:\n%s", responseCodeMessage));
+		discordBot.sendPrivateMessage(account.getDiscordId(), String.format("These response codes were retrieved from SplatNet:\n%s", responseCodeMessageSplatNet));
+
+		var responseCodesSendou = sendouService.getResponseCodes();
+		var responseCodeMessageSendou = responseCodesSendou.entrySet().stream()
+			.sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+			.map(e -> String.format("- **%s**: %s times", e.getKey(), e.getValue()))
+			.reduce((a, b) -> String.format("%s\n%s", a, b))
+			.orElse("- **no calls** to the api were detected!");
+		discordBot.sendPrivateMessage(account.getDiscordId(), String.format("These response codes were retrieved from sendou.ink:\n%s", responseCodeMessageSendou));
 
 		var useNewWay = configurationRepository.findAllByConfigName("s3UseDatabase").stream()
 			.map(c -> "true".equalsIgnoreCase(c.getConfigValue()))

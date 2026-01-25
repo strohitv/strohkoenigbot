@@ -45,7 +45,7 @@ public class OverlayController {
 
 	@GetMapping("s3")
 	public @ResponseBody String getS3Overlay(
-		@RequestParam(name = "sendou_id", required = false, defaultValue = "6238") String sendouAccountString,
+		@RequestParam(name = "sendou_id", required = false, defaultValue = "6238") String sendouUserQueryString,
 		@RequestParam(name = "tournament_id", required = false, defaultValue = "") String tournamentString,
 		@RequestParam(name = "search_sendouq", required = false, defaultValue = "1") String searchSendouQString) {
 		if (twitchBotClient.getWentLiveTime() != null) {
@@ -62,8 +62,8 @@ public class OverlayController {
 			}
 		}
 
-		final Long sendouAccountId = NUMBER_PATTERN.matcher(sendouAccountString).matches()
-			? Long.parseLong(sendouAccountString)
+		final Long sendouUserId = NUMBER_PATTERN.matcher(sendouUserQueryString).matches()
+			? Long.parseLong(sendouUserQueryString)
 			: null;
 		final Long tournamentId = NUMBER_PATTERN.matcher(tournamentString).matches()
 			? Long.parseLong(tournamentString)
@@ -71,7 +71,7 @@ public class OverlayController {
 		final boolean searchSendouQ = BOOLEAN_NUMBER_PATTERN.matcher(searchSendouQString).matches()
 			&& "1".equals(searchSendouQString);
 
-		sendouService.setSendouAccountId(sendouAccountId);
+		sendouService.setSendouUserId(sendouUserId);
 		sendouService.setTournamentId(tournamentId);
 		sendouService.setSearchSendouQ(searchSendouQ);
 
