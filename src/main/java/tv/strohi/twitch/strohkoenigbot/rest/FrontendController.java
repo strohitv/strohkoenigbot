@@ -23,7 +23,7 @@ import static tv.strohi.twitch.strohkoenigbot.sendou.SendouService.DEFAULT_CACHE
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Slf4j
-public class SendouController {
+public class FrontendController {
 	private final SendouService sendouService;
 	private final AccountRepository accountRepository;
 
