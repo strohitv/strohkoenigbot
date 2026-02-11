@@ -13,7 +13,13 @@ public class StaticResourceConfiguration implements WebMvcConfigurer {
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		try {
-			registry.addResourceHandler("/images/**").addResourceLocations(new File(Paths.get(System.getProperty("user.dir"), "/images/").toString()).toURI().toURL().toString());
+			registry
+				.addResourceHandler("/images/**")
+				.addResourceLocations(
+					new File(Paths.get(System.getProperty("user.dir"), "/images/").toString()).toURI().toURL().toString());
+			registry.addResourceHandler("/splatnet3/**")
+				.addResourceLocations(
+					new File(Paths.get(System.getProperty("user.dir"), "/resources/prod/").toString()).toURI().toURL().toString());
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}

@@ -966,45 +966,45 @@ public class S3StreamStatistics {
 
 		switch (level) {
 			case 1: {
-				expGoal = 25000;
+				expGoal = 25_000;
 				break;
 			}
 			case 2: {
-				expGoal = 60000;
+				expGoal = 60_000;
 				break;
 			}
 			case 3: {
-				expGoal = 160000;
+				expGoal = 160_000;
 				break;
 			}
 			case 4: {
-				expGoal = 1160000;
+				expGoal = 1_160_000;
 				break;
 			}
 			case 5: {
-				expGoal = 2000000;
+				expGoal = 2_000_000;
 				break;
 			}
 			case 6: {
-				expGoal = 3000000;
+				expGoal = 3_000_000;
 				break;
 			}
 			case 7: {
-				expGoal = 4000000;
+				expGoal = 4_000_000;
 				break;
 			}
 			case 8: {
-				expGoal = 5000000;
+				expGoal = 5_000_000;
 				break;
 			}
 			case 9:
 			case 10: {
-				expGoal = 6000000;
+				expGoal = 6_000_000;
 				break;
 			}
 			case 0:
 			default: {
-				expGoal = 5000;
+				expGoal = 5_000;
 				break;
 			}
 		}
@@ -1017,48 +1017,48 @@ public class S3StreamStatistics {
 
 		switch (level) {
 			case 1: {
-				currentExp = 25000 - expToLevelUp;
+				currentExp = 25_000 - expToLevelUp;
 				break;
 			}
 			case 2: {
-				currentExp = 60000 - expToLevelUp;
+				currentExp = 60_000 - expToLevelUp;
 				break;
 			}
 			case 3: {
-				currentExp = 160000 - expToLevelUp;
+				currentExp = 160_000 - expToLevelUp;
 				break;
 			}
 			case 4: {
-				currentExp = 1160000 - expToLevelUp;
+				currentExp = 1_160_000 - expToLevelUp;
 				break;
 			}
 			case 5: {
-				currentExp = 2000000 - expToLevelUp;
+				currentExp = 2_000_000 - expToLevelUp;
 				break;
 			}
 			case 6: {
-				currentExp = 3000000 - expToLevelUp;
+				currentExp = 3_000_000 - expToLevelUp;
 				break;
 			}
 			case 7: {
-				currentExp = 4000000 - expToLevelUp;
+				currentExp = 4_000_000 - expToLevelUp;
 				break;
 			}
 			case 8: {
-				currentExp = 5000000 - expToLevelUp;
+				currentExp = 5_000_000 - expToLevelUp;
 				break;
 			}
 			case 9: {
-				currentExp = 6000000 - expToLevelUp;
+				currentExp = 6_000_000 - expToLevelUp;
 				break;
 			}
 			case 10: {
-				currentExp = 6000000;
+				currentExp = 6_000_000;
 				break;
 			}
 			case 0:
 			default: {
-				currentExp = 5000 - expToLevelUp;
+				currentExp = 5_000 - expToLevelUp;
 				break;
 			}
 		}

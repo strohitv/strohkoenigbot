@@ -11,6 +11,8 @@ import tv.strohi.twitch.strohkoenigbot.rest.model.SendouMatchSearchResult;
 import tv.strohi.twitch.strohkoenigbot.sendou.SendouService;
 import tv.strohi.twitch.strohkoenigbot.sendou.model.out.MatchType;
 import tv.strohi.twitch.strohkoenigbot.sendou.model.out.SendouMatch;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3StreamDataService;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.StreamData;
 import tv.strohi.twitch.strohkoenigbot.utils.model.Cached;
 
 import java.time.Instant;
@@ -25,9 +27,15 @@ import static tv.strohi.twitch.strohkoenigbot.sendou.SendouService.DEFAULT_CACHE
 @Slf4j
 public class FrontendController {
 	private final SendouService sendouService;
+	private final S3StreamDataService streamDataService;
 	private final AccountRepository accountRepository;
 
 	private final Map<String, Cached<SendouMatchSearchResult>> cache = new HashMap<>();
+
+	@GetMapping("stream-stats")
+	public StreamData getStreamStats() {
+		return streamDataService.getStreamData();
+	}
 
 	@GetMapping("sendou/match/search")
 	public SendouMatchSearchResult searchSendouMatch(@RequestParam(name = "tournament_id", defaultValue = "2978") Long tournamentId,

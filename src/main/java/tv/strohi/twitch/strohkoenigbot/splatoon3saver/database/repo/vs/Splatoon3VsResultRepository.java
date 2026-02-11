@@ -20,10 +20,12 @@ import java.util.Optional;
 @Repository
 public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsResult, Long> {
 	Optional<Splatoon3VsResult> findById(long id);
-	List<Splatoon3VsResult> findByApiId(String apiId);
 	Optional<Splatoon3VsResult> findTop1ByOrderByPlayedTimeDesc();
 
 	Optional<Splatoon3VsResult> findTopByOrderByIdDesc();
+
+	List<Splatoon3VsResult> findByApiId(String apiId);
+	List<Splatoon3VsResult> findByPlayedTimeAfterOrderByPlayedTimeAsc(Instant time);
 
 	Page<Splatoon3VsResult> findAll(Pageable pageable);
 	Page<Splatoon3VsResult> findAllByOrderByIdDesc(Pageable pageable);

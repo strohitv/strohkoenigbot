@@ -13,6 +13,7 @@ public interface Splatoon3BadgeRepository extends CrudRepository<Splatoon3Badge,
 	Optional<Splatoon3Badge> findById(long id);
 
 	Optional<Splatoon3Badge> findByApiId(String apiId);
+	Optional<Splatoon3Badge> findByDescription(String description);
 
 	@NotNull List<Splatoon3Badge> findAll();
 }
