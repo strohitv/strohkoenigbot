@@ -30,6 +30,10 @@ public class Splatoon3VsResult {
 
 	private String knockout;
 
+	private boolean hasPower;
+
+	private Double power;
+
 	@Lob
 	private String shortenedJson;
 

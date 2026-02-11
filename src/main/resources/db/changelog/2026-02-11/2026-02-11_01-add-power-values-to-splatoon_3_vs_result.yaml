@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-02-11_01-add-power-values-to-splatoon_3_vs_result
+      author: strohkoenig
+      changes:
+        - addColumn:
+            tableName: splatoon_3_vs_result
+            columns:
+              - column:
+                  name: has_power
+                  type: bool
+                  defaultValueBoolean: false
+                  valueBoolean: 'false'
+                  afterColumn: knockout
+                  constraints:
+                    nullable: false
+              - column:
+                  name: power
+                  type: double
+                  beforeColumn: mode_id

@@ -14,6 +14,8 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
@@ -70,6 +72,9 @@ public class Splatoon3VsResultService {
 					.knockout(game.getKnockout())
 
 					.awards(game.getAwards().stream().map(this::ensureAwardExists).collect(Collectors.toList()))
+
+					.hasPower(hasPower(game))
+					.power(getPower(game))
 
 					.shortenedJson(imageService.shortenJson(json))
 					.build());
@@ -527,6 +532,45 @@ public class Splatoon3VsResultService {
 						.rank(award.getRank())
 						.build()
 				));
+	}
+
+	private boolean hasPower(VsHistoryDetail result) {
+		return
+			// X Battle
+			(result.getXMatch() != null) ||
+				// Challenge
+				(result.getLeagueMatch() != null) ||
+				// Splatfest Pro
+				(result.getVsMode().getId().equals("VnNNb2RlLTc=") && result.getFestMatch() != null) ||
+				// Anarchy Open w/ Team
+				(result.getVsMode().getId().equals("VnNNb2RlLTUx") && result.getBankaraMatch().getBankaraPower() != null) ||
+				// Anarchy Series Weapon Power
+				(result.getVsMode().getId().equals("VnNNb2RlLTI=")
+					&& result.getPlayedTimeAsInstant().isAfter(LocalDate.of(2025, 6, 12).atStartOfDay().toInstant(ZoneOffset.UTC))
+					&& result.getBankaraMatch() != null);
+	}
+
+	private Double getPower(VsHistoryDetail result) {
+		if (result.getXMatch() != null) {
+			// X Battle
+			return result.getXMatch().getLastXPower();
+		} else if (result.getLeagueMatch() != null) {
+			// Challenge
+			return result.getLeagueMatch().getMyLeaguePower();
+		} else if (result.getVsMode().getId().equals("VnNNb2RlLTc=") && result.getFestMatch() != null) {
+			// Splatfest Pro
+			return result.getFestMatch().getMyFestPower();
+		} else if (result.getVsMode().getId().equals("VnNNb2RlLTUx") && result.getBankaraMatch().getBankaraPower() != null) {
+			// Anarchy Open
+			return result.getBankaraMatch().getBankaraPower().getPower();
+		} else if (result.getVsMode().getId().equals("VnNNb2RlLTI=")
+			&& result.getPlayedTimeAsInstant().isAfter(LocalDate.of(2025, 6, 12).atStartOfDay().toInstant(ZoneOffset.UTC))
+			&& result.getBankaraMatch() != null) {
+			// Anarchy Series
+			return result.getBankaraMatch().getWeaponPower();
+		}
+
+		return null;
 	}
 
 	private String writeValueAsStringHiddenException(Object value) {
