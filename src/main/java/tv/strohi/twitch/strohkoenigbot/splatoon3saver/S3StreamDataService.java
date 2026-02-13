@@ -59,6 +59,16 @@ public class S3StreamDataService implements ScheduledService {
 			return;
 		}
 
+		if (weaponStatsAtStreamStart == null) {
+			logSender.sendLogs(log, "S3StreamDataService: weaponStatsAtStreamStart refresh");
+			weaponStatsAtStreamStart = weaponStatsDownloader.downloadWeaponStats().orElse(null);
+		}
+
+		if (specialWinStatsAtStreamStart == null) {
+			logSender.sendLogs(log, "S3StreamDataService: specialWinStatsAtStreamStart refresh");
+			specialWinStatsAtStreamStart = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().orElse(null);
+		}
+
 		final var allGamesInStream = resultRepository.findByPlayedTimeAfterOrderByPlayedTimeAsc(twitchBotClient.getWentLiveTime());
 
 		if (allGamesInStream.isEmpty()) {
@@ -87,18 +97,10 @@ public class S3StreamDataService implements ScheduledService {
 			return;
 		}
 
-		if (weaponStatsAtStreamStart == null) {
-			weaponStatsAtStreamStart = weaponStats;
-		}
-
 		final var specialWinStats = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().orElse(null);
 		if (specialWinStats == null) {
 			logSender.sendLogs(log, "S3StreamDataService: specialWinStats null");
 			return;
-		}
-
-		if (specialWinStatsAtStreamStart == null) {
-			specialWinStatsAtStreamStart = specialWinStats;
 		}
 
 		// Game Stats
@@ -118,7 +120,7 @@ public class S3StreamDataService implements ScheduledService {
 			return;
 		}
 
-		final var ownUsedWeaponStatsAtStart = Arrays.stream(weaponStats)
+		final var ownUsedWeaponStatsAtStart = Arrays.stream(weaponStatsAtStreamStart)
 			.filter(w -> Objects.equals(w.getId(), ownPlayer.getWeapon().getApiId()))
 			.findFirst()
 			.orElse(null);
