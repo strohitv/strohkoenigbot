@@ -309,6 +309,7 @@ public class S3StreamDataService implements ScheduledService {
 		}
 
 		streamData = result;
+		logSender.sendLogs(log, "S3StreamDataService: streamData refreshed");
 	}
 
 	private StreamData.TeamResult buildTeamResult(Splatoon3VsResultTeam team, double totalPointsSum) {
