@@ -7,6 +7,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3BadgeRepository;
@@ -36,6 +38,7 @@ public class S3StreamDataService implements ScheduledService {
 	private final S3WeaponStatsDownloader weaponStatsDownloader;
 	private final S3XPowerDownloader xPowerDownloader;
 
+	private final ConfigurationRepository configurationRepository;
 	private final Splatoon3BadgeRepository badgeRepository;
 	private final Splatoon3VsResultRepository resultRepository;
 	private final ImageService imageService;
@@ -48,24 +51,24 @@ public class S3StreamDataService implements ScheduledService {
 	private Weapon[] weaponStatsAtStreamStart = null;
 
 	private void refreshStreamData() {
-		logSender.sendLogs(log, "S3StreamDataService: running refresh method");
+		logIfDebug("S3StreamDataService: running refresh method");
 
 		if (twitchBotClient.getWentLiveTime() == null) {
 			streamData = StreamData.empty();
 			newestFoundGameStartTime = null;
 			specialWinStatsAtStreamStart = null;
 			weaponStatsAtStreamStart = null;
-			logSender.sendLogs(log, "S3StreamDataService: channel is offline");
+			logIfDebug("S3StreamDataService: channel is offline");
 			return;
 		}
 
 		if (weaponStatsAtStreamStart == null) {
-			logSender.sendLogs(log, "S3StreamDataService: weaponStatsAtStreamStart refresh");
+			logIfDebug("S3StreamDataService: weaponStatsAtStreamStart refresh");
 			weaponStatsAtStreamStart = weaponStatsDownloader.downloadWeaponStats().orElse(null);
 		}
 
 		if (specialWinStatsAtStreamStart == null) {
-			logSender.sendLogs(log, "S3StreamDataService: specialWinStatsAtStreamStart refresh");
+			logIfDebug("S3StreamDataService: specialWinStatsAtStreamStart refresh");
 			specialWinStatsAtStreamStart = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().orElse(null);
 		}
 
@@ -74,7 +77,7 @@ public class S3StreamDataService implements ScheduledService {
 		if (allGamesInStream.isEmpty()) {
 			streamData = StreamData.empty();
 			newestFoundGameStartTime = null;
-			logSender.sendLogs(log, "S3StreamDataService: no games found");
+			logIfDebug("S3StreamDataService: no games found");
 			return;
 		}
 
@@ -82,7 +85,7 @@ public class S3StreamDataService implements ScheduledService {
 
 		if (newestFoundGameStartTime != null && newestFoundGameStartTime.equals(lastGame.getPlayedTime())) {
 			// nothing to refresh
-			logSender.sendLogs(log, "S3StreamDataService: nothing to refresh");
+			logIfDebug("S3StreamDataService: nothing to refresh");
 			return;
 		}
 
@@ -91,13 +94,13 @@ public class S3StreamDataService implements ScheduledService {
 		// Weapon Stats
 		final var weaponStats = weaponStatsDownloader.downloadWeaponStats().orElse(null);
 		if (weaponStats == null) {
-			logSender.sendLogs(log, "S3StreamDataService: weaponStats null");
+			logIfDebug("S3StreamDataService: weaponStats null");
 			return;
 		}
 
 		final var specialWinStats = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().orElse(null);
 		if (specialWinStats == null) {
-			logSender.sendLogs(log, "S3StreamDataService: specialWinStats null");
+			logIfDebug("S3StreamDataService: specialWinStats null");
 			return;
 		}
 
@@ -114,7 +117,7 @@ public class S3StreamDataService implements ScheduledService {
 			.orElse(null);
 
 		if (ownUsedWeaponStats == null) {
-			logSender.sendLogs(log, "S3StreamDataService: ownUsedWeaponStats null");
+			logIfDebug("S3StreamDataService: ownUsedWeaponStats null");
 			return;
 		}
 
@@ -124,7 +127,7 @@ public class S3StreamDataService implements ScheduledService {
 			.orElse(null);
 
 		if (ownUsedWeaponStatsAtStart == null) {
-			logSender.sendLogs(log, "S3StreamDataService: ownUsedWeaponStatsAtStart null");
+			logIfDebug("S3StreamDataService: ownUsedWeaponStatsAtStart null");
 			return;
 		}
 
@@ -151,7 +154,7 @@ public class S3StreamDataService implements ScheduledService {
 			.orElse(null);
 
 		if (ownUsedSpecialWeaponStats == null) {
-			logSender.sendLogs(log, "S3StreamDataService: ownUsedSpecialWeaponStats null");
+			logIfDebug("S3StreamDataService: ownUsedSpecialWeaponStats null");
 			return;
 		}
 
@@ -259,7 +262,7 @@ public class S3StreamDataService implements ScheduledService {
 				xPowers = xPowerDownloader.downloadXPowers();
 
 				if (xPowers.isEmpty()) {
-					logSender.sendLogs(log, "## Error\n- S3StreamDataService could not load X Powers!");
+					logIfDebug("## Error\n- S3StreamDataService could not load X Powers!");
 					return;
 				}
 
@@ -309,7 +312,7 @@ public class S3StreamDataService implements ScheduledService {
 		}
 
 		streamData = result;
-		logSender.sendLogs(log, "S3StreamDataService: streamData refreshed");
+		logIfDebug("S3StreamDataService: streamData refreshed");
 	}
 
 	private StreamData.TeamResult buildTeamResult(Splatoon3VsResultTeam team, double totalPointsSum) {
@@ -518,6 +521,20 @@ public class S3StreamDataService implements ScheduledService {
 		}
 
 		return currentExp;
+	}
+
+	private void logIfDebug(String message, Object... args) {
+		var shouldLogConfig = configurationRepository.findByConfigName("S3StreamDataService_logDebugSwitch")
+			.orElseGet(() -> configurationRepository.save(Configuration.builder()
+				.configName("S3StreamDataService_logDebugSwitch")
+				.configValue("false")
+				.build()));
+
+		if ("true".equalsIgnoreCase(shouldLogConfig.getConfigValue())) {
+			logSender.sendLogs(log, message, args);
+		} else {
+			log.info(String.format(message, args));
+		}
 	}
 
 	@Override
