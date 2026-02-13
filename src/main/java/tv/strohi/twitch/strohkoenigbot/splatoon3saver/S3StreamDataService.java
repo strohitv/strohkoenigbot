@@ -74,8 +74,6 @@ public class S3StreamDataService implements ScheduledService {
 		if (allGamesInStream.isEmpty()) {
 			streamData = StreamData.empty();
 			newestFoundGameStartTime = null;
-			specialWinStatsAtStreamStart = null;
-			weaponStatsAtStreamStart = null;
 			logSender.sendLogs(log, "S3StreamDataService: no games found");
 			return;
 		}
