@@ -44,15 +44,18 @@ public class S3StreamDataService implements ScheduledService {
 	private StreamData streamData = StreamData.empty();
 
 	private Instant newestFoundGameStartTime = null;
-	private List<SpecialWinCount> specialWinsAtStreamStart = null;
+	private List<SpecialWinCount> specialWinStatsAtStreamStart = null;
 	private Weapon[] weaponStatsAtStreamStart = null;
 
 	private void refreshStreamData() {
+		logSender.sendLogs(log, "S3StreamDataService: running refresh method");
+
 		if (twitchBotClient.getWentLiveTime() == null) {
 			streamData = StreamData.empty();
 			newestFoundGameStartTime = null;
-			specialWinsAtStreamStart = null;
+			specialWinStatsAtStreamStart = null;
 			weaponStatsAtStreamStart = null;
+			logSender.sendLogs(log, "S3StreamDataService: channel is offline");
 			return;
 		}
 
@@ -60,6 +63,10 @@ public class S3StreamDataService implements ScheduledService {
 
 		if (allGamesInStream.isEmpty()) {
 			streamData = StreamData.empty();
+			newestFoundGameStartTime = null;
+			specialWinStatsAtStreamStart = null;
+			weaponStatsAtStreamStart = null;
+			logSender.sendLogs(log, "S3StreamDataService: no games found");
 			return;
 		}
 
@@ -67,6 +74,7 @@ public class S3StreamDataService implements ScheduledService {
 
 		if (newestFoundGameStartTime != null && newestFoundGameStartTime.equals(lastGame.getPlayedTime())) {
 			// nothing to refresh
+			logSender.sendLogs(log, "S3StreamDataService: nothing to refresh");
 			return;
 		}
 
@@ -75,6 +83,7 @@ public class S3StreamDataService implements ScheduledService {
 		// Weapon Stats
 		final var weaponStats = weaponStatsDownloader.downloadWeaponStats().orElse(null);
 		if (weaponStats == null) {
+			logSender.sendLogs(log, "S3StreamDataService: weaponStats null");
 			return;
 		}
 
@@ -82,13 +91,14 @@ public class S3StreamDataService implements ScheduledService {
 			weaponStatsAtStreamStart = weaponStats;
 		}
 
-		final var specialStats = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().orElse(null);
-		if (specialStats == null) {
+		final var specialWinStats = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().orElse(null);
+		if (specialWinStats == null) {
+			logSender.sendLogs(log, "S3StreamDataService: specialWinStats null");
 			return;
 		}
 
-		if (specialWinsAtStreamStart == null) {
-			specialWinsAtStreamStart = specialStats;
+		if (specialWinStatsAtStreamStart == null) {
+			specialWinStatsAtStreamStart = specialWinStats;
 		}
 
 		// Game Stats
@@ -104,6 +114,7 @@ public class S3StreamDataService implements ScheduledService {
 			.orElse(null);
 
 		if (ownUsedWeaponStats == null) {
+			logSender.sendLogs(log, "S3StreamDataService: ownUsedWeaponStats null");
 			return;
 		}
 
@@ -113,6 +124,7 @@ public class S3StreamDataService implements ScheduledService {
 			.orElse(null);
 
 		if (ownUsedWeaponStatsAtStart == null) {
+			logSender.sendLogs(log, "S3StreamDataService: ownUsedWeaponStatsAtStart null");
 			return;
 		}
 
@@ -133,16 +145,17 @@ public class S3StreamDataService implements ScheduledService {
 			remainingExpRatio = 100.0 - alreadyOwnedExpRatio - earnedExpStreamRatio;
 		}
 
-		final var ownUsedSpecialWeaponStats = specialStats.stream()
+		final var ownUsedSpecialWeaponStats = specialWinStats.stream()
 			.filter(s -> Objects.equals(s.getSpecialWeapon(), ownPlayer.getWeapon().getSpecialWeapon()))
 			.findFirst()
 			.orElse(null);
 
 		if (ownUsedSpecialWeaponStats == null) {
+			logSender.sendLogs(log, "S3StreamDataService: ownUsedSpecialWeaponStats null");
 			return;
 		}
 
-		final var ownSpecialWeaponWinsAtStreamStart = specialWinsAtStreamStart.stream()
+		final var ownSpecialWeaponWinsAtStreamStart = specialWinStatsAtStreamStart.stream()
 			.filter(s -> Objects.equals(s.getSpecialWeapon(), ownPlayer.getWeapon().getSpecialWeapon()))
 			.findFirst()
 			.map(SpecialWinCount::getWinCount)
