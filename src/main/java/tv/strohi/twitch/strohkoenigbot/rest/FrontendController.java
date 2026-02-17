@@ -39,8 +39,8 @@ public class FrontendController {
 
 	@GetMapping("sendou/match/search")
 	public SendouMatchSearchResult searchSendouMatch(@RequestParam(name = "tournament_id", defaultValue = "2978") Long tournamentId,
-													 @RequestParam(name = "user_id", defaultValue = "6238") Long sendouUserId) {
-		var cacheKey = String.format("%d/%d", tournamentId, sendouUserId);
+													 @RequestParam(name = "user", defaultValue = "strohkoenig") String sendouUser) {
+		var cacheKey = String.format("%d/%s", tournamentId, sendouUser);
 
 		if (cache.containsKey(cacheKey) && Instant.now().isBefore(cache.get(cacheKey).getExpirationTime())) {
 			return cache.get(cacheKey).getObject();
@@ -49,7 +49,7 @@ public class FrontendController {
 		var matchModel = accountRepository.findByIsMainAccount(true)
 			.stream()
 			.findFirst()
-			.flatMap(account -> sendouService.loadActiveMatch(account, sendouUserId, tournamentId, false))
+			.flatMap(account -> sendouService.loadActiveMatch(account, sendouUser, tournamentId, false))
 			.map(this::map)
 			.orElse(SendouMatchSearchResult.builder().type(MatchType.NONE.name()).build());
 

@@ -66,8 +66,12 @@ public class SendouService implements ScheduledService {
 	@Setter
 	private boolean searchSendouQ = false;
 
-	public Optional<SendouMatch> loadActiveMatch(Account account, @NonNull Long sendouUserId, Long tournamentId, boolean searchSendouQ) {
+	public Optional<SendouMatch> loadActiveMatch(Account account, @NonNull String sendouUser, Long tournamentId, boolean searchSendouQ) {
 		var tournamentMatch = Optional.<SendouMatch>empty();
+
+		var sendouUserId = loadSendouUserId(account, sendouUser)
+			.map(SendouApiUserIds::getId)
+			.orElse(6238L);
 
 		if (tournamentId != null) {
 			var foundTournament = loadTournament(account, tournamentId);
@@ -188,6 +192,21 @@ public class SendouService implements ScheduledService {
 		sendouQMatchResponse.setMatchId(matchId);
 
 		return Optional.of(sendouQMatchResponse);
+	}
+
+	private Optional<SendouApiUserIds> loadSendouUserId(Account account, String sendouUser) {
+		var userId = this.generateRequest(
+			account,
+			SendouApiUserIds.class,
+			Duration.ofHours(24),
+			"/api/user/%s/ids",
+			sendouUser);
+
+		if (userId == null) {
+			return Optional.empty();
+		}
+
+		return Optional.of(userId);
 	}
 
 	private Optional<SendouApiTournament> loadTournament(Account account, Long tournamentId) {
@@ -445,7 +464,7 @@ public class SendouService implements ScheduledService {
 
 		accountRepository.findByIsMainAccount(true).stream()
 			.findFirst()
-			.flatMap(account -> loadActiveMatch(account, sendouUserId != null ? sendouUserId : account.getSendouId(), tournamentId, searchSendouQ))
+			.flatMap(account -> loadActiveMatch(account, String.format("%d", sendouUserId != null ? sendouUserId : account.getSendouId()), tournamentId, searchSendouQ))
 			.ifPresent(streamStatistics::setSendouMatchResult);
 	}
 
