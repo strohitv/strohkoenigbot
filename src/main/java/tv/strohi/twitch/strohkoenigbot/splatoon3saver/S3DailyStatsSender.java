@@ -14,6 +14,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.rest.FrontendController;
 import tv.strohi.twitch.strohkoenigbot.sendou.SendouService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsMode;
@@ -78,6 +79,8 @@ public class S3DailyStatsSender implements ScheduledService {
 
 	private final S3RequestSender s3RequestSender;
 	private final SendouService sendouService;
+
+	private final FrontendController frontendController;
 
 	private final List<String> ignoredVsStages = List.of("", "Random", "Grand Splatlands Bowl");
 
@@ -176,6 +179,13 @@ public class S3DailyStatsSender implements ScheduledService {
 			.reduce((a, b) -> String.format("%s\n%s", a, b))
 			.orElse("- **no calls** to the api were detected!");
 		discordBot.sendPrivateMessage(account.getDiscordId(), String.format("These response codes were retrieved from sendou.ink:\n%s", responseCodeMessageSendou));
+
+		var requestedSendouOverlays = frontendController.getAllUsedCacheKeys().stream()
+			.sorted(String::compareTo)
+			.map(s -> String.format("- %s", s))
+			.reduce((a, b) -> String.format("%s\n%s", a, b))
+			.orElse("- **no requests** were made!!");
+		discordBot.sendPrivateMessage(account.getDiscordId(), String.format("These requests to the sendou overlay were made:\n%s", requestedSendouOverlays));
 
 		var useNewWay = configurationRepository.findAllByConfigName("s3UseDatabase").stream()
 			.map(c -> "true".equalsIgnoreCase(c.getConfigValue()))

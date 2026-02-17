@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.rest;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +18,9 @@ import tv.strohi.twitch.strohkoenigbot.utils.model.Cached;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static tv.strohi.twitch.strohkoenigbot.sendou.SendouService.DEFAULT_CACHE_DURATION;
 
@@ -32,6 +35,9 @@ public class FrontendController {
 
 	private final Map<String, Cached<SendouMatchSearchResult>> cache = new HashMap<>();
 
+	@Getter
+	private final Set<String> allUsedCacheKeys = new HashSet<>();
+
 	@GetMapping("stream-stats")
 	public StreamData getStreamStats() {
 		return streamDataService.getStreamData();
@@ -45,6 +51,8 @@ public class FrontendController {
 		if (cache.containsKey(cacheKey) && Instant.now().isBefore(cache.get(cacheKey).getExpirationTime())) {
 			return cache.get(cacheKey).getObject();
 		}
+
+		allUsedCacheKeys.add(cacheKey);
 
 		var matchModel = accountRepository.findByIsMainAccount(true)
 			.stream()
