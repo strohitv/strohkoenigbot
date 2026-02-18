@@ -135,7 +135,7 @@ public class S3StreamDataService implements ScheduledService {
 		final var ownWeaponExpNow = getWeaponExp(ownUsedWeaponStats.getStats().getLevel(), ownUsedWeaponStats.getStats().getExpToLevelUp());
 
 		final var expWeaponGain = ownWeaponExpNow - ownWeaponExpAtStart;
-		final var ownWeaponExpGoal = getExpGoal(ownUsedWeaponStatsAtStart.getStats().getLevel());
+		final var ownWeaponExpGoal = getExpGoal(ownUsedWeaponStats.getStats().getLevel());
 
 		var alreadyOwnedExpRatio = ownWeaponExpAtStart * 100.0 / ownWeaponExpGoal;
 		var earnedExpStreamRatio = expWeaponGain * 100.0 / ownWeaponExpGoal;
