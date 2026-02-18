@@ -104,6 +104,7 @@ public class StrohkoenigbotApplication {
 //	@Scheduled(cron = "0 43 4 * * *")
 
 	/**
+	 * DAILY REBOOT IS VIA CRONJOB
 	 * This method will trigger a shutdown, which will lead to a reboot in combination with the refresh-strohkoenibot.sh script
 	 */
 	public void shutdown() {
