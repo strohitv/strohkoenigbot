@@ -17,6 +17,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.Spe
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.IconBadgeNames;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.StreamData;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Stats;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -240,7 +241,7 @@ public class S3StreamDataService implements ScheduledService {
 				.defeat_ratio(defeatRatio)
 				.build())
 			.game_stats(StreamData.GameStats.builder()
-				.kills(ownPlayer.getKills())
+				.kills(ownPlayer.getKills() - ownPlayer.getAssists())
 				.deaths(ownPlayer.getDeaths())
 				.assists(ownPlayer.getAssists())
 				.specials(ownPlayer.getSpecials())
@@ -255,6 +256,7 @@ public class S3StreamDataService implements ScheduledService {
 
 		if (lastGame.isHasPower()) {
 			final var isX = lastGame.getMode().getApiMode().equals("X_MATCH");
+			final var isAnarchySeries = lastGame.getMode().getApiMode().equals("BANKARA") && lastGame.getMode().getApiModeDistinction().equals("CHALLENGE");
 
 			var xPowers = Optional.<S3XPowerDownloader.Powers>empty();
 			Double currentXPowers = null;
@@ -290,13 +292,19 @@ public class S3StreamDataService implements ScheduledService {
 						: (lastGame.getPower() != null && secondToLastGame != null && secondToLastGame.getPower() != null
 						? lastGame.getPower() - secondToLastGame.getPower()
 						: null))
-					.power_max(isX
-						? null
-						: allGamesFromRotation.stream()
-						.map(Splatoon3VsResult::getPower)
-						.filter(Objects::nonNull)
-						.max(Double::compare)
-						.orElse(null))
+					.power_max(
+						isX
+							? null
+							: (
+							isAnarchySeries
+								? Optional.ofNullable(ownUsedWeaponStats.getStats()).map(Stats::getMaxWeaponPower).orElse(null)
+								:
+								allGamesFromRotation.stream()
+									.map(Splatoon3VsResult::getPower)
+									.filter(Objects::nonNull)
+									.max(Double::compare)
+									.orElse(null))
+					)
 					.build());
 		}
 
