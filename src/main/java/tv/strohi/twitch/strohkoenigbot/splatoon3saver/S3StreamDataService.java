@@ -92,6 +92,26 @@ public class S3StreamDataService implements ScheduledService {
 
 		newestFoundGameStartTime = lastGame.getPlayedTime();
 
+		// Team Stats
+		final var ownTeam = lastGame.getTeams().stream()
+			.filter(Splatoon3VsResultTeam::getIsMyTeam)
+			.findFirst()
+			.orElseThrow();
+		final var opp1 = lastGame.getTeams().stream()
+			.filter(t -> !t.getIsMyTeam())
+			.findFirst()
+			.orElse(null);
+
+		if (opp1 == null) {
+			// draw, do nothing
+			return;
+		}
+
+		final var opp2 = lastGame.getTeams().stream()
+			.filter(t -> !t.equals(ownTeam) && !t.equals(opp1))
+			.findFirst()
+			.orElse(null);
+
 		// Weapon Stats
 		final var weaponStats = weaponStatsDownloader.downloadWeaponStats().orElse(null);
 		if (weaponStats == null) {
@@ -174,26 +194,6 @@ public class S3StreamDataService implements ScheduledService {
 			.count();
 		final var winRatio = totalWins * 100.0 / (Math.max(totalWins + totalDefeats, 1));
 		final var defeatRatio = 100.0 - winRatio;
-
-		// Team Stats
-		final var ownTeam = lastGame.getTeams().stream()
-			.filter(Splatoon3VsResultTeam::getIsMyTeam)
-			.findFirst()
-			.orElseThrow();
-		final var opp1 = lastGame.getTeams().stream()
-			.filter(t -> !t.getIsMyTeam())
-			.findFirst()
-			.orElse(null);
-
-		if (opp1 == null) {
-			// draw, do nothing
-			return;
-		}
-
-		final var opp2 = lastGame.getTeams().stream()
-			.filter(t -> !t.equals(ownTeam) && !t.equals(opp1))
-			.findFirst()
-			.orElse(null);
 		final var totalPointsSum = ownTeam.getScore() != null
 			? ownTeam.getScore() + opp1.getScore() + (opp2 != null ? opp2.getScore() : 0)
 			: ownTeam.getPaintRatio() * 100 + opp1.getPaintRatio() * 100 + (opp2 != null ? opp2.getPaintRatio() * 100 : 0);
