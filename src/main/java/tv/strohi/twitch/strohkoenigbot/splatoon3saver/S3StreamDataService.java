@@ -183,7 +183,13 @@ public class S3StreamDataService implements ScheduledService {
 		final var opp1 = lastGame.getTeams().stream()
 			.filter(t -> !t.getIsMyTeam())
 			.findFirst()
-			.orElseThrow();
+			.orElse(null);
+
+		if (opp1 == null) {
+			// draw, do nothing
+			return;
+		}
+
 		final var opp2 = lastGame.getTeams().stream()
 			.filter(t -> !t.equals(ownTeam) && !t.equals(opp1))
 			.findFirst()
