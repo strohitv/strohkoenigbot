@@ -176,7 +176,7 @@ public class Splatoon3VsRotationService {
 				.map(slot -> Rotation.builder()
 					.startTime(formatter.format(slot.atZone(ZoneOffset.UTC)))
 					.endTime(formatter.format(slot.plus(2, ChronoUnit.HOURS).atZone(ZoneOffset.UTC)))
-					.festMatchSettings(new RotationMatchSetting[] {
+					.festMatchSettings(new RotationMatchSetting[]{
 						RotationMatchSetting.builder()
 							.vsStages(new VsStage[]{Arrays.stream(currentFest.getTricolorStages()).findFirst().orElseThrow()})
 							.festMode("TRI_COLOR")
@@ -287,9 +287,17 @@ public class Splatoon3VsRotationService {
 		var rotationStartTime = getRotationStartTime(playedTime, mode);
 		var rotationEndTime = getRotationEndTime(playedTime, mode);
 
+		var allTimesToCheck = new ArrayList<>(List.of(rotationStartTime));
+
+		if (playedTime.isBefore(rotationStartTime.plus(10, ChronoUnit.MINUTES))) {
+			allTimesToCheck.add(0, getRotationStartTime(playedTime.minus(10, ChronoUnit.MINUTES), mode));
+		}
+
 		var rotationSlots = getRotationSlots(rotationStartTime, mode);
 
-		var rotation = rotationRepository.findByModeAndStartTime(mode, rotationStartTime)
+		var rotation = rotationRepository.findByModeAndRuleAndStartTimeIn(mode, rule, allTimesToCheck)
+			.stream()
+			.findFirst()
 			.orElseGet(() -> {
 				var newRotation = rotationRepository.save(Splatoon3VsRotation.builder()
 					.startTime(rotationStartTime)
@@ -306,7 +314,7 @@ public class Splatoon3VsRotationService {
 				return newRotation;
 			});
 
-		if (rotation.getSlots() == null || rotation.getSlots().size() == 0) {
+		if (rotation.getSlots() == null || rotation.getSlots().isEmpty()) {
 			var list = new ArrayList<Splatoon3VsRotationSlot>();
 
 			for (var slot : rotationSlots) {
@@ -406,7 +414,7 @@ public class Splatoon3VsRotationService {
 				// challenge with 6 slots
 				return playedTime.atZone(ZoneOffset.UTC)
 					.truncatedTo(ChronoUnit.DAYS)
-					.plus(1, ChronoUnit.DAYS)
+					.plusDays(1)
 					.withHour(0)
 					.withMinute(0)
 					.withSecond(0)
@@ -438,7 +446,7 @@ public class Splatoon3VsRotationService {
 			return playedTime.atZone(ZoneOffset.UTC)
 				.truncatedTo(ChronoUnit.DAYS)
 				.withHour(playedTime.atZone(ZoneOffset.UTC).getHour() / 2 * 2)
-				.plus(2, ChronoUnit.HOURS)
+				.plusHours(2)
 				.withMinute(0)
 				.withSecond(0)
 				.withNano(0)
