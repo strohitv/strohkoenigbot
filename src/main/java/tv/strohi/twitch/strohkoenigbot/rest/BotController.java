@@ -3,17 +3,18 @@ package tv.strohi.twitch.strohkoenigbot.rest;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import lombok.NonNull;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.rest.model.BotStatus;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -27,20 +28,21 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/bot")
+@Log4j2
 public class BotController implements ScheduledService {
 	private final String BEELINK_BOOT_MESSAGE_CONFIG = "BotController_BeelinkMessageTime";
 
 	private final Bucket bucket;
 
-	private final DiscordBot discordBot;
+	private final LogSender logSender;
 	private final S3Downloader s3Downloader;
 	private final TwitchBotClient twitchBotClient;
 
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 
-	public BotController(DiscordBot discordBot, S3Downloader s3Downloader, TwitchBotClient twitchBotClient, AccountRepository accountRepository, ConfigurationRepository configurationRepository) {
-		this.discordBot = discordBot;
+	public BotController(LogSender logSender, S3Downloader s3Downloader, TwitchBotClient twitchBotClient, AccountRepository accountRepository, ConfigurationRepository configurationRepository) {
+		this.logSender = logSender;
 		this.s3Downloader = s3Downloader;
 		this.twitchBotClient = twitchBotClient;
 		this.accountRepository = accountRepository;
@@ -83,7 +85,7 @@ public class BotController implements ScheduledService {
 
 	@PostMapping("import")
 	public void importGames() {
-		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, String.format("Instance `%s`, debug = `%s` is importing games triggered by BotController", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug()));
+		log.info("Instance `{}`, debug = `{}` is importing games triggered by BotController", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug());
 		s3Downloader.downloadBattles(true);
 	}
 
@@ -117,7 +119,7 @@ public class BotController implements ScheduledService {
 			config.setConfigValue(String.format("%d", Instant.now().getEpochSecond()));
 			configurationRepository.save(config);
 		} else {
-			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, String.format("Instance `%s`, debug = `%s` received message via web interface:\n```\n%s\n```", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), message));
+			logSender.sendLogs(log, String.format("Instance `%s`, debug = `%s` received message via web interface:\n```\n%s\n```", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), message));
 		}
 
 		return ResponseEntity.ok().build();
@@ -133,7 +135,7 @@ public class BotController implements ScheduledService {
 		var lastMessageTimestamp = Instant.ofEpochSecond(Long.parseLong(config.getConfigValue()));
 
 		if (Instant.now().isAfter(lastMessageTimestamp.plus(6, ChronoUnit.HOURS))) {
-			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, String.format("## WARNING\nInstance `%s`, debug = `%s` did **not** receive a message from Beelink for 6 hours! Last message EpochSecond: `%s`", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), config.getConfigValue()));
+			logSender.sendLogs(log, String.format("## WARNING\nInstance `%s`, debug = `%s` did **not** receive a message from Beelink for 6 hours! Last message EpochSecond: `%s`", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), config.getConfigValue()));
 		}
 	}
 
