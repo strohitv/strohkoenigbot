@@ -96,13 +96,13 @@ public class S3StreamDataService implements ScheduledService {
 		final var ownTeam = lastGame.getTeams().stream()
 			.filter(Splatoon3VsResultTeam::getIsMyTeam)
 			.findFirst()
-			.orElseThrow();
+			.orElse(null);
 		final var opp1 = lastGame.getTeams().stream()
 			.filter(t -> !t.getIsMyTeam())
 			.findFirst()
 			.orElse(null);
 
-		if (opp1 == null) {
+		if (ownTeam == null || opp1 == null) {
 			// draw, do nothing
 			return;
 		}
