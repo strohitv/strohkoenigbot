@@ -1,32 +1,44 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3BadgeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultTeamPlayerRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsStageRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.OwnUsedWeaponStatsWithWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.SpecialWinCount;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.StageWinStatsWithRule;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.FullscreenStreamData;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.IconBadgeNames;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.StreamData;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.HistoryResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Player;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Stats;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -34,31 +46,47 @@ import java.util.stream.Collectors;
 public class S3StreamDataService implements ScheduledService {
 	private final TwitchBotClient twitchBotClient;
 	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
+	private final ObjectMapper objectMapper;
+	private final S3ApiQuerySender apiQuerySender;
 
 	private final S3SpecialWeaponWinStatsDownloader specialWeaponWinStatsDownloader;
 	private final S3WeaponStatsDownloader weaponStatsDownloader;
 	private final S3XPowerDownloader xPowerDownloader;
 
+	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 	private final Splatoon3BadgeRepository badgeRepository;
 	private final Splatoon3VsResultRepository resultRepository;
+	private final Splatoon3VsResultTeamPlayerRepository resultTeamPlayerRepository;
+	private final Splatoon3VsStageRepository stageRepository;
+	private final Splatoon3VsWeaponRepository weaponRepository;
+
 	private final ImageService imageService;
 
 	@Getter
 	private StreamData streamData = StreamData.empty();
 
+	@Getter
+	private FullscreenStreamData fullscreenStreamData = FullscreenStreamData.empty();
+
 	private Instant newestFoundGameStartTime = null;
 	private List<SpecialWinCount> specialWinStatsAtStreamStart = null;
 	private Weapon[] weaponStatsAtStreamStart = null;
+	private List<OwnUsedWeaponStatsWithWeapon> ownUsedWeaponWinStatsAtStart = null;
+	private List<StageWinStatsWithRule> stageResultStatsAtStart = null;
 
 	private void refreshStreamData() {
 		logIfDebug("S3StreamDataService: running refresh method");
 
 		if (twitchBotClient.getWentLiveTime() == null) {
 			streamData = StreamData.empty();
+			fullscreenStreamData = FullscreenStreamData.empty();
 			newestFoundGameStartTime = null;
 			specialWinStatsAtStreamStart = null;
 			weaponStatsAtStreamStart = null;
+			ownUsedWeaponWinStatsAtStart = null;
+			stageResultStatsAtStart = null;
 			logIfDebug("S3StreamDataService: channel is offline");
 			return;
 		}
@@ -71,6 +99,14 @@ public class S3StreamDataService implements ScheduledService {
 		if (specialWinStatsAtStreamStart == null) {
 			logIfDebug("S3StreamDataService: specialWinStatsAtStreamStart refresh");
 			specialWinStatsAtStreamStart = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().orElse(null);
+		}
+
+		if (ownUsedWeaponWinStatsAtStart == null) {
+			ownUsedWeaponWinStatsAtStart = weaponRepository.getWeaponResultStatsForAllWeapons();
+		}
+
+		if (stageResultStatsAtStart == null) {
+			stageResultStatsAtStart = stageRepository.findAllStageWinStats();
 		}
 
 		final var allGamesInStream = resultRepository.findByPlayedTimeAfterOrderByPlayedTimeAsc(twitchBotClient.getWentLiveTime());
@@ -327,6 +363,233 @@ public class S3StreamDataService implements ScheduledService {
 
 		streamData = result;
 		logIfDebug("S3StreamDataService: streamData refreshed");
+
+		BattleResult parsedOriginalResult;
+		HistoryResult history;
+		try {
+			parsedOriginalResult = objectMapper.readValue(lastGame.getShortenedJson(), BattleResult.class);
+
+			var historyResponse = apiQuerySender.queryS3Api(accountRepository.findByIsMainAccount(true).stream().findFirst().orElseThrow(), S3RequestKey.History);
+			history = objectMapper.readValue(historyResponse, HistoryResult.class);
+		} catch (Exception e) {
+			exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService could not parse original result from JSON", e);
+			return;
+		}
+
+		var parsedOwnPlayer = parsedOriginalResult.getData().getVsHistoryDetail().getMyTeam().getPlayers().stream()
+			.filter(Player::getIsMyself)
+			.findFirst()
+			.orElse(parsedOriginalResult.getData().getVsHistoryDetail().getPlayer());
+		var allXPowers = xPowerDownloader.downloadXPowers().orElse(new S3XPowerDownloader.Powers(null, null, null, null));
+		var allWeaponResultStats = weaponRepository.getWeaponResultStats(ownPlayer.getWeapon().getId());
+		var weaponResultStats = allWeaponResultStats.stream()
+			.map(w -> new FullscreenStreamData.KeyWinDefeatRate(shortenModeName(w.getModeName()), FullscreenStreamData.WinDefeatRate.builder()
+				.wins(w.getTotalWins())
+				.wins_gained(w.getTotalWins() - ownUsedWeaponWinStatsAtStart.stream()
+					.filter(was -> was.getWeaponId() == ownPlayer.getWeapon().getId() && Objects.equals(was.getModeName(), w.getModeName()))
+					.findFirst()
+					.map(OwnUsedWeaponStatsWithWeapon::getTotalWins)
+					.orElse(w.getTotalWins()))
+				.defeats(w.getTotalDefeats())
+				.defeats_gained(w.getTotalDefeats() - ownUsedWeaponWinStatsAtStart.stream()
+					.filter(was -> was.getWeaponId() == ownPlayer.getWeapon().getId() && Objects.equals(was.getModeName(), w.getModeName()))
+					.findFirst()
+					.map(OwnUsedWeaponStatsWithWeapon::getTotalDefeats)
+					.orElse(w.getTotalDefeats()))
+				.winrate(w.getWinRate())
+				.build())).collect(Collectors.toCollection(ArrayList::new));
+
+		var totalWeaponWinStats = new FullscreenStreamData.KeyWinDefeatRate("Total", allWeaponResultStats.stream()
+			.map(w -> FullscreenStreamData.WinDefeatRate.builder()
+				.wins(w.getTotalWins())
+				.wins_gained(w.getTotalWins() - ownUsedWeaponWinStatsAtStart.stream()
+					.filter(was -> was.getWeaponId() == ownUsedWeaponStats.getWeaponId() && Objects.equals(was.getModeName(), w.getModeName()))
+					.findFirst()
+					.map(OwnUsedWeaponStatsWithWeapon::getTotalWins)
+					.orElse(w.getTotalWins()))
+				.defeats(w.getTotalDefeats())
+				.defeats_gained(w.getTotalDefeats() - ownUsedWeaponWinStatsAtStart.stream()
+					.filter(was -> was.getWeaponId() == ownUsedWeaponStats.getWeaponId() && Objects.equals(was.getModeName(), w.getModeName()))
+					.findFirst()
+					.map(OwnUsedWeaponStatsWithWeapon::getTotalDefeats)
+					.orElse(w.getTotalDefeats()))
+				.winrate(w.getWinRate())
+				.build())
+			.reduce((a, b) ->
+				FullscreenStreamData.WinDefeatRate.builder()
+					.wins(a.getWins() + b.getWins())
+					.wins_gained(a.getWins_gained() + b.wins_gained)
+					.defeats(a.getDefeats() + b.getDefeats())
+					.defeats_gained(a.getDefeats_gained() + b.getDefeats_gained())
+					.winrate(100.0 * (a.getWins() + b.getWins()) / (a.getWins() + b.getWins() + a.getDefeats() + b.getDefeats()))
+					.build())
+			.get());
+
+		weaponResultStats.add(totalWeaponWinStats);
+
+		var totalGameCount = totalWeaponWinStats.win_defeat_rate.wins + totalWeaponWinStats.win_defeat_rate.defeats;
+
+		fullscreenStreamData = FullscreenStreamData.builder()
+			.type(FullscreenStreamData.Type.VS)
+			.last_game_end_time(lastGame.getPlayedTime().plusSeconds(lastGame.getDuration()).toEpochMilli() - lastGame.getPlayedTime().truncatedTo(ChronoUnit.DAYS).toEpochMilli())
+			.general(FullscreenStreamData.GeneralStats.builder()
+				.wins(totalWins)
+				.defeats(totalDefeats)
+				.special_weapon_image(getSpecialWeaponBadgeIconResourceUrl(ownPlayer.getWeapon().getSpecialWeapon().getName()))
+				.special_wins(ownUsedSpecialWeaponStats.getWinCount())
+				.special_wins_gained(ownUsedSpecialWeaponStats.getWinCount() - ownSpecialWeaponWinsAtStreamStart)
+				.anarchy_rank(history.getData().getPlayHistory().getUdemae())
+				.weapon_power(ownUsedWeaponStats.getStats().getCurrentWeaponPowerOrder() != null ? ownUsedWeaponStats.getStats().getCurrentWeaponPowerOrder().getWeaponPower() : null)
+				.x_zones(allXPowers.getZones())
+				.x_tower(allXPowers.getTower())
+				.x_rain(allXPowers.getRainmaker())
+				.x_clams(allXPowers.getClams())
+				.build())
+			.weapon(FullscreenStreamData.WeaponInfo.builder()
+				.name(ownPlayer.getWeapon().getName())
+				.image(getMainWeaponBadgeIconResourceUrl(ownPlayer.getWeapon().getName(), ownPlayer.getWeapon().getImage3D()))
+				.stats(weaponResultStats)
+				.game_count(totalGameCount)
+				.stars(ownUsedWeaponStats.getStats().getLevel())
+				.exp_change(expWeaponGain)
+				.exp_now(ownWeaponExpNow)
+				.exp_start_ratio(alreadyOwnedExpRatio)
+				.exp_change_ratio(earnedExpStreamRatio)
+				.exp_left_ratio(remainingExpRatio)
+				.build())
+			.clothing(FullscreenStreamData.ClothingData.builder()
+				.head(FullscreenStreamData.ClothingInfo.builder()
+					.name(ownPlayer.getHeadGear().getName())
+					.image(getResourceUrl(ownPlayer.getHeadGear().getOriginalImage()))
+					.stars(parsedOwnPlayer.getHeadGear().getRarity() != null ? parsedOwnPlayer.getHeadGear().getRarity() : 0)
+					.game_count(resultTeamPlayerRepository.getGameCountOfOwnHeadGearId(ownPlayer.getHeadGear().getId()))
+					.main_image(getResourceUrl(ownPlayer.getHeadGearMainAbility().getImage()))
+					.sub_1_image(getResourceUrl(ownPlayer.getHeadGearSecondaryAbility1().getImage()))
+					.sub_2_image(Optional.ofNullable(ownPlayer.getHeadGearSecondaryAbility2()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
+					.sub_3_image(Optional.ofNullable(ownPlayer.getHeadGearSecondaryAbility3()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
+					.build())
+				.shirt(FullscreenStreamData.ClothingInfo.builder()
+					.name(ownPlayer.getClothingGear().getName())
+					.image(getResourceUrl(ownPlayer.getClothingGear().getOriginalImage()))
+					.stars(parsedOwnPlayer.getClothingGear().getRarity() != null ? parsedOwnPlayer.getClothingGear().getRarity() : 0)
+					.game_count(resultTeamPlayerRepository.getGameCountOfOwnClothingGearId(ownPlayer.getClothingGear().getId()))
+					.main_image(getResourceUrl(ownPlayer.getClothingMainAbility().getImage()))
+					.sub_1_image(getResourceUrl(ownPlayer.getClothingSecondaryAbility1().getImage()))
+					.sub_2_image(Optional.ofNullable(ownPlayer.getClothingSecondaryAbility2()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
+					.sub_3_image(Optional.ofNullable(ownPlayer.getClothingSecondaryAbility3()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
+					.build())
+				.shoes(FullscreenStreamData.ClothingInfo.builder()
+					.name(ownPlayer.getShoesGear().getName())
+					.image(getResourceUrl(ownPlayer.getShoesGear().getOriginalImage()))
+					.stars(parsedOwnPlayer.getShoesGear().getRarity() != null ? parsedOwnPlayer.getShoesGear().getRarity() : 0)
+					.game_count(resultTeamPlayerRepository.getGameCountOfOwnShoesGearId(ownPlayer.getShoesGear().getId()))
+					.main_image(getResourceUrl(ownPlayer.getShoesMainAbility().getImage()))
+					.sub_1_image(getResourceUrl(ownPlayer.getShoesSecondaryAbility1().getImage()))
+					.sub_2_image(Optional.ofNullable(ownPlayer.getShoesSecondaryAbility2()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
+					.sub_3_image(Optional.ofNullable(ownPlayer.getShoesSecondaryAbility3()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
+					.build())
+				.build())
+			.game(FullscreenStreamData.GameData.builder()
+				.teams(lastGame.getTeams().stream()
+					.map(t -> FullscreenStreamData.TeamData.builder()
+						.result(mapResult(t.getJudgement()))
+						.result_str(mapResultStr(t.getScore(), t.getPaintRatio()))
+						.color(String.format("#%02x%02x%02x%02x", (int) (255 * t.getInkColorR()), (int) (255 * t.getInkColorG()), (int) (255 * t.getInkColorB()), (int) (255 * t.getInkColorA())))
+						.players(t.getTeamPlayers().stream()
+							.map(tp -> FullscreenStreamData.PlayerData.builder()
+								.name(tp.getName())
+								.is_myself(tp.getIsMyself())
+								.weapon_image(getResourceUrl(tp.getWeapon().getImage2D()))
+								.special_weapon_image(getResourceUrl(tp.getWeapon().getSpecialWeapon().getImage()))
+								.sub_weapon_image(getResourceUrl(tp.getWeapon().getSubWeapon().getImage()))
+								.head_main_image(getResourceUrl(tp.getHeadGearMainAbility().getImage()))
+								.shirt_main_image(getResourceUrl(tp.getClothingMainAbility().getImage()))
+								.shoes_main_image(getResourceUrl(tp.getShoesMainAbility().getImage()))
+								.kills(tp.getKills() - tp.getAssists())
+								.assists(tp.getAssists())
+								.deaths(tp.getDeaths())
+								.specials(tp.getSpecials())
+								.paint(tp.getPaint())
+								.number_of_games(tp.getIsMyself() ? null : resultTeamPlayerRepository.getGameCountsWithPlayer(tp.getPlayerId()))
+								.build())
+							.collect(Collectors.toList()))
+						.build())
+					.collect(Collectors.toList()))
+				.build())
+			.map_stats(
+				(lastGame.getMode().getId() != 9L
+					? Stream.of(lastGame.getRotation().getStage1(), lastGame.getRotation().getStage2())
+					: Stream.of(lastGame.getStage()))
+					.map(st -> FullscreenStreamData.MapData.builder()
+						.name(st.getName())
+						.image(getResourceUrl(st.getImage()))
+						.stats(stageRepository.findStageWinStats(st.getId(), lastGame.getRule().getId()).stream()
+							.map(sws -> new FullscreenStreamData.KeyWinDefeatRate(shortenModeName(sws.getModeName()), FullscreenStreamData.WinDefeatRate.builder()
+								.wins(sws.getWinCount())
+								.wins_gained(sws.getWinCount() - stageResultStatsAtStart.stream()
+									.filter(s -> Objects.equals(s.getMapName(), sws.getMapName()) && Objects.equals(s.getModeName(), sws.getModeName()) && Objects.equals(s.getRuleName(), lastGame.getRule().getName()))
+									.findFirst()
+									.map(StageWinStatsWithRule::getWinCount)
+									.orElse(sws.getWinCount()))
+								.defeats(sws.getDefeatCount())
+								.defeats_gained(sws.getDefeatCount() - stageResultStatsAtStart.stream()
+									.filter(s -> Objects.equals(s.getMapName(), sws.getMapName()) && Objects.equals(s.getModeName(), sws.getModeName()) && Objects.equals(s.getRuleName(), lastGame.getRule().getName()))
+									.findFirst()
+									.map(StageWinStatsWithRule::getDefeatCount)
+									.orElse(sws.getDefeatCount()))
+								.winrate(100.0 * sws.getWinCount() / (sws.getWinCount() + sws.getDefeatCount()))
+								.build()))
+							.collect(Collectors.toList()))
+						.build())
+					.collect(Collectors.toList()))
+			.build();
+
+		log.info("finished S3StreamDataService reload");
+	}
+
+	private String mapResultStr(Integer score, Double paintRatio) {
+		if (score != null) {
+			return String.format("%d p", score);
+		} else if (paintRatio != null) {
+			return String.format("%.1f %%", paintRatio);
+		}
+
+		return "???";
+	}
+
+	private FullscreenStreamData.TeamData.Result mapResult(String judgement) {
+		if ("WIN".equalsIgnoreCase(judgement)) {
+			return FullscreenStreamData.TeamData.Result.WIN;
+		} else if ("LOSE".equalsIgnoreCase(judgement)) {
+			return FullscreenStreamData.TeamData.Result.LOSE;
+		}
+
+		return FullscreenStreamData.TeamData.Result.SUPPORT;
+	}
+
+	private String shortenModeName(String modeName) {
+		switch (modeName) {
+			case "Regular Battle":
+				return "TW";
+			case "Anarchy Series":
+				return "Series";
+			case "Anarchy Open":
+				return "Open";
+			case "X Battle":
+				return "X";
+			case "Challenge":
+				return "Challenge";
+			case "Splatfest Open":
+				return "SF Open";
+			case "Splatfest Pro":
+				return "SF Pro";
+			case "Splatfest Tricolor":
+				return "Tricolor";
+			case "Private Battle":
+				return "PBs";
+			default:
+				return "Total";
+		}
 	}
 
 	private StreamData.TeamResult buildTeamResult(Splatoon3VsResultTeam team, double totalPointsSum) {
@@ -563,5 +826,24 @@ public class S3StreamDataService implements ScheduledService {
 	@Override
 	public List<ScheduleRequest> createSingleRunRequests() {
 		return List.of();
+	}
+
+	@Getter
+	@Setter
+	@AllArgsConstructor
+	@Builder
+	public static class WinDefeatRateWithKey {
+		private String key;
+		private FullscreenStreamData.WinDefeatRate value;
+	}
+
+	@Getter
+	@Setter
+	@AllArgsConstructor
+	@Builder
+	public static class WinDefeatRateWithKeyAndStage {
+		private String key;
+		private Splatoon3VsStage stage;
+		private FullscreenStreamData.WinDefeatRate value;
 	}
 }

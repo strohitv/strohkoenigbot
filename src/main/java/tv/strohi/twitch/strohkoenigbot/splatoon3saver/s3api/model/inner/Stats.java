@@ -43,6 +43,6 @@ public class Stats {
 	public static class CurrentWeaponPowerOrder implements Serializable {
 		private String id;
 		private Double order;
-		private Integer weaponPower;
+		private Double weaponPower;
 	}
 }

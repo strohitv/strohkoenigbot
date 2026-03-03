@@ -13,6 +13,7 @@ import tv.strohi.twitch.strohkoenigbot.sendou.SendouService;
 import tv.strohi.twitch.strohkoenigbot.sendou.model.out.MatchType;
 import tv.strohi.twitch.strohkoenigbot.sendou.model.out.SendouMatch;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3StreamDataService;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.FullscreenStreamData;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.StreamData;
 import tv.strohi.twitch.strohkoenigbot.utils.model.Cached;
 
@@ -41,6 +42,11 @@ public class FrontendController {
 	@GetMapping("stream-stats")
 	public StreamData getStreamStats() {
 		return streamDataService.getStreamData();
+	}
+
+	@GetMapping("stream-stats-full")
+	public FullscreenStreamData getFullscreenStreamStats() {
+		return streamDataService.getFullscreenStreamData();
 	}
 
 	@GetMapping("sendou/match/search")
