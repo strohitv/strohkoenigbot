@@ -25,6 +25,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.IconBadgeNames;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.StreamData;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.HistoryResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Player;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Stats;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
@@ -53,6 +54,7 @@ public class S3StreamDataService implements ScheduledService {
 	private final S3SpecialWeaponWinStatsDownloader specialWeaponWinStatsDownloader;
 	private final S3WeaponStatsDownloader weaponStatsDownloader;
 	private final S3XPowerDownloader xPowerDownloader;
+	private final S3GearDownloader gearDownloader;
 
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
@@ -429,6 +431,8 @@ public class S3StreamDataService implements ScheduledService {
 
 		var totalGameCount = totalWeaponWinStats.win_defeat_rate.wins + totalWeaponWinStats.win_defeat_rate.defeats;
 
+		var downloadedGears = gearDownloader.downloadGears();
+
 		fullscreenStreamData = FullscreenStreamData.builder()
 			.type(FullscreenStreamData.Type.VS)
 			.last_game_end_time(lastGame.getPlayedTime().plusSeconds(lastGame.getDuration()).toEpochMilli() - lastGame.getPlayedTime().truncatedTo(ChronoUnit.DAYS).toEpochMilli())
@@ -461,7 +465,12 @@ public class S3StreamDataService implements ScheduledService {
 				.head(FullscreenStreamData.ClothingInfo.builder()
 					.name(ownPlayer.getHeadGear().getName())
 					.image(getResourceUrl(ownPlayer.getHeadGear().getOriginalImage()))
-					.stars(parsedOwnPlayer.getHeadGear().getRarity() != null ? parsedOwnPlayer.getHeadGear().getRarity() : 0)
+					.stars(downloadedGears.stream()
+						.flatMap(g -> Arrays.stream(g.getHead()))
+						.filter(g -> Objects.equals(parsedOwnPlayer.getHeadGear().getName(), g.getName()))
+						.map(Gear::getRarity)
+						.findFirst()
+						.orElse(0))
 					.game_count(resultTeamPlayerRepository.getGameCountOfOwnHeadGearId(ownPlayer.getHeadGear().getId()))
 					.main_image(getResourceUrl(ownPlayer.getHeadGearMainAbility().getImage()))
 					.sub_1_image(getResourceUrl(ownPlayer.getHeadGearSecondaryAbility1().getImage()))
@@ -471,7 +480,12 @@ public class S3StreamDataService implements ScheduledService {
 				.shirt(FullscreenStreamData.ClothingInfo.builder()
 					.name(ownPlayer.getClothingGear().getName())
 					.image(getResourceUrl(ownPlayer.getClothingGear().getOriginalImage()))
-					.stars(parsedOwnPlayer.getClothingGear().getRarity() != null ? parsedOwnPlayer.getClothingGear().getRarity() : 0)
+					.stars(downloadedGears.stream()
+						.flatMap(g -> Arrays.stream(g.getClothing()))
+						.filter(g -> Objects.equals(parsedOwnPlayer.getClothingGear().getName(), g.getName()))
+						.map(Gear::getRarity)
+						.findFirst()
+						.orElse(0))
 					.game_count(resultTeamPlayerRepository.getGameCountOfOwnClothingGearId(ownPlayer.getClothingGear().getId()))
 					.main_image(getResourceUrl(ownPlayer.getClothingMainAbility().getImage()))
 					.sub_1_image(getResourceUrl(ownPlayer.getClothingSecondaryAbility1().getImage()))
@@ -481,7 +495,12 @@ public class S3StreamDataService implements ScheduledService {
 				.shoes(FullscreenStreamData.ClothingInfo.builder()
 					.name(ownPlayer.getShoesGear().getName())
 					.image(getResourceUrl(ownPlayer.getShoesGear().getOriginalImage()))
-					.stars(parsedOwnPlayer.getShoesGear().getRarity() != null ? parsedOwnPlayer.getShoesGear().getRarity() : 0)
+					.stars(downloadedGears.stream()
+						.flatMap(g -> Arrays.stream(g.getShoes()))
+						.filter(g -> Objects.equals(parsedOwnPlayer.getShoesGear().getName(), g.getName()))
+						.map(Gear::getRarity)
+						.findFirst()
+						.orElse(0))
 					.game_count(resultTeamPlayerRepository.getGameCountOfOwnShoesGearId(ownPlayer.getShoesGear().getId()))
 					.main_image(getResourceUrl(ownPlayer.getShoesMainAbility().getImage()))
 					.sub_1_image(getResourceUrl(ownPlayer.getShoesSecondaryAbility1().getImage()))
@@ -826,24 +845,5 @@ public class S3StreamDataService implements ScheduledService {
 	@Override
 	public List<ScheduleRequest> createSingleRunRequests() {
 		return List.of();
-	}
-
-	@Getter
-	@Setter
-	@AllArgsConstructor
-	@Builder
-	public static class WinDefeatRateWithKey {
-		private String key;
-		private FullscreenStreamData.WinDefeatRate value;
-	}
-
-	@Getter
-	@Setter
-	@AllArgsConstructor
-	@Builder
-	public static class WinDefeatRateWithKeyAndStage {
-		private String key;
-		private Splatoon3VsStage stage;
-		private FullscreenStreamData.WinDefeatRate value;
 	}
 }
