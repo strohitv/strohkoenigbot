@@ -1,11 +1,13 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.io.BufferedInputStream;
@@ -17,22 +19,19 @@ import java.net.URL;
 import java.nio.file.Paths;
 
 @Component
+@RequiredArgsConstructor
+@Log4j2
 public class ResourcesDownloader {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-
-	private DiscordBot discordBot;
-
-	@Autowired
-	public void setDiscordBot(DiscordBot discordBot) {
-		this.discordBot = discordBot;
-	}
+	private final DiscordBot discordBot;
+	private final ConfigurationRepository configurationRepository;
+	private final ExceptionLogger exceptionLogger;
 
 	public String ensureExistsLocally(String splatNetResourceUrl) {
 		return ensureExistsLocally(splatNetResourceUrl, null);
 	}
 
 	public String ensureExistsLocally(String splatNetResourceUrl, String forcePath) {
-		logger.debug("downloading a resource '{}'", splatNetResourceUrl);
+		log.debug("downloading a resource '{}'", splatNetResourceUrl);
 
 		String imageUrl = splatNetResourceUrl;
 		if (isValidURL(imageUrl)) {
@@ -50,10 +49,10 @@ public class ResourcesDownloader {
 			}
 		}
 
-		logger.debug("new url '{}'", imageUrl);
+		log.debug("new url '{}'", imageUrl);
 
 		String path = Paths.get(System.getProperty("user.dir"), imageUrl).toString();
-		logger.debug("path '{}'", path);
+		log.debug("path '{}'", path);
 
 		File file = Paths.get(path).toFile();
 		if (!file.exists()) {
@@ -74,25 +73,37 @@ public class ResourcesDownloader {
 					}
 
 					String newPath = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
-					discordBot.sendServerMessageWithImageUrls(DiscordChannelDecisionMaker.getDebugImageChannelName(), "I downloaded an image!", newPath);
+					discordBot.queueServerMessageWithImageUrls(DiscordChannelDecisionMaker.getDebugImageChannelName(), "I downloaded an image!", newPath);
 
-					logger.info("image download successful, path: '{}'", path);
+					log.info("image download successful, path: '{}'", path);
 
 					return newPath;
 				} catch (IOException e) {
-					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugImageChannelName(), "Could not download an image because of an Exception!");
-					logger.error("exception occured!!!");
-					logger.error(e);
+					logExceptionIfDebug("Could not download an image because of an Exception", e);
 					return splatNetResourceUrl;
 				}
 			} else {
-				logger.error("could not create directory to store the resources, returning original URL");
+				log.error("could not create directory to store the resources, returning original URL");
 				return splatNetResourceUrl;
 			}
 		} else {
 			String result = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
-			logger.debug("resource already existed, returning '{}'", result);
+			log.debug("resource already existed, returning '{}'", result);
 			return result;
+		}
+	}
+
+	private void logExceptionIfDebug(String message, Exception ex) {
+		var shouldLogConfig = configurationRepository.findByConfigName("ResourcesDownloader_logDebugSwitch")
+			.orElseGet(() -> configurationRepository.save(Configuration.builder()
+				.configName("ResourcesDownloader_logDebugSwitch")
+				.configValue("false")
+				.build()));
+
+		if ("true".equalsIgnoreCase(shouldLogConfig.getConfigValue())) {
+			exceptionLogger.logExceptionAsAttachment(log, message, ex);
+		} else {
+			log.error(message, ex);
 		}
 	}
 

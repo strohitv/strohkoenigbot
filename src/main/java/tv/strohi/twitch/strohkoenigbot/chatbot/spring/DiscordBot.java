@@ -15,6 +15,7 @@ import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
 import discord4j.core.spec.MessageCreateMono;
 import discord4j.core.spec.MessageCreateSpec;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,20 +31,21 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class DiscordBot {
+public class DiscordBot implements ScheduledService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final ConfigurationRepository configurationRepository;
@@ -53,6 +55,8 @@ public class DiscordBot {
 	public static final long ADMIN_ID = 256536949756657664L;
 
 	private GatewayDiscordClient gateway = null;
+
+	private final Queue<QueuedMessage> queuedMessages = new LinkedList<>();
 
 	@Autowired
 	public void setBotActions(List<IChatAction> botActions) {
@@ -182,6 +186,21 @@ public class DiscordBot {
 
 	public boolean sendServerMessageWithImageUrls(String channelName, String message, String... imageUrls) {
 		return sendServerMessageWithImageUrls(channelName, message, true, imageUrls);
+	}
+
+	public void queueServerMessageWithImageUrls(String channelName, String message, String... imageUrls) {
+		queuedMessages.add(QueuedMessage.builder()
+			.channelName(channelName)
+			.message(message)
+			.imageUrls(imageUrls)
+			.build());
+	}
+
+	private void sendQueuedServerMessagesWithImageUrls() {
+		while (!queuedMessages.isEmpty()) {
+			var nextMessage = queuedMessages.remove();
+			sendServerMessageWithImageUrls(nextMessage.channelName, nextMessage.message, nextMessage.imageUrls);
+		}
 	}
 
 	public boolean sendServerMessageWithImageUrls(String channelName, String message, boolean storeOnLocalDrive, String... imageUrls) {
@@ -541,5 +560,26 @@ public class DiscordBot {
 			this.x = x;
 			this.y = y;
 		}
+	}
+
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("DiscordBot_sendQueuedServerMessagesWithImageUrls")
+			.schedule(TickSchedule.getScheduleString(1))
+			.runnable(this::sendQueuedServerMessagesWithImageUrls)
+			.build());
+	}
+
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
+	}
+
+	@Builder
+	private static class QueuedMessage {
+		private String channelName;
+		private String message;
+		private String[] imageUrls;
 	}
 }

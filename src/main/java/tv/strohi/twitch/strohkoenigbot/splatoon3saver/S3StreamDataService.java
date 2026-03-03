@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang.time.StopWatch;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
@@ -93,25 +94,50 @@ public class S3StreamDataService implements ScheduledService {
 			return;
 		}
 
+		var stopWatch = new StopWatch();
+		var previousStopWatchTime = 0L;
+		var stoppedTimeStrs = new ArrayList<String>();
+
+		stopWatch.start();
+
 		if (weaponStatsAtStreamStart == null) {
 			logIfDebug("S3StreamDataService: weaponStatsAtStreamStart refresh");
 			weaponStatsAtStreamStart = weaponStatsDownloader.downloadWeaponStats().orElse(null);
+			stopWatch.split();
+			stoppedTimeStrs.add(String.format("- weaponStatsDownloader.downloadWeaponStats `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+			previousStopWatchTime = stopWatch.getSplitTime();
 		}
+
 
 		if (specialWinStatsAtStreamStart == null) {
 			logIfDebug("S3StreamDataService: specialWinStatsAtStreamStart refresh");
 			specialWinStatsAtStreamStart = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().orElse(null);
+			stopWatch.split();
+			stoppedTimeStrs.add(String.format("- specialWeaponWinStatsDownloader.downloadSpecialWeaponStats `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+			previousStopWatchTime = stopWatch.getSplitTime();
 		}
+
 
 		if (ownUsedWeaponWinStatsAtStart == null) {
 			ownUsedWeaponWinStatsAtStart = weaponRepository.getWeaponResultStatsForAllWeapons();
+			stopWatch.split();
+			stoppedTimeStrs.add(String.format("- weaponRepository.getWeaponResultStatsForAllWeapons `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+			previousStopWatchTime = stopWatch.getSplitTime();
 		}
+
 
 		if (stageResultStatsAtStart == null) {
 			stageResultStatsAtStart = stageRepository.findAllStageWinStats();
+			stopWatch.split();
+			stoppedTimeStrs.add(String.format("- stageRepository.findAllStageWinStats `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+			previousStopWatchTime = stopWatch.getSplitTime();
 		}
 
+
 		final var allGamesInStream = resultRepository.findByPlayedTimeAfterOrderByPlayedTimeAsc(twitchBotClient.getWentLiveTime());
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- resultRepository.findByPlayedTimeAfterOrderByPlayedTimeAsc `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 
 		if (allGamesInStream.isEmpty()) {
 			streamData = StreamData.empty();
@@ -129,6 +155,128 @@ public class S3StreamDataService implements ScheduledService {
 		}
 
 		newestFoundGameStartTime = lastGame.getPlayedTime();
+
+		final var ownPlayer = lastGame.getTeams().stream()
+			.flatMap(t -> t.getTeamPlayers().stream())
+			.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
+			.findFirst()
+			.orElseThrow();
+
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- before Threads `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
+
+		var statData = LoadedSplatNetObjects.builder().build();
+
+		var weaponDownloadThread = new Thread(() -> {
+			final var threadStopWatch = new StopWatch();
+			threadStopWatch.start();
+
+			weaponStatsDownloader.downloadWeaponStats().ifPresent(statData::setWeapons);
+
+			threadStopWatch.stop();
+			stoppedTimeStrs.add(String.format("- Thread `weaponDownloadThread`: Finished after `%s ms`", threadStopWatch.getTime()));
+		});
+		var xPowerDownloadThread = new Thread(() -> {
+			final var threadStopWatch = new StopWatch();
+			threadStopWatch.start();
+
+			xPowerDownloader.downloadXPowers().ifPresent(statData::setXPowers);
+
+			threadStopWatch.stop();
+			stoppedTimeStrs.add(String.format("- Thread `xPowerDownloadThread`: Finished after `%s ms`", threadStopWatch.getTime()));
+		});
+		var historyDownloadThread = new Thread(() -> {
+			final var threadStopWatch = new StopWatch();
+			threadStopWatch.start();
+
+			try {
+				var historyResponse = apiQuerySender.queryS3Api(accountRepository.findByIsMainAccount(true).stream().findFirst().orElseThrow(), S3RequestKey.History);
+				statData.setParsedHistory(objectMapper.readValue(historyResponse, HistoryResult.class));
+			} catch (Exception e) {
+				exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService could not download History", e);
+			}
+
+			threadStopWatch.stop();
+			stoppedTimeStrs.add(String.format("- Thread `historyDownloadThread`: Finished after `%s ms`", threadStopWatch.getTime()));
+		});
+		var choresThread = new Thread(() -> {
+			final var threadStopWatch = new StopWatch();
+			threadStopWatch.start();
+
+			try {
+				statData.setParsedLastGame(objectMapper.readValue(lastGame.getShortenedJson(), BattleResult.class));
+			} catch (Exception e) {
+				exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService could not parse original result from JSON", e);
+			}
+
+			statData.stageWins = (lastGame.getMode().getId() != 9L
+				? Stream.of(lastGame.getRotation().getStage1(), lastGame.getRotation().getStage2())
+				: Stream.of(lastGame.getStage()))
+				.map(st -> FullscreenStreamData.MapData.builder()
+					.name(st.getName())
+					.image(getResourceUrl(st.getImage()))
+					.stats(stageRepository.findStageWinStats(st.getId(), lastGame.getRule().getId()).stream()
+						.map(sws -> new FullscreenStreamData.KeyWinDefeatRate(shortenModeName(sws.getModeName()), FullscreenStreamData.WinDefeatRate.builder()
+							.wins(sws.getWinCount())
+							.wins_gained(sws.getWinCount() - stageResultStatsAtStart.stream()
+								.filter(s -> Objects.equals(s.getMapName(), sws.getMapName()) && Objects.equals(s.getModeName(), sws.getModeName()) && Objects.equals(s.getRuleName(), lastGame.getRule().getName()))
+								.findFirst()
+								.map(StageWinStatsWithRule::getWinCount)
+								.orElse(sws.getWinCount()))
+							.defeats(sws.getDefeatCount())
+							.defeats_gained(sws.getDefeatCount() - stageResultStatsAtStart.stream()
+								.filter(s -> Objects.equals(s.getMapName(), sws.getMapName()) && Objects.equals(s.getModeName(), sws.getModeName()) && Objects.equals(s.getRuleName(), lastGame.getRule().getName()))
+								.findFirst()
+								.map(StageWinStatsWithRule::getDefeatCount)
+								.orElse(sws.getDefeatCount()))
+							.winrate(100.0 * sws.getWinCount() / (sws.getWinCount() + sws.getDefeatCount()))
+							.build()))
+						.collect(Collectors.toList()))
+					.build())
+				.collect(Collectors.toList());
+
+			specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().ifPresent(statData::setSpecialWinCounts);
+
+			statData.setHeadGameCount(resultTeamPlayerRepository.getGameCountOfOwnHeadGearId(ownPlayer.getHeadGear().getId()));
+			statData.setShirtGameCount(resultTeamPlayerRepository.getGameCountOfOwnClothingGearId(ownPlayer.getClothingGear().getId()));
+			statData.setShoesGameCount(resultTeamPlayerRepository.getGameCountOfOwnShoesGearId(ownPlayer.getShoesGear().getId()));
+
+			statData.setPlayerMatchupNumbers(
+				lastGame.getTeams().stream()
+					.flatMap(t -> t.getTeamPlayers().stream())
+					.collect(Collectors.toMap(
+						Splatoon3VsResultTeamPlayer::getPlayerId,
+						(Splatoon3VsResultTeamPlayer tp) -> tp.getIsMyself() ? -1L : resultTeamPlayerRepository.getGameCountsWithPlayer(tp.getPlayerId())
+					)));
+
+			threadStopWatch.stop();
+			stoppedTimeStrs.add(String.format("- Thread `choresThread`: Finished after `%s ms`", threadStopWatch.getTime()));
+		});
+
+		try {
+			weaponDownloadThread.start();
+			xPowerDownloadThread.start();
+			historyDownloadThread.start();
+			choresThread.start();
+
+			weaponDownloadThread.join();
+			xPowerDownloadThread.join();
+			historyDownloadThread.join();
+			choresThread.join();
+
+			if (statData.containsEmptyField()) {
+				logSender.sendLogsAsAttachment(log, "At least one field was not filled properly!", statData.toString());
+				return;
+			}
+		} catch (Exception ex) {
+			exceptionLogger.logExceptionAsAttachment(log, "Error while running S3StreamDataService Threads", ex);
+			return;
+		}
+
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- after Threads `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 
 		// Team Stats
 		final var ownTeam = lastGame.getTeams().stream()
@@ -150,26 +298,30 @@ public class S3StreamDataService implements ScheduledService {
 			.findFirst()
 			.orElse(null);
 
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- get Teams `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
+
 		// Weapon Stats
-		final var weaponStats = weaponStatsDownloader.downloadWeaponStats().orElse(null);
+		final var weaponStats = statData.weapons;
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- weaponStatsDownloader.downloadWeaponStats `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 		if (weaponStats == null) {
 			logIfDebug("S3StreamDataService: weaponStats null");
 			return;
 		}
 
-		final var specialWinStats = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().orElse(null);
+		final var specialWinStats = statData.specialWinCounts;
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- specialWeaponWinStatsDownloader.downloadSpecialWeaponStats `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 		if (specialWinStats == null) {
 			logIfDebug("S3StreamDataService: specialWinStats null");
 			return;
 		}
 
 		// Game Stats
-		final var ownPlayer = lastGame.getTeams().stream()
-			.flatMap(t -> t.getTeamPlayers().stream())
-			.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
-			.findFirst()
-			.orElseThrow();
-
 		final var ownUsedWeaponStats = Arrays.stream(weaponStats)
 			.filter(w -> Objects.equals(w.getId(), ownPlayer.getWeapon().getApiId()))
 			.findFirst()
@@ -189,6 +341,9 @@ public class S3StreamDataService implements ScheduledService {
 			logIfDebug("S3StreamDataService: ownUsedWeaponStatsAtStart null");
 			return;
 		}
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- ownUsedWeaponStatsAtStart `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 
 		final var ownWeaponExpAtStart = getWeaponExp(ownUsedWeaponStatsAtStart.getStats().getLevel(), ownUsedWeaponStatsAtStart.getStats().getExpToLevelUp());
 		final var ownWeaponExpNow = getWeaponExp(ownUsedWeaponStats.getStats().getLevel(), ownUsedWeaponStats.getStats().getExpToLevelUp());
@@ -223,6 +378,10 @@ public class S3StreamDataService implements ScheduledService {
 			.map(SpecialWinCount::getWinCount)
 			.orElse(0);
 
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- ownSpecialWeaponWinsAtStreamStart `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
+
 		// Stream Stats
 		final var totalWins = allGamesInStream.stream()
 			.filter(g -> g.getOwnJudgement().equalsIgnoreCase("WIN"))
@@ -235,6 +394,10 @@ public class S3StreamDataService implements ScheduledService {
 		final var totalPointsSum = ownTeam.getScore() != null
 			? ownTeam.getScore() + opp1.getScore() + (opp2 != null ? opp2.getScore() : 0)
 			: ownTeam.getPaintRatio() * 100 + opp1.getPaintRatio() * 100 + (opp2 != null ? opp2.getPaintRatio() * 100 : 0);
+
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- totalPointsSum `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 
 		var streamDataBuilder = StreamData.prepare()
 			.weapon_info(
@@ -298,6 +461,10 @@ public class S3StreamDataService implements ScheduledService {
 				.build())
 			.power_stats(null);
 
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- streamDataBuilder `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
+
 		if (lastGame.isHasPower()) {
 			final var isX = lastGame.getMode().getApiMode().equals("X_MATCH");
 			final var isAnarchySeries = lastGame.getMode().getApiMode().equals("BANKARA") && lastGame.getMode().getApiModeDistinction().equals("CHALLENGE");
@@ -305,7 +472,7 @@ public class S3StreamDataService implements ScheduledService {
 			var xPowers = Optional.<S3XPowerDownloader.Powers>empty();
 			Double currentXPowers = null;
 			if (isX) {
-				xPowers = xPowerDownloader.downloadXPowers();
+				xPowers = Optional.of(statData.xPowers);
 
 				if (xPowers.isEmpty()) {
 					logIfDebug("## Error\n- S3StreamDataService could not load X Powers!");
@@ -350,6 +517,10 @@ public class S3StreamDataService implements ScheduledService {
 									.orElse(null))
 					)
 					.build());
+
+			stopWatch.split();
+			stoppedTimeStrs.add(String.format("- if lastGame.isHasPower `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+			previousStopWatchTime = stopWatch.getSplitTime();
 		}
 
 		var result = streamDataBuilder.build();
@@ -364,26 +535,28 @@ public class S3StreamDataService implements ScheduledService {
 		}
 
 		streamData = result;
+
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- S3StreamDataService: streamData refreshed `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
+
 		logIfDebug("S3StreamDataService: streamData refreshed");
 
-		BattleResult parsedOriginalResult;
-		HistoryResult history;
-		try {
-			parsedOriginalResult = objectMapper.readValue(lastGame.getShortenedJson(), BattleResult.class);
-
-			var historyResponse = apiQuerySender.queryS3Api(accountRepository.findByIsMainAccount(true).stream().findFirst().orElseThrow(), S3RequestKey.History);
-			history = objectMapper.readValue(historyResponse, HistoryResult.class);
-		} catch (Exception e) {
-			exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService could not parse original result from JSON", e);
-			return;
-		}
+		final var parsedOriginalResult = statData.parsedLastGame;
+		final var history = statData.parsedHistory;
 
 		var parsedOwnPlayer = parsedOriginalResult.getData().getVsHistoryDetail().getMyTeam().getPlayers().stream()
 			.filter(Player::getIsMyself)
 			.findFirst()
 			.orElse(parsedOriginalResult.getData().getVsHistoryDetail().getPlayer());
-		var allXPowers = xPowerDownloader.downloadXPowers().orElse(new S3XPowerDownloader.Powers(null, null, null, null));
+		var allXPowers = Optional.of(statData.xPowers).orElse(new S3XPowerDownloader.Powers(null, null, null, null));
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- xPowerDownloader.downloadXPowers `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 		var allWeaponResultStats = weaponRepository.getWeaponResultStats(ownPlayer.getWeapon().getId());
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- weaponRepository.getWeaponResultStats `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 		var weaponResultStats = allWeaponResultStats.stream()
 			.map(w -> new FullscreenStreamData.KeyWinDefeatRate(shortenModeName(w.getModeName()), FullscreenStreamData.WinDefeatRate.builder()
 				.wins(w.getTotalWins())
@@ -400,6 +573,9 @@ public class S3StreamDataService implements ScheduledService {
 					.orElse(w.getTotalDefeats()))
 				.winrate(w.getWinRate())
 				.build())).collect(Collectors.toCollection(ArrayList::new));
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- weaponResultStats = allWeaponResultStats.stream() `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 
 		var totalWeaponWinStats = new FullscreenStreamData.KeyWinDefeatRate("Total", allWeaponResultStats.stream()
 			.map(w -> FullscreenStreamData.WinDefeatRate.builder()
@@ -426,12 +602,22 @@ public class S3StreamDataService implements ScheduledService {
 					.winrate(100.0 * (a.getWins() + b.getWins()) / (a.getWins() + b.getWins() + a.getDefeats() + b.getDefeats()))
 					.build())
 			.get());
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- totalWeaponWinStats = new FullscreenStreamData.KeyWinDefeatRate `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 
 		weaponResultStats.add(totalWeaponWinStats);
 
 		var totalGameCount = totalWeaponWinStats.win_defeat_rate.wins + totalWeaponWinStats.win_defeat_rate.defeats;
 
-		var downloadedGears = gearDownloader.downloadGears();
+		if (gearDownloader.getCachedGears().isEmpty()) {
+			return;
+		}
+
+		var downloadedGears = gearDownloader.getCachedGears();
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- gearDownloader.downloadGears `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		previousStopWatchTime = stopWatch.getSplitTime();
 
 		fullscreenStreamData = FullscreenStreamData.builder()
 			.type(FullscreenStreamData.Type.VS)
@@ -471,7 +657,7 @@ public class S3StreamDataService implements ScheduledService {
 						.map(Gear::getRarity)
 						.findFirst()
 						.orElse(0))
-					.game_count(resultTeamPlayerRepository.getGameCountOfOwnHeadGearId(ownPlayer.getHeadGear().getId()))
+					.game_count(statData.getHeadGameCount())
 					.main_image(getResourceUrl(ownPlayer.getHeadGearMainAbility().getImage()))
 					.sub_1_image(getResourceUrl(ownPlayer.getHeadGearSecondaryAbility1().getImage()))
 					.sub_2_image(Optional.ofNullable(ownPlayer.getHeadGearSecondaryAbility2()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
@@ -486,7 +672,7 @@ public class S3StreamDataService implements ScheduledService {
 						.map(Gear::getRarity)
 						.findFirst()
 						.orElse(0))
-					.game_count(resultTeamPlayerRepository.getGameCountOfOwnClothingGearId(ownPlayer.getClothingGear().getId()))
+					.game_count(statData.getShirtGameCount())
 					.main_image(getResourceUrl(ownPlayer.getClothingMainAbility().getImage()))
 					.sub_1_image(getResourceUrl(ownPlayer.getClothingSecondaryAbility1().getImage()))
 					.sub_2_image(Optional.ofNullable(ownPlayer.getClothingSecondaryAbility2()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
@@ -501,7 +687,7 @@ public class S3StreamDataService implements ScheduledService {
 						.map(Gear::getRarity)
 						.findFirst()
 						.orElse(0))
-					.game_count(resultTeamPlayerRepository.getGameCountOfOwnShoesGearId(ownPlayer.getShoesGear().getId()))
+					.game_count(statData.getShoesGameCount())
 					.main_image(getResourceUrl(ownPlayer.getShoesMainAbility().getImage()))
 					.sub_1_image(getResourceUrl(ownPlayer.getShoesSecondaryAbility1().getImage()))
 					.sub_2_image(Optional.ofNullable(ownPlayer.getShoesSecondaryAbility2()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
@@ -529,41 +715,22 @@ public class S3StreamDataService implements ScheduledService {
 								.deaths(tp.getDeaths())
 								.specials(tp.getSpecials())
 								.paint(tp.getPaint())
-								.number_of_games(tp.getIsMyself() ? null : resultTeamPlayerRepository.getGameCountsWithPlayer(tp.getPlayerId()))
+								.number_of_games(Optional.ofNullable(statData.getPlayerMatchupNumbers().getOrDefault(tp.getPlayerId(), null)).filter(l -> l >= 0).orElse(null))
 								.build())
 							.collect(Collectors.toList()))
 						.build())
 					.collect(Collectors.toList()))
 				.build())
-			.map_stats(
-				(lastGame.getMode().getId() != 9L
-					? Stream.of(lastGame.getRotation().getStage1(), lastGame.getRotation().getStage2())
-					: Stream.of(lastGame.getStage()))
-					.map(st -> FullscreenStreamData.MapData.builder()
-						.name(st.getName())
-						.image(getResourceUrl(st.getImage()))
-						.stats(stageRepository.findStageWinStats(st.getId(), lastGame.getRule().getId()).stream()
-							.map(sws -> new FullscreenStreamData.KeyWinDefeatRate(shortenModeName(sws.getModeName()), FullscreenStreamData.WinDefeatRate.builder()
-								.wins(sws.getWinCount())
-								.wins_gained(sws.getWinCount() - stageResultStatsAtStart.stream()
-									.filter(s -> Objects.equals(s.getMapName(), sws.getMapName()) && Objects.equals(s.getModeName(), sws.getModeName()) && Objects.equals(s.getRuleName(), lastGame.getRule().getName()))
-									.findFirst()
-									.map(StageWinStatsWithRule::getWinCount)
-									.orElse(sws.getWinCount()))
-								.defeats(sws.getDefeatCount())
-								.defeats_gained(sws.getDefeatCount() - stageResultStatsAtStart.stream()
-									.filter(s -> Objects.equals(s.getMapName(), sws.getMapName()) && Objects.equals(s.getModeName(), sws.getModeName()) && Objects.equals(s.getRuleName(), lastGame.getRule().getName()))
-									.findFirst()
-									.map(StageWinStatsWithRule::getDefeatCount)
-									.orElse(sws.getDefeatCount()))
-								.winrate(100.0 * sws.getWinCount() / (sws.getWinCount() + sws.getDefeatCount()))
-								.build()))
-							.collect(Collectors.toList()))
-						.build())
-					.collect(Collectors.toList()))
+			.map_stats(statData.stageWins)
 			.build();
 
+		stopWatch.split();
+		stoppedTimeStrs.add(String.format("- fullscreenStreamData = FullscreenStreamData.builder() `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
+		stoppedTimeStrs.add(String.format("- Total time: `%d ms`", stopWatch.getTime()));
+		stopWatch.stop();
+
 		log.info("finished S3StreamDataService reload");
+		logIfDebug("# S3StreamDataService StopWatch times\n%s", stoppedTimeStrs.stream().reduce((a, b) -> String.format("%s\n%s", a, b)).orElse(""));
 	}
 
 	private String mapResultStr(Integer score, Double paintRatio) {
@@ -845,5 +1012,36 @@ public class S3StreamDataService implements ScheduledService {
 	@Override
 	public List<ScheduleRequest> createSingleRunRequests() {
 		return List.of();
+	}
+
+	@Getter
+	@Setter
+	@Builder(toBuilder = true)
+	@ToString
+	private static class LoadedSplatNetObjects {
+		private Weapon[] weapons;
+		private S3XPowerDownloader.Powers xPowers;
+		private List<SpecialWinCount> specialWinCounts;
+		private HistoryResult parsedHistory;
+		private BattleResult parsedLastGame;
+		private List<FullscreenStreamData.MapData> stageWins;
+		private Long headGameCount;
+		private Long shirtGameCount;
+		private Long shoesGameCount;
+		private Map<Long, Long> playerMatchupNumbers;
+
+		public boolean containsEmptyField() {
+			return weapons == null
+				|| xPowers == null
+				|| specialWinCounts == null
+				|| parsedHistory == null
+				|| parsedLastGame == null
+				|| stageWins == null
+				|| headGameCount == null
+				|| shirtGameCount == null
+				|| shoesGameCount == null
+				|| playerMatchupNumbers == null
+				|| playerMatchupNumbers.isEmpty();
+		}
 	}
 }

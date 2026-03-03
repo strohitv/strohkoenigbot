@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -116,7 +117,13 @@ public class S3ApiQuerySender {
 			.cookieHandler(new S3CookieHandler(gToken, false))
 			.build();
 
+		var stopWatch = new StopWatch();
+		stopWatch.start();
+
 		result = s3RequestSender.sendRequestAndParseGzippedJson(client, request);
+
+		stopWatch.stop();
+		logger.info("Request to NSA took {} ms. Body: {}", stopWatch.getTime(), body);
 
 		if (result == null) {
 			logSender.sendLogs(logger, "S3ApiQuerySender could not fulfill request.");

@@ -12,19 +12,26 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.OwnedGearAndWeaponsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 @Log4j2
-public class S3GearDownloader {
+public class S3GearDownloader implements ScheduledService {
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
 	private final S3ApiQuerySender apiQuerySender;
 	private final ExceptionLogger exceptionLogger;
 
 	private final AccountRepository accountRepository;
+
+	@Getter
+	private Optional<Gears> cachedGears = Optional.empty();
 
 	public Optional<Gears> downloadGears() {
 		var account = accountRepository.findByEnableSplatoon3(true).stream()
@@ -48,6 +55,28 @@ public class S3GearDownloader {
 		}
 
 		return Optional.empty();
+	}
+
+	public void saveGears() {
+		cachedGears = downloadGears();
+	}
+
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("S3GearDownloader_saveGears")
+			.schedule(TickSchedule.getScheduleString(TickSchedule.everyHours(1)))
+			.runnable(this::saveGears)
+			.build());
+	}
+
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of(ScheduleRequest.builder()
+			.name("S3GearDownloader_saveGears_initial")
+			.schedule(TickSchedule.getScheduleString(1))
+			.runnable(this::saveGears)
+			.build());
 	}
 
 	@Getter
