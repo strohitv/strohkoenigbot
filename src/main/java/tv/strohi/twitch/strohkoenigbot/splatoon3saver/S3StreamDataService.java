@@ -56,6 +56,7 @@ public class S3StreamDataService implements ScheduledService {
 	private final S3WeaponStatsDownloader weaponStatsDownloader;
 	private final S3XPowerDownloader xPowerDownloader;
 	private final S3GearDownloader gearDownloader;
+	private final S3Downloader s3Downloader;
 
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
@@ -133,6 +134,10 @@ public class S3StreamDataService implements ScheduledService {
 			previousStopWatchTime = stopWatch.getSplitTime();
 		}
 
+		if (newestFoundGameStartTime != null && (s3Downloader.getLastDownloadedGameStartTime() == null || !newestFoundGameStartTime.isBefore(s3Downloader.getLastDownloadedGameStartTime()))) {
+			logIfDebug("S3StreamDataService: newestFoundGameStartTime was not before s3Downloader.lastDownloadedGameStartTime => nothing to refresh");
+			return;
+		}
 
 		final var allGamesInStream = resultRepository.findByPlayedTimeAfterOrderByPlayedTimeAsc(twitchBotClient.getWentLiveTime());
 		stopWatch.split();
@@ -172,7 +177,11 @@ public class S3StreamDataService implements ScheduledService {
 			final var threadStopWatch = new StopWatch();
 			threadStopWatch.start();
 
-			weaponStatsDownloader.downloadWeaponStats().ifPresent(statData::setWeapons);
+			try {
+				weaponStatsDownloader.downloadWeaponStats().ifPresent(statData::setWeapons);
+			} catch (Exception ex) {
+				exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService exception in weapon download thread", ex);
+			}
 
 			threadStopWatch.stop();
 			stoppedTimeStrs.add(String.format("- Thread `weaponDownloadThread`: Finished after `%s ms`", threadStopWatch.getTime()));
@@ -181,7 +190,11 @@ public class S3StreamDataService implements ScheduledService {
 			final var threadStopWatch = new StopWatch();
 			threadStopWatch.start();
 
-			xPowerDownloader.downloadXPowers().ifPresent(statData::setXPowers);
+			try {
+				xPowerDownloader.downloadXPowers().ifPresent(statData::setXPowers);
+			} catch (Exception ex) {
+				exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService exception in x power download thread", ex);
+			}
 
 			threadStopWatch.stop();
 			stoppedTimeStrs.add(String.format("- Thread `xPowerDownloadThread`: Finished after `%s ms`", threadStopWatch.getTime()));
@@ -194,7 +207,7 @@ public class S3StreamDataService implements ScheduledService {
 				var historyResponse = apiQuerySender.queryS3Api(accountRepository.findByIsMainAccount(true).stream().findFirst().orElseThrow(), S3RequestKey.History);
 				statData.setParsedHistory(objectMapper.readValue(historyResponse, HistoryResult.class));
 			} catch (Exception e) {
-				exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService could not download History", e);
+				exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService exception in history download thread", e);
 			}
 
 			threadStopWatch.stop();
@@ -205,50 +218,55 @@ public class S3StreamDataService implements ScheduledService {
 			threadStopWatch.start();
 
 			try {
-				statData.setParsedLastGame(objectMapper.readValue(lastGame.getShortenedJson(), BattleResult.class));
-			} catch (Exception e) {
-				exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService could not parse original result from JSON", e);
+				try {
+					statData.setParsedLastGame(objectMapper.readValue(lastGame.getShortenedJson(), BattleResult.class));
+				} catch (Exception e) {
+					exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService could not parse original result from JSON", e);
+				}
+
+				statData.stageWins = (lastGame.getMode().getId() != 9L
+					? Stream.of(lastGame.getRotation().getStage1(), lastGame.getRotation().getStage2())
+					: Stream.of(lastGame.getStage()))
+					.filter(Objects::nonNull)
+					.map(st -> FullscreenStreamData.MapData.builder()
+						.name(st.getName())
+						.image(getResourceUrl(st.getImage()))
+						.stats(stageRepository.findStageWinStats(st.getId(), lastGame.getRule().getId()).stream()
+							.map(sws -> new FullscreenStreamData.KeyWinDefeatRate(shortenModeName(sws.getModeName()), FullscreenStreamData.WinDefeatRate.builder()
+								.wins(sws.getWinCount())
+								.wins_gained(sws.getWinCount() - stageResultStatsAtStart.stream()
+									.filter(s -> Objects.equals(s.getMapName(), sws.getMapName()) && Objects.equals(s.getModeName(), sws.getModeName()) && Objects.equals(s.getRuleName(), lastGame.getRule().getName()))
+									.findFirst()
+									.map(StageWinStatsWithRule::getWinCount)
+									.orElse(sws.getWinCount()))
+								.defeats(sws.getDefeatCount())
+								.defeats_gained(sws.getDefeatCount() - stageResultStatsAtStart.stream()
+									.filter(s -> Objects.equals(s.getMapName(), sws.getMapName()) && Objects.equals(s.getModeName(), sws.getModeName()) && Objects.equals(s.getRuleName(), lastGame.getRule().getName()))
+									.findFirst()
+									.map(StageWinStatsWithRule::getDefeatCount)
+									.orElse(sws.getDefeatCount()))
+								.winrate(100.0 * sws.getWinCount() / (sws.getWinCount() + sws.getDefeatCount()))
+								.build()))
+							.collect(Collectors.toList()))
+						.build())
+					.collect(Collectors.toList());
+
+				specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().ifPresent(statData::setSpecialWinCounts);
+
+				statData.setHeadGameCount(resultTeamPlayerRepository.getGameCountOfOwnHeadGearId(ownPlayer.getHeadGear().getId()));
+				statData.setShirtGameCount(resultTeamPlayerRepository.getGameCountOfOwnClothingGearId(ownPlayer.getClothingGear().getId()));
+				statData.setShoesGameCount(resultTeamPlayerRepository.getGameCountOfOwnShoesGearId(ownPlayer.getShoesGear().getId()));
+
+				statData.setPlayerMatchupNumbers(
+					lastGame.getTeams().stream()
+						.flatMap(t -> t.getTeamPlayers().stream())
+						.collect(Collectors.toMap(
+							Splatoon3VsResultTeamPlayer::getPlayerId,
+							(Splatoon3VsResultTeamPlayer tp) -> tp.getIsMyself() ? -1L : resultTeamPlayerRepository.getGameCountsWithPlayer(tp.getPlayerId())
+						)));
+			} catch (Exception ex) {
+				exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService exception in chores thread", ex);
 			}
-
-			statData.stageWins = (lastGame.getMode().getId() != 9L
-				? Stream.of(lastGame.getRotation().getStage1(), lastGame.getRotation().getStage2())
-				: Stream.of(lastGame.getStage()))
-				.map(st -> FullscreenStreamData.MapData.builder()
-					.name(st.getName())
-					.image(getResourceUrl(st.getImage()))
-					.stats(stageRepository.findStageWinStats(st.getId(), lastGame.getRule().getId()).stream()
-						.map(sws -> new FullscreenStreamData.KeyWinDefeatRate(shortenModeName(sws.getModeName()), FullscreenStreamData.WinDefeatRate.builder()
-							.wins(sws.getWinCount())
-							.wins_gained(sws.getWinCount() - stageResultStatsAtStart.stream()
-								.filter(s -> Objects.equals(s.getMapName(), sws.getMapName()) && Objects.equals(s.getModeName(), sws.getModeName()) && Objects.equals(s.getRuleName(), lastGame.getRule().getName()))
-								.findFirst()
-								.map(StageWinStatsWithRule::getWinCount)
-								.orElse(sws.getWinCount()))
-							.defeats(sws.getDefeatCount())
-							.defeats_gained(sws.getDefeatCount() - stageResultStatsAtStart.stream()
-								.filter(s -> Objects.equals(s.getMapName(), sws.getMapName()) && Objects.equals(s.getModeName(), sws.getModeName()) && Objects.equals(s.getRuleName(), lastGame.getRule().getName()))
-								.findFirst()
-								.map(StageWinStatsWithRule::getDefeatCount)
-								.orElse(sws.getDefeatCount()))
-							.winrate(100.0 * sws.getWinCount() / (sws.getWinCount() + sws.getDefeatCount()))
-							.build()))
-						.collect(Collectors.toList()))
-					.build())
-				.collect(Collectors.toList());
-
-			specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().ifPresent(statData::setSpecialWinCounts);
-
-			statData.setHeadGameCount(resultTeamPlayerRepository.getGameCountOfOwnHeadGearId(ownPlayer.getHeadGear().getId()));
-			statData.setShirtGameCount(resultTeamPlayerRepository.getGameCountOfOwnClothingGearId(ownPlayer.getClothingGear().getId()));
-			statData.setShoesGameCount(resultTeamPlayerRepository.getGameCountOfOwnShoesGearId(ownPlayer.getShoesGear().getId()));
-
-			statData.setPlayerMatchupNumbers(
-				lastGame.getTeams().stream()
-					.flatMap(t -> t.getTeamPlayers().stream())
-					.collect(Collectors.toMap(
-						Splatoon3VsResultTeamPlayer::getPlayerId,
-						(Splatoon3VsResultTeamPlayer tp) -> tp.getIsMyself() ? -1L : resultTeamPlayerRepository.getGameCountsWithPlayer(tp.getPlayerId())
-					)));
 
 			threadStopWatch.stop();
 			stoppedTimeStrs.add(String.format("- Thread `choresThread`: Finished after `%s ms`", threadStopWatch.getTime()));
@@ -266,10 +284,12 @@ public class S3StreamDataService implements ScheduledService {
 			choresThread.join();
 
 			if (statData.containsEmptyField()) {
+				newestFoundGameStartTime = null;
 				logSender.sendLogsAsAttachment(log, "At least one field was not filled properly!", statData.toString());
 				return;
 			}
 		} catch (Exception ex) {
+			newestFoundGameStartTime = null;
 			exceptionLogger.logExceptionAsAttachment(log, "Error while running S3StreamDataService Threads", ex);
 			return;
 		}
@@ -1004,7 +1024,7 @@ public class S3StreamDataService implements ScheduledService {
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(ScheduleRequest.builder()
 			.name("S3StreamDataService_refreshStreamData")
-			.schedule(TickSchedule.getScheduleString(13))
+			.schedule(TickSchedule.getScheduleString(1))
 			.runnable(this::refreshStreamData)
 			.build());
 	}
