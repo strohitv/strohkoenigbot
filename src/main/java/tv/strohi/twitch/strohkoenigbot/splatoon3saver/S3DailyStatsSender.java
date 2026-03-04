@@ -664,32 +664,49 @@ public class S3DailyStatsSender implements ScheduledService {
 		return requiredExp;
 	}
 
-	private void sendMinTop500XPowersToDiscord(Map<String, Double> minTop500XPowers, DailyStatsSaveModel yesterdayStats, Account account) {
-		var sortedStats = Stream.of(minTop500XPowers.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("ar")).findFirst().orElse(null),
-				minTop500XPowers.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("lf")).findFirst().orElse(null),
-				minTop500XPowers.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("gl")).findFirst().orElse(null),
-				minTop500XPowers.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("cl")).findFirst().orElse(null))
-			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
+	private void sendMinTop500XPowersToDiscord(Map<String, Map<String, Double>> minTop500XPowers, DailyStatsSaveModel yesterdayStats, Account account) {
+		for (var regionName : minTop500XPowers.keySet()) {
+			var minTop500XPowersForRegion = minTop500XPowers.get(regionName);
 
-		StringBuilder thresholdBuilder = new StringBuilder("**Current X powers required to get top 500:**");
+			var sortedStats = Stream.of(
+					minTop500XPowersForRegion.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("ar")).findFirst().orElse(null),
+					minTop500XPowersForRegion.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("lf")).findFirst().orElse(null),
+					minTop500XPowersForRegion.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("gl")).findFirst().orElse(null),
+					minTop500XPowersForRegion.entrySet().stream().filter(e -> e.getKey().equalsIgnoreCase("cl")).findFirst().orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 
-		for (var thresholdStat : sortedStats) {
-			var yesterdayTop500Threshold = yesterdayStats.getPreviousXRankTop500Thresholds().getOrDefault(thresholdStat.getKey(), thresholdStat.getValue());
+			StringBuilder thresholdBuilder = new StringBuilder("**Current X powers required to get top 500 in ").append(regionName).append(":**");
 
-			// build message
-			thresholdBuilder.append("\n- ").append(getRuleName(thresholdStat.getKey())).append(": **").append(thresholdStat.getValue()).append("**");
-			if (!Objects.equals(yesterdayTop500Threshold, thresholdStat.getValue())) {
-				thresholdBuilder.append(" (")
-					.append(yesterdayTop500Threshold < thresholdStat.getValue() ? "+" : "-")
-					.append(String.format("%.1f", Math.abs(yesterdayTop500Threshold - thresholdStat.getValue())))
-					.append(")");
+			yesterdayStats.getPreviousXRankTop500ThresholdsAllRegions().putIfAbsent(regionName, new HashMap<>());
+			if (!yesterdayStats.getPreviousXRankTop500Thresholds().isEmpty()
+				&& regionName.contains("Tentatek")
+				&& yesterdayStats.getPreviousXRankTop500ThresholdsAllRegions().get(regionName).isEmpty()) {
+
+				yesterdayStats.getPreviousXRankTop500ThresholdsAllRegions().put(regionName, yesterdayStats.getPreviousXRankTop500Thresholds());
 			}
 
-			yesterdayStats.getPreviousXRankTop500Thresholds().put(thresholdStat.getKey(), thresholdStat.getValue());
-		}
+			for (var thresholdStat : sortedStats) {
+				var yesterdayTop500Threshold = yesterdayStats.getPreviousXRankTop500ThresholdsAllRegions()
+					.get(regionName)
+					.getOrDefault(thresholdStat.getKey(), thresholdStat.getValue());
 
-		discordBot.sendPrivateMessage(account.getDiscordId(), thresholdBuilder.toString());
+				// build message
+				thresholdBuilder.append("\n- ").append(getRuleName(thresholdStat.getKey())).append(": **").append(thresholdStat.getValue()).append("**");
+				if (!Objects.equals(yesterdayTop500Threshold, thresholdStat.getValue())) {
+					thresholdBuilder.append(" (")
+						.append(yesterdayTop500Threshold < thresholdStat.getValue() ? "+" : "-")
+						.append(String.format("%.1f", Math.abs(yesterdayTop500Threshold - thresholdStat.getValue())))
+						.append(")");
+				}
+
+				yesterdayStats.getPreviousXRankTop500ThresholdsAllRegions()
+					.get(regionName)
+					.put(thresholdStat.getKey(), thresholdStat.getValue());
+			}
+
+			discordBot.sendPrivateMessage(account.getDiscordId(), thresholdBuilder.toString());
+		}
 	}
 
 	private String getRuleName(String key) {
@@ -1068,6 +1085,8 @@ public class S3DailyStatsSender implements ScheduledService {
 	private void refreshYesterdayStats(DailyStatsSaveModel yesterdayStats) {
 		String json;
 		try {
+			yesterdayStats.getPreviousXRankTop500Thresholds().clear();
+
 			json = objectMapper.writeValueAsString(yesterdayStats);
 
 			Configuration config = configurationRepository.findAllByConfigName(YESTERDAY_CONFIG_NAME).stream().findFirst().orElse(new Configuration());

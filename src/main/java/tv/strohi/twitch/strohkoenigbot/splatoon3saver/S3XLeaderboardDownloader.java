@@ -20,17 +20,16 @@ import java.util.stream.Stream;
 @Log4j2
 public class S3XLeaderboardDownloader {
 	private final S3ApiQuerySender apiQuerySender;
-	private final S3StreamStatistics streamStatistics;
 
 	private final AccountRepository accountRepository;
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-	public Map<String, Double> loadTop500MinPower() {
+	public Map<String, Map<String, Double>> loadTop500MinPower() {
 		var account = accountRepository.findByEnableSplatoon3(true).stream()
 			.filter(Account::getIsMainAccount)
 			.findFirst();
 
-		var resultMap = new HashMap<String, Double>();
+		var resultMap = new HashMap<String, Map<String, Double>>();
 
 		if (account.isPresent()) {
 			var season1StartDate = LocalDateTime.of(2022, 9, 1, 0, 0, 0);
@@ -43,25 +42,33 @@ public class S3XLeaderboardDownloader {
 			}
 
 			var seasonNumber = monthDifference / 3 + 1;
-			var tentatekSeasonHash = Base64.getEncoder().encodeToString(String.format("XRankingSeason-a:%d", seasonNumber).getBytes(StandardCharsets.UTF_8));
-//			var takorokaSeasonHash = Base64.getEncoder().encodeToString(String.format("XRankingSeason-p:%d", seasonNumber).getBytes(StandardCharsets.UTF_8));
 
-			for (var leaderBoardKey : S3RequestKey.getXRankLeaderBoardQueries()) {
-				var xResponseTtekZones = apiQuerySender.queryS3ApiPaged(account.get(), leaderBoardKey, tentatekSeasonHash, 5, 25, "NzU");
+			var regionSeasonHashes = List.of(
+				Base64.getEncoder().encodeToString(String.format("XRankingSeason-a:%d", seasonNumber).getBytes(StandardCharsets.UTF_8)),
+				Base64.getEncoder().encodeToString(String.format("XRankingSeason-p:%d", seasonNumber).getBytes(StandardCharsets.UTF_8))
+			);
 
-				try {
-					var leaderBoardPage = objectMapper.readValue(xResponseTtekZones, XRankLeaderBoard.class);
+			for (var regionSeasonHashB64 : regionSeasonHashes) {
+				var regionName = findRegion(regionSeasonHashB64);
+				resultMap.putIfAbsent(regionName, new HashMap<>());
 
-					var power = Arrays.stream(chooseXRankingField(leaderBoardPage.getData().getNode()).getEdges())
-						.filter(e -> e.getNode().getRank() == 500)
-						.findFirst()
-						.map(e -> e.getNode().getXPower())
-						.orElseThrow();
+				for (var leaderBoardKey : S3RequestKey.getXRankLeaderBoardQueries()) {
+					var xResponseLeaderBoard = apiQuerySender.queryS3ApiPaged(account.get(), leaderBoardKey, regionSeasonHashB64, 5, 25, "NzU");
 
-					resultMap.put(chooseRuleId(leaderBoardKey.getQueryName()), power);
-				} catch (Exception ex) {
-					log.error("could not download top 500 x power for query '{}'", leaderBoardKey.getKey());
-					log.error(ex);
+					try {
+						var leaderBoardPage = objectMapper.readValue(xResponseLeaderBoard, XRankLeaderBoard.class);
+
+						var power = Arrays.stream(chooseXRankingField(leaderBoardPage.getData().getNode()).getEdges())
+							.filter(e -> e.getNode().getRank() == 500)
+							.findFirst()
+							.map(e -> e.getNode().getXPower())
+							.orElseThrow();
+
+						resultMap.get(regionName).put(chooseRuleId(leaderBoardKey.getQueryName()), power);
+					} catch (Exception ex) {
+						log.error("could not download top 500 x power for query '{}'", leaderBoardKey.getKey());
+						log.error(ex);
+					}
 				}
 			}
 			// NzU = 75
@@ -104,6 +111,13 @@ public class S3XLeaderboardDownloader {
 		} else {
 			return "cl";
 		}
+	}
+
+	private String findRegion(String regionKeyBase64) {
+		var decoded = Base64.getDecoder().decode(regionKeyBase64);
+		var decodedStr = new String(decoded, StandardCharsets.UTF_8);
+
+		return (decodedStr.startsWith("XRankingSeason-a:") ? "Tentatek (EU/NA)" : "Takoroka (JP)");
 	}
 
 	private XRankLeaderBoard.XRankingBoard chooseXRankingField(XRankLeaderBoard.XRankingSeason data) {

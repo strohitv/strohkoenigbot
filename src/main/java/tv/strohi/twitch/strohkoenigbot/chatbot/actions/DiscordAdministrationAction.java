@@ -584,8 +584,10 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				var powers = leaderboardDownloader.loadTop500MinPower();
 				var builder = new StringBuilder("current top 500 powers:");
-				for (var key : powers.keySet()) {
-					builder.append("\n- ").append(findModeName(key)).append(": ").append(powers.get(key));
+				for (var regionName: powers.keySet()) {
+					for (var key : powers.get(regionName).keySet()) {
+						builder.append("\n- ").append(regionName).append(" - ").append(findModeName(key)).append(": ").append(powers.get(regionName).get(key));
+					}
 				}
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());
 
