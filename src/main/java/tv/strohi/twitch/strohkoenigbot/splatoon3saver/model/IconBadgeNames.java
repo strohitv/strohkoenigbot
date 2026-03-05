@@ -39,7 +39,7 @@ public enum IconBadgeNames {
 		"Top 20% in a Challenge!",
 		"Top 50% in a Challenge!"
 	)),
-	SPLATFEST(List.of(
+	SPLATFEST_TWO_TEAMS(List.of(
 		"Ruler of Splatfest Reached!",
 		"Won Ten 10x Battles",
 		"Competed in Three 10x Battles"
@@ -55,7 +55,11 @@ public enum IconBadgeNames {
 		"1,000 Rainmaker Wins",
 		"100 Rainmaker Wins",
 		"1,000 Clam Blitz Wins",
-		"100 Clam Blitz Wins"
+		"100 Clam Blitz Wins",
+		"10 Tricolor Turf War Wins - Attacker",
+		"10 Tricolor Turf War Wins - Defender",
+		"Tricolor Turf War Win - Attacker",
+		"Tricolor Turf War Win - Defender"
 	)),
 	MAIN(List.of(
 		"10★ %s User",

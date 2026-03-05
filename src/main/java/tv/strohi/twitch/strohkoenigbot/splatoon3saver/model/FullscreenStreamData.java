@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.util.List;
@@ -21,16 +22,16 @@ public class FullscreenStreamData {
 		NONE, VS, SR
 	}
 
-	public Type type;
+	private Type type;
 
-	public Long last_game_end_time;
+	private Long last_game_end_time;
 
 	// todo wenn vs
-	public GeneralStats general;
-	public WeaponInfo weapon;
-	public ClothingData clothing;
-	public GameData game;
-	public List<MapData> map_stats;
+	private GeneralStats general;
+	private WeaponInfo weapon;
+	private ClothingData clothing;
+	private GameData game;
+	private List<MapData> map_stats;
 
 	// todo wenn sr
 
@@ -44,20 +45,20 @@ public class FullscreenStreamData {
 	@EqualsAndHashCode
 	@Builder(toBuilder = true)
 	public static class GeneralStats {
-		public long wins;
-		public long defeats;
+		private long wins;
+		private long defeats;
 
-		public String special_weapon_image;
-		public int special_wins;
-		public Integer special_wins_gained;
+		private String special_weapon_image;
+		private int special_wins;
+		private Integer special_wins_gained;
 
-		public String anarchy_rank;
-		public Double weapon_power; // Type not specified in TS code, kept as Object
+		private String anarchy_rank;
+		private Double weapon_power; // Type not specified in TS code, kept as Object
 
-		public Double x_zones;
-		public Double x_tower;
-		public Double x_rain;
-		public Double x_clams;
+		private Double x_zones;
+		private Double x_tower;
+		private Double x_rain;
+		private Double x_clams;
 	}
 
 
@@ -70,22 +71,22 @@ public class FullscreenStreamData {
 	@EqualsAndHashCode
 	@Builder(toBuilder = true)
 	public static class WeaponInfo {
-		public String name;
+		private String name;
 
-		public String image;
+		private String image;
 
-		public List<KeyWinDefeatRate> stats;
+		private List<KeyWinDefeatRate> stats;
 
-		public long game_count;
+		private long game_count;
 
-		public int stars;
+		private int stars;
 
-		public Integer exp_change;
-		public Integer exp_now;
+		private Integer exp_change;
+		private Integer exp_now;
 
-		public Double exp_start_ratio;
-		public Double exp_change_ratio;
-		public Double exp_left_ratio;
+		private Double exp_start_ratio;
+		private Double exp_change_ratio;
+		private Double exp_left_ratio;
 	}
 
 
@@ -98,13 +99,13 @@ public class FullscreenStreamData {
 	@EqualsAndHashCode
 	@Builder(toBuilder = true)
 	public static class WinDefeatRate {
-		public long wins;
-		public long wins_gained;
+		private long wins;
+		private long wins_gained;
 
-		public long defeats;
-		public long defeats_gained;
+		private long defeats;
+		private long defeats_gained;
 
-		public double winrate;
+		private double winrate;
 	}
 
 
@@ -117,8 +118,8 @@ public class FullscreenStreamData {
 	@EqualsAndHashCode
 	@Builder(toBuilder = true)
 	public static class KeyWinDefeatRate {
-		public String key;
-		public WinDefeatRate win_defeat_rate;
+		private String key;
+		private WinDefeatRate win_defeat_rate;
 	}
 
 
@@ -131,9 +132,9 @@ public class FullscreenStreamData {
 	@EqualsAndHashCode
 	@Builder(toBuilder = true)
 	public static class ClothingData {
-		public ClothingInfo head;
-		public ClothingInfo shirt;
-		public ClothingInfo shoes;
+		private ClothingInfo head;
+		private ClothingInfo shirt;
+		private ClothingInfo shoes;
 	}
 
 
@@ -146,15 +147,15 @@ public class FullscreenStreamData {
 	@EqualsAndHashCode
 	@Builder(toBuilder = true)
 	public static class ClothingInfo {
-		public String name;
-		public String image;
-		public int stars;
-		public long game_count;
+		private String name;
+		private String image;
+		private int stars;
+		private long game_count;
 
-		public String main_image;
-		public String sub_1_image;
-		public String sub_2_image;
-		public String sub_3_image;
+		private String main_image;
+		private String sub_1_image;
+		private String sub_2_image;
+		private String sub_3_image;
 	}
 
 
@@ -167,7 +168,13 @@ public class FullscreenStreamData {
 	@EqualsAndHashCode
 	@Builder(toBuilder = true)
 	public static class GameData {
-		public List<TeamData> teams;
+		private String mode;
+		private String modeIcon;
+		private String rule;
+		private String ruleIcon;
+		private String stage;
+
+		private List<TeamData> teams;
 	}
 
 
@@ -184,11 +191,11 @@ public class FullscreenStreamData {
 			WIN, LOSE, SUPPORT
 		}
 
-		public Result result;
-		public String result_str;
-		public String color;
+		private Result result;
+		private String result_str;
+		private String color;
 
-		public List<PlayerData> players;
+		private List<PlayerData> players;
 	}
 
 
@@ -201,24 +208,26 @@ public class FullscreenStreamData {
 	@EqualsAndHashCode
 	@Builder(toBuilder = true)
 	public static class PlayerData {
-		public String name;
-		public boolean is_myself;
+		private String name;
 
-		public String weapon_image;
-		public String special_weapon_image;
-		public String sub_weapon_image;
+		@JsonProperty("is_myself")
+		private boolean is_myself;
 
-		public String head_main_image;
-		public String shirt_main_image;
-		public String shoes_main_image;
+		private String weapon_image;
+		private String special_weapon_image;
+		private String sub_weapon_image;
 
-		public int kills;
-		public int assists;
-		public int deaths;
-		public int specials;
-		public int paint;
+		private String head_main_image;
+		private String shirt_main_image;
+		private String shoes_main_image;
 
-		public Long number_of_games;
+		private int kills;
+		private int assists;
+		private int deaths;
+		private int specials;
+		private int paint;
+
+		private Long number_of_games;
 	}
 
 
@@ -231,9 +240,9 @@ public class FullscreenStreamData {
 	@EqualsAndHashCode
 	@Builder(toBuilder = true)
 	public static class MapData {
-		public String name;
-		public String image;
+		private String name;
+		private String image;
 
-		public List<KeyWinDefeatRate> stats;
+		private List<KeyWinDefeatRate> stats;
 	}
 }

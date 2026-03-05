@@ -616,7 +616,7 @@ public class S3StreamDataService implements ScheduledService {
 			.reduce((a, b) ->
 				FullscreenStreamData.WinDefeatRate.builder()
 					.wins(a.getWins() + b.getWins())
-					.wins_gained(a.getWins_gained() + b.wins_gained)
+					.wins_gained(a.getWins_gained() + b.getWins_gained())
 					.defeats(a.getDefeats() + b.getDefeats())
 					.defeats_gained(a.getDefeats_gained() + b.getDefeats_gained())
 					.winrate(100.0 * (a.getWins() + b.getWins()) / (a.getWins() + b.getWins() + a.getDefeats() + b.getDefeats()))
@@ -628,7 +628,7 @@ public class S3StreamDataService implements ScheduledService {
 
 		weaponResultStats.add(totalWeaponWinStats);
 
-		var totalGameCount = totalWeaponWinStats.win_defeat_rate.wins + totalWeaponWinStats.win_defeat_rate.defeats;
+		var totalGameCount = totalWeaponWinStats.getWin_defeat_rate().getWins() + totalWeaponWinStats.getWin_defeat_rate().getDefeats();
 
 		if (gearDownloader.getCachedGears().isEmpty()) {
 			return;
@@ -715,6 +715,11 @@ public class S3StreamDataService implements ScheduledService {
 					.build())
 				.build())
 			.game(FullscreenStreamData.GameData.builder()
+				.mode(lastGame.getMode().getName())
+				.modeIcon(getModeIconResourceUrl(lastGame.getMode()))
+				.rule(lastGame.getRule().getName())
+				.ruleIcon(getRuleIconResourceUrl(lastGame))
+				.stage(lastGame.getStage().getName())
 				.teams(lastGame.getTeams().stream()
 					.map(t -> FullscreenStreamData.TeamData.builder()
 						.result(mapResult(t.getJudgement()))
@@ -757,7 +762,7 @@ public class S3StreamDataService implements ScheduledService {
 		if (score != null) {
 			return String.format("%d p", score);
 		} else if (paintRatio != null) {
-			return String.format("%.1f %%", paintRatio);
+			return String.format("%.1f %%", paintRatio * 100.0);
 		}
 
 		return "???";
@@ -833,6 +838,10 @@ public class S3StreamDataService implements ScheduledService {
 	}
 
 	private String getModeIconResourceUrl(Splatoon3VsMode mode) {
+		if (mode.getId() == 1) {
+			return "/img/regular-battle.svg";
+		}
+
 		if (mode.getId() == 2) {
 			return getBadgeIconResourceUrl(IconBadgeNames.ANARCHY_SERIES);
 		}
@@ -849,19 +858,54 @@ public class S3StreamDataService implements ScheduledService {
 			return getBadgeIconResourceUrl(IconBadgeNames.CHALLENGE);
 		}
 
-		if (mode.getId() == 7) {
-			return getBadgeIconResourceUrl(IconBadgeNames.SPLATFEST);
+		if (mode.getId() == 6 || mode.getId() == 7) {
+			return getBadgeIconResourceUrl(IconBadgeNames.SPLATFEST_TWO_TEAMS);
+		}
+
+		if (mode.getId() == 8) {
+			return "/img/tricolor-turf-war.svg";
+		}
+
+		if (mode.getId() == 9) {
+			return "/img/private-battle.svg";
+		}
+
+		return "";
+	}
+
+	private String getRuleIconResourceUrl(Splatoon3VsResult game) {
+		if (game.getRule().getId() <= 5) {
+			return getBadgeIconResourceUrl(IconBadgeNames.RULES, game.getRule().getName());
+		}
+
+		if (game.getRule().getId() == 6) {
+			var ownTeam = game.getTeams().stream()
+				.filter(t -> t.getTeamPlayers().stream().anyMatch(Splatoon3VsResultTeamPlayer::getIsMyself))
+				.findFirst();
+
+			if (ownTeam.isEmpty()) {
+				return "";
+			} else if (ownTeam.get().getTeamPlayers().size() == 2) {
+				return getBadgeIconResourceUrl(IconBadgeNames.RULES, game.getRule().getName(), "Attacker");
+			} else {
+				return getBadgeIconResourceUrl(IconBadgeNames.RULES, game.getRule().getName(), "Defender");
+			}
 		}
 
 		return "";
 	}
 
 	private String getBadgeIconResourceUrl(IconBadgeNames icon) {
-		return getBadgeIconResourceUrl(icon, null);
+		return getBadgeIconResourceUrl(icon, null, null);
 	}
 
 	private String getBadgeIconResourceUrl(IconBadgeNames icon, @Nullable String ruleName) {
+		return getBadgeIconResourceUrl(icon, ruleName, null);
+	}
+
+	private String getBadgeIconResourceUrl(IconBadgeNames icon, @Nullable String ruleName, @Nullable String filter) {
 		return icon.getBadgeNames().stream()
+			.filter(bn -> filter == null || bn.contains(filter))
 			.filter(bn -> ruleName == null || bn.contains(ruleName))
 			.map(badgeRepository::findByDescription)
 			.filter(Optional::isPresent)
