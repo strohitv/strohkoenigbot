@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.Own
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.OwnUsedWeaponStatsWithWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.WeaponPerformanceStats;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,9 +22,9 @@ public interface Splatoon3VsWeaponRepository extends CrudRepository<Splatoon3VsW
 		"JOIN splatoon_3_vs_weapon weapon on weapon.id = rtp.weapon.id " +
 		"JOIN splatoon_3_vs_result result on result.id = rtp.resultId " +
 		"JOIN splatoon_3_vs_mode mode on result.mode.id = mode.id " +
-		"WHERE rtp.isMyself = true and result.ownJudgement in ('WIN', 'LOSE') " +
+		"WHERE rtp.isMyself = true and result.ownJudgement in ('WIN', 'LOSE') and result.playedTime < :streamStart " +
 		"GROUP BY mode.name, weapon.id")
-	List<OwnUsedWeaponStatsWithWeapon> getWeaponResultStatsForAllWeapons();
+	List<OwnUsedWeaponStatsWithWeapon> getWeaponResultStatsForAllWeapons(@Param("streamStart") Instant streamStart);
 
 	@Query("SELECT new tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.OwnUsedWeaponStats(mode.name as modeName, COUNT(*) as total, COUNT(case when result.ownJudgement like 'WIN' then 1 end) as wins, COUNT(case when result.ownJudgement like 'LOSE' then 1 end) as defeats) " +
 		"FROM splatoon_3_vs_result_team_player rtp " +

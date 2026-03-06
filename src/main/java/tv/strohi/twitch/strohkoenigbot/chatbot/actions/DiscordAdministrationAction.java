@@ -633,7 +633,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Daily special win stats refreshed.");
 			} else if (lowercaseMessage.startsWith("!get special wins")) {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Attempting to get special win stats...");
-				var results = resultRepository.findSpecialWins();
+				var results = resultRepository.findSpecialWins(Instant.now());
 				var builder = new StringBuilder("## Special Wins right now");
 				results.forEach(r -> builder.append("\n- **").append(r.getSpecialWeapon().getName()).append("**: ").append(r.getWinCount()).append(" wins"));
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), builder.toString());

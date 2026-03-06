@@ -742,7 +742,7 @@ public class S3DailyStatsSender implements ScheduledService {
 			}
 		});
 
-		var specialWeaponWins = vsResultRepository.findSpecialWins();
+		var specialWeaponWins = vsResultRepository.findSpecialWins(Instant.now());
 		specialWeaponWins.forEach(win -> {
 			int currentSpecialWinCount = specialWinResults.getOrDefault(win.getSpecialWeapon().getName(), 0);
 			specialWinResults.put(win.getSpecialWeapon().getName(), currentSpecialWinCount + win.getWinCount());

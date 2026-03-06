@@ -112,7 +112,7 @@ public class S3StreamDataService implements ScheduledService {
 
 		if (specialWinStatsAtStreamStart == null) {
 			logIfDebug("S3StreamDataService: specialWinStatsAtStreamStart refresh");
-			specialWinStatsAtStreamStart = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats().orElse(null);
+			specialWinStatsAtStreamStart = specialWeaponWinStatsDownloader.downloadSpecialWeaponStats(twitchBotClient.getWentLiveTime()).orElse(null);
 			stopWatch.split();
 			stoppedTimeStrs.add(String.format("- specialWeaponWinStatsDownloader.downloadSpecialWeaponStats `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
 			previousStopWatchTime = stopWatch.getSplitTime();
@@ -120,7 +120,7 @@ public class S3StreamDataService implements ScheduledService {
 
 
 		if (ownUsedWeaponWinStatsAtStart == null) {
-			ownUsedWeaponWinStatsAtStart = weaponRepository.getWeaponResultStatsForAllWeapons();
+			ownUsedWeaponWinStatsAtStart = weaponRepository.getWeaponResultStatsForAllWeapons(twitchBotClient.getWentLiveTime());
 			stopWatch.split();
 			stoppedTimeStrs.add(String.format("- weaponRepository.getWeaponResultStatsForAllWeapons `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
 			previousStopWatchTime = stopWatch.getSplitTime();
@@ -128,7 +128,7 @@ public class S3StreamDataService implements ScheduledService {
 
 
 		if (stageResultStatsAtStart == null) {
-			stageResultStatsAtStart = stageRepository.findAllStageWinStats();
+			stageResultStatsAtStart = stageRepository.findAllStageWinStats(twitchBotClient.getWentLiveTime());
 			stopWatch.split();
 			stoppedTimeStrs.add(String.format("- stageRepository.findAllStageWinStats `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
 			previousStopWatchTime = stopWatch.getSplitTime();
@@ -577,51 +577,48 @@ public class S3StreamDataService implements ScheduledService {
 		stopWatch.split();
 		stoppedTimeStrs.add(String.format("- weaponRepository.getWeaponResultStats `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
 		previousStopWatchTime = stopWatch.getSplitTime();
+
 		var weaponResultStats = allWeaponResultStats.stream()
-			.map(w -> new FullscreenStreamData.KeyWinDefeatRate(shortenModeName(w.getModeName()), FullscreenStreamData.WinDefeatRate.builder()
-				.wins(w.getTotalWins())
-				.wins_gained(w.getTotalWins() - ownUsedWeaponWinStatsAtStart.stream()
-					.filter(was -> was.getWeaponId() == ownPlayer.getWeapon().getId() && Objects.equals(was.getModeName(), w.getModeName()))
-					.findFirst()
-					.map(OwnUsedWeaponStatsWithWeapon::getTotalWins)
-					.orElse(w.getTotalWins()))
-				.defeats(w.getTotalDefeats())
-				.defeats_gained(w.getTotalDefeats() - ownUsedWeaponWinStatsAtStart.stream()
-					.filter(was -> was.getWeaponId() == ownPlayer.getWeapon().getId() && Objects.equals(was.getModeName(), w.getModeName()))
-					.findFirst()
-					.map(OwnUsedWeaponStatsWithWeapon::getTotalDefeats)
-					.orElse(w.getTotalDefeats()))
-				.winrate(w.getWinRate())
-				.build())).collect(Collectors.toCollection(ArrayList::new));
+			.map(w -> new FullscreenStreamData.KeyWinDefeatRate(
+				shortenModeName(w.getModeName()),
+				FullscreenStreamData.WinDefeatRate.builder()
+					.wins(w.getTotalWins())
+					.wins_gained(w.getTotalWins() - ownUsedWeaponWinStatsAtStart.stream()
+						.filter(was -> was.getWeaponId() == ownPlayer.getWeapon().getId() && Objects.equals(was.getModeName(), w.getModeName()))
+						.findFirst()
+						.map(OwnUsedWeaponStatsWithWeapon::getTotalWins)
+						.orElse(0L))
+					.defeats(w.getTotalDefeats())
+					.defeats_gained(w.getTotalDefeats() - ownUsedWeaponWinStatsAtStart.stream()
+						.filter(was -> was.getWeaponId() == ownPlayer.getWeapon().getId() && Objects.equals(was.getModeName(), w.getModeName()))
+						.findFirst()
+						.map(OwnUsedWeaponStatsWithWeapon::getTotalDefeats)
+						.orElse(0L))
+					.winrate(w.getWinRate())
+					.build()))
+			.collect(Collectors.toCollection(ArrayList::new));
 		stopWatch.split();
 		stoppedTimeStrs.add(String.format("- weaponResultStats = allWeaponResultStats.stream() `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
 		previousStopWatchTime = stopWatch.getSplitTime();
 
-		var totalWeaponWinStats = new FullscreenStreamData.KeyWinDefeatRate("Total", allWeaponResultStats.stream()
-			.map(w -> FullscreenStreamData.WinDefeatRate.builder()
-				.wins(w.getTotalWins())
-				.wins_gained(w.getTotalWins() - ownUsedWeaponWinStatsAtStart.stream()
-					.filter(was -> was.getWeaponId() == ownUsedWeaponStats.getWeaponId() && Objects.equals(was.getModeName(), w.getModeName()))
-					.findFirst()
-					.map(OwnUsedWeaponStatsWithWeapon::getTotalWins)
-					.orElse(w.getTotalWins()))
-				.defeats(w.getTotalDefeats())
-				.defeats_gained(w.getTotalDefeats() - ownUsedWeaponWinStatsAtStart.stream()
-					.filter(was -> was.getWeaponId() == ownUsedWeaponStats.getWeaponId() && Objects.equals(was.getModeName(), w.getModeName()))
-					.findFirst()
-					.map(OwnUsedWeaponStatsWithWeapon::getTotalDefeats)
-					.orElse(w.getTotalDefeats()))
-				.winrate(w.getWinRate())
-				.build())
-			.reduce((a, b) ->
-				FullscreenStreamData.WinDefeatRate.builder()
-					.wins(a.getWins() + b.getWins())
-					.wins_gained(a.getWins_gained() + b.getWins_gained())
-					.defeats(a.getDefeats() + b.getDefeats())
-					.defeats_gained(a.getDefeats_gained() + b.getDefeats_gained())
-					.winrate(100.0 * (a.getWins() + b.getWins()) / (a.getWins() + b.getWins() + a.getDefeats() + b.getDefeats()))
+		var totalWeaponWinStats = weaponResultStats.stream()
+			.reduce((a, b) -> FullscreenStreamData.KeyWinDefeatRate.builder()
+				.key("Total")
+				.win_defeat_rate(FullscreenStreamData.WinDefeatRate.builder()
+					.wins(a.getWin_defeat_rate().getWins() + b.getWin_defeat_rate().getWins())
+					.wins_gained(a.getWin_defeat_rate().getWins_gained() + b.getWin_defeat_rate().getWins_gained())
+					.defeats(a.getWin_defeat_rate().getDefeats() + b.getWin_defeat_rate().getDefeats())
+					.defeats_gained(a.getWin_defeat_rate().getDefeats_gained() + b.getWin_defeat_rate().getDefeats_gained())
+					.winrate(100.0 * (a.getWin_defeat_rate().getWins() + b.getWin_defeat_rate().getWins()) / Math.max(1, a.getWin_defeat_rate().getWins() + b.getWin_defeat_rate().getWins() + a.getWin_defeat_rate().getDefeats() + b.getWin_defeat_rate().getDefeats()))
 					.build())
-			.get());
+				.build())
+			.orElse(new FullscreenStreamData.KeyWinDefeatRate("Total", FullscreenStreamData.WinDefeatRate.builder()
+				.wins(0)
+				.wins_gained(0)
+				.defeats(0)
+				.defeats_gained(0)
+				.winrate(0.0)
+				.build()));
 		stopWatch.split();
 		stoppedTimeStrs.add(String.format("- totalWeaponWinStats = new FullscreenStreamData.KeyWinDefeatRate `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
 		previousStopWatchTime = stopWatch.getSplitTime();
@@ -735,7 +732,10 @@ public class S3StreamDataService implements ScheduledService {
 								.head_main_image(getResourceUrl(tp.getHeadGearMainAbility().getImage()))
 								.shirt_main_image(getResourceUrl(tp.getClothingMainAbility().getImage()))
 								.shoes_main_image(getResourceUrl(tp.getShoesMainAbility().getImage()))
-								.kills(tp.getKills() - tp.getAssists())
+								.kills(Stream.of(Optional.ofNullable(tp.getKills()), Optional.ofNullable(tp.getAssists()))
+									.flatMap(Optional::stream)
+									.reduce((kills, assists) -> kills - assists)
+									.orElse(null))
 								.assists(tp.getAssists())
 								.deaths(tp.getDeaths())
 								.specials(tp.getSpecials())

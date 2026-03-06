@@ -7,6 +7,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.SpecialWinCount;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,8 +19,12 @@ public class S3SpecialWeaponWinStatsDownloader {
 	private final Splatoon3VsResultRepository resultRepository;
 
 	public Optional<List<SpecialWinCount>> downloadSpecialWeaponStats() {
+		return downloadSpecialWeaponStats(Instant.now());
+	}
+
+	public Optional<List<SpecialWinCount>> downloadSpecialWeaponStats(Instant lastGameStartTime) {
 		try {
-			var specialWeaponStats = resultRepository.findSpecialWins();
+			var specialWeaponStats = resultRepository.findSpecialWins(lastGameStartTime);
 			return Optional.of(specialWeaponStats);
 		} catch (Exception ex) {
 			exceptionLogger.logExceptionAsAttachment(log, "could not refresh special weapon stats", ex);

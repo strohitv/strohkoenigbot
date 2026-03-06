@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.StageWinStats;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.StageWinStatsWithRule;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,9 +26,9 @@ public interface Splatoon3VsStageRepository extends CrudRepository<Splatoon3VsSt
 		"JOIN splatoon_3_vs_stage stage on result.stage.id = stage.id " +
 		"JOIN splatoon_3_vs_mode mode on result.mode.id = mode.id " +
 		"JOIN splatoon_3_vs_rule rule on result.rule.id = rule.id " +
-		"WHERE result.ownJudgement like 'WIN' or result.ownJudgement like 'LOSE' " +
+		"WHERE result.ownJudgement like 'WIN' or result.ownJudgement like 'LOSE' AND result.playedTime < :lastGameStartTime " +
 		"GROUP BY stage.name, mode.name, rule.name")
-	List<StageWinStatsWithRule> findAllStageWinStats();
+	List<StageWinStatsWithRule> findAllStageWinStats(@Param("lastGameStartTime") Instant lastGameStartTime);
 
 	@Query(value = "SELECT new tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.StageWinStats(stage.name as stageName, mode.name as modeName, COUNT(case when result.ownJudgement like 'WIN' then 1 end) as wins, COUNT(case when result.ownJudgement like 'LOSE' then 1 end) as defeats) " +
 		"FROM splatoon_3_vs_result result " +

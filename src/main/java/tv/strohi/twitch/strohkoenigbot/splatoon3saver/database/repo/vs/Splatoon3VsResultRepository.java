@@ -68,8 +68,9 @@ public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsR
 		" AND player.specials > 0" +
 		" AND result.ownJudgement = 'WIN'" +
 		" AND result.mode.apiMode not like '%PRIVATE%'" +
+		" AND result.playedTime < :lastGameStartTime" +
 		" GROUP BY specialWeapon")
-	List<SpecialWinCount> findSpecialWins();
+	List<SpecialWinCount> findSpecialWins(@Param("lastGameStartTime") Instant lastGameStartTime);
 
 	@Query(value = "SELECT new tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.SpecialWinCount(specialWeapon, COUNT(*))" +
 		" FROM splatoon_3_vs_result_team_player player" +
