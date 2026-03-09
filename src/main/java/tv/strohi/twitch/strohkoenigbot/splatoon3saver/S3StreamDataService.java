@@ -1067,7 +1067,7 @@ public class S3StreamDataService implements ScheduledService {
 				.build()));
 
 		if ("true".equalsIgnoreCase(shouldLogConfig.getConfigValue())) {
-			logSender.sendLogs(log, message, args);
+			logSender.queueLogs(log, message, args);
 		} else {
 			log.info(String.format(message, args));
 		}

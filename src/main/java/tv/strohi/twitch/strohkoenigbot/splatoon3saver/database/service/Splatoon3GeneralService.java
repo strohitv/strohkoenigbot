@@ -66,7 +66,7 @@ public class Splatoon3GeneralService {
 				.image(imageService.ensureExists(nameplate.getBackground().getImage().getUrl()))
 				.build());
 
-			logSender.sendLogs(log, String.format("Set image for nameplate with id `%d` to `%s`", s3Nameplate.getId(), nameplate.getBackground().getImage().getUrl()));
+			logSender.queueLogs(log, String.format("Set image for nameplate with id `%d` to `%s`", s3Nameplate.getId(), nameplate.getBackground().getImage().getUrl()));
 		}
 
 		if (myself && !s3Nameplate.getOwned()) {
@@ -95,7 +95,7 @@ public class Splatoon3GeneralService {
 				.image(imageService.ensureExists(badge.getImage().getUrl()))
 				.build());
 
-			logSender.sendLogs(log, String.format("Set image for badge with id `%d` to `%s`", s3Badge.getId(), badge.getImage().getUrl()));
+			logSender.queueLogs(log, String.format("Set image for badge with id `%d` to `%s`", s3Badge.getId(), badge.getImage().getUrl()));
 		}
 
 		if (myself && !s3Badge.getOwned()) {

@@ -70,7 +70,7 @@ public class S3GameExporter {
 					bais);
 			}
 		} catch (Exception ex) {
-			exceptionLogger.logException(log, ex);
+			exceptionLogger.logExceptionAsAttachment(log, "Error while exporting S3 games", ex);
 		}
 	}
 }

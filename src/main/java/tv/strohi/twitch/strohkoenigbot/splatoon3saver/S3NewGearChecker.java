@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class S3NewGearChecker implements ScheduledService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
 	private final ObjectMapper mapper;
@@ -168,8 +167,7 @@ public class S3NewGearChecker implements ScheduledService {
 
 				System.out.println(allGearResponse);
 			} catch (Exception e) {
-				logSender.sendLogs(logger, "An exception occurred during S3 gear download\nSee logs for details!");
-				exceptionLogger.logException(logger, e);
+				exceptionLogger.logExceptionAsAttachment(logger, "An exception occurred during S3 gear download\nSee logs for details!", e);
 			}
 		}
 	}

@@ -95,7 +95,7 @@ public class S3StatsSenderUtils {
 			args.getReplySender().send(builder.toString().trim());
 		} catch (Exception ex) {
 			args.getReplySender().send("Failed to load the game!");
-			exceptionLogger.logException(log, ex);
+			exceptionLogger.logExceptionAsAttachment(log, "Failed to load the game!", ex);
 		}
 	}
 

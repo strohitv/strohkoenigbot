@@ -16,7 +16,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageServ
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.HistoryResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Badge;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -41,7 +40,6 @@ public class S3BadgeSender implements ScheduledService {
 	private final static String BADGES_FILE_PATH = "resources/bot/all-badges.json";
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
 	private final List<Badge> allOwnedBadges = new ArrayList<>();
@@ -211,8 +209,7 @@ public class S3BadgeSender implements ScheduledService {
 					saveBadgesFailsafe(allOwnedBadges);
 				}
 			} catch (Exception e) {
-				logSender.sendLogs(logger, "An exception occurred during S3 badge download\nSee logs for details!");
-				exceptionLogger.logException(logger, e);
+				exceptionLogger.logExceptionAsAttachment(logger, "An exception occurred during S3 badge download\nSee logs for details!", e);
 			}
 		}
 	}

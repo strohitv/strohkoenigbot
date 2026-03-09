@@ -108,7 +108,7 @@ public class S3DailyStatsSender implements ScheduledService {
 		Account account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
 		if (account == null) {
-			logSender.sendLogs(logger, "No account found to post stats!");
+			logSender.queueLogs(logger, "No account found to post stats!");
 			return;
 		}
 
@@ -201,7 +201,7 @@ public class S3DailyStatsSender implements ScheduledService {
 				try {
 					Files.createDirectories(directory);
 				} catch (IOException e) {
-					logSender.sendLogs(logger, String.format("Could not create account directory!! %s", directory));
+					logSender.queueLogs(logger, String.format("Could not create account directory!! %s", directory));
 					return;
 				}
 			}
@@ -215,11 +215,11 @@ public class S3DailyStatsSender implements ScheduledService {
 					allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
 					objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
 				} else {
-					logSender.sendLogs(logger, "COULD NOT OPEN SR FILE!!!");
+					logSender.queueLogs(logger, "COULD NOT OPEN SR FILE!!!");
 					return;
 				}
 			} catch (IOException e) {
-				logSender.sendLogs(logger, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
+				logSender.queueLogs(logger, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
 				logger.error(e);
 				return;
 			}
@@ -1074,7 +1074,7 @@ public class S3DailyStatsSender implements ScheduledService {
 			try {
 				yesterdayStats = objectMapper.readValue(yesterdayStatsConfig.getConfigValue(), DailyStatsSaveModel.class);
 			} catch (JsonProcessingException e) {
-				logSender.sendLogs(logger, "yesterday stats parsing failed!!!");
+				logSender.queueLogs(logger, "yesterday stats parsing failed!!!");
 				logger.error(e);
 			}
 		}
@@ -1095,7 +1095,7 @@ public class S3DailyStatsSender implements ScheduledService {
 
 			configurationRepository.save(config);
 		} catch (JsonProcessingException e) {
-			logSender.sendLogs(logger, "yesterday stats saving failed!!!");
+			logSender.queueLogs(logger, "yesterday stats saving failed!!!");
 			logger.error(e);
 		}
 	}
@@ -1493,7 +1493,7 @@ public class S3DailyStatsSender implements ScheduledService {
 				wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(1))
 					&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
 			} else {
-				logSender.sendLogs(logger, "Instant from match was null?? WTH?");
+				logSender.queueLogs(logger, "Instant from match was null?? WTH?");
 			}
 
 			for (EnemyResults enemyResult : result.getData().getCoopHistoryDetail().getEnemyResults()) {
@@ -1534,7 +1534,7 @@ public class S3DailyStatsSender implements ScheduledService {
 				}
 			}
 		} catch (IOException e) {
-			logSender.sendLogs(logger, String.format("Couldn't parse salmon run result json file '%s' OH OH", filename));
+			logSender.queueLogs(logger, String.format("Couldn't parse salmon run result json file '%s' OH OH", filename));
 			logger.error(e);
 		}
 	}
@@ -1716,10 +1716,10 @@ public class S3DailyStatsSender implements ScheduledService {
 				}
 			}
 		} catch (NullPointerException e) {
-			logSender.sendLogs(logger, String.format("Couldn't parse result json file '%s' because of an NULLPOINTER OH OH", filename));
+			logSender.queueLogs(logger, String.format("Couldn't parse result json file '%s' because of an NULLPOINTER OH OH", filename));
 			logger.error(e);
 		} catch (IOException e) {
-			logSender.sendLogs(logger, String.format("Couldn't parse result json file '%s' OH OH", filename));
+			logSender.queueLogs(logger, String.format("Couldn't parse result json file '%s' OH OH", filename));
 			logger.error(e);
 		}
 	}

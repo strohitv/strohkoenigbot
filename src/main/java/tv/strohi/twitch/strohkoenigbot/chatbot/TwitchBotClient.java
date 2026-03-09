@@ -181,7 +181,7 @@ public class TwitchBotClient implements ScheduledService {
 					access.setExpiresAt(Instant.now().plusSeconds(refreshedAccessToken.getExpiresIn()));
 					twitchAccessRepository.save(access);
 
-//					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
+//					logSender.queueLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
 //						access.getPreferredUsername(),
 //						access.getExpiresAt().getEpochSecond(),
 //						access.getExpiresAt().getEpochSecond(),
@@ -280,7 +280,7 @@ public class TwitchBotClient implements ScheduledService {
 				}
 
 				var allAlerts = twitchGoingLiveAlertRepository.findAll().stream().map(TwitchGoingLiveAlert::getTwitchChannelName).distinct().collect(Collectors.toList());
-//				logSender.sendLogs(logger, String.format("number of twitch alerts to watch over: %d", allAlerts.size()));
+//				logSender.queueLogs(logger, String.format("number of twitch alerts to watch over: %d", allAlerts.size()));
 
 				for (var alertChannelName : allAlerts) {
 					goLiveEventsToChange.add(new TwitchClientGoLiveChannel(client, alertChannelName, true));
@@ -293,14 +293,14 @@ public class TwitchBotClient implements ScheduledService {
 					}
 
 					if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
-						logSender.sendLogs(logger, String.format("going live for channel: %s", event.getChannel().getName()));
+						logSender.queueLogs(logger, String.format("going live for channel: %s", event.getChannel().getName()));
 						goLive(event.getChannel().getId());
 					}
 				});
 
 				goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
 					if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
-						logSender.sendLogs(logger, String.format("going offline for channel: %s", event.getChannel().getName()));
+						logSender.queueLogs(logger, String.format("going offline for channel: %s", event.getChannel().getName()));
 						goOffline(event.getChannel().getId());
 					}
 				});
@@ -316,19 +316,19 @@ public class TwitchBotClient implements ScheduledService {
 				client.getEventManager().onEvent(RaidEvent.class, new TwitchRaidEventConsumer(botActions));
 				client.getEventManager().onEvent(ChannelMessageEvent.class, new TwitchChannelMessageConsumer(botActions));
 				client.getEventManager().onEvent(PrivateMessageEvent.class, new TwitchPrivateMessageConsumer(botActions));
-				logSender.sendLogs(logger, "fully connected twitch bot client for messages");
+				logSender.queueLogs(logger, "fully connected twitch bot client for messages");
 			} else {
 				client.getEventManager().onEvent(ChannelAdBreakBeginEvent.class, this::reactToAdBreakBeginEvent);
 				client.getEventManager().onEvent(AdsScheduleUpdateEvent.class, this::reactToAdScheduleEvent);
 
-				logSender.sendLogs(logger, "fully connected twitch bot client for live channel");
+				logSender.queueLogs(logger, "fully connected twitch bot client for live channel");
 			}
 
-//			logSender.sendLogs(logger, "fully connected twitch bot client");
+//			logSender.queueLogs(logger, "fully connected twitch bot client");
 
 			return client;
 		} catch (Exception ex) {
-			logSender.sendLogs(logger, String.format("something in twitch bot client went wrong, message: `%s`. see logs for details", ex.getMessage()));
+			logSender.queueLogs(logger, String.format("something in twitch bot client went wrong, message: `%s`. see logs for details", ex.getMessage()));
 			logger.error(ex);
 		}
 
@@ -347,7 +347,7 @@ public class TwitchBotClient implements ScheduledService {
 
 		autoSoAction.endStream();
 
-		logSender.sendLogs(logger, "Went offline");
+		logSender.queueLogs(logger, "Went offline");
 	}
 
 	public void goLive(String channelId) {
@@ -850,7 +850,7 @@ public class TwitchBotClient implements ScheduledService {
 					access.setExpiresAt(Instant.now().plusSeconds(refreshedAccessToken.getExpiresIn()));
 					twitchAccessRepository.save(access);
 
-//					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
+//					logSender.queueLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
 //						access.getPreferredUsername(),
 //						access.getExpiresAt().getEpochSecond(),
 //						access.getExpiresAt().getEpochSecond(),
@@ -882,7 +882,7 @@ public class TwitchBotClient implements ScheduledService {
 					tc.getToken().setRefreshToken(refreshedAccessToken.getRefreshToken());
 					tc.getToken().setExpiresIn(refreshedAccessToken.getExpiresIn() - 10);
 
-//					logSender.sendLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
+//					logSender.queueLogs(logger, String.format("refreshed access token for user **%s**. New token will be valid until <t:%d:D> <t:%d:T> (<t:%d:R>).",
 //						tc.getAccess().getPreferredUsername(),
 //						tc.getAccess().getExpiresAt().getEpochSecond(),
 //						tc.getAccess().getExpiresAt().getEpochSecond(),
@@ -903,7 +903,7 @@ public class TwitchBotClient implements ScheduledService {
 				}
 			} else {
 				if (registeredGoLiveChannels.contains(firstEntry.getChannelName())) {
-					logSender.sendLogs(logger, String.format("disabling twitch stream event listener for: %s", firstEntry.getChannelName()));
+					logSender.queueLogs(logger, String.format("disabling twitch stream event listener for: %s", firstEntry.getChannelName()));
 					firstEntry.getClient().getClientHelper().disableStreamEventListener(firstEntry.getChannelName());
 					registeredGoLiveChannels.remove(firstEntry.getChannelName());
 				}
@@ -940,7 +940,7 @@ public class TwitchBotClient implements ScheduledService {
 				getMessageClient().getChat().sendMessage(event.getBroadcasterUserName(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", event.getBroadcasterUserName(), Duration.between(Instant.now(), event.getStartedAt()).toSeconds() / 60.0, event.getLengthSeconds() / 60.0));
 			}
 
-			logSender.sendLogs(logger, "ad active notification sent via twitch event");
+			logSender.queueLogs(logger, "ad active notification sent via twitch event");
 		}
 	}
 
@@ -969,14 +969,14 @@ public class TwitchBotClient implements ScheduledService {
 							&& (notificationInfo.getLastAdIsActiveWarningSentAt() == null || notificationInfo.getLastAdIsActiveWarningSentAt().isBefore(lastAdAt))) {
 							// Ads running, send !ads
 							getMessageClient().getChat().sendMessage(tc.getAccess().getPreferredUsername(), String.format("!ads @%s", tc.getAccess().getPreferredUsername()));
-							logSender.sendLogs(logger, "ad active notification sent via scheduled service");
+							logSender.queueLogs(logger, "ad active notification sent via scheduled service");
 							adNotifications.put(tc.getClient(), notificationInfo.toBuilder().lastAdIsActiveWarningSentAt(Instant.now()).build());
 						} else if (nextAdAt.isBefore(Instant.now().plus(5, ChronoUnit.MINUTES))
 							&& nextAdAt.isAfter(Instant.now().minus(1, ChronoUnit.MINUTES))
 							&& (notificationInfo.getLastAdComesUpWarningSentAt() == null || notificationInfo.getLastAdComesUpWarningSentAt().isBefore(nextAdAt.minus(5, ChronoUnit.MINUTES)))) {
 							// Ads soon, notify streamer via chat
 							getMessageClient().getChat().sendMessage(tc.getAccess().getPreferredUsername(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", tc.getAccess().getPreferredUsername(), Duration.between(Instant.now(), nextAdAt).toSeconds() / 60.0, adLengthSeconds / 60.0));
-							logSender.sendLogs(logger, "ad active notification sent via scheduled service");
+							logSender.queueLogs(logger, "ad active notification sent via scheduled service");
 							adNotifications.put(tc.getClient(), notificationInfo.toBuilder().lastAdComesUpWarningSentAt(Instant.now()).build());
 						}
 					}

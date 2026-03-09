@@ -36,7 +36,6 @@ public class S3NameplateSender implements ScheduledService {
 	private final static String NAMEPLATES_PATH = "resources/prod/v2/npl_img";
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
 	private final DiscordBot discordBot;
@@ -147,8 +146,7 @@ public class S3NameplateSender implements ScheduledService {
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3NameplatesChannel(), builder.toString(), allNameplatesImage);
 				logger.info("Done sending nameplate notification to discord");
 			} catch (Exception e) {
-				logSender.sendLogs(logger, "An exception occurred during S3 nameplate download\nSee logs for details!");
-				exceptionLogger.logException(logger, e);
+				exceptionLogger.logExceptionAsAttachment(logger, "An exception occurred during S3 nameplate download\nSee logs for details!", e);
 			}
 		}
 	}

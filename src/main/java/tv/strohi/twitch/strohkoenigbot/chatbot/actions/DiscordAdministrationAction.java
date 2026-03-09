@@ -26,7 +26,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
@@ -50,7 +49,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DiscordAdministrationAction extends ChatAction {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 	private final StrohkoenigbotApplication strohkoenigbotApplication;
 
@@ -452,7 +450,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Successfully set Splatoon Cookie of account to: `%s`", account.getSplatoonCookie()));
 					} catch (Exception e) {
-						exceptionLogger.logException(logger, e);
+						exceptionLogger.logExceptionAsAttachment(logger, "An error happened while setting Splatoon cookie", e);
 					}
 				} else {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Could not find main account");
@@ -611,8 +609,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 					s3GameExporter.exportGames(DiscordBot.ADMIN_ID, top, skip);
 				} catch (Exception ex) {
-					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Exception while exporting Games.");
-					exceptionLogger.logException(logger, ex);
+					exceptionLogger.logExceptionAsAttachment(logger, "Exception while exporting Games.", ex);
 				}
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished exporting missed s3s entries to file.");
@@ -720,8 +717,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "SendouQ match was loaded successfully...");
 			}
 		} catch (Exception e) {
-			logSender.sendLogs(logger, "An error occured during admin command execution\nSee logs for details!");
-			exceptionLogger.logException(logger, e);
+			exceptionLogger.logExceptionAsAttachment(logger, "An error occured during admin command execution\nSee logs for details!", e);
 		}
 	}
 

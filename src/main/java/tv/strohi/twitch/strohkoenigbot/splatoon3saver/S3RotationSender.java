@@ -4,8 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
@@ -14,7 +13,6 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.rest.SplatNet3DataController;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3RotationNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3RotationSenderService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3SrRotationService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3VsRotationService;
@@ -45,16 +43,15 @@ import java.util.stream.Stream;
 @Component
 @Transactional
 @RequiredArgsConstructor
+@Log4j2
 public class S3RotationSender implements ScheduledService {
 	private final ObjectMapper mapper = new ObjectMapper();
 	private final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {
 	};
 
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final LogSender logSender;
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
-	private final Splatoon3RotationNotificationRepository notificationRepository;
 
 	private final S3ApiQuerySender requestSender;
 	private final DiscordBot discordBot;
@@ -97,7 +94,7 @@ public class S3RotationSender implements ScheduledService {
 	@Transactional
 	public void refreshRotations(boolean force) {
 		if (pauseSender && !force) {
-			logger.info("rotation sender is pause, returning early!");
+			log.info("rotation sender is pause, returning early!");
 			return;
 		}
 
@@ -119,11 +116,11 @@ public class S3RotationSender implements ScheduledService {
 		var account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
 		if (account == null) {
-			logSender.sendLogs(logger, "No account found to import rotations to database!");
+			logSender.queueLogs(log, "No account found to import rotations to database!");
 			return;
 		}
 
-		logger.info("Start importing rotations to database");
+		log.info("Start importing rotations to database");
 		try {
 			importSrRotationsFromGameResultsFolder(account);
 
@@ -160,21 +157,18 @@ public class S3RotationSender implements ScheduledService {
 			Arrays.stream(rotationSchedulesResult.getData().getCoopGroupingSchedule().getTeamContestSchedules().getNodes())
 				.forEach(r -> srRotationService.ensureRotationExists(r, "teamContestSchedules"));
 		} catch (JsonProcessingException e) {
-//			logSender.sendLogs(logger, String.format("exception during rotation refresh!! %s", e.getMessage()));
-			logger.error(e);
-			logSender.sendLogs(logger, "An exception occurred during S3 rotation posting\nSee logs for details!");
-			exceptionLogger.logException(logger, e);
+//			logSender.queueLogs(log, String.format("exception during rotation refresh!! %s", e.getMessage()));
+			log.error(e);
+			exceptionLogger.logExceptionAsAttachment(log,"An exception occurred during S3 rotation posting\nSee logs for details!", e);
 		} catch (IOException e) {
-			logger.error(e);
-			logSender.sendLogs(logger, "An IO exception occurred during S3 rotation posting\nSee logs for details!");
-			exceptionLogger.logException(logger, e);
+			log.error(e);
+			exceptionLogger.logExceptionAsAttachment(log, "An IO exception occurred during S3 rotation posting\nSee logs for details!", e);
 		} catch (Exception e) {
-			logger.error(e);
-			logSender.sendLogs(logger, "An unspecified exception occurred during S3 rotation posting\nSee logs for details!");
-			exceptionLogger.logException(logger, e);
+			log.error(e);
+			exceptionLogger.logExceptionAsAttachment(log, "An unspecified exception occurred during S3 rotation posting\nSee logs for details!", e);
 		}
 
-		logger.info("Done importing rotations to database");
+		log.info("Done importing rotations to database");
 	}
 
 	@Transactional
@@ -218,12 +212,12 @@ public class S3RotationSender implements ScheduledService {
 
 							return result.stream();
 						} catch (IOException e) {
-							logger.error("could not import salmon run rotations!");
-							logger.error(e);
+							log.error("could not import salmon run rotations!");
+							log.error(e);
 							return Stream.empty();
 						}
 					})
-					.forEach((Splatoon3SrRotation rotation) -> logger.info("imported rotation: {}", rotation.getId()));
+					.forEach((Splatoon3SrRotation rotation) -> log.info("imported rotation: {}", rotation.getId()));
 			}
 		}
 	}
@@ -232,11 +226,11 @@ public class S3RotationSender implements ScheduledService {
 		Account account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
 		if (account == null) {
-			logSender.sendLogs(logger, "No account found to refresh rotations!");
+			logSender.queueLogs(log, "No account found to refresh rotations!");
 			return;
 		}
 
-		logger.info("Start posting rotations to discord");
+		log.info("Start posting rotations to discord");
 		try {
 			String allRotationsResponse = requestSender.queryS3Api(account, S3RequestKey.RotationSchedules);
 			RotationSchedulesResult rotationSchedulesResult = new ObjectMapper().readValue(allRotationsResponse, RotationSchedulesResult.class);
@@ -252,13 +246,12 @@ public class S3RotationSender implements ScheduledService {
 
 			sendSalmonRotations(rotationSchedulesResult.getData().getCoopGroupingSchedule(), force);
 		} catch (JsonProcessingException e) {
-//			logSender.sendLogs(logger, String.format("exception during rotation refresh!! %s", e.getMessage()));
-			logger.error(e);
-			logSender.sendLogs(logger, "An exception occurred during S3 rotation posting\nSee logs for details!");
-			exceptionLogger.logException(logger, e);
+//			logSender.queueLogs(log, String.format("exception during rotation refresh!! %s", e.getMessage()));
+			log.error(e);
+			exceptionLogger.logExceptionAsAttachment(log, "An exception occurred during S3 rotation posting\nSee logs for details!", e);
 		}
 
-		logger.info("Done posting rotations to discord using the old way");
+		log.info("Done posting rotations to discord using the old way");
 	}
 
 	private void sendSalmonRotations(CoopGroupingSchedule coopGroupingSchedule, boolean force) {

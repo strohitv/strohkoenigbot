@@ -171,7 +171,7 @@ public class Splatoon3SrResultService {
 				.image(imageService.ensureExists(enemy.getImage().getUrl()))
 				.build());
 
-			logSender.sendLogs(log, String.format("Set image for sr enemy with id `%d` to `%s`", dbEnemy.getId(), enemy.getImage().getUrl()));
+			logSender.queueLogs(log, String.format("Set image for sr enemy with id `%d` to `%s`", dbEnemy.getId(), enemy.getImage().getUrl()));
 		}
 
 		return dbEnemy;
@@ -271,7 +271,7 @@ public class Splatoon3SrResultService {
 				.image(imageService.ensureExists(uniform.getImage().getUrl()))
 				.build());
 
-			logSender.sendLogs(log, String.format("Set image for sr uniform with id `%d` to `%s`", dbUniform.getId(), uniform.getImage().getUrl()));
+			logSender.queueLogs(log, String.format("Set image for sr uniform with id `%d` to `%s`", dbUniform.getId(), uniform.getImage().getUrl()));
 		}
 
 		return dbUniform;
@@ -350,7 +350,7 @@ public class Splatoon3SrResultService {
 				.image(imageService.ensureExists(special.getImage().getUrl()))
 				.build());
 
-			logSender.sendLogs(log, String.format("Set image for sr special with id `%d` to `%s`", dbSpecial.getId(), special.getImage().getUrl()));
+			logSender.queueLogs(log, String.format("Set image for sr special with id `%d` to `%s`", dbSpecial.getId(), special.getImage().getUrl()));
 		}
 
 		try {

@@ -75,7 +75,7 @@ public class S3RequestSender {
 				} else {
 					var sleepTime = 5000;
 					if (response.statusCode() == 401) {
-						logSender.sendLogs(logger, "Reset token duration because a 401 error was received.");
+						logSender.queueLogs(logger, "Reset token duration because a 401 error was received.");
 
 						var tokenExpirationConfig = configurationRepository.findByConfigName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME)
 							.orElse(Configuration.builder().configName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME).configValue(String.format("%d", Instant.now().getEpochSecond())).build());
@@ -84,10 +84,10 @@ public class S3RequestSender {
 
 						return null;
 					} else if (response.statusCode() < 500) {
-//						logSender.sendLogs(logger, String.format("Request could not be fulfilled.\nRequest:\n```\n%s\n```", serializeRequest(request)));
-						logSender.sendLogs(logger, String.format("Request could not be fulfilled.\nResponse:\n```\n%s\n```", serializeResponse(response)));
+//						logSender.queueLogs();(logger, String.format("Request could not be fulfilled.\nRequest:\n```\n%s\n```", serializeRequest(request)));
+						logSender.queueLogs(logger, String.format("Request could not be fulfilled.\nResponse:\n```\n%s\n```", serializeResponse(response)));
 						sleepTime *= 3;
-					} 
+					}
 
 					try {
 						Thread.sleep(sleepTime);
@@ -96,15 +96,13 @@ public class S3RequestSender {
 				}
 			} catch (IOException | InterruptedException e) {
 				if (e instanceof IOException && e.getCause() != null && e.getCause() instanceof CookieRefreshException) {
-					logSender.sendLogs(logger, "The cookie for account wasn't valid anymore and no session token has been set!");
+					logSender.queueLogs(logger, "The cookie for account wasn't valid anymore and no session token has been set!");
 
 					return null;
 				} else {
 					// log and retry in a second
-					logSender.sendLogs(logger, "exception while sending request, retrying...");
 					logger.error("response body: '{}'", body);
-
-					exceptionLogger.logException(logger, e);
+					exceptionLogger.logExceptionAsAttachment(logger, "exception while sending request, retrying...", e);
 
 					logger.error("retry count: {} of 4", retryCount);
 
@@ -116,7 +114,7 @@ public class S3RequestSender {
 			}
 		}
 
-		logSender.sendLogs(logger, String.format("S3RequestSender failed %d times in a row.", maxRetries));
+		logSender.queueLogs(logger, String.format("S3RequestSender failed %d times in a row.", maxRetries));
 		return null;
 	}
 

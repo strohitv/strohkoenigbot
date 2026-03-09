@@ -97,7 +97,7 @@ public class S3ApiQuerySender {
 						.build();
 
 					client = HttpClient.newBuilder()
-						.connectTimeout(Duration.ofSeconds(30))
+						.connectTimeout(Duration.ofSeconds(10))
 						.build();
 
 					var response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -113,7 +113,7 @@ public class S3ApiQuerySender {
 							account.setBulletTokenSplatoon3(tokens.getBulletToken());
 							accountRepository.save(account);
 
-							logSender.sendLogs(logger, "Bot instance = %s debug = %s loaded new tokens from Prod", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug());
+							logSender.queueLogs(logger, "Bot instance = %s debug = %s loaded new tokens from Prod", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug());
 						}
 					} else {
 						logger.error("Could not load Tokens from Prod, response code {}", response.statusCode());
@@ -192,7 +192,7 @@ public class S3ApiQuerySender {
 		logger.info("Request to NSA took {} ms. Body: {}", stopWatch.getTime(), body);
 
 		if (result == null) {
-			logSender.sendLogs(logger, "S3ApiQuerySender could not fulfill request.");
+			logSender.queueLogs(logger, "S3ApiQuerySender could not fulfill request.");
 		}
 
 		return result;

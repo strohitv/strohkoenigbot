@@ -119,7 +119,7 @@ public class BotController implements ScheduledService {
 			config.setConfigValue(String.format("%d", Instant.now().getEpochSecond()));
 			configurationRepository.save(config);
 		} else {
-			logSender.sendLogs(log, String.format("Instance `%s`, debug = `%s` received message via web interface:\n```\n%s\n```", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), message));
+			logSender.queueLogs(log, String.format("Instance `%s`, debug = `%s` received message via web interface:\n```\n%s\n```", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), message));
 		}
 
 		return ResponseEntity.ok().build();
@@ -135,7 +135,7 @@ public class BotController implements ScheduledService {
 		var lastMessageTimestamp = Instant.ofEpochSecond(Long.parseLong(config.getConfigValue()));
 
 		if (Instant.now().isAfter(lastMessageTimestamp.plus(6, ChronoUnit.HOURS))) {
-			logSender.sendLogs(log, String.format("## WARNING\nInstance `%s`, debug = `%s` did **not** receive a message from Beelink for 6 hours! Last message EpochSecond: `%s`", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), config.getConfigValue()));
+			logSender.queueLogs(log, String.format("## WARNING\nInstance `%s`, debug = `%s` did **not** receive a message from Beelink for 6 hours! Last message EpochSecond: `%s`", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), config.getConfigValue()));
 		}
 	}
 

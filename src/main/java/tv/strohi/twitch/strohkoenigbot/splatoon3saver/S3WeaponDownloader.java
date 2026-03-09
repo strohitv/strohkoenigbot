@@ -23,7 +23,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class S3WeaponDownloader implements ScheduledService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
 	private final List<Weapon> allWeapons = new ArrayList<>();
@@ -67,8 +66,7 @@ public class S3WeaponDownloader implements ScheduledService {
 					setWeapons(Arrays.asList(ownedGear.getData().getWeaponRecords().getNodes()));
 				}
 			} catch (Exception e) {
-				logSender.sendLogs(logger, "An exception occurred during S3 weapon download\nSee logs for details!");
-				exceptionLogger.logException(logger, e);
+				exceptionLogger.logExceptionAsAttachment(logger, "An exception occurred during S3 weapon download\nSee logs for details!", e);
 			}
 		}
 	}

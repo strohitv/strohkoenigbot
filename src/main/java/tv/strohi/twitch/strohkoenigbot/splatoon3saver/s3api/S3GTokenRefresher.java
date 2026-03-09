@@ -64,7 +64,7 @@ public class S3GTokenRefresher {
 						logger.info(line);
 					}
 				} catch (IOException ex) {
-					exceptionLogger.logException(logger, ex);
+					exceptionLogger.logExceptionAsAttachment(logger, "Error while reading line from process", ex);
 				}
 
 				if (!process.waitFor(5, TimeUnit.MINUTES)) {
@@ -74,7 +74,7 @@ public class S3GTokenRefresher {
 					try {
 						process.destroyForcibly();
 					} catch (Exception ex) {
-						exceptionLogger.logException(logger, ex);
+						exceptionLogger.logExceptionAsAttachment(logger, "Error while forcefully destroying process", ex);
 					}
 					result = 1; // ERROR
 				} // else result is already 0 => success
@@ -84,8 +84,7 @@ public class S3GTokenRefresher {
 				logSender.sendLogs(logger, String.format("Result was %d before the import even started!", result));
 			}
 		} catch (IOException | InterruptedException e) {
-			logSender.sendLogs(logger, "Exception while executing s3s process, see logs!");
-			exceptionLogger.logException(logger, e);
+			exceptionLogger.logExceptionAsAttachment(logger, "Exception while executing s3s process, see logs!", e);
 		}
 //		}
 

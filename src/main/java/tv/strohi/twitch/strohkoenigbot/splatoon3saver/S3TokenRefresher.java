@@ -52,13 +52,13 @@ public class S3TokenRefresher {
 					}
 
 					if (s3S3sRunner.getResult(runToken) == null || !s3S3sRunner.getResult(runToken)) {
-						logSender.sendLogs(log, String.format("### ERROR during S3TokenRefresh\ns3s with Token '%s' did not finish in time or it failed!", runToken));
+						logSender.queueLogs(log, String.format("### ERROR during S3TokenRefresh\ns3s with Token '%s' did not finish in time or it failed!", runToken));
 						return;
 					}
 
 					var s3sLocation = configurationRepository.findAllByConfigName("s3sLocation").stream().findFirst();
 					if (s3sLocation.isEmpty() || !new File(Paths.get(s3sLocation.get().getConfigValue(), "config.txt").toString()).exists()) {
-						logSender.sendLogs(log, "### ERROR during S3TokenRefresh\n'config.txt' file could not be found!");
+						logSender.queueLogs(log, "### ERROR during S3TokenRefresh\n'config.txt' file could not be found!");
 						return;
 					}
 
@@ -68,7 +68,7 @@ public class S3TokenRefresher {
 					if (s3sConfig == null
 						|| s3sConfig.getGtoken() == null || s3sConfig.getGtoken().isBlank()
 						|| s3sConfig.getBullettoken() == null || s3sConfig.getBullettoken().isBlank()) {
-						logSender.sendLogs(log, "### ERROR during S3TokenRefresh\n'config.txt' file did not contain gtoken or bullettoken!");
+						logSender.queueLogs(log, "### ERROR during S3TokenRefresh\n'config.txt' file did not contain gtoken or bullettoken!");
 						return;
 					}
 
@@ -79,7 +79,7 @@ public class S3TokenRefresher {
 					var newTokenExp = (Integer) newToken.getOrDefault("exp", null);
 
 					if (currentTokenExp == null || newTokenExp == null) {
-						logSender.sendLogs(log, String.format("### ERROR during S3TokenRefresh\nOne of the two exp values of the token was `null`!\n- current token exp: `%s`\n- new token exp: `%s`", currentTokenExp, newTokenExp));
+						logSender.queueLogs(log, String.format("### ERROR during S3TokenRefresh\nOne of the two exp values of the token was `null`!\n- current token exp: `%s`\n- new token exp: `%s`", currentTokenExp, newTokenExp));
 						return;
 					}
 
@@ -97,15 +97,14 @@ public class S3TokenRefresher {
 							accountRepository.save(accountWithNewTokens);
 							log.info("S3TokenRefresher successful.");
 						} else {
-							logSender.sendLogs(log, "### ERROR during S3TokenRefresh\nHomepage response did not load successfully, tokens were invalid.");
+							logSender.queueLogs(log, "### ERROR during S3TokenRefresh\nHomepage response did not load successfully, tokens were invalid.");
 						}
 					} else {
-						logSender.sendLogs(log, "### ERROR during S3TokenRefresh\n S3TokenRefresher did not find a newer token!");
+						logSender.queueLogs(log, "### ERROR during S3TokenRefresh\n S3TokenRefresher did not find a newer token!");
 					}
 
 				} catch (Exception e) {
-					logSender.sendLogs(log, "An exception occurred during S3TokenRefresh\nSee logs for details!");
-					exceptionLogger.logException(log, e);
+					exceptionLogger.logExceptionAsAttachment(log, "An exception occurred during S3TokenRefresh\nSee logs for details!", e);
 				}
 			});
 	}

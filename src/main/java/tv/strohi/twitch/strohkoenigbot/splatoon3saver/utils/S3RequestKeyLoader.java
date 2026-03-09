@@ -140,7 +140,7 @@ public class S3RequestKeyLoader implements ScheduledService {
 				logSender.sendLogs(log, "## Error\nCould not find main account in S3RequestKeyLoader!");
 			}
 		} catch (Exception ex) {
-			exceptionLogger.logException(log, ex);
+			exceptionLogger.logExceptionAsAttachment(log, "Exception during S3RequestKeyLoader", ex);
 			exceptionSender.send(ex);
 		}
 	}

@@ -15,7 +15,6 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.CatalogResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -43,7 +42,6 @@ public class S3EmoteSender implements ScheduledService {
 	private final static String EMOTES_PATH = "resources/prod/v1/emote_img";
 
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
 	private final List<CatalogResult.Reward> allOwnedEmotesMostRecent = new ArrayList<>();
@@ -213,8 +211,7 @@ public class S3EmoteSender implements ScheduledService {
 					logger.info("Done sending notification to discord account: {}", account.getDiscordId());
 				}
 			} catch (Exception e) {
-				logSender.sendLogs(logger, "An exception occurred during S3 emote download\nSee logs for details!");
-				exceptionLogger.logException(logger, e);
+				exceptionLogger.logExceptionAsAttachment(logger, "An exception occurred during S3 emote download\nSee logs for details!", e);
 			}
 		}
 	}

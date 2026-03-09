@@ -266,7 +266,7 @@ public class RotationWatcher implements ScheduledService {
 				try {
 					rotationRepository.save(newRotation);
 				} catch (Exception ex) {
-					exceptionLogger.logException(logger, ex);
+					exceptionLogger.logExceptionAsAttachment(logger, "Exception while saving the new Rotation", ex);
 				}
 
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),

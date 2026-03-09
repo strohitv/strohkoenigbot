@@ -159,7 +159,7 @@ public class Splatoon3SrRotationService {
 				.image(imageService.ensureExists(weapon.getImage().getUrl()))
 				.build());
 
-			logSender.sendLogs(log, String.format("Set image for sr weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage().getUrl()));
+			logSender.queueLogs(log, String.format("Set image for sr weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage().getUrl()));
 		}
 
 		return dbWeapon;
@@ -194,11 +194,11 @@ public class Splatoon3SrRotationService {
 				.build());
 
 			if (coopStage.getImage() != null) {
-				logSender.sendLogs(log, String.format("Set image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getImage().getUrl()));
+				logSender.queueLogs(log, String.format("Set image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getImage().getUrl()));
 			}
 
 			if (coopStage.getThumbnailImage() != null) {
-				logSender.sendLogs(log, String.format("Set thumbnail image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getThumbnailImage().getUrl()));
+				logSender.queueLogs(log, String.format("Set thumbnail image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getThumbnailImage().getUrl()));
 			}
 		}
 
@@ -230,7 +230,7 @@ public class Splatoon3SrRotationService {
 				.image(imageService.ensureExists(boss.getImage().getUrl()))
 				.build());
 
-			logSender.sendLogs(log, String.format("Set image for sr boss with id `%d` to `%s`", dbBoss.getId(), boss.getImage().getUrl()));
+			logSender.queueLogs(log, String.format("Set image for sr boss with id `%d` to `%s`", dbBoss.getId(), boss.getImage().getUrl()));
 		}
 
 		return dbBoss;

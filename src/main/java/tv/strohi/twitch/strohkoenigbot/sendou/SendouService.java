@@ -527,7 +527,7 @@ public class SendouService implements ScheduledService {
 			.collect(Collectors.toList());
 
 		if (!outdatedKeys.isEmpty()) {
-			logSender.sendLogs(log,
+			logSender.queueLogs(log,
 				"Found a total of **%d** cache entries to remove. **%d** items in the cache before clearing, **%d** items afterwards.",
 				outdatedKeys.size(),
 				sendouApiCache.size(),

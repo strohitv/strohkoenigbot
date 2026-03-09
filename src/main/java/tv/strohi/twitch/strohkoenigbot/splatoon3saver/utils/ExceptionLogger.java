@@ -15,10 +15,6 @@ import java.util.ArrayList;
 public class ExceptionLogger {
 	private final LogSender logSender;
 
-	public void logException(Logger logger, Exception e) {
-		logExceptionAsAttachment(logger, "An Exception has occurred!", e);
-	}
-
 	public void logExceptionAsAttachment(Logger logger, String title, Exception e) {
 		var sentExs = new ArrayList<Throwable>();
 		Throwable currentEx = e;

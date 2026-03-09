@@ -123,13 +123,13 @@ public class SplatNet3DataController {
 			var pass = configurationRepository.findAllByConfigName("uploadS3sConfigPassword").stream().findFirst();
 
 			if (user.isEmpty() || pass.isEmpty()) {
-				logSender.sendLogs(log, "### ERROR during s3s config file upload!\nAuth credentials could not be found!");
+				logSender.queueLogs(log, "### ERROR during s3s config file upload!\nAuth credentials could not be found!");
 				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
 			}
 
 			var comparisonString = String.format("Basic %s", Base64.encodeBase64String(String.format("%s:%s", user.get().getConfigValue(), pass.get().getConfigValue()).getBytes(StandardCharsets.UTF_8)));
 			if (!comparisonString.equals(auth)) {
-				logSender.sendLogs(log, "### ERROR during s3s config file upload!\nUser and/or password were not correct!");
+				logSender.queueLogs(log, "### ERROR during s3s config file upload!\nUser and/or password were not correct!");
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 			}
 
@@ -158,18 +158,18 @@ public class SplatNet3DataController {
 
 	@GetMapping(value = "get-tokens")
 	public ResponseEntity<S3Tokens> getTokens(@RequestHeader("Authorization") String auth) {
-		if (buckets.get("refresh-tokens").tryConsume(1)) {
+		if (buckets.get("get-tokens").tryConsume(1)) {
 			var user = configurationRepository.findAllByConfigName("uploadS3sConfigUser").stream().findFirst();
 			var pass = configurationRepository.findAllByConfigName("uploadS3sConfigPassword").stream().findFirst();
 
 			if (user.isEmpty() || pass.isEmpty()) {
-				logSender.sendLogs(log, "### ERROR during token loading!\nAuth credentials could not be found!");
+				logSender.queueLogs(log, "### ERROR during token loading!\nAuth credentials could not be found!");
 				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
 			}
 
 			var comparisonString = String.format("Basic %s", Base64.encodeBase64String(String.format("%s:%s", user.get().getConfigValue(), pass.get().getConfigValue()).getBytes(StandardCharsets.UTF_8)));
 			if (!comparisonString.equals(auth)) {
-				logSender.sendLogs(log, "### ERROR during token loading!\nUser and/or password were not correct!");
+				logSender.queueLogs(log, "### ERROR during token loading!\nUser and/or password were not correct!");
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 			}
 
@@ -178,7 +178,7 @@ public class SplatNet3DataController {
 				.orElse(null);
 
 			if (account == null) {
-				logSender.sendLogs(log, "### ERROR during token loading!\nNo main account found!");
+				logSender.queueLogs(log, "### ERROR during token loading!\nNo main account found!");
 				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
 			}
 
