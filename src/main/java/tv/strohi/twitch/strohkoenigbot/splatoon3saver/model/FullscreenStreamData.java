@@ -48,6 +48,10 @@ public class FullscreenStreamData {
 		private long wins;
 		private long defeats;
 
+		private String sub_weapon_image;
+		private long sub_weapon_wins;
+		private long sub_weapon_games;
+
 		private String special_weapon_image;
 		private int special_wins;
 		private Integer special_wins_gained;
@@ -188,7 +192,17 @@ public class FullscreenStreamData {
 	@Builder(toBuilder = true)
 	public static class TeamData {
 		public enum Result {
-			WIN, LOSE, SUPPORT
+			WIN(2), LOSE(0), SUPPORT(1);
+
+			private final int value;
+
+			Result(int value) {
+				this.value = value;
+			}
+
+			public static int compare(Result a, Result b) {
+				return Integer.compare(b.value, a.value);
+			}
 		}
 
 		private Result result;

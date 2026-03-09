@@ -13,10 +13,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3BadgeRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultTeamPlayerRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsStageRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.OwnUsedWeaponStatsWithWeapon;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.SpecialWinCount;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.StageWinStatsWithRule;
@@ -65,6 +62,7 @@ public class S3StreamDataService implements ScheduledService {
 	private final Splatoon3VsResultTeamPlayerRepository resultTeamPlayerRepository;
 	private final Splatoon3VsStageRepository stageRepository;
 	private final Splatoon3VsWeaponRepository weaponRepository;
+	private final Splatoon3VsSubWeaponRepository subWeaponRepository;
 
 	private final ImageService imageService;
 
@@ -569,10 +567,12 @@ public class S3StreamDataService implements ScheduledService {
 			.filter(Player::getIsMyself)
 			.findFirst()
 			.orElse(parsedOriginalResult.getData().getVsHistoryDetail().getPlayer());
+
 		var allXPowers = Optional.of(statData.xPowers).orElse(new S3XPowerDownloader.Powers(null, null, null, null));
 		stopWatch.split();
 		stoppedTimeStrs.add(String.format("- xPowerDownloader.downloadXPowers `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
 		previousStopWatchTime = stopWatch.getSplitTime();
+
 		var allWeaponResultStats = weaponRepository.getWeaponResultStats(ownPlayer.getWeapon().getId());
 		stopWatch.split();
 		stoppedTimeStrs.add(String.format("- weaponRepository.getWeaponResultStats `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
@@ -625,6 +625,11 @@ public class S3StreamDataService implements ScheduledService {
 
 		weaponResultStats.add(totalWeaponWinStats);
 
+		var usedSubWeaponResultStats = subWeaponRepository.getWeaponResultStats(ownPlayer.getWeapon().getSubWeapon().getId())
+			.stream()
+			.findFirst()
+			.orElse(new OwnUsedWeaponStatsWithWeapon("Total", ownPlayer.getWeapon().getSubWeapon().getId(), 0L, 0L, 0L));
+
 		var totalGameCount = totalWeaponWinStats.getWin_defeat_rate().getWins() + totalWeaponWinStats.getWin_defeat_rate().getDefeats();
 
 		if (gearDownloader.getCachedGears().isEmpty()) {
@@ -642,6 +647,9 @@ public class S3StreamDataService implements ScheduledService {
 			.general(FullscreenStreamData.GeneralStats.builder()
 				.wins(totalWins)
 				.defeats(totalDefeats)
+				.sub_weapon_image(getResourceUrl(ownPlayer.getWeapon().getSubWeapon().getImage()))
+				.sub_weapon_games(usedSubWeaponResultStats.getTotalGames())
+				.sub_weapon_wins(usedSubWeaponResultStats.getTotalWins())
 				.special_weapon_image(getSpecialWeaponBadgeIconResourceUrl(ownPlayer.getWeapon().getSpecialWeapon().getName()))
 				.special_wins(ownUsedSpecialWeaponStats.getWinCount())
 				.special_wins_gained(ownUsedSpecialWeaponStats.getWinCount() - ownSpecialWeaponWinsAtStreamStart)
@@ -718,6 +726,7 @@ public class S3StreamDataService implements ScheduledService {
 				.ruleIcon(getRuleIconResourceUrl(lastGame))
 				.stage(lastGame.getStage().getName())
 				.teams(lastGame.getTeams().stream()
+					.sorted((a, b) -> FullscreenStreamData.TeamData.Result.compare(mapResult(a.getJudgement()), mapResult(b.getJudgement())))
 					.map(t -> FullscreenStreamData.TeamData.builder()
 						.result(mapResult(t.getJudgement()))
 						.result_str(mapResultStr(t.getScore(), t.getPaintRatio()))
