@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,15 +12,20 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.rest.model.S3Tokens;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3CookieHandler;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.auth.S3Authenticator;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.S3RequestSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
+import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,8 +42,7 @@ public class S3ApiQuerySender {
 	private final ConfigurationRepository configurationRepository;
 
 	private final LogSender logSender;
-
-	private final S3Authenticator authenticator;
+	private final ExceptionLogger exceptionLogger;
 
 	public String queryS3Api(Account account, S3RequestKey key) {
 		return queryS3Api(account, key, null, null);
@@ -52,7 +57,7 @@ public class S3ApiQuerySender {
 			variables.put(additionalHeader, additionalContent);
 		}
 
-		return doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, variables);
+		return doRequest(account, actionHash, variables);
 	}
 
 	public String queryS3ApiPaged(Account account, S3RequestKey key, String id, int page, int first, String cursor) {
@@ -66,7 +71,68 @@ public class S3ApiQuerySender {
 		variables.put("page", page);
 		variables.put("id", id);
 
-		return doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, variables);
+		return doRequest(account, actionHash, variables);
+	}
+
+	private String doRequest(Account account, String actionHash, Map<String, Object> variables) {
+		var result = doRequest(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3(), actionHash, variables);
+
+		if (result == null && DiscordChannelDecisionMaker.isLocalDebug()) {
+			var botTokenLoadUrl = configurationRepository.findByConfigName("S3ApiQuerySender_loadTokensFromProdUrl")
+				.orElse(null);
+
+			var user = configurationRepository.findAllByConfigName("uploadS3sConfigUser").stream().findFirst();
+			var pass = configurationRepository.findAllByConfigName("uploadS3sConfigPassword").stream().findFirst();
+
+			if (botTokenLoadUrl != null && user.isPresent() && pass.isPresent()) {
+				HttpClient client = null;
+
+				try {
+					var authorization = String.format("Basic %s", Base64.encodeBase64String(String.format("%s:%s", user.get().getConfigValue(), pass.get().getConfigValue()).getBytes(StandardCharsets.UTF_8)));
+
+					var request = HttpRequest.newBuilder()
+						.GET()
+						.uri(URI.create(botTokenLoadUrl.getConfigValue()))
+						.setHeader("Authorization", authorization)
+						.build();
+
+					client = HttpClient.newBuilder()
+						.connectTimeout(Duration.ofSeconds(30))
+						.build();
+
+					var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+					if (response.statusCode() == 200) {
+						var resultStr = response.body();
+						var tokens = new ObjectMapper().readValue(resultStr, S3Tokens.class);
+
+						result = doRequest(tokens.getGToken(), tokens.getBulletToken(), actionHash, variables);
+
+						if (result != null) {
+							account.setGTokenSplatoon3(tokens.getGToken());
+							account.setBulletTokenSplatoon3(tokens.getBulletToken());
+							accountRepository.save(account);
+
+							logSender.sendLogs(logger, "Bot instance = %s debug = %s loaded new tokens from Prod", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug());
+						}
+					} else {
+						logger.error("Could not load Tokens from Prod, response code {}", response.statusCode());
+					}
+				} catch (Exception ex) {
+					exceptionLogger.logExceptionAsAttachment(logger, "Error during S3 Token loading from Prod", ex);
+				} finally {
+					if (client != null) {
+						try {
+							((AutoCloseable) client).close();
+						} catch (Exception e) {
+							exceptionLogger.logExceptionAsAttachment(logger, "WTF weird exception", e);
+						}
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 
 	private String doRequest(String gToken, String bulletToken, String actionHash, Map<String, Object> variables) {

@@ -199,7 +199,12 @@ public class DiscordBot implements ScheduledService {
 	private void sendQueuedServerMessagesWithImageUrls() {
 		while (!queuedMessages.isEmpty()) {
 			var nextMessage = queuedMessages.remove();
-			sendServerMessageWithImageUrls(nextMessage.channelName, nextMessage.message, nextMessage.imageUrls);
+
+			if (nextMessage.channelName != null) {
+				sendServerMessageWithImageUrls(nextMessage.channelName, nextMessage.message, nextMessage.imageUrls);
+			} else if (nextMessage.userId != null) {
+				sendPrivateMessageWithImageUrls(nextMessage.userId, nextMessage.message, nextMessage.imageUrls);
+			}
 		}
 	}
 
@@ -339,6 +344,14 @@ public class DiscordBot implements ScheduledService {
 		}
 
 		return result;
+	}
+
+	public void queuePrivateMessageWithImageUrls(Long userId, String message, String... imageUrls) {
+		queuedMessages.add(QueuedMessage.builder()
+			.userId(userId)
+			.message(message)
+			.imageUrls(imageUrls)
+			.build());
 	}
 
 	public boolean sendPrivateMessageWithImageUrls(Long userId, String message, String... imageUrls) {
@@ -579,6 +592,7 @@ public class DiscordBot implements ScheduledService {
 	@Builder
 	private static class QueuedMessage {
 		private String channelName;
+		private Long userId;
 		private String message;
 		private String[] imageUrls;
 	}

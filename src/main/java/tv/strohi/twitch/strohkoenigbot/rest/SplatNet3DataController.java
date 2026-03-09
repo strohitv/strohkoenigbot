@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.rest.model.S3Tokens;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3TokenRefresher;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
@@ -34,15 +36,17 @@ public class SplatNet3DataController {
 
 	private final S3TokenRefresher s3TokenRefresher;
 	private final ConfigurationRepository configurationRepository;
+	private final AccountRepository accountRepository;
 	private final LogSender logSender;
 
 	private final Map<String, Bucket> buckets;
 
 	private final Map<String, Object> data = new HashMap<>();
 
-	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogSender logSender, ObjectMapper mapper) {
+	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogSender logSender, ObjectMapper mapper, AccountRepository accountRepository) {
 		this.s3TokenRefresher = s3TokenRefresher;
 		this.configurationRepository = configurationRepository;
+		this.accountRepository = accountRepository;
 		this.logSender = logSender;
 
 		var now = Instant.now().toEpochMilli();
@@ -70,6 +74,12 @@ public class SplatNet3DataController {
 				.addLimit(Bandwidth.builder()
 					.capacity(10)
 					.refillGreedy(10, Duration.ofMinutes(1))
+					.build())
+				.build(),
+			"get-tokens", Bucket.builder()
+				.addLimit(Bandwidth.builder()
+					.capacity(5)
+					.refillGreedy(5, Duration.ofMinutes(1))
 					.build())
 				.build());
 	}
@@ -141,6 +151,39 @@ public class SplatNet3DataController {
 			}
 
 			return ResponseEntity.ok().build();
+		}
+
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+	}
+
+	@GetMapping(value = "get-tokens")
+	public ResponseEntity<S3Tokens> getTokens(@RequestHeader("Authorization") String auth) {
+		if (buckets.get("refresh-tokens").tryConsume(1)) {
+			var user = configurationRepository.findAllByConfigName("uploadS3sConfigUser").stream().findFirst();
+			var pass = configurationRepository.findAllByConfigName("uploadS3sConfigPassword").stream().findFirst();
+
+			if (user.isEmpty() || pass.isEmpty()) {
+				logSender.sendLogs(log, "### ERROR during token loading!\nAuth credentials could not be found!");
+				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
+			}
+
+			var comparisonString = String.format("Basic %s", Base64.encodeBase64String(String.format("%s:%s", user.get().getConfigValue(), pass.get().getConfigValue()).getBytes(StandardCharsets.UTF_8)));
+			if (!comparisonString.equals(auth)) {
+				logSender.sendLogs(log, "### ERROR during token loading!\nUser and/or password were not correct!");
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+			}
+
+			var account = accountRepository.findByIsMainAccount(true).stream()
+				.findFirst()
+				.orElse(null);
+
+			if (account == null) {
+				logSender.sendLogs(log, "### ERROR during token loading!\nNo main account found!");
+				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
+			}
+
+			logSender.queueLogs(log, "Someone successfully loaded gToken and bulletToken!");
+			return ResponseEntity.ok(new S3Tokens(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3()));
 		}
 
 		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();

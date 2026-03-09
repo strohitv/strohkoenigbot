@@ -20,6 +20,11 @@ public class LogSender {
 		sendLogs(logger, String.format(message, args));
 	}
 
+	public void queueLogs(Logger logger, String message) {
+		logger.info(message);
+		discordBot.queuePrivateMessageWithImageUrls(DiscordBot.ADMIN_ID, message);
+	}
+
 	public void sendLogs(Logger logger, String message) {
 		logger.info(message);
 		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, message);
