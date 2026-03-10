@@ -235,11 +235,11 @@ public class FullscreenStreamData {
 		private String shirt_main_image;
 		private String shoes_main_image;
 
-		private int kills;
-		private int assists;
-		private int deaths;
-		private int specials;
-		private int paint;
+		private Integer kills;
+		private Integer assists;
+		private Integer deaths;
+		private Integer specials;
+		private Integer paint;
 
 		private Long number_of_games;
 	}

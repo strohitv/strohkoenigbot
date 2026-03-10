@@ -79,7 +79,7 @@ public class S3StreamDataService implements ScheduledService {
 	private List<StageWinStatsWithRule> stageResultStatsAtStart = null;
 
 	private void refreshStreamData() {
-		logIfDebug("S3StreamDataService: running refresh method");
+//		logIfDebug("S3StreamDataService: running refresh method");
 
 		if (twitchBotClient.getWentLiveTime() == null) {
 			streamData = StreamData.empty();
@@ -89,7 +89,7 @@ public class S3StreamDataService implements ScheduledService {
 			weaponStatsAtStreamStart = null;
 			ownUsedWeaponWinStatsAtStart = null;
 			stageResultStatsAtStart = null;
-			logIfDebug("S3StreamDataService: channel is offline");
+//			logIfDebug("S3StreamDataService: channel is offline");
 			return;
 		}
 
