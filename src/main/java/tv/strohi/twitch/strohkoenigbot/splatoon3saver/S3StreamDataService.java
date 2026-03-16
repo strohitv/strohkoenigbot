@@ -601,7 +601,18 @@ public class S3StreamDataService implements ScheduledService {
 		stoppedTimeStrs.add(String.format("- weaponResultStats = allWeaponResultStats.stream() `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
 		previousStopWatchTime = stopWatch.getSplitTime();
 
-		var totalWeaponWinStats = weaponResultStats.stream()
+		var emptyWeaponWinStats = new FullscreenStreamData.KeyWinDefeatRate("Total", FullscreenStreamData.WinDefeatRate.builder()
+			.wins(0)
+			.wins_gained(0)
+			.defeats(0)
+			.defeats_gained(0)
+			.winrate(0.0)
+			.build());
+
+		var totalWeaponWinStats = Stream.of(
+				weaponResultStats.stream(),
+				Stream.of(emptyWeaponWinStats))
+			.flatMap(a -> a)
 			.reduce((a, b) -> FullscreenStreamData.KeyWinDefeatRate.builder()
 				.key("Total")
 				.win_defeat_rate(FullscreenStreamData.WinDefeatRate.builder()
@@ -612,13 +623,8 @@ public class S3StreamDataService implements ScheduledService {
 					.winrate(100.0 * (a.getWin_defeat_rate().getWins() + b.getWin_defeat_rate().getWins()) / Math.max(1, a.getWin_defeat_rate().getWins() + b.getWin_defeat_rate().getWins() + a.getWin_defeat_rate().getDefeats() + b.getWin_defeat_rate().getDefeats()))
 					.build())
 				.build())
-			.orElse(new FullscreenStreamData.KeyWinDefeatRate("Total", FullscreenStreamData.WinDefeatRate.builder()
-				.wins(0)
-				.wins_gained(0)
-				.defeats(0)
-				.defeats_gained(0)
-				.winrate(0.0)
-				.build()));
+			.orElse(emptyWeaponWinStats);
+
 		stopWatch.split();
 		stoppedTimeStrs.add(String.format("- totalWeaponWinStats = new FullscreenStreamData.KeyWinDefeatRate `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
 		previousStopWatchTime = stopWatch.getSplitTime();
