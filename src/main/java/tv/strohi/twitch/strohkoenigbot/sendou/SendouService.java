@@ -71,7 +71,7 @@ public class SendouService implements ScheduledService {
 	public Optional<SendouMatch> loadActiveMatch(Account account, @NonNull String sendouUser, Long tournamentId, boolean searchSendouQ) {
 		callingUsers.putIfAbsent(sendouUser, Instant.MIN);
 		if (callingUsers.get(sendouUser).isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
-			logSender.queueLogs(log, "# New user is using the overlay\n- User: `%s`\n- Url: https://sendou.ink/u/%s", sendouUser, sendouUser);
+			logSender.queueLogs(log, "# New user is using the overlay\n- User: `%s`\n- Url: https://sendou.ink/u/%s\n- Tournament: https://sendou.ink/to/%s", sendouUser, sendouUser, tournamentId);
 		}
 		callingUsers.put(sendouUser, Instant.now());
 
