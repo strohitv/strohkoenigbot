@@ -26,7 +26,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Log4j2
-public class Splatoon3PowerMigrator implements ScheduledService {
+public class S3PowerMigrator implements ScheduledService {
 	private final ConfigurationRepository configurationRepository;
 	private final Splatoon3VsResultRepository resultRepository;
 

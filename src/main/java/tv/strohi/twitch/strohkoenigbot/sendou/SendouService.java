@@ -56,6 +56,8 @@ public class SendouService implements ScheduledService {
 	private final Set<String> finishedBrackets = new HashSet<>();
 	private final Set<Long> finishedMatches = new HashSet<>();
 
+	private final Map<String, Instant> callingUsers = new HashMap<>();
+
 	@Getter
 	private final Map<Integer, Integer> responseCodes = new HashMap<>();
 
@@ -67,6 +69,12 @@ public class SendouService implements ScheduledService {
 	private boolean searchSendouQ = false;
 
 	public Optional<SendouMatch> loadActiveMatch(Account account, @NonNull String sendouUser, Long tournamentId, boolean searchSendouQ) {
+		callingUsers.putIfAbsent(sendouUser, Instant.MIN);
+		if (callingUsers.get(sendouUser).isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
+			logSender.queueLogs(log, "# New user is using the overlay\n- User: `%s`\n- Url: https://sendou.ink/u/%s", sendouUser, sendouUser);
+		}
+		callingUsers.put(sendouUser, Instant.now());
+
 		var tournamentMatch = Optional.<SendouMatch>empty();
 
 		var sendouUserId = loadSendouUserId(account, sendouUser)
