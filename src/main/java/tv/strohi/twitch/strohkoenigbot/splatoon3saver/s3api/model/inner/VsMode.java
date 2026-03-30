@@ -11,4 +11,5 @@ import java.io.Serializable;
 public class VsMode implements Serializable {
 	private String id;
 	private String mode;
+	private String name;
 }

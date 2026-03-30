@@ -24,7 +24,11 @@ public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsR
 
 	Optional<Splatoon3VsResult> findTopByOrderByIdDesc();
 
+	Optional<Splatoon3VsResult> findByReplayCodeAndMmrLoadFailedFalseAndReplayJsonNull(String replayCode);
+	List<Splatoon3VsResult> findAllByReplayCodeNotNullAndMmrLoadFailedFalseAndReplayJsonNull();
+
 	List<Splatoon3VsResult> findByApiId(String apiId);
+	List<Splatoon3VsResult> findByPlayedTimeBetween(Instant playedTimeStart, Instant playedTimeEnd);
 	List<Splatoon3VsResult> findByPlayedTimeAfterOrderByPlayedTimeAsc(Instant time);
 
 	Page<Splatoon3VsResult> findAll(Pageable pageable);

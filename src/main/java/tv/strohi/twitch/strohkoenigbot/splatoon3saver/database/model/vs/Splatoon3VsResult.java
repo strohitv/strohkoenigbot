@@ -6,6 +6,7 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 
 @Entity(name = "splatoon_3_vs_result")
@@ -36,6 +37,15 @@ public class Splatoon3VsResult {
 
 	@Lob
 	private String shortenedJson;
+
+	private String replayCode;
+
+	private boolean mmrLoadFailed;
+
+	private Double mmr;
+
+	@Lob
+	private String replayJson;
 
 	// ---
 
@@ -72,4 +82,28 @@ public class Splatoon3VsResult {
 	)
 	@EqualsAndHashCode.Exclude
 	private List<Splatoon3VsAward> awards;
+
+	public boolean apiIdEquals(String otherApiId) {
+		if (apiId == null && otherApiId == null) {
+			return true;
+		}
+
+		if (apiId == null) {
+			// otherApiId not null
+			return false;
+		}
+
+		if (otherApiId == null) {
+			// apiId not null
+			return false;
+		}
+
+		var decodedApiIdParts = new String(Base64.getDecoder().decode(apiId)).split(":");
+		var decodedOtherApiIdParts = new String(Base64.getDecoder().decode(otherApiId)).split(":");
+
+		var realApiId = decodedApiIdParts[decodedApiIdParts.length - 1];
+		var realOtherApiId = decodedOtherApiIdParts[decodedOtherApiIdParts.length - 1];
+
+		return realApiId.equals(realOtherApiId);
+	}
 }

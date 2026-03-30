@@ -35,7 +35,9 @@ public enum S3RequestKey {
 	XRankLeaderboardNextPageRainmaker("DetailTabViewXRankingGlRefetchQuery", "6ab0299d827378d2cae1e608d349168cd4db21dd11164c542d405ed689c9f622", "/x_ranking/WFJhbmtpbmdTZWFzb24tYTo4/gl", Map.of()),
 	XRankLeaderboardNextPageClams("DetailTabViewXRankingClRefetchQuery", "485e5decc718feeccf6dffddfe572455198fdd373c639d68744ee81507df1a48", "/x_ranking/WFJhbmtpbmdTZWFzb24tYTo4/cl", Map.of()),
 
-	RotationSchedules("StageScheduleQuery", "d49fb6adffe15e3e43ca1167397debfc580eede3ad2232d7e32062bc5487e7eb", "/schedule/bankara", Map.of());
+	RotationSchedules("StageScheduleQuery", "d49fb6adffe15e3e43ca1167397debfc580eede3ad2232d7e32062bc5487e7eb", "/schedule/bankara", Map.of()),
+
+	Replays("ReplayQuery", "3af48164d1176e8a88fb5321f5fb2daf9dde00b314170f1848a30e1825fc828e", "/replay", Map.of());
 
 	@Getter
 	private final static EnumSet<S3RequestKey> onlineBattles = EnumSet.of(Regular, Anarchy, XRank, Challenge, Private); // EnumSet.of(Latest, Regular, Anarchy, Private); //

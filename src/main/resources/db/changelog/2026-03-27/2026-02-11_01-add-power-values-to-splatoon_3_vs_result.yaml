@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-27_01-add-replay-jsons-from-inksight-to-splatoon_3_vs_result
+      author: strohkoenig
+      changes:
+        - addColumn:
+            tableName: splatoon_3_vs_result
+            columns:
+              - column:
+                  name: replay_code
+                  type: varchar(20)
+              - column:
+                  name: mmr_load_failed
+                  type: bool
+                  defaultValueBoolean: false
+                  valueBoolean: 'false'
+                  constraints:
+                    nullable: false
+              - column:
+                  name: mmr
+                  type: double
+              - column:
+                  name: replay_json
+                  type: clob
+
