@@ -1,11 +1,10 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsInksightPlayerStats;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity(name = "splatoon_3_player")
 @Cacheable(false)
@@ -13,6 +12,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@ToString(exclude = "inksightStats")
 public class Splatoon3Player {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,4 +25,8 @@ public class Splatoon3Player {
 	private String apiPrefixedId;
 
 	private boolean isMyself;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "player")
+	@EqualsAndHashCode.Exclude
+	private List<Splatoon3VsInksightPlayerStats> inksightStats;
 }

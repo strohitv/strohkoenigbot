@@ -9,7 +9,9 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsInksightPlayerStats;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsInksightPlayerStatsRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.InksightReplay;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ReplayResult;
@@ -40,6 +42,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 
 	private final AccountRepository accountRepository;
 	private final Splatoon3VsResultRepository resultRepository;
+	private final Splatoon3VsInksightPlayerStatsRepository inksightPlayerStatsRepository;
 
 	private void downloadReplaysDuringStream() {
 		if (twitchBotClient.getWentLiveTime() != null) {
@@ -116,17 +119,37 @@ public class S3ReplayCodeLoader implements ScheduledService {
 
 				var mmr = myself.getStats().getMmr().orElse(result.getMmr());
 				var power = myself.getStats().getXPower().orElse(myself.getStats().getMmr().orElse(result.getPower()));
+				var zonesXP = myself.getStats().getXPowerZones();
+				var towerXP = myself.getStats().getXPowerTower();
+				var rainXP = myself.getStats().getXPowerRain();
+				var clamsXP = myself.getStats().getXPowerClams();
+				var playerLevel = myself.getStats().getPlayerLevel();
 
-				resultRepository.save(result.toBuilder()
+				var savedResult = resultRepository.save(result.toBuilder()
+					.inksightJsonVersion(inksightData.getVersion())
 					.replayJson(replayJson)
 					.mmr(mmr)
 					.power(power)
+					.xPowerZones(zonesXP)
+					.xPowerTower(towerXP)
+					.xPowerRain(rainXP)
+					.xPowerClams(clamsXP)
+					.playerLevel(playerLevel)
 					.build());
 
-				logSender.queueLogs(log, "Received and saved new InkSight replay for player `%s` with mmr `%.1f` and power `%.1f`", myself.getName(), mmr, power);
+				logSender.queueLogs(log, "# Found new InkSight replay\n- version: `%d`\n- player: `%s#%s`\n- mmr: `%.1f`\n- power: `%.1f`",
+					inksightData.getVersion(),
+					myself.getName(),
+					myself.getDiscriminator(),
+					mmr,
+					power);
 
 				for (var channelName : ALL_TWITCH_CHANNEL_NAMES) {
-					twitchMessageSender.send(channelName, String.format("Found new stats for player %s: mmr = %.1f, power = %.1f", myself.getName(), mmr, power));
+					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: mmr = %.1f, power = %.1f",
+						myself.getName(),
+						myself.getDiscriminator(),
+						mmr,
+						power));
 				}
 
 				if (inksightData.getHasFlag()) {
@@ -136,12 +159,75 @@ public class S3ReplayCodeLoader implements ScheduledService {
 						.collect(Collectors.toList());
 
 					for (var player : flaggedPlayers) {
-						logSender.queueLogs(log, "Found notes on player `%s`:\n- %s", player.getName(), player.getAnticheat().getInternalReports().stream().reduce((a, b) -> String.format("%s\n- %s", a, b)).orElse(""));
+						logSender.queueLogs(log, "### Found notes on replay\n- player `%s#%s`:\n- %s", player.getName(), player.getDiscriminator(), player.getAnticheat().getInternalReports().stream().reduce((a, b) -> String.format("%s\n- %s", a, b)).orElse(""));
 
 						for (var channelName : ALL_TWITCH_CHANNEL_NAMES) {
-							twitchMessageSender.send(channelName, String.format("Found notes on player %s: %s", player.getName(), player.getAnticheat().getInternalReports().stream().reduce((a, b) -> String.format("%s, %s", a, b)).orElse("")));
+							twitchMessageSender.send(channelName, String.format("Found notes on player %s#%s: %s", player.getName(), player.getDiscriminator(), player.getAnticheat().getInternalReports().stream().reduce((a, b) -> String.format("%s, %s", a, b)).orElse("")));
 						}
 					}
+				}
+
+				var allPlayers = inksightData.getTeams().stream()
+					.flatMap(t -> t.getPlayers().stream())
+					.collect(Collectors.toList());
+				var allPlayersFromResult = savedResult.getTeams().stream()
+					.flatMap(t -> t.getTeamPlayers().stream())
+					.collect(Collectors.toList());
+
+				for (var player : allPlayers) {
+					var playerFromResult = allPlayersFromResult.stream()
+						.filter(p -> p.getName().trim().equals(player.getName().trim()) && p.getNameId().trim().equals(player.getDiscriminator().trim()))
+						.findFirst()
+						.orElse(null);
+
+					if (playerFromResult == null) {
+						logSender.queueLogs(log, "### ERROR during inksight player stats entry creation\n- player `%s#%s` was not in the game\n- result id: `%d`", player.getName(), player.getDiscriminator(), result.getId());
+						continue;
+					}
+
+					var playerMmr = player.getStats().getMmr().orElse(result.getMmr());
+					var playerPower = player.getStats().getXPower().orElse(player.getStats().getMmr().orElse(null));
+					var playerZonesXP = player.getStats().getXPowerZones();
+					var playerTowerXP = player.getStats().getXPowerTower();
+					var playerRainXP = player.getStats().getXPowerRain();
+					var playerClamsXP = player.getStats().getXPowerClams();
+					var playerPlayerLevel = player.getStats().getPlayerLevel();
+
+					var savedPlayerStats = inksightPlayerStatsRepository.save(Splatoon3VsInksightPlayerStats.builder()
+						.power(playerPower)
+						.mmr(playerMmr)
+						.xPowerZones(playerZonesXP)
+						.xPowerTower(playerTowerXP)
+						.xPowerRain(playerRainXP)
+						.xPowerClams(playerClamsXP)
+						.playerLevel(playerPlayerLevel)
+						.result(savedResult)
+						.player(playerFromResult.getPlayer())
+						.build());
+
+					logSender.queueLogs(log, String.format("### Found new Inksight player stats\n" +
+							"- Stats id: `%d`\n" +
+							"- Result id: `%d`\n" +
+							"- Player: id = `%d`, name = `%s#%s`\n" +
+							"- Power: `%.1f`\n" +
+							"- MMR: `%.1f`\n" +
+							"- XP Splat Zones: `%.1f`\n" +
+							"- XP Tower Control: `%.1f`\n" +
+							"- XP Rainmaker: `%.1f`\n" +
+							"- XP Clam Blitz: `%.1f`\n" +
+							"- Player Level: `%d`",
+						savedPlayerStats.getId(),
+						result.getId(),
+						playerFromResult.getPlayerId(),
+						player.getName(),
+						player.getDiscriminator(),
+						savedPlayerStats.getPower(),
+						savedPlayerStats.getMmr(),
+						savedPlayerStats.getXPowerZones(),
+						savedPlayerStats.getXPowerTower(),
+						savedPlayerStats.getXPowerRain(),
+						savedPlayerStats.getXPowerClams(),
+						savedPlayerStats.getPlayerLevel()));
 				}
 
 				return true;

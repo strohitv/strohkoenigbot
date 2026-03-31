@@ -3457,6 +3457,12 @@
         "path": "/2026-03-27",
         "relativeToChangelogFile": true
       }
+    },
+    {
+      "includeAll": {
+        "path": "/changelogs",
+        "relativeToChangelogFile": true
+      }
     }
   ]
 }

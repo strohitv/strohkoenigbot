@@ -1,0 +1,71 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2027-03-31_01-add-specific-x-power-values-from-inksight
+      author: strohkoenig
+      changes:
+        - addColumn:
+            tableName: splatoon_3_vs_result
+            columns:
+              - column:
+                  name: inksight_json_version
+                  type: int
+              - column:
+                  name: x_power_sz
+                  type: double
+              - column:
+                  name: x_power_tc
+                  type: double
+              - column:
+                  name: x_power_rm
+                  type: double
+              - column:
+                  name: x_power_cb
+                  type: double
+              - column:
+                  name: player_level
+                  type: int
+        - createTable:
+            tableName: splatoon_3_vs_inksight_player_stats
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: result_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_inksight_player_stats_vs_result
+                    references: splatoon_3_vs_result(id)
+              - column:
+                  name: player_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_inksight_player_stats_player
+                    references: splatoon_3_player(id)
+              - column:
+                  name: mmr
+                  type: double
+              - column:
+                  name: power
+                  type: double
+              - column:
+                  name: x_power_sz
+                  type: double
+              - column:
+                  name: x_power_tc
+                  type: double
+              - column:
+                  name: x_power_rm
+                  type: double
+              - column:
+                  name: x_power_cb
+                  type: double
+              - column:
+                  name: player_level
+                  type: int

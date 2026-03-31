@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@ToString(exclude = "teams")
+@ToString(exclude = {"teams", "inksightPlayerStats"})
 public class Splatoon3VsResult {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,8 +44,24 @@ public class Splatoon3VsResult {
 
 	private Double mmr;
 
+	private Integer inksightJsonVersion;
+
 	@Lob
 	private String replayJson;
+
+	@Column(name = "x_power_sz")
+	private Double xPowerZones;
+
+	@Column(name = "x_power_tc")
+	private Double xPowerTower;
+
+	@Column(name = "x_power_rm")
+	private Double xPowerRain;
+
+	@Column(name = "x_power_cb")
+	private Double xPowerClams;
+
+	private Integer playerLevel;
 
 	// ---
 
@@ -72,6 +88,10 @@ public class Splatoon3VsResult {
 	@JoinColumn(name = "stage_id")
 	@EqualsAndHashCode.Exclude
 	private Splatoon3VsStage stage;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "result")
+	@EqualsAndHashCode.Exclude
+	private List<Splatoon3VsInksightPlayerStats> inksightPlayerStats;
 
 	@ManyToMany(fetch = FetchType.EAGER)
 	@Fetch(value = FetchMode.SUBSELECT)

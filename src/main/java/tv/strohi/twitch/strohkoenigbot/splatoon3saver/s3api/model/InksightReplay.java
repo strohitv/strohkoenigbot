@@ -29,6 +29,11 @@ public class InksightReplay {
 	private List<KillCounts> killCountsIndexed;
 	private Map<String, List<Integer>> teamColors;
 
+	private List<MatchRecorder> recorders;
+
+	private String matchToken;
+	private String source;
+
 
 	@Getter
 	@Setter
@@ -90,6 +95,7 @@ public class InksightReplay {
 		private PlayerStats stats;
 		private Gear gear;
 		private Anticheat anticheat;
+		private String profileId;
 	}
 
 
@@ -129,7 +135,17 @@ public class InksightReplay {
 		private List<String> medalNames;
 		@JsonProperty("x_power")
 		private Double xPower;
+		@JsonProperty("x_power_sz")
+		private Double xPowerZones;
+		@JsonProperty("x_power_tc")
+		private Double xPowerTower;
+		@JsonProperty("x_power_rm")
+		private Double xPowerRain;
+		@JsonProperty("x_power_cb")
+		private Double xPowerClams;
 		private Double mmr;
+		@JsonProperty("player_rank")
+		private Integer playerLevel;
 
 		@NonNull
 		public Optional<Double> getXPower() {
@@ -208,6 +224,20 @@ public class InksightReplay {
 		private Integer attacker;
 		private Integer victim;
 		private Integer count;
+	}
+
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@ToString
+	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+	public static class MatchRecorder {
+		private String name;
+		private String discriminator;
+		private Integer playerIndex;
+		private String replayCode;
 	}
 }
 
