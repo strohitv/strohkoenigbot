@@ -99,7 +99,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 		if (foundReplay.isPresent()) {
 			var result = foundReplay.get();
 			if (replayJson == null || "ERROR".equalsIgnoreCase(replayJson)) {
-				logSender.queueLogs(log, "ERROR: Could not save InkSight replay for replay code `%s``", replayCode);
+				logSender.queueLogs(log, "ERROR: Could not save InkSight replay for replay code `%s`", replayCode);
 
 				resultRepository.save(result.toBuilder()
 					.mmrLoadFailed(true)
