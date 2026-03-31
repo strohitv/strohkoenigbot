@@ -205,9 +205,9 @@ public class InksightReplay {
 	public static class Anticheat {
 		private String status;
 		private List<Nothing> deviations;
-		private List<Nothing> deviationLabels;
+		private List<String> deviationLabels;
 		private List<String> internalReports;
-		private Nothing integritySummary;
+		private String integritySummary;
 		private Boolean skipDetected;
 		private Boolean disconnected;
 		private Long usableCycles;
