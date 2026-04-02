@@ -717,7 +717,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "SendouQ match was loaded successfully...");
 			} else if (lowercaseMessage.startsWith("!replay reset")) {
-				var allReplayCodes = message.substring("!replay reset".length()).split("\\s");
+				var allReplayCodes = message.substring("!replay reset".length()).trim().split("\\s+");
 
 				for (var replayCode : allReplayCodes) {
 					logSender.sendLogs(log, "Attempting to reset mmrLoadFailed field of replayCode `%s`...", replayCode);
