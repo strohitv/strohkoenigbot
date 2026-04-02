@@ -3,8 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
 import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
@@ -26,6 +25,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
@@ -47,8 +47,9 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class DiscordAdministrationAction extends ChatAction {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 	private final StrohkoenigbotApplication strohkoenigbotApplication;
 
@@ -450,7 +451,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 						discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), String.format("Successfully set Splatoon Cookie of account to: `%s`", account.getSplatoonCookie()));
 					} catch (Exception e) {
-						exceptionLogger.logExceptionAsAttachment(logger, "An error happened while setting Splatoon cookie", e);
+						exceptionLogger.logExceptionAsAttachment(log, "An error happened while setting Splatoon cookie", e);
 					}
 				} else {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Could not find main account");
@@ -582,7 +583,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 				var powers = leaderboardDownloader.loadTop500MinPower();
 				var builder = new StringBuilder("current top 500 powers:");
-				for (var regionName: powers.keySet()) {
+				for (var regionName : powers.keySet()) {
 					for (var key : powers.get(regionName).keySet()) {
 						builder.append("\n- ").append(regionName).append(" - ").append(findModeName(key)).append(": ").append(powers.get(regionName).get(key));
 					}
@@ -609,7 +610,7 @@ public class DiscordAdministrationAction extends ChatAction {
 
 					s3GameExporter.exportGames(DiscordBot.ADMIN_ID, top, skip);
 				} catch (Exception ex) {
-					exceptionLogger.logExceptionAsAttachment(logger, "Exception while exporting Games.", ex);
+					exceptionLogger.logExceptionAsAttachment(log, "Exception while exporting Games.", ex);
 				}
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Finished exporting missed s3s entries to file.");
@@ -715,9 +716,24 @@ public class DiscordAdministrationAction extends ChatAction {
 					});
 
 				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "SendouQ match was loaded successfully...");
+			} else if (lowercaseMessage.startsWith("!replay reset")) {
+				var allReplayCodes = message.substring("!replay reset".length()).split("\\s");
+
+				for (var replayCode : allReplayCodes) {
+					logSender.sendLogs(log, "Attempting to reset mmrLoadFailed field of replayCode `%s`...", replayCode);
+
+					resultRepository.findByReplayCodeAndMmrLoadFailedTrue(replayCode)
+						.ifPresent(r -> {
+							resultRepository.save(r.toBuilder()
+								.mmrLoadFailed(false)
+								.build());
+
+							logSender.sendLogs(log, "ReplayCode `%s` had its mmrLoadFailed field reset", replayCode);
+						});
+				}
 			}
 		} catch (Exception e) {
-			exceptionLogger.logExceptionAsAttachment(logger, "An error occured during admin command execution\nSee logs for details!", e);
+			exceptionLogger.logExceptionAsAttachment(log, "An error occured during admin command execution\nSee logs for details!", e);
 		}
 	}
 

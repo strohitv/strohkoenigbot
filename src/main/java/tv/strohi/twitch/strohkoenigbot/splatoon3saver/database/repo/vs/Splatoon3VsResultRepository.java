@@ -24,6 +24,7 @@ public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsR
 
 	Optional<Splatoon3VsResult> findTopByOrderByIdDesc();
 
+	Optional<Splatoon3VsResult> findByReplayCodeAndMmrLoadFailedTrue(String replayCode);
 	Optional<Splatoon3VsResult> findByReplayCodeAndMmrLoadFailedFalseAndReplayJsonNull(String replayCode);
 	List<Splatoon3VsResult> findAllByReplayCodeNotNullAndMmrLoadFailedFalseAndReplayJsonNull();
 
