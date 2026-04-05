@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -21,6 +22,8 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
+import javax.transaction.Transactional;
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,6 +96,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 			.collect(Collectors.toList());
 	}
 
+	@Transactional
 	public boolean addReplayData(String replayCode, String replayJson) {
 		var foundReplay = resultRepository.findByReplayCodeAndMmrLoadFailedFalseAndReplayJsonNull(replayCode);
 
@@ -118,38 +122,52 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					.orElseThrow();
 
 				var mmr = myself.getStats().getMmr().orElse(result.getMmr());
+				var innerMmr = myself.getStats().getInnerMmr();
 				var power = myself.getStats().getXPower().orElse(myself.getStats().getMmr().orElse(result.getPower()));
 				var zonesXP = myself.getStats().getXPowerZones();
 				var towerXP = myself.getStats().getXPowerTower();
 				var rainXP = myself.getStats().getXPowerRain();
 				var clamsXP = myself.getStats().getXPowerClams();
 				var playerLevel = myself.getStats().getPlayerLevel();
+				var alivePct = myself.getStats().getAlivePct();
 
 				var savedResult = resultRepository.save(result.toBuilder()
 					.inksightJsonVersion(inksightData.getVersion())
 					.replayJson(replayJson)
 					.mmr(mmr)
+					.innerMmr(innerMmr)
 					.power(power)
 					.xPowerZones(zonesXP)
 					.xPowerTower(towerXP)
 					.xPowerRain(rainXP)
 					.xPowerClams(clamsXP)
+					.alivePct(alivePct)
 					.playerLevel(playerLevel)
 					.build());
 
-				logSender.queueLogs(log, "# Found new InkSight replay\n- version: `%d`\n- player: `%s#%s`\n- mmr: `%.1f`\n- power: `%.1f`",
+				var gameDuration = Duration.ofSeconds(result.getDuration());
+				var ownAliveDuration = Duration.ofSeconds((int) (result.getDuration() * alivePct / 100));
+				var ownDeadDuration = gameDuration.minus(ownAliveDuration);
+
+				logSender.queueLogs(log, "# Found new InkSight replay\n- version: `%d`\n- player: `%s#%s`\n- mmr: `%.1f`\n- power: `%.1f`\n- (game time): `%02d:%02d`",
 					inksightData.getVersion(),
 					myself.getName(),
 					myself.getDiscriminator(),
 					mmr,
-					power);
+					power,
+					gameDuration.toMinutesPart(),
+					gameDuration.toSecondsPart());
 
 				for (var channelName : ALL_TWITCH_CHANNEL_NAMES) {
-					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: mmr = %.1f, power = %.1f",
+					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: mmr = %.1f, power = %.1f, alive time = %02d:%02d, dead time = %02d:%02d",
 						myself.getName(),
 						myself.getDiscriminator(),
 						mmr,
-						power));
+						power,
+						ownAliveDuration.toMinutesPart(),
+						ownAliveDuration.toSecondsPart(),
+						ownDeadDuration.toMinutesPart(),
+						ownDeadDuration.toSecondsPart()));
 				}
 
 				if (inksightData.getHasFlag()) {
@@ -186,36 +204,46 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					}
 
 					var playerMmr = player.getStats().getMmr().orElse(result.getMmr());
+					var playerInnerMmr = player.getStats().getInnerMmr();
 					var playerPower = player.getStats().getXPower().orElse(player.getStats().getMmr().orElse(null));
 					var playerZonesXP = player.getStats().getXPowerZones();
 					var playerTowerXP = player.getStats().getXPowerTower();
 					var playerRainXP = player.getStats().getXPowerRain();
 					var playerClamsXP = player.getStats().getXPowerClams();
 					var playerPlayerLevel = player.getStats().getPlayerLevel();
+					var playerAlivePct = player.getStats().getAlivePct();
 
 					var savedPlayerStats = inksightPlayerStatsRepository.save(Splatoon3VsInksightPlayerStats.builder()
 						.power(playerPower)
 						.mmr(playerMmr)
+						.innerMmr(playerInnerMmr)
 						.xPowerZones(playerZonesXP)
 						.xPowerTower(playerTowerXP)
 						.xPowerRain(playerRainXP)
 						.xPowerClams(playerClamsXP)
 						.playerLevel(playerPlayerLevel)
+						.alivePct(playerAlivePct)
 						.result(savedResult)
 						.player(playerFromResult.getPlayer())
 						.build());
 
+					var aliveDuration = Duration.ofSeconds((int) (result.getDuration() * savedPlayerStats.getAlivePct() / 100));
+					var deadDuration = gameDuration.minus(aliveDuration);
 					logSender.queueLogs(log, String.format("### Found new Inksight player stats\n" +
 							"- Stats id: `%d`\n" +
 							"- Result id: `%d`\n" +
 							"- Player: id = `%d`, name = `%s#%s`\n" +
 							"- Power: `%.1f`\n" +
 							"- MMR: `%.1f`\n" +
+							"- Inner MMR: `%.1f`\n" +
 							"- XP Splat Zones: `%.1f`\n" +
 							"- XP Tower Control: `%.1f`\n" +
 							"- XP Rainmaker: `%.1f`\n" +
 							"- XP Clam Blitz: `%.1f`\n" +
-							"- Player Level: `%d`",
+							"- Player Level: `%d`\n" +
+							"- Alive Percentage: `%.1f`\n" +
+							"= Alive time: `%02d:%02d`\n" +
+							"= Dead time: `%02d:%02d`",
 						savedPlayerStats.getId(),
 						result.getId(),
 						playerFromResult.getPlayerId(),
@@ -223,15 +251,25 @@ public class S3ReplayCodeLoader implements ScheduledService {
 						player.getDiscriminator(),
 						savedPlayerStats.getPower(),
 						savedPlayerStats.getMmr(),
+						savedPlayerStats.getInnerMmr(),
 						savedPlayerStats.getXPowerZones(),
 						savedPlayerStats.getXPowerTower(),
 						savedPlayerStats.getXPowerRain(),
 						savedPlayerStats.getXPowerClams(),
-						savedPlayerStats.getPlayerLevel()));
+						savedPlayerStats.getPlayerLevel(),
+						savedPlayerStats.getAlivePct(),
+						aliveDuration.toMinutesPart(),
+						aliveDuration.toSecondsPart(),
+						deadDuration.toMinutesPart(),
+						deadDuration.toSecondsPart()));
 				}
 
 				return true;
 			} catch (Exception ex) {
+				if (ex instanceof UnrecognizedPropertyException) {
+					logSender.sendLogsAsAttachment(log, "Could not parse replayJson!", replayJson);
+				}
+
 				resultRepository.save(result.toBuilder()
 					.mmrLoadFailed(true)
 					.build());

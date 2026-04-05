@@ -143,6 +143,8 @@ public class InksightReplay {
 		private Double xPowerRain;
 		@JsonProperty("x_power_cb")
 		private Double xPowerClams;
+		private Double innerMmr;
+		private Double alivePct;
 		private Double mmr;
 		@JsonProperty("player_rank")
 		private Integer playerLevel;

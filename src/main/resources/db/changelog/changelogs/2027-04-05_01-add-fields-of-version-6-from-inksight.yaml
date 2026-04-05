@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2027-03-31_01-add-specific-x-power-values-from-inksight
+      author: strohkoenig
+      changes:
+        - addColumn:
+            tableName: splatoon_3_vs_result
+            columns:
+              - column:
+                  name: inner_mmr
+                  type: double
+              - column:
+                  name: alive_pct
+                  type: double
+        - addColumn:
+            tableName: splatoon_3_vs_inksight_player_stats
+            columns:
+              - column:
+                  name: inner_mmr
+                  type: double
+              - column:
+                  name: alive_pct
+                  type: double

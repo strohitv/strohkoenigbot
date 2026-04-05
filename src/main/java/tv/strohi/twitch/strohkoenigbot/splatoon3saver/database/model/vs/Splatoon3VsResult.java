@@ -61,6 +61,10 @@ public class Splatoon3VsResult {
 	@Column(name = "x_power_cb")
 	private Double xPowerClams;
 
+	private Double innerMmr;
+
+	private Double alivePct;
+
 	private Integer playerLevel;
 
 	// ---
