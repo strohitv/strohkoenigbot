@@ -87,6 +87,12 @@ public class SplatNet3DataController {
 					.refillGreedy(5, Duration.ofMinutes(1))
 					.build())
 				.build(),
+			"gtoken", Bucket.builder()
+				.addLimit(Bandwidth.builder()
+					.capacity(5)
+					.refillGreedy(5, Duration.ofMinutes(1))
+					.build())
+				.build(),
 			"get-replay-queue", Bucket.builder()
 				.addLimit(Bandwidth.builder()
 					.capacity(5)
@@ -160,6 +166,34 @@ public class SplatNet3DataController {
 			}
 
 			return ResponseEntity.ok().build();
+		}
+
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+	}
+
+	@GetMapping(value = "gtoken")
+	@CrossOrigin(
+		origins = {"https://api.lp1.av5ja.srv.nintendo.net"},
+		allowCredentials = "true")
+	public ResponseEntity<String> getGToken(@RequestHeader("Authorization") String auth) {
+		if (buckets.get("gtoken").tryConsume(1)) {
+			var authCheckResult = doAuthCheck(auth, "gToken retrieval", String.class);
+
+			if (authCheckResult.isPresent()) {
+				return authCheckResult.get();
+			}
+
+			var account = accountRepository.findByIsMainAccount(true).stream()
+				.findFirst()
+				.orElse(null);
+
+			if (account == null) {
+				logSender.queueLogs(log, "### ERROR during gToken retrieval!\nNo main account found!");
+				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
+			}
+
+			logSender.queueLogs(log, "Someone successfully loaded gToken!");
+			return ResponseEntity.ok(account.getGTokenSplatoon3());
 		}
 
 		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
