@@ -149,14 +149,12 @@ public class S3ReplayCodeLoader implements ScheduledService {
 				var ownAliveDuration = Duration.ofSeconds((int) (result.getDuration() * alivePct / 100));
 				var ownDeadDuration = gameDuration.minus(ownAliveDuration);
 
-				logSender.queueLogs(log, "# Found new InkSight replay\n- version: `%d`\n- player: `%s#%s`\n- mmr: `%.1f`\n- power: `%.1f`\n- (game time): `%02d:%02d`",
-					inksightData.getVersion(),
-					myself.getName(),
-					myself.getDiscriminator(),
-					mmr,
-					power,
-					gameDuration.toMinutesPart(),
-					gameDuration.toSecondsPart());
+				var summaryMarkdownBuilder = new StringBuilder("# InkSight replay\n")
+					.append("- result id: `").append(result.getId()).append("`\n")
+					.append("- version: `").append(inksightData.getVersion()).append("`\n")
+					.append("- player: `").append(myself.getName()).append("#").append(myself.getDiscriminator()).append("`\n")
+					.append("- mmr: `").append(mmr).append("`\n")
+					.append("- power: `").append(power).append("`\n");
 
 				for (var channelName : ALL_TWITCH_CHANNEL_NAMES) {
 					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: mmr = %.1f, power = %.1f, alive time = %02d:%02d, dead time = %02d:%02d",
@@ -175,8 +173,14 @@ public class S3ReplayCodeLoader implements ScheduledService {
 						.flatMap(t -> t.getPlayers().stream())
 						.filter(p -> !p.getAnticheat().getInternalReports().isEmpty())
 						.collect(Collectors.toList());
+					summaryMarkdownBuilder.append("\n## Found flags\n");
 
 					for (var player : flaggedPlayers) {
+						summaryMarkdownBuilder.append("- player: `").append(player.getName()).append("#").append(player.getDiscriminator()).append("\n");
+						for (var flag : player.getAnticheat().getInternalReports()) {
+							summaryMarkdownBuilder.append("    - ").append(flag).append("\n");
+						}
+
 						logSender.queueLogs(log, "### Found notes on replay\n- player `%s#%s`:\n- %s", player.getName(), player.getDiscriminator(), player.getAnticheat().getInternalReports().stream().reduce((a, b) -> String.format("%s\n- %s", a, b)).orElse(""));
 
 						for (var channelName : ALL_TWITCH_CHANNEL_NAMES) {
@@ -185,85 +189,70 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					}
 				}
 
-				var allPlayers = inksightData.getTeams().stream()
-					.flatMap(t -> t.getPlayers().stream())
-					.collect(Collectors.toList());
 				var allPlayersFromResult = savedResult.getTeams().stream()
 					.flatMap(t -> t.getTeamPlayers().stream())
 					.collect(Collectors.toList());
 
-				for (var player : allPlayers) {
-					var playerFromResult = allPlayersFromResult.stream()
-						.filter(p -> p.getName().trim().equals(player.getName().trim()) && p.getNameId().trim().equals(player.getDiscriminator().trim()))
-						.findFirst()
-						.orElse(null);
+				var teamNumber = 1;
+				for (var team : inksightData.getTeams()) {
+					summaryMarkdownBuilder.append("\n## Team ").append(teamNumber).append("\n")
+						.append("- result: `").append(team.getIsWinner() ? "WIN" : "LOSE").append("`\n");
+					teamNumber++;
 
-					if (playerFromResult == null) {
-						logSender.queueLogs(log, "### ERROR during inksight player stats entry creation\n- player `%s#%s` was not in the game\n- result id: `%d`", player.getName(), player.getDiscriminator(), result.getId());
-						continue;
+					for (var player : team.getPlayers()) {
+						var playerFromResult = allPlayersFromResult.stream()
+							.filter(p -> p.getName().trim().equals(player.getName().trim()) && p.getNameId().trim().equals(player.getDiscriminator().trim()))
+							.findFirst()
+							.orElse(null);
+
+						var playerMmr = player.getStats().getMmr().orElse(result.getMmr());
+						var playerInnerMmr = player.getStats().getInnerMmr();
+						var playerPower = player.getStats().getXPower().orElse(player.getStats().getMmr().orElse(null));
+						var playerZonesXP = player.getStats().getXPowerZones();
+						var playerTowerXP = player.getStats().getXPowerTower();
+						var playerRainXP = player.getStats().getXPowerRain();
+						var playerClamsXP = player.getStats().getXPowerClams();
+						var playerPlayerLevel = player.getStats().getPlayerLevel();
+						var playerAlivePct = player.getStats().getAlivePct();
+
+						var aliveDuration = Duration.ofSeconds((int) (result.getDuration() * playerAlivePct / 100));
+						var deadDuration = gameDuration.minus(aliveDuration);
+
+						summaryMarkdownBuilder.append("\n### Player #`").append(playerFromResult != null ? playerFromResult.getPlayerId() : "UNKNOWN ID").append("`: `").append(player.getName()).append("#").append(player.getDiscriminator()).append("`\n")
+							.append("- Power: `").append(String.format("%.1f", playerPower)).append("`\n")
+							.append("- MMR: `").append(String.format("%.1f", playerMmr)).append("`\n")
+							.append("- Inner MMR: `").append(String.format("%.1f", playerInnerMmr)).append("`\n")
+							.append("- XP Splat Zones: `").append(String.format("%.1f", playerZonesXP)).append("`\n")
+							.append("- XP Tower Control: `").append(String.format("%.1f", playerTowerXP)).append("`\n")
+							.append("- XP Rainmaker: `").append(String.format("%.1f", playerRainXP)).append("`\n")
+							.append("- XP Clam Blitz: `").append(String.format("%.1f", playerClamsXP)).append("`\n")
+							.append("- Player Level: `").append(String.format("%d", playerPlayerLevel)).append("`\n")
+							.append("- Alive Percentage: `").append(String.format("%.1f", playerAlivePct)).append("`\n")
+							.append("- = Alive time: `").append(aliveDuration.toMinutesPart()).append(":").append(aliveDuration.toSecondsPart()).append("`\n")
+							.append("- = Dead time: `").append(deadDuration.toMinutesPart()).append(":").append(deadDuration.toSecondsPart()).append("`\n");
+
+						if (playerFromResult == null) {
+							logSender.queueLogs(log, "### ERROR during inksight player stats entry creation\n- player `%s#%s` was not in the game\n- result id: `%d`", player.getName(), player.getDiscriminator(), result.getId());
+							continue;
+						}
+
+						inksightPlayerStatsRepository.save(Splatoon3VsInksightPlayerStats.builder()
+							.power(playerPower)
+							.mmr(playerMmr)
+							.innerMmr(playerInnerMmr)
+							.xPowerZones(playerZonesXP)
+							.xPowerTower(playerTowerXP)
+							.xPowerRain(playerRainXP)
+							.xPowerClams(playerClamsXP)
+							.playerLevel(playerPlayerLevel)
+							.alivePct(playerAlivePct)
+							.result(savedResult)
+							.player(playerFromResult.getPlayer())
+							.build());
 					}
-
-					var playerMmr = player.getStats().getMmr().orElse(result.getMmr());
-					var playerInnerMmr = player.getStats().getInnerMmr();
-					var playerPower = player.getStats().getXPower().orElse(player.getStats().getMmr().orElse(null));
-					var playerZonesXP = player.getStats().getXPowerZones();
-					var playerTowerXP = player.getStats().getXPowerTower();
-					var playerRainXP = player.getStats().getXPowerRain();
-					var playerClamsXP = player.getStats().getXPowerClams();
-					var playerPlayerLevel = player.getStats().getPlayerLevel();
-					var playerAlivePct = player.getStats().getAlivePct();
-
-					var savedPlayerStats = inksightPlayerStatsRepository.save(Splatoon3VsInksightPlayerStats.builder()
-						.power(playerPower)
-						.mmr(playerMmr)
-						.innerMmr(playerInnerMmr)
-						.xPowerZones(playerZonesXP)
-						.xPowerTower(playerTowerXP)
-						.xPowerRain(playerRainXP)
-						.xPowerClams(playerClamsXP)
-						.playerLevel(playerPlayerLevel)
-						.alivePct(playerAlivePct)
-						.result(savedResult)
-						.player(playerFromResult.getPlayer())
-						.build());
-
-					var aliveDuration = Duration.ofSeconds((int) (result.getDuration() * savedPlayerStats.getAlivePct() / 100));
-					var deadDuration = gameDuration.minus(aliveDuration);
-					logSender.queueLogs(log, String.format("### Found new Inksight player stats\n" +
-							"- Stats id: `%d`\n" +
-							"- Result id: `%d`\n" +
-							"- Player: id = `%d`, name = `%s#%s`\n" +
-							"- Power: `%.1f`\n" +
-							"- MMR: `%.1f`\n" +
-							"- Inner MMR: `%.1f`\n" +
-							"- XP Splat Zones: `%.1f`\n" +
-							"- XP Tower Control: `%.1f`\n" +
-							"- XP Rainmaker: `%.1f`\n" +
-							"- XP Clam Blitz: `%.1f`\n" +
-							"- Player Level: `%d`\n" +
-							"- Alive Percentage: `%.1f`\n" +
-							"= Alive time: `%02d:%02d`\n" +
-							"= Dead time: `%02d:%02d`",
-						savedPlayerStats.getId(),
-						result.getId(),
-						playerFromResult.getPlayerId(),
-						player.getName(),
-						player.getDiscriminator(),
-						savedPlayerStats.getPower(),
-						savedPlayerStats.getMmr(),
-						savedPlayerStats.getInnerMmr(),
-						savedPlayerStats.getXPowerZones(),
-						savedPlayerStats.getXPowerTower(),
-						savedPlayerStats.getXPowerRain(),
-						savedPlayerStats.getXPowerClams(),
-						savedPlayerStats.getPlayerLevel(),
-						savedPlayerStats.getAlivePct(),
-						aliveDuration.toMinutesPart(),
-						aliveDuration.toSecondsPart(),
-						deadDuration.toMinutesPart(),
-						deadDuration.toSecondsPart()));
 				}
 
+				logSender.sendLogsAsAttachment(log, "# Found new InkSight replay", summaryMarkdownBuilder.toString());
 				return true;
 			} catch (Exception ex) {
 				if (ex instanceof UnrecognizedPropertyException) {
