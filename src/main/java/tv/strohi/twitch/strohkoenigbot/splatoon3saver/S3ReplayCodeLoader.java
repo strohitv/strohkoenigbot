@@ -150,6 +150,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 				var ownDeadDuration = gameDuration.minus(ownAliveDuration);
 
 				var summaryMarkdownBuilder = new StringBuilder("# InkSight replay\n")
+					.append("- replay code: `").append(replayCode).append("`\n")
 					.append("- result id: `").append(result.getId()).append("`\n")
 					.append("- version: `").append(inksightData.getVersion()).append("`\n")
 					.append("- player: `").append(myself.getName()).append("#").append(myself.getDiscriminator()).append("`\n")
