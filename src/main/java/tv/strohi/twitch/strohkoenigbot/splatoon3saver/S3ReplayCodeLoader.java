@@ -65,6 +65,8 @@ public class S3ReplayCodeLoader implements ScheduledService {
 				var replays = objectMapper.readValue(replaysResponse, ReplayResult.class);
 				var allReplays = replays.getData().getReplays().getNodes();
 
+				var builder = new StringBuilder();
+
 				for (var replay : allReplays) {
 					resultRepository.findByPlayedTimeBetween(
 							replay.getHistoryDetail().getPlayedTimeAsInstant().minus(10, ChronoUnit.MINUTES),
@@ -78,8 +80,14 @@ public class S3ReplayCodeLoader implements ScheduledService {
 								.replayCode(replay.getReplayCode())
 								.build());
 
-							logSender.queueLogs(log, "Replay code `%s` was added to battle with id `%d`.", replay.getReplayCode(), result.getId());
+							builder.append("- Replay code `").append(replay.getReplayCode()).append("` was added to battle with id `").append(result.getId()).append("`.\n");
 						});
+				}
+
+				if (builder.length() > 0) {
+					var allQueuedGames = resultRepository.findAllByReplayCodeNotNullAndMmrLoadFailedFalseAndReplayJsonNull();
+
+					logSender.queueLogs(log, "# Found new replay codes\nTotal amount of replay codes in queue: **%d** battles\n%s", allQueuedGames.size(), builder.toString().trim());
 				}
 
 				System.out.println("done");
