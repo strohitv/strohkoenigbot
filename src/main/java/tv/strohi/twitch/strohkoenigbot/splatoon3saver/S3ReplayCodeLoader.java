@@ -26,6 +26,7 @@ import javax.transaction.Transactional;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static tv.strohi.twitch.strohkoenigbot.utils.Constants.ALL_TWITCH_CHANNEL_NAMES;
@@ -210,7 +211,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 
 					for (var player : team.getPlayers()) {
 						var playerFromResult = allPlayersFromResult.stream()
-							.filter(p -> p.getName().trim().equals(player.getName().trim()) && p.getNameId().trim().equals(player.getDiscriminator().trim()))
+							.filter(p -> p.getName().trim().equals(player.getName().trim()) && p.getNameId().trim().equals(Optional.ofNullable(player.getDiscriminator()).orElse("").trim()))
 							.findFirst()
 							.orElse(null);
 

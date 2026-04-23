@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
+import org.springframework.lang.Nullable;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Nothing;
 
 import java.util.List;
@@ -84,6 +85,7 @@ public class InksightReplay {
 	public static class PlayerData {
 		private String playerIndex;
 		private String name;
+		@Nullable
 		private String discriminator;
 		@JsonProperty("is_recorder")
 		private Boolean isRecorder;
@@ -237,6 +239,7 @@ public class InksightReplay {
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 	public static class MatchRecorder {
 		private String name;
+		@Nullable
 		private String discriminator;
 		private Integer playerIndex;
 		private String replayCode;
