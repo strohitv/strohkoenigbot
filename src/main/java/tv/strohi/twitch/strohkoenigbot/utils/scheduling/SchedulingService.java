@@ -32,7 +32,6 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 public class SchedulingService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
 	private final static int MAX_ERRORS_SINGLE = 3;
@@ -76,7 +75,6 @@ public class SchedulingService {
 
 			if (!schedule.isFailed(MAX_ERRORS_SINGLE) && schedule.shouldRun(now)) {
 				logger.info("running single run job `{}`...", schedule.getName());
-				logSender.sendLogs(logger, "Running single run job `%s`", schedule.getName());
 
 				try {
 					executor
@@ -109,7 +107,6 @@ public class SchedulingService {
 
 			if (!schedule.isFailed(MAX_ERRORS_REPEATED) && schedule.shouldRun(now)) {
 				logger.info("running repeated job `{}`...", schedule.getName());
-				logSender.sendLogs(logger, "Running repeated job `%s`", schedule.getName());
 
 				try {
 					executor
