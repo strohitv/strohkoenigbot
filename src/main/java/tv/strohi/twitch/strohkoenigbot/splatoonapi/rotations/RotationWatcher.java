@@ -253,11 +253,17 @@ public class RotationWatcher implements ScheduledService {
 	}
 
 	private void saveStagesInDatabase(SplatNetStages.SplatNetRotation[] rotations) {
+		long highestId = rotationRepository.findTop1ByOrderByIdDesc().map(Splatoon2Rotation::getId).orElse(Instant.now().getEpochSecond());
+		var index = 0;
+
 		for (SplatNetStages.SplatNetRotation rotation : rotations) {
 			var storeRotationIntoDatabase = rotationRepository.findBySplatoonApiIdAndMode(rotation.getId(), Splatoon2Mode.getModeByName(rotation.getGame_mode().getKey())) == null;
 
 			if (storeRotationIntoDatabase) {
+				index++;
+
 				Splatoon2Rotation newRotation = new Splatoon2Rotation();
+				newRotation.setId(highestId + index);
 				newRotation.setSplatoonApiId(rotation.getId());
 
 				newRotation.setStartTime(rotation.getStart_time());
@@ -404,7 +410,7 @@ public class RotationWatcher implements ScheduledService {
 			timezone = "Europe/Berlin";
 		}
 
-		if (Instant.now().atZone(ZoneId.of(timezone)).plus(4, ChronoUnit.HOURS).isAfter(rotation.getStartTimeAsInstant().atZone(ZoneId.of(timezone)))) {
+		if (Instant.now().atZone(ZoneId.of(timezone)).plusHours(4).isAfter(rotation.getStartTimeAsInstant().atZone(ZoneId.of(timezone)))) {
 			builder.append(String.format("Current **%s** rotation\n", rotation.getGame_mode().getName()));
 		} else {
 			builder.append(String.format("New **%s** rotation will start in **%d** hours",
