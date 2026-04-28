@@ -19,7 +19,7 @@ import java.time.Instant;
 public class Splatoon2Rotation {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	private Long splatoonApiId;
 

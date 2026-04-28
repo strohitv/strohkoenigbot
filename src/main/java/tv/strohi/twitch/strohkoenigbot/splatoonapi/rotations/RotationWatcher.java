@@ -308,7 +308,7 @@ public class RotationWatcher implements ScheduledService {
 		var currentEx = ex;
 		int number = 1;
 		while (currentEx != null && !banList.contains(currentEx)) {
-			logSender.queueLogs(logger, "## Exception #%d\n- message: **%s**\n- Stacktrace:\n```\nat %s\n```",
+			logSender.queueLogs(logger, "## Exception #%d\n- message: **%s**\n- Stacktrace:\n```\n%s\n```",
 				number,
 				currentEx.getMessage(),
 				Arrays.stream(currentEx.getStackTrace())

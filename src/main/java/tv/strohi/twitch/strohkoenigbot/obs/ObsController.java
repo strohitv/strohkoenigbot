@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 
 @Component
 @RequiredArgsConstructor
+@Deprecated(forRemoval = true)
 public class ObsController implements ScheduledService {
 	private static final Logger logger = LogManager.getLogger(ObsController.class.getSimpleName());
 	private static final String OBS_SWITCH_NAME = "obsControllerEnabled";
