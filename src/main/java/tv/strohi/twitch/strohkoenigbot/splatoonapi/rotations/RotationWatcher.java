@@ -276,12 +276,14 @@ public class RotationWatcher implements ScheduledService {
 					logSender.queueLogs(logger, String.format("```\n%s\n```", newRotation));
 					rotationRepository.save(newRotation);
 				} catch (Exception ex) {
-					logSender.queueLogs(logger, "Exception Message: %s\n```\n%s\n```", ex.getMessage(), ex);
+					printException(ex);
+//					logSender.queueLogs(logger, "Exception Message: %s\n```\n%s\n```", ex.getMessage(), ex);
 
 					try {
 						exceptionLogger.logExceptionAsAttachment(logger, "Exception while saving the new Rotation", ex);
 					} catch (Exception weirdEx) {
-						logSender.queueLogs(logger, "Exception Message: %s\n```\n%s\n```", weirdEx.getMessage(), weirdEx);
+						printException(ex);
+//						logSender.queueLogs(logger, "Exception Message: %s\n```\n%s\n```", weirdEx.getMessage(), weirdEx);
 					}
 				}
 
@@ -297,6 +299,27 @@ public class RotationWatcher implements ScheduledService {
 						newRotation.getStartTimeAsInstant(),
 						newRotation.getEndTimeAsInstant()));
 			}
+		}
+	}
+
+	private void printException(Throwable ex) {
+		var banList = new ArrayList<Throwable>();
+
+		var currentEx = ex;
+		int number = 1;
+		while (currentEx != null && !banList.contains(currentEx)) {
+			logSender.queueLogs(logger, "## Exception #%d\n- message: **%s**\n- Stacktrace:\n```\nat %s\n```",
+				number,
+				currentEx.getMessage(),
+				Arrays.stream(currentEx.getStackTrace())
+					.map(a -> String.format("at %s", a))
+					.reduce((a, b) -> String.format("%s\n%s", a, b))
+					.orElse("!!!UNKNOWN STACKTRACE!!!")
+				);
+
+			number++;
+			banList.add(currentEx);
+			currentEx = currentEx.getCause();
 		}
 	}
 
