@@ -131,7 +131,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					.orElseThrow();
 
 				var mmr = myself.getStats().getMmr().orElse(result.getMmr());
-				var innerMmr = myself.getStats().getInnerMmr();
+				var innerMmr = myself.getStats().getInnerMmr() * 4;
 				var power = myself.getStats().getXPower().orElse(myself.getStats().getMmr().orElse(result.getPower()));
 				var zonesXP = myself.getStats().getXPowerZones();
 				var towerXP = myself.getStats().getXPowerTower();
@@ -164,14 +164,16 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					.append("- version: `").append(inksightData.getVersion()).append("`\n")
 					.append("- player: `").append(myself.getName()).append("#").append(myself.getDiscriminator()).append("`\n")
 					.append("- mmr: `").append(mmr).append("`\n")
-					.append("- power: `").append(power).append("`\n");
+					.append("- power: `").append(power).append("`\n")
+					.append("- inner mmr: `").append(innerMmr).append("`\n");
 
 				for (var channelName : ALL_TWITCH_CHANNEL_NAMES) {
-					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: mmr = %.1f, power = %.1f, alive time = %02d:%02d, dead time = %02d:%02d",
+					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: mmr = %.1f, power = %.1f, inner mmr = %.1f, alive time = %02d:%02d, dead time = %02d:%02d",
 						myself.getName(),
 						myself.getDiscriminator(),
 						mmr,
 						power,
+						innerMmr,
 						ownAliveDuration.toMinutesPart(),
 						ownAliveDuration.toSecondsPart(),
 						ownDeadDuration.toMinutesPart(),
@@ -216,7 +218,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 							.orElse(null);
 
 						var playerMmr = player.getStats().getMmr().orElse(result.getMmr());
-						var playerInnerMmr = player.getStats().getInnerMmr();
+						var playerInnerMmr = player.getStats().getInnerMmr() * 4;
 						var playerPower = player.getStats().getXPower().orElse(player.getStats().getMmr().orElse(null));
 						var playerZonesXP = player.getStats().getXPowerZones();
 						var playerTowerXP = player.getStats().getXPowerTower();
