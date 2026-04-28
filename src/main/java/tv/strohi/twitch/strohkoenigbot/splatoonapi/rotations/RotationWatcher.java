@@ -18,6 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2RotationNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2RotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -43,6 +44,18 @@ public class RotationWatcher implements ScheduledService {
 	private SplatNetStages stages = null;
 
 	private RequestSender stagesLoader;
+
+	@Autowired
+	public void setStagesLoader(RequestSender stagesLoader) {
+		this.stagesLoader = stagesLoader;
+	}
+
+	private LogSender logSender;
+
+	@Autowired
+	public void setLogSender(LogSender logSender) {
+		this.logSender = logSender;
+	}
 
 	private StagesExporter stagesExporter;
 
@@ -70,11 +83,6 @@ public class RotationWatcher implements ScheduledService {
 	@Autowired
 	public void setNotificationRepository(Splatoon2RotationNotificationRepository notificationRepository) {
 		this.notificationRepository = notificationRepository;
-	}
-
-	@Autowired
-	public void setStagesLoader(RequestSender stagesLoader) {
-		this.stagesLoader = stagesLoader;
 	}
 
 	private TwitchMessageSender channelMessageSender;
@@ -143,19 +151,19 @@ public class RotationWatcher implements ScheduledService {
 		if (stages != null) {
 			if (Arrays.stream(stages.getGachi()).allMatch(s -> s.getEndTimeAsInstant().isAfter(Instant.now().plus(1, ChronoUnit.HOURS)))) {
 				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getS2TurfWarChannel(),
-						formatDiscordMessage(stages.getRegular()),
-						stages.getRegular()[0].getStage_a().getImage(),
-						stages.getRegular()[0].getStage_b().getImage());
+					formatDiscordMessage(stages.getRegular()),
+					stages.getRegular()[0].getStage_a().getImage(),
+					stages.getRegular()[0].getStage_b().getImage());
 
 				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getS2RankedChannel(),
-						formatDiscordMessage(stages.getGachi()),
-						stages.getGachi()[0].getStage_a().getImage(),
-						stages.getGachi()[0].getStage_b().getImage());
+					formatDiscordMessage(stages.getGachi()),
+					stages.getGachi()[0].getStage_a().getImage(),
+					stages.getGachi()[0].getStage_b().getImage());
 
 				sendDiscordMessageToChannel(DiscordChannelDecisionMaker.getS2LeagueChannel(),
-						formatDiscordMessage(stages.getLeague()),
-						stages.getLeague()[0].getStage_a().getImage(),
-						stages.getLeague()[0].getStage_b().getImage());
+					formatDiscordMessage(stages.getLeague()),
+					stages.getLeague()[0].getStage_a().getImage(),
+					stages.getLeague()[0].getStage_b().getImage());
 
 				if (stages.getRegular().length > 0 && !DiscordChannelDecisionMaker.isLocalDebug()) {
 //			if (stages.getRegular().length > 0) {
@@ -182,40 +190,41 @@ public class RotationWatcher implements ScheduledService {
 
 	//	@Scheduled(cron = "0 50 * * * *")
 //	@Scheduled(cron = "0 * * * * *")
+	@Transactional
 	public void sendStagesToTwitch() {
 		refreshStages();
 
 		SplatNetStages.SplatNetRotation turf = Arrays.stream(stages.getRegular())
-				.filter(rot -> Instant.now().isBefore(rot.getStartTimeAsInstant())
-						&& Instant.now().plus(15, ChronoUnit.MINUTES).isAfter(rot.getStartTimeAsInstant()))
-				.findFirst()
-				.orElse(null);
+			.filter(rot -> Instant.now().isBefore(rot.getStartTimeAsInstant())
+				&& Instant.now().plus(15, ChronoUnit.MINUTES).isAfter(rot.getStartTimeAsInstant()))
+			.findFirst()
+			.orElse(null);
 
 		SplatNetStages.SplatNetRotation ranked = Arrays.stream(stages.getGachi())
-				.filter(rot -> Instant.now().isBefore(rot.getStartTimeAsInstant())
-						&& Instant.now().plus(15, ChronoUnit.MINUTES).isAfter(rot.getStartTimeAsInstant()))
-				.findFirst()
-				.orElse(null);
+			.filter(rot -> Instant.now().isBefore(rot.getStartTimeAsInstant())
+				&& Instant.now().plus(15, ChronoUnit.MINUTES).isAfter(rot.getStartTimeAsInstant()))
+			.findFirst()
+			.orElse(null);
 
 		SplatNetStages.SplatNetRotation league = Arrays.stream(stages.getLeague())
-				.filter(rot -> Instant.now().isBefore(rot.getStartTimeAsInstant())
-						&& Instant.now().plus(15, ChronoUnit.MINUTES).isAfter(rot.getStartTimeAsInstant()))
-				.findFirst()
-				.orElse(null);
+			.filter(rot -> Instant.now().isBefore(rot.getStartTimeAsInstant())
+				&& Instant.now().plus(15, ChronoUnit.MINUTES).isAfter(rot.getStartTimeAsInstant()))
+			.findFirst()
+			.orElse(null);
 
 		if (turf != null) {
 			channelMessageSender.send("strohkoenig",
-					String.format("Next Turf War: %s and %s", turf.getStage_a().getName(), turf.getStage_b().getName()));
+				String.format("Next Turf War: %s and %s", turf.getStage_a().getName(), turf.getStage_b().getName()));
 		}
 
 		if (ranked != null) {
 			channelMessageSender.send("strohkoenig",
-					String.format("Next Ranked: %s on %s and %s", ranked.getRule().getName(), ranked.getStage_a().getName(), ranked.getStage_b().getName()));
+				String.format("Next Ranked: %s on %s and %s", ranked.getRule().getName(), ranked.getStage_a().getName(), ranked.getStage_b().getName()));
 		}
 
 		if (league != null) {
 			channelMessageSender.send("strohkoenig",
-					String.format("Next League: %s on %s and %s", league.getRule().getName(), league.getStage_a().getName(), league.getStage_b().getName()));
+				String.format("Next League: %s on %s and %s", league.getRule().getName(), league.getStage_a().getName(), league.getStage_b().getName()));
 		}
 	}
 
@@ -224,9 +233,9 @@ public class RotationWatcher implements ScheduledService {
 			logger.info("checking for new stages");
 
 			Account account = accountRepository.findAll().stream()
-					.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
-					.findFirst()
-					.orElse(new Account());
+				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
+				.findFirst()
+				.orElse(new Account());
 
 			stages = stagesLoader.querySplatoonApiForAccount(account, "/api/schedules", SplatNetStages.class);
 
@@ -245,7 +254,7 @@ public class RotationWatcher implements ScheduledService {
 
 	private void saveStagesInDatabase(SplatNetStages.SplatNetRotation[] rotations) {
 		for (SplatNetStages.SplatNetRotation rotation : rotations) {
-			boolean storeRotationIntoDatabase = rotationRepository.findBySplatoonApiIdAndMode(rotation.getId(), Splatoon2Mode.getModeByName(rotation.getGame_mode().getKey())) == null;
+			var storeRotationIntoDatabase = rotationRepository.findBySplatoonApiIdAndMode(rotation.getId(), Splatoon2Mode.getModeByName(rotation.getGame_mode().getKey())) == null;
 
 			if (storeRotationIntoDatabase) {
 				Splatoon2Rotation newRotation = new Splatoon2Rotation();
@@ -264,22 +273,29 @@ public class RotationWatcher implements ScheduledService {
 				newRotation.setStageBId(stageB.getId());
 
 				try {
+					logSender.queueLogs(logger, String.format("```\n%s\n```", newRotation));
 					rotationRepository.save(newRotation);
 				} catch (Exception ex) {
-					exceptionLogger.logExceptionAsAttachment(logger, "Exception while saving the new Rotation", ex);
+					logSender.queueLogs(logger, "Exception Message: %s\n```\n%s\n```", ex.getMessage(), ex);
+
+					try {
+						exceptionLogger.logExceptionAsAttachment(logger, "Exception while saving the new Rotation", ex);
+					} catch (Exception weirdEx) {
+						logSender.queueLogs(logger, "Exception Message: %s\n```\n%s\n```", weirdEx.getMessage(), weirdEx);
+					}
 				}
 
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(),
-						String.format("New **%s** **%s** rotation with id **%d** on **%s** (id %d) and **%s** (id %d) from **%s** to **%s** was stored into Database!",
-								newRotation.getMode(),
-								newRotation.getRule(),
-								newRotation.getId(),
-								stageA.getName(),
-								stageA.getId(),
-								stageB.getName(),
-								stageB.getId(),
-								newRotation.getStartTimeAsInstant(),
-								newRotation.getEndTimeAsInstant()));
+					String.format("New **%s** **%s** rotation with id **%d** on **%s** (id %d) and **%s** (id %d) from **%s** to **%s** was stored into Database!",
+						newRotation.getMode(),
+						newRotation.getRule(),
+						newRotation.getId(),
+						stageA.getName(),
+						stageA.getId(),
+						stageB.getName(),
+						stageB.getId(),
+						newRotation.getStartTimeAsInstant(),
+						newRotation.getEndTimeAsInstant()));
 			}
 		}
 	}
@@ -323,9 +339,9 @@ public class RotationWatcher implements ScheduledService {
 
 		for (Account recipient : accountsToNotify) {
 			sendDiscordMessageToUser(recipient.getDiscordId(),
-					formatDiscordMessage(rotation, recipient.getTimezone()),
-					rotation.getStage_a().getImage(),
-					rotation.getStage_b().getImage());
+				formatDiscordMessage(rotation, recipient.getTimezone()),
+				rotation.getStage_a().getImage(),
+				rotation.getStage_b().getImage());
 		}
 	}
 
@@ -345,10 +361,10 @@ public class RotationWatcher implements ScheduledService {
 		builder.append("**Next rotations**\n");
 		for (int i = 1; i < rotations.length; i++) {
 			builder.append(String.format("- in **%d** hours: %s**%s** --- **%s**\n",
-					hours,
-					!isTurf ? String.format("%s%s --- ", getEmoji(rotations[i].getRule().getKey()), rotations[i].getRule().getName()) : "",
-					rotations[i].getStage_a().getName(),
-					rotations[i].getStage_b().getName()));
+				hours,
+				!isTurf ? String.format("%s%s --- ", getEmoji(rotations[i].getRule().getKey()), rotations[i].getRule().getName()) : "",
+				rotations[i].getStage_a().getName(),
+				rotations[i].getStage_b().getName()));
 			hours += 2;
 		}
 
@@ -369,8 +385,8 @@ public class RotationWatcher implements ScheduledService {
 			builder.append(String.format("Current **%s** rotation\n", rotation.getGame_mode().getName()));
 		} else {
 			builder.append(String.format("New **%s** rotation will start in **%d** hours",
-					rotation.getGame_mode().getName(),
-					Duration.between(Instant.now(), rotation.getStartTimeAsInstant()).abs().toHours() + 1));
+				rotation.getGame_mode().getName(),
+				Duration.between(Instant.now(), rotation.getStartTimeAsInstant()).abs().toHours() + 1));
 
 			builder.append(String.format("\nIt will start at **<t:%d:F>**", rotation.getStart_time()));
 
@@ -414,18 +430,18 @@ public class RotationWatcher implements ScheduledService {
 	private void sendDiscordMessageToChannel(String channelName, String message, String firstStageImageUrl, String SecondStageImageUrl) {
 		logger.info("Sending out discord notifications to server channel '{}'", channelName);
 		discordBot.sendServerMessageWithImageUrls(channelName,
-				message,
-				String.format("https://app.splatoon2.nintendo.net%s", firstStageImageUrl),
-				String.format("https://app.splatoon2.nintendo.net%s", SecondStageImageUrl));
+			message,
+			String.format("https://app.splatoon2.nintendo.net%s", firstStageImageUrl),
+			String.format("https://app.splatoon2.nintendo.net%s", SecondStageImageUrl));
 		logger.info("Finished sending out discord notifications to server channel '{}'", channelName);
 	}
 
 	private void sendDiscordMessageToUser(long discordId, String message, String firstStageImageUrl, String SecondStageImageUrl) {
 		logger.info("Sending out discord notifications to server channel '{}'", discordId);
 		discordBot.sendPrivateMessageWithImageUrls(discordId,
-				message,
-				String.format("https://app.splatoon2.nintendo.net%s", firstStageImageUrl),
-				String.format("https://app.splatoon2.nintendo.net%s", SecondStageImageUrl));
+			message,
+			String.format("https://app.splatoon2.nintendo.net%s", firstStageImageUrl),
+			String.format("https://app.splatoon2.nintendo.net%s", SecondStageImageUrl));
 		logger.info("Finished sending out discord notifications to server channel '{}'", discordId);
 	}
 
