@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2027-04-28_01-restart-splatoon_2_rotation-auto-increment
+      author: strohkoenig
+      changes:
+        -  sql:
+             sql:  ALTER TABLE DBO.SPLATOON_2_ROTATION ALTER COLUMN id RESTART WITH 150000

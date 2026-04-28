@@ -253,17 +253,11 @@ public class RotationWatcher implements ScheduledService {
 	}
 
 	private void saveStagesInDatabase(SplatNetStages.SplatNetRotation[] rotations) {
-		long highestId = rotationRepository.findTop1ByOrderByIdDesc().map(Splatoon2Rotation::getId).orElse(Instant.now().getEpochSecond());
-		var index = 0;
-
 		for (SplatNetStages.SplatNetRotation rotation : rotations) {
 			var storeRotationIntoDatabase = rotationRepository.findBySplatoonApiIdAndMode(rotation.getId(), Splatoon2Mode.getModeByName(rotation.getGame_mode().getKey())) == null;
 
 			if (storeRotationIntoDatabase) {
-				index++;
-
 				Splatoon2Rotation newRotation = new Splatoon2Rotation();
-				newRotation.setId(highestId + index);
 				newRotation.setSplatoonApiId(rotation.getId());
 
 				newRotation.setStartTime(rotation.getStart_time());
@@ -279,17 +273,14 @@ public class RotationWatcher implements ScheduledService {
 				newRotation.setStageBId(stageB.getId());
 
 				try {
-					logSender.queueLogs(logger, String.format("```\n%s\n```", newRotation));
 					rotationRepository.save(newRotation);
 				} catch (Exception ex) {
 					printException(ex);
-//					logSender.queueLogs(logger, "Exception Message: %s\n```\n%s\n```", ex.getMessage(), ex);
 
 					try {
 						exceptionLogger.logExceptionAsAttachment(logger, "Exception while saving the new Rotation", ex);
 					} catch (Exception weirdEx) {
 						printException(ex);
-//						logSender.queueLogs(logger, "Exception Message: %s\n```\n%s\n```", weirdEx.getMessage(), weirdEx);
 					}
 				}
 
