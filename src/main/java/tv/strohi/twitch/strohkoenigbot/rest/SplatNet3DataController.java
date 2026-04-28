@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.rest.model.S2Tokens;
 import tv.strohi.twitch.strohkoenigbot.rest.model.S3Tokens;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3ReplayCodeLoader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3TokenRefresher;
@@ -82,6 +83,12 @@ public class SplatNet3DataController {
 					.build())
 				.build(),
 			"get-tokens", Bucket.builder()
+				.addLimit(Bandwidth.builder()
+					.capacity(5)
+					.refillGreedy(5, Duration.ofMinutes(1))
+					.build())
+				.build(),
+			"get-spl2-tokens", Bucket.builder()
 				.addLimit(Bandwidth.builder()
 					.capacity(5)
 					.refillGreedy(5, Duration.ofMinutes(1))
@@ -219,6 +226,36 @@ public class SplatNet3DataController {
 
 			logSender.queueLogs(log, "Someone successfully loaded gToken and bulletToken!");
 			return ResponseEntity.ok(new S3Tokens(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3()));
+		}
+
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+	}
+
+	@GetMapping(value = "get-spl2-tokens")
+	public ResponseEntity<S2Tokens> getSpl2Tokens(@RequestHeader("Authorization") String auth) {
+		if (buckets.get("get-spl2-tokens").tryConsume(1)) {
+			var authCheckResult = doAuthCheck(auth, "spl2 token loading", S2Tokens.class);
+
+			if (authCheckResult.isPresent()) {
+				return authCheckResult.get();
+			}
+
+			var account = accountRepository.findByIsMainAccount(true).stream()
+				.findFirst()
+				.orElse(null);
+
+			if (account == null) {
+				logSender.queueLogs(log, "### ERROR during spl2 token loading!\nNo main account found!");
+				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
+			}
+
+			logSender.queueLogs(log, "Someone successfully loaded spl2 cookie!");
+			return ResponseEntity.ok(S2Tokens.builder()
+				.cookie(account.getSplatoonCookie())
+				.expiresAt(account.getSplatoonCookieExpiresAt())
+				.nickname(account.getSplatoonNickname())
+				.sessionToken(account.getSplatoonSessionToken())
+				.build());
 		}
 
 		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();

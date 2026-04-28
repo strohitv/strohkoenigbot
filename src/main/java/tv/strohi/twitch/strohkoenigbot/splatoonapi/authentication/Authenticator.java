@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.AuthenticationData;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.FParamLoginResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.UserInfo;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.net.HttpCookie;
 import java.time.Instant;
@@ -28,6 +29,10 @@ public class Authenticator {
 	}
 
 	public AuthenticationData refreshAccess(String sessionToken) {
+		if (DiscordChannelDecisionMaker.isLocalDebug()) {
+			throw new RuntimeException("Splatoon 2 cookie could not be loaded");
+		}
+
 		logger.info("refreshing cookie of session token: {}", sessionToken);
 
 		String accountAccessToken = accountAccessTokenRetriever.getAccountAccessToken(sessionToken, null);

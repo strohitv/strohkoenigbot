@@ -1,35 +1,31 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
 
 @Component
+@RequiredArgsConstructor
 public class AuthenticatedHttpClientCreator {
-	private AccountRepository accountRepository;
-
-	@Autowired
-	public void setAccountRepository(AccountRepository accountRepository) {
-		this.accountRepository = accountRepository;
-	}
-
-	private DiscordBot discordBot;
-
-	@Autowired
-	public void setDiscordBot(DiscordBot discordBot) {
-		this.discordBot = discordBot;
-	}
+	private final AccountRepository accountRepository;
+	private final ConfigurationRepository configurationRepository;
+	private final DiscordBot discordBot;
+	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
 
 	public HttpClient createFor(Account account) {
 		return HttpClient.newBuilder()
-				.connectTimeout(Duration.ofSeconds(120))
-				.version(HttpClient.Version.HTTP_2)
-				.cookieHandler(SplatoonCookieHandler.of(account, accountRepository, discordBot))
-				.build();
+			.connectTimeout(Duration.ofSeconds(120))
+			.version(HttpClient.Version.HTTP_2)
+			.cookieHandler(SplatoonCookieHandler.of(account, accountRepository, configurationRepository, discordBot, logSender, exceptionLogger))
+			.build();
 	}
 }
