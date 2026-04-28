@@ -8,6 +8,8 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
+import javax.transaction.Transactional;
+
 @Component
 public class AbilityExporter {
 	private Splatoon2AbilityRepository abilityRepository;
@@ -24,6 +26,7 @@ public class AbilityExporter {
 		this.discordBot = discordBot;
 	}
 
+	@Transactional
 	public Splatoon2Ability loadGear(SplatNetGearSkill splatNetAbility) {
 		Splatoon2Ability ability = abilityRepository.findBySplatoonApiId(splatNetAbility.getId());
 

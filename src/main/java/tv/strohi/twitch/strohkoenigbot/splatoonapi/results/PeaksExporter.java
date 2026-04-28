@@ -15,6 +15,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
+import javax.transaction.Transactional;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -77,6 +78,7 @@ public class PeaksExporter implements ScheduledService {
 	}
 
 	//	@Scheduled(initialDelay = 10000, fixedDelay = Integer.MAX_VALUE)
+	@Transactional
 	public void reloadMonthlyResults() {
 		if (DiscordChannelDecisionMaker.isLocalDebug()) {
 			return;
@@ -178,6 +180,7 @@ public class PeaksExporter implements ScheduledService {
 
 	//	@Scheduled(cron = "0 0 5 1 * *")
 //	@Scheduled(cron = "0 * * * * *")
+	@Transactional
 	public void refreshPreviousMonth() {
 		if (DiscordChannelDecisionMaker.isLocalDebug()) {
 			return;

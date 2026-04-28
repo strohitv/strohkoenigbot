@@ -10,6 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGearSkill;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.AbilityExporter;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class AbilityMatchFiller {
 		this.abilityMatchRepository = abilityMatchRepository;
 	}
 
+	@Transactional
 	public List<Splatoon2AbilityMatch> fill(Splatoon2Match match, SplatNetMatchResult singleResult) {
 		List<Splatoon2AbilityMatch> abilitiesUsedInMatch = new ArrayList<>();
 

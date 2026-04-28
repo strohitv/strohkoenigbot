@@ -6,6 +6,8 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 
+import javax.transaction.Transactional;
+
 @Component
 public class DiscordAccountLoader {
 	private AccountRepository accountRepository;
@@ -22,6 +24,7 @@ public class DiscordAccountLoader {
 		this.discordBot = discordBot;
 	}
 
+	@Transactional
 	public Account loadAccount(long discordId) {
 		Account account = accountRepository.findByDiscordIdOrderById(discordId).stream().findFirst().orElse(null);
 

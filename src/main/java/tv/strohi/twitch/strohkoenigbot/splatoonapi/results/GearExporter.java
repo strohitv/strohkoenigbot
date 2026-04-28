@@ -9,6 +9,8 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetGear;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
+import javax.transaction.Transactional;
+
 @Component
 public class GearExporter {
 	private Splatoon2GearRepository gearRepository;
@@ -25,6 +27,7 @@ public class GearExporter {
 		this.discordBot = discordBot;
 	}
 
+	@Transactional
 	public Splatoon2Gear loadGear(SplatNetGear splatNetGear) {
 		Splatoon2Gear gear = gearRepository.findBySplatoonApiIdAndKind(splatNetGear.getId(), Splatoon2GearType.getGearTypeByKey(splatNetGear.getKind()));
 

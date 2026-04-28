@@ -23,6 +23,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
+import javax.transaction.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -180,6 +181,7 @@ public class ResultsExporter implements ScheduledService {
 	//	@Scheduled(cron = "*/10 * * * * *")
 	//	@Scheduled(fixedDelay = 10000, initialDelay = 90000)
 //	@Scheduled(fixedDelay = 3_600_000)
+	@Transactional
 	public void loadGameResultsScheduled() {
 		if (DiscordChannelDecisionMaker.isLocalDebug()) {
 			return;

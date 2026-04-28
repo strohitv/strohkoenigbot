@@ -8,6 +8,8 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStage;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
+import javax.transaction.Transactional;
+
 @Component
 public class StagesExporter {
 	private Splatoon2StageRepository stageRepository;
@@ -24,6 +26,7 @@ public class StagesExporter {
 		this.discordBot = discordBot;
 	}
 
+	@Transactional
 	public Splatoon2Stage loadStage(SplatNetStage splatNetStage) {
 		Splatoon2Stage stage = stageRepository.findBySplatoonApiId(splatNetStage.getId());
 

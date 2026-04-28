@@ -8,6 +8,8 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponStatsRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 
+import javax.transaction.Transactional;
+
 @Component
 public class WeaponStatsFiller {
 	private Splatoon2WeaponStatsRepository weaponStatsRepository;
@@ -17,6 +19,7 @@ public class WeaponStatsFiller {
 		this.weaponStatsRepository = weaponStatsRepository;
 	}
 
+	@Transactional
 	public Splatoon2WeaponStats fill(Splatoon2Match match, SplatNetMatchResult singleResult, long weaponId, long accountId) {
 		Splatoon2WeaponStats weaponStats = weaponStatsRepository.findByWeaponIdAndAccountId(weaponId, accountId).orElseGet(() -> {
 			Splatoon2WeaponStats ws = new Splatoon2WeaponStats();

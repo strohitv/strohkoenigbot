@@ -10,6 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
+import javax.transaction.Transactional;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -32,6 +33,7 @@ public class MonthlyResultRefresher {
 		this.discordBot = discordBot;
 	}
 
+	@Transactional
 	public void refreshMonthlyRankedResults(long accountId, List<SplatNetMatchResult> results) {
 		ZonedDateTime date = ZonedDateTime.now(ZoneId.systemDefault());
 		int year = date.getYear();

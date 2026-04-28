@@ -10,6 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
+import javax.transaction.Transactional;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,10 +27,12 @@ public class ResourcesDownloader {
 	private final ConfigurationRepository configurationRepository;
 	private final ExceptionLogger exceptionLogger;
 
+	@Transactional
 	public String ensureExistsLocally(String splatNetResourceUrl) {
 		return ensureExistsLocally(splatNetResourceUrl, null);
 	}
 
+	@Transactional
 	public String ensureExistsLocally(String splatNetResourceUrl, String forcePath) {
 		log.debug("downloading a resource '{}'", splatNetResourceUrl);
 

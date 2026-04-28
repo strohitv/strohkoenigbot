@@ -8,6 +8,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoo
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2ClipRepository;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Component
@@ -26,6 +27,7 @@ public class ClipRefresher {
 		this.discordBot = discordBot;
 	}
 
+	@Transactional
 	public void refresh(long accountId, Splatoon2Match match, boolean loadSilently) {
 		// refresh clips and send them to discord
 		List<Splatoon2Clip> clips = clipRepository.getAllByAccountIdAndStartTimeIsGreaterThanAndEndTimeIsLessThan(accountId, match.getStartTime(), match.getEndTime());

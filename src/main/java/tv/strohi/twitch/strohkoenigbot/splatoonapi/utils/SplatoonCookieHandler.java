@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.Authenticator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.AuthenticationData;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.CookieRefreshException;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.HttpCookie;
@@ -17,6 +18,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+@Transactional
 public class SplatoonCookieHandler extends CookieHandler {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
@@ -38,6 +40,7 @@ public class SplatoonCookieHandler extends CookieHandler {
 	}
 
 	@Override
+	@Transactional
 	public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
 		logger.debug("putting authentication information into request");
 		if (account.getSplatoonCookieExpiresAt() == null || Instant.now().isAfter(account.getSplatoonCookieExpiresAt())) {
@@ -85,6 +88,7 @@ public class SplatoonCookieHandler extends CookieHandler {
 	}
 
 	@Override
+	@Transactional
 	public void put(URI uri, Map<String, List<String>> responseHeaders) {
 		if (responseHeaders.containsKey("set-cookie")) {
 			String iksmSessionCookieText = responseHeaders.get("set-cookie").stream().filter(c -> c.contains("iksm_session")).findFirst().orElse(null);

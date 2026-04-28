@@ -12,6 +12,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponStatsRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Component
@@ -44,6 +45,7 @@ public class MatchReloader {
 		this.weaponStatsRepository = weaponStatsRepository;
 	}
 
+	@Transactional
 	public void forceMatchReload(Account account, List<SplatNetMatchResult> results) {
 		for (SplatNetMatchResult singleResult : results) {
 			Splatoon2Match match = matchRepository.findByAccountIdAndBattleNumber(account.getId(), singleResult.getBattle_number());

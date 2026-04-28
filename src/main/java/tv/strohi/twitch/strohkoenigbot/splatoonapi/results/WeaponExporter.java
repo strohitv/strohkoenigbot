@@ -8,6 +8,8 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Sp
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetWeapon;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
+import javax.transaction.Transactional;
+
 @Component
 public class WeaponExporter {
 	private Splatoon2WeaponRepository weaponRepository;
@@ -24,6 +26,7 @@ public class WeaponExporter {
 		this.discordBot = discordBot;
 	}
 
+	@Transactional
 	public Splatoon2Weapon loadWeapon(SplatNetWeapon splatNetWeapon) {
 		Splatoon2Weapon weapon = weaponRepository.findBySplatoonApiId(splatNetWeapon.getId());
 

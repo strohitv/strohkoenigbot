@@ -20,6 +20,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 
+import javax.transaction.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,6 +90,7 @@ public class StatsExporter implements ScheduledService {
 	}
 
 	//	@Scheduled(cron = "0 3 * * * *")
+	@Transactional
 	public void refreshStageAndWeaponStats() {
 		if (DiscordChannelDecisionMaker.isLocalDebug()) {
 			return;
@@ -108,6 +110,7 @@ public class StatsExporter implements ScheduledService {
 		}
 	}
 
+	@Transactional
 	public void refreshStatsForAccount(Account account) {
 		SplatNetStatPage splatNetStatPage = splatoonStatsLoader.querySplatoonApiForAccount(account, "/api/records", SplatNetStatPage.class);
 
