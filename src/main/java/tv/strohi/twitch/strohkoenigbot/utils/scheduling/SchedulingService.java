@@ -81,7 +81,7 @@ public class SchedulingService {
 			if (!schedule.isFailed(MAX_ERRORS_SINGLE) && schedule.shouldRun(now)) {
 				logger.info("running single run job `{}`...", schedule.getName());
 				lastRanJobs.add(String.format("single run job `%s`", schedule.getName()));
-				if (lastRanJobs.size() > 20) {
+				if (lastRanJobs.size() > 100) {
 					lastRanJobs.remove(0);
 				}
 
@@ -117,7 +117,7 @@ public class SchedulingService {
 			if (!schedule.isFailed(MAX_ERRORS_REPEATED) && schedule.shouldRun(now)) {
 				logger.info("running repeated job `{}`...", schedule.getName());
 				lastRanJobs.add(String.format("repeated job `%s`", schedule.getName()));
-				if (lastRanJobs.size() > 20) {
+				if (lastRanJobs.size() > 100) {
 					lastRanJobs.remove(0);
 				}
 
