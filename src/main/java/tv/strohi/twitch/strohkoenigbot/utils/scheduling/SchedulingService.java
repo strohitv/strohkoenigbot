@@ -11,7 +11,6 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
@@ -33,6 +32,8 @@ import java.util.concurrent.TimeoutException;
 public class SchedulingService {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final ExceptionLogger exceptionLogger;
+
+	private final ArrayList<String> lastRanJobs = new ArrayList<>();
 
 	private final static int MAX_ERRORS_SINGLE = 3;
 	private final static int MAX_ERRORS_REPEATED = 3; //5; //
@@ -61,6 +62,10 @@ public class SchedulingService {
 		});
 	}
 
+	public List<String> getLastRanJobs() {
+		return new ArrayList<>(lastRanJobs);
+	}
+
 	@Scheduled(fixedDelay = 5000)
 	private void run() {
 		LocalDateTime now = LocalDateTime.now();
@@ -75,6 +80,10 @@ public class SchedulingService {
 
 			if (!schedule.isFailed(MAX_ERRORS_SINGLE) && schedule.shouldRun(now)) {
 				logger.info("running single run job `{}`...", schedule.getName());
+				lastRanJobs.add(String.format("single run job `%s`", schedule.getName()));
+				if (lastRanJobs.size() > 20) {
+					lastRanJobs.remove(0);
+				}
 
 				try {
 					executor
@@ -107,6 +116,10 @@ public class SchedulingService {
 
 			if (!schedule.isFailed(MAX_ERRORS_REPEATED) && schedule.shouldRun(now)) {
 				logger.info("running repeated job `{}`...", schedule.getName());
+				lastRanJobs.add(String.format("repeated job `%s`", schedule.getName()));
+				if (lastRanJobs.size() > 20) {
+					lastRanJobs.remove(0);
+				}
 
 				try {
 					executor

@@ -33,6 +33,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
+import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -89,6 +90,8 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final S3XLeaderboardDownloader leaderboardDownloader;
 
 	private final SendouService sendouService;
+
+	private final SchedulingService schedulingService;
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
@@ -731,9 +734,14 @@ public class DiscordAdministrationAction extends ChatAction {
 							logSender.sendLogs(log, "ReplayCode `%s` had its mmrLoadFailed field reset", replayCode);
 						});
 				}
+			} else if (lowercaseMessage.startsWith("!jobs print")) {
+				var previousJobs = schedulingService.getLastRanJobs();
+				logSender.sendLogs(log, "# Last ran jobs\n- %s", previousJobs.stream()
+					.reduce((a, b) -> String.format("%s\n- %s", a, b))
+					.orElse("**!!!NONE!!!**"));
 			}
 		} catch (Exception e) {
-			exceptionLogger.logExceptionAsAttachment(log, "An error occured during admin command execution\nSee logs for details!", e);
+			exceptionLogger.logExceptionAsAttachment(log, "An error occurred during admin command execution\nSee logs for details!", e);
 		}
 	}
 
