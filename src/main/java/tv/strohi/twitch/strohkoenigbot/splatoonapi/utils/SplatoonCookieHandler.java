@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -104,7 +105,8 @@ public class SplatoonCookieHandler extends CookieHandler {
 
 						if (response.statusCode() == 200) {
 							var resultStr = response.body();
-							var tokens = new ObjectMapper().readValue(resultStr, S2Tokens.class);
+							var tokens = new ObjectMapper().registerModule(new JavaTimeModule())
+								.readValue(resultStr, S2Tokens.class);
 
 							account.setSplatoonCookie(tokens.getCookie());
 							account.setSplatoonCookieExpiresAt(tokens.getExpiresAt());
