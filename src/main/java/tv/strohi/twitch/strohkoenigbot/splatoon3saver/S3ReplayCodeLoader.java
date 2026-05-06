@@ -54,7 +54,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 		}
 	}
 
-	private void downloadReplays() {
+	public void downloadReplays() {
 		var account = accountRepository.findByEnableSplatoon3(true).stream()
 			.filter(Account::getIsMainAccount)
 			.findFirst();

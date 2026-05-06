@@ -80,6 +80,7 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final S3DailySpecialWinsRefresher s3DailySpecialWinsRefresher;
 	private final S3NewGearChecker s3NewGearChecker;
 	private final S3GameExporter s3GameExporter;
+	private final S3ReplayCodeLoader replayCodeLoader;
 
 	private final ImageService imageService;
 
@@ -734,6 +735,8 @@ public class DiscordAdministrationAction extends ChatAction {
 							logSender.sendLogs(log, "ReplayCode `%s` had its mmrLoadFailed field reset", replayCode);
 						});
 				}
+			} else if (lowercaseMessage.startsWith("!replays download")) {
+				replayCodeLoader.downloadReplays();
 			} else if (lowercaseMessage.startsWith("!jobs print")) {
 				var previousJobs = schedulingService.getLastRanJobs();
 				logSender.sendLogs(log, "# Last ran jobs\n- %s", previousJobs.stream()
