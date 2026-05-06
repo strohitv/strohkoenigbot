@@ -264,7 +264,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					}
 				}
 
-				logSender.sendLogsAsAttachment(log, "# Found new InkSight replay", summaryMarkdownBuilder.toString());
+				logSender.sendLogsAsAttachment(log, "# Found new InkSight replay\nUrl: https://hana.lol/inksight/?match=" + inksightData.getMatchToken(), summaryMarkdownBuilder.toString());
 				return true;
 			} catch (Exception ex) {
 				if (ex instanceof UnrecognizedPropertyException) {
