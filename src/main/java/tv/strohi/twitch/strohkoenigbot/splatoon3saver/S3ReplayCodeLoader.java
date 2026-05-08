@@ -132,7 +132,9 @@ public class S3ReplayCodeLoader implements ScheduledService {
 
 				var mmr = myself.getStats().getMmr().orElse(result.getMmr());
 				var innerMmr = myself.getStats().getInnerMmr() * 4;
-				var power = myself.getStats().getXPower().orElse(myself.getStats().getMmr().orElse(result.getPower()));
+				var power = result.getPower() != null
+					? result.getPower()
+					: myself.getStats().getXPower().orElse(myself.getStats().getMmr().orElse(result.getPower()));
 				var zonesXP = myself.getStats().getXPowerZones();
 				var towerXP = myself.getStats().getXPowerTower();
 				var rainXP = myself.getStats().getXPowerRain();
