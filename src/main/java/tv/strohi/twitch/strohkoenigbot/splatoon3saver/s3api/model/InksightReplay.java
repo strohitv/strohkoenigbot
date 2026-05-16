@@ -28,6 +28,8 @@ public class InksightReplay {
 	private List<TeamData> teams;
 	private Map<String, Map<String, Integer>> killMatrix;
 	private List<KillCounts> killCountsIndexed;
+	private List<List<Integer>> pingSamples;
+	private List<Nothing> clampdownPackets;
 	private Map<String, List<Integer>> teamColors;
 
 	private List<MatchRecorder> recorders;
@@ -150,6 +152,8 @@ public class InksightReplay {
 		private Double mmr;
 		@JsonProperty("player_rank")
 		private Integer playerLevel;
+		private Integer superJumpsAttempted;
+		private Integer superJumpsSuccessful;
 
 		@NonNull
 		public Optional<Double> getXPower() {
@@ -212,9 +216,12 @@ public class InksightReplay {
 		private List<String> deviationLabels;
 		private List<String> internalReports;
 		private String integritySummary;
+		private List<Nothing> integrityChips;
+		private Long cheatingReasonBits;
 		private Boolean skipDetected;
 		private Boolean disconnected;
 		private Long usableCycles;
+		private Boolean lagDowngraded;
 	}
 
 
@@ -243,6 +250,8 @@ public class InksightReplay {
 		private String discriminator;
 		private Integer playerIndex;
 		private String replayCode;
+		private Integer pingMedianMs;
+		private Boolean laggy;
 	}
 }
 

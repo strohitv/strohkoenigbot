@@ -170,7 +170,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					.append("- inner mmr: `").append(innerMmr).append("`\n");
 
 				for (var channelName : ALL_TWITCH_CHANNEL_NAMES) {
-					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: mmr = %.1f, power = %.1f, inner mmr = %.1f, alive time = %02d:%02d, dead time = %02d:%02d",
+					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: mmr = %.1f, power = %.1f, inner mmr = %.1f, alive time = %02d:%02d, dead time = %02d:%02d, super jumps: %d, safe super jumps: %d",
 						myself.getName(),
 						myself.getDiscriminator(),
 						mmr,
@@ -179,7 +179,9 @@ public class S3ReplayCodeLoader implements ScheduledService {
 						ownAliveDuration.toMinutesPart(),
 						ownAliveDuration.toSecondsPart(),
 						ownDeadDuration.toMinutesPart(),
-						ownDeadDuration.toSecondsPart()));
+						ownDeadDuration.toSecondsPart(),
+						myself.getStats().getSuperJumpsAttempted(),
+						myself.getStats().getSuperJumpsSuccessful()));
 				}
 
 				if (inksightData.getHasFlag()) {
