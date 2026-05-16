@@ -278,7 +278,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 				resultRepository.save(result.toBuilder()
 					.mmrLoadFailed(true)
 					.build());
-				exceptionLogger.logExceptionAsAttachment(log, "Error during adding replay json to ", ex);
+				exceptionLogger.logExceptionAsAttachment(log, String.format("Error during adding replay json to Match with code `%s`", replayCode), ex);
 			}
 		}
 
