@@ -216,7 +216,7 @@ public class InksightReplay {
 		private List<String> deviationLabels;
 		private List<String> internalReports;
 		private String integritySummary;
-		private List<Nothing> integrityChips;
+		private List<IntegrityChip> integrityChips;
 		private Long cheatingReasonBits;
 		private Boolean skipDetected;
 		private Boolean disconnected;
@@ -252,6 +252,17 @@ public class InksightReplay {
 		private String replayCode;
 		private Integer pingMedianMs;
 		private Boolean laggy;
+	}
+
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@ToString
+	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+	public static class IntegrityChip {
+		private String kind;
 	}
 }
 
