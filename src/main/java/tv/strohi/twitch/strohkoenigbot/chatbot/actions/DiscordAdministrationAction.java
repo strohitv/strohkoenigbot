@@ -724,7 +724,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				var allReplayCodes = message.substring("!replay reset".length()).trim().split("\\s+");
 
 				for (var replayCode : allReplayCodes) {
-					logSender.sendLogs(log, "Attempting to reset mmrLoadFailed field of replayCode `%s`...", replayCode);
+					logSender.queueLogs(log, "Attempting to reset mmrLoadFailed field of replayCode `%s`...", replayCode);
 
 					resultRepository.findByReplayCodeAndMmrLoadFailedTrue(replayCode)
 						.ifPresent(r -> {
@@ -732,7 +732,7 @@ public class DiscordAdministrationAction extends ChatAction {
 								.mmrLoadFailed(false)
 								.build());
 
-							logSender.sendLogs(log, "ReplayCode `%s` had its mmrLoadFailed field reset", replayCode);
+							logSender.queueLogs(log, "ReplayCode `%s` had its mmrLoadFailed field reset", replayCode);
 						});
 				}
 			} else if (lowercaseMessage.startsWith("!replays download")) {
