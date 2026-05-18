@@ -22,6 +22,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
 import tv.strohi.twitch.strohkoenigbot.sendou.SendouService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
@@ -735,6 +736,14 @@ public class DiscordAdministrationAction extends ChatAction {
 							logSender.queueLogs(log, "ReplayCode `%s` had its mmrLoadFailed field reset", replayCode);
 						});
 				}
+			} else if (lowercaseMessage.startsWith("!replay failed")) {
+				resultRepository.findByMmrLoadFailedTrue().stream()
+					.map(Splatoon3VsResult::getReplayCode)
+					.map(code -> String.format("- `%s`", code))
+					.reduce((a, b) -> String.format("%s\n%s", a, b))
+					.ifPresent(codes -> logSender.queueLogs(log, "# Replay Codes marked with Error flag\n%s", codes));
+
+				logSender.sendLogs(log, "Error codes were sent");
 			} else if (lowercaseMessage.startsWith("!replays download")) {
 				replayCodeLoader.downloadReplays();
 			} else if (lowercaseMessage.startsWith("!jobs print")) {
