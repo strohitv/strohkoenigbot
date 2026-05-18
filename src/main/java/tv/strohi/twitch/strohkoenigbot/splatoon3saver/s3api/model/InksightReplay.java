@@ -263,6 +263,7 @@ public class InksightReplay {
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 	public static class IntegrityChip {
 		private String kind;
+		private Integer pct;
 	}
 }
 
