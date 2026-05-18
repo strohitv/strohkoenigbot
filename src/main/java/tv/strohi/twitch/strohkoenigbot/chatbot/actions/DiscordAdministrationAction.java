@@ -736,6 +736,22 @@ public class DiscordAdministrationAction extends ChatAction {
 							logSender.queueLogs(log, "ReplayCode `%s` had its mmrLoadFailed field reset", replayCode);
 						});
 				}
+			} else if (lowercaseMessage.startsWith("!replay code remove")) {
+				var allReplayCodes = message.substring("!replay code remove".length()).trim().split("\\s+");
+
+				for (var replayCode : allReplayCodes) {
+					logSender.queueLogs(log, "Attempting to remove replay code `%s` from its result (only works for failed replay codes)...", replayCode);
+
+					resultRepository.findByReplayCodeAndMmrLoadFailedTrue(replayCode)
+						.ifPresent(r -> {
+							resultRepository.save(r.toBuilder()
+								.mmrLoadFailed(false)
+								.replayCode(null)
+								.build());
+
+							logSender.queueLogs(log, "ReplayCode `%s` was removed from its result", replayCode);
+						});
+				}
 			} else if (lowercaseMessage.startsWith("!replay failed")) {
 				resultRepository.findByMmrLoadFailedTrue().stream()
 					.map(Splatoon3VsResult::getReplayCode)
