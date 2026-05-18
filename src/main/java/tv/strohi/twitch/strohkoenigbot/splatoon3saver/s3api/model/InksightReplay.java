@@ -212,7 +212,7 @@ public class InksightReplay {
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 	public static class Anticheat {
 		private String status;
-		private List<Nothing> deviations;
+		private List<Integer> deviations;
 		private List<String> deviationLabels;
 		private List<String> internalReports;
 		private String integritySummary;
