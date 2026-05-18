@@ -752,7 +752,7 @@ public class DiscordAdministrationAction extends ChatAction {
 							logSender.queueLogs(log, "ReplayCode `%s` was removed from its result", replayCode);
 						});
 				}
-			} else if (lowercaseMessage.startsWith("!replay failed")) {
+			} else if (lowercaseMessage.startsWith("!replays failed")) {
 				resultRepository.findByMmrLoadFailedTrue().stream()
 					.map(Splatoon3VsResult::getReplayCode)
 					.map(code -> String.format("- `%s`", code))
