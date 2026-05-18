@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import org.springframework.lang.Nullable;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Nothing;
 
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,7 @@ public class InksightReplay {
 	private Map<String, Map<String, Integer>> killMatrix;
 	private List<KillCounts> killCountsIndexed;
 	private List<List<Integer>> pingSamples;
-	private List<Nothing> clampdownPackets;
+	private List<ClampdownPacket> clampdownPackets;
 	private Map<String, List<Integer>> teamColors;
 
 	private List<MatchRecorder> recorders;
@@ -264,6 +263,20 @@ public class InksightReplay {
 	public static class IntegrityChip {
 		private String kind;
 		private Integer pct;
+	}
+
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@ToString
+	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+	public static class ClampdownPacket {
+		private Integer frame;
+		private Integer voter;
+		private Integer target;
+		private Integer flag;
 	}
 }
 
