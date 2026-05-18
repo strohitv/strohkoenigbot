@@ -743,7 +743,7 @@ public class DiscordAdministrationAction extends ChatAction {
 					.reduce((a, b) -> String.format("%s\n%s", a, b))
 					.ifPresent(codes -> logSender.queueLogs(log, "# Replay Codes marked with Error flag\n%s", codes));
 
-				logSender.sendLogs(log, "Error codes were sent");
+				logSender.queueLogs(log, "Error codes were sent");
 			} else if (lowercaseMessage.startsWith("!replays download")) {
 				replayCodeLoader.downloadReplays();
 			} else if (lowercaseMessage.startsWith("!jobs print")) {

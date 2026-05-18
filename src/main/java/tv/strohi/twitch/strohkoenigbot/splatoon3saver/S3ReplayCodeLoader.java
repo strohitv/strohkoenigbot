@@ -143,6 +143,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 				var alivePct = myself.getStats().getAlivePct();
 
 				var savedResult = resultRepository.save(result.toBuilder()
+					.mmrLoadFailed(false)
 					.inksightJsonVersion(inksightData.getVersion())
 					.replayJson(replayJson)
 					.mmr(mmr)
