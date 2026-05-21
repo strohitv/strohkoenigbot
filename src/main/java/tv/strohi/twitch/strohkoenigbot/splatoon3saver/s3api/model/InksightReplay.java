@@ -71,6 +71,7 @@ public class InksightReplay {
 		@JsonProperty("is_winner")
 		private Boolean isWinner;
 		private Integer score;
+		private Integer scoreActual;
 		private Integer paintPermille;
 		private Integer paintPoints;
 		private List<PlayerData> players;
