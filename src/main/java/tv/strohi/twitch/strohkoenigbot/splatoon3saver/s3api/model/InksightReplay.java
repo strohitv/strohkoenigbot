@@ -150,10 +150,13 @@ public class InksightReplay {
 		private Double innerMmr;
 		private Double alivePct;
 		private Double mmr;
+		private Integer boilSeconds;
 		@JsonProperty("player_rank")
 		private Integer playerLevel;
 		private Integer superJumpsAttempted;
 		private Integer superJumpsSuccessful;
+		private Integer udemae;
+		private Integer challengeVictoryStreak;
 
 		@NonNull
 		public Optional<Double> getXPower() {
@@ -252,6 +255,7 @@ public class InksightReplay {
 		private String replayCode;
 		private Integer pingMedianMs;
 		private Boolean laggy;
+		private String source;
 	}
 
 
