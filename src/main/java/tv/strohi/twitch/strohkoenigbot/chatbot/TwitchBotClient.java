@@ -67,8 +67,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class TwitchBotClient implements ScheduledService {
-	private final static String STREAM_START_CONFIG = "TwitchBotClient_streamChannelId";
-	private final static String STREAM_CHANNEL_ID_CONFIG = "TwitchBotClient_streamStartEpochMilli";
+	private final static String STREAM_START_CONFIG = "TwitchBotClient_streamStartEpochMilli";
+	private final static String STREAM_CHANNEL_ID_CONFIG = "TwitchBotClient_streamChannelId";
 
 	private final static String PREVIOUS_STREAM_START_CONFIG = "TwitchBotClient_previousStreamStartEpochMilli";
 	private final static String PREVIOUS_STREAM_END_CONFIG = "TwitchBotClient_previousStreamEndEpochMilli";
@@ -193,8 +193,8 @@ public class TwitchBotClient implements ScheduledService {
 
 				twitchClients.add(new TwitchAccessInformation(access, twitchClient, newBotCredential));
 
-				final var liveChannelId = configurationRepository.findByConfigName(STREAM_START_CONFIG);
-				final var liveChannelEpochMilli = configurationRepository.findByConfigName(STREAM_CHANNEL_ID_CONFIG);
+				final var liveChannelId = configurationRepository.findByConfigName(STREAM_CHANNEL_ID_CONFIG);
+				final var liveChannelEpochMilli = configurationRepository.findByConfigName(STREAM_START_CONFIG);
 
 				if (liveChannelId.isPresent() && liveChannelEpochMilli.isPresent()) {
 					goLive(liveChannelId.get().getConfigValue(), Instant.ofEpochMilli(Long.parseLong(liveChannelEpochMilli.get().getConfigValue())));
@@ -359,8 +359,8 @@ public class TwitchBotClient implements ScheduledService {
 
 		wentLiveTime = null;
 
-		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(STREAM_START_CONFIG));
 		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(STREAM_CHANNEL_ID_CONFIG));
+		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(STREAM_START_CONFIG));
 
 		ObsController.setIsLive(false);
 
@@ -384,10 +384,10 @@ public class TwitchBotClient implements ScheduledService {
 		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(PREVIOUS_STREAM_END_CONFIG));
 
 		configurationRepository.save(
-			configurationRepository.findByConfigName(STREAM_START_CONFIG)
+			configurationRepository.findByConfigName(STREAM_CHANNEL_ID_CONFIG)
 				.orElseGet(() -> configurationRepository.save(
 					Configuration.builder()
-						.configName(STREAM_START_CONFIG)
+						.configName(STREAM_CHANNEL_ID_CONFIG)
 						.configValue(channelId)
 						.build()
 				))
@@ -396,10 +396,10 @@ public class TwitchBotClient implements ScheduledService {
 				.build());
 
 		configurationRepository.save(
-			configurationRepository.findByConfigName(STREAM_CHANNEL_ID_CONFIG)
+			configurationRepository.findByConfigName(STREAM_START_CONFIG)
 				.orElseGet(() -> configurationRepository.save(
 					Configuration.builder()
-						.configName(STREAM_CHANNEL_ID_CONFIG)
+						.configName(STREAM_START_CONFIG)
 						.configValue(String.format("%d", wentLiveTime.toEpochMilli()))
 						.build()
 				))

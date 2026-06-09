@@ -143,7 +143,7 @@ public class BotController implements ScheduledService {
 
 	@GetMapping("last-stream-timestamps")
 	public String getLastStreamTimestamps() {
-		var builder = new StringBuilder("00:00:00 Intro");
+		var builder = new StringBuilder("0:00:00 Intro");
 
 		final var previousStreamStartTime = twitchBotClient.getPreviousStreamStartTime();
 		final var previousStreamEndTime = twitchBotClient.getPreviousStreamEndTime();
