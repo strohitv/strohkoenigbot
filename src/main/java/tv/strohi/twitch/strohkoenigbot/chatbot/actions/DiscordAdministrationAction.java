@@ -183,6 +183,16 @@ public class DiscordAdministrationAction extends ChatAction {
 				} else {
 					discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()), "Such a configuration does not exist.");
 				}
+			} else if (lowercaseMessage.startsWith("!config all") && !lowercaseMessage.toLowerCase().contains("pass")) {
+				String propertyName = message.trim().substring("!config all".length()).trim();
+
+				var configText = configurationRepository.findAllByConfigName(propertyName).stream()
+					.map(c -> String.format("- Configuration %d: %s", c.getId(), c.getConfigValue()))
+					.reduce((a, b) -> String.format("%s\n%s", a, b))
+					.orElse(null);
+
+				discordBot.sendPrivateMessage(Long.parseLong(args.getUserId()),
+					Objects.requireNonNullElse(configText, "Such a configuration does not exist."));
 			} else if (lowercaseMessage.startsWith("!config remove")) {
 				String propertyName = message.trim().substring("!config remove".length()).trim();
 
