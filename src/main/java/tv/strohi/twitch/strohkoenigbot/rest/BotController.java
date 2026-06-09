@@ -109,10 +109,131 @@ public class BotController implements ScheduledService {
 	@GetMapping("live-time")
 	public long getLiveTime() {
 		if (twitchBotClient.getWentLiveTime() != null) {
-			return Duration.between(twitchBotClient.getWentLiveTime(), Instant.now()).toSeconds();
+			var pauseDuration = twitchBotClient.getPauses().stream()
+				.filter(p -> p[1] != null)
+				.map(p -> Duration.between(p[0], p[1]))
+				.reduce(Duration::plus)
+				.orElse(Duration.ZERO);
+
+			var currentPauseStart = twitchBotClient.getPauses().stream()
+				.filter(p -> p[1] == null)
+				.findFirst()
+				.map(p -> p[0])
+				.orElse(null);
+
+			return Duration.between(
+					twitchBotClient.getWentLiveTime(),
+					currentPauseStart != null ? currentPauseStart : Instant.now())
+				.minus(pauseDuration)
+				.toSeconds();
 		}
 
 		return 0L;
+	}
+
+	@PostMapping("trigger-pause")
+	public void triggerPause() {
+		twitchBotClient.triggerPause();
+	}
+
+	@PostMapping("trigger-unpause")
+	public void triggerUnpause() {
+		twitchBotClient.triggerUnpause();
+	}
+
+	@GetMapping("last-stream-timestamps")
+	public String getLastStreamTimestamps() {
+		var builder = new StringBuilder("00:00:00 Intro");
+
+		final var previousStreamStartTime = twitchBotClient.getPreviousStreamStartTime();
+		final var previousStreamEndTime = twitchBotClient.getPreviousStreamEndTime();
+		final var allPauses = twitchBotClient.getPauses();
+		final var allGamesInStream = vsResultRepository.findByPlayedTimeBetween(previousStreamStartTime, previousStreamEndTime != null ? previousStreamEndTime : Instant.now());
+
+		var gameNumber = 1;
+		for (var game : allGamesInStream) {
+			final var wasDuringPause = allPauses.stream()
+				.anyMatch(p -> p[0].isBefore(game.getPlayedTime()) && (p[1] == null || p[1].isAfter(game.getPlayedTime().plusSeconds(game.getDuration()))));
+
+			if (wasDuringPause) {
+				continue;
+			}
+
+			final var allPausesBefore = allPauses.stream()
+				.filter(p -> p[0].isBefore(game.getPlayedTime()) && p[1] != null && p[1].isBefore(game.getPlayedTime()))
+				.map(p -> Duration.between(p[0], p[1]))
+				.reduce(Duration::plus)
+				.orElse(Duration.ZERO);
+
+			final var startTimestamp = Duration.between(previousStreamStartTime, game.getPlayedTime())
+				.minus(allPausesBefore);
+
+			final var allPausesBetween = allPauses.stream()
+				.filter(p -> p[0].isAfter(game.getPlayedTime()) && p[1] != null && p[0].isBefore(game.getPlayedTime().plusSeconds(game.getDuration())))
+				.map(p -> Duration.between(p[0], p[1]))
+				.reduce(Duration::plus)
+				.orElse(Duration.ZERO);
+
+			final var endingTime = allPauses.stream()
+				.filter(p -> p[0].isAfter(game.getPlayedTime()) && p[0].isBefore(game.getPlayedTime().plusSeconds(game.getDuration()))
+					&& (p[1] == null || p[1].isAfter(game.getPlayedTime().plusSeconds(game.getDuration()))))
+				.findFirst()
+				.map(p -> p[0])
+				.orElse(game.getPlayedTime().plusSeconds(game.getDuration()));
+
+			final var endTimestamp = Duration.between(previousStreamStartTime, endingTime)
+				.minus(allPausesBefore)
+				.minus(allPausesBetween);
+
+			final var ownPlayer = game.getTeams().stream()
+				.filter(Splatoon3VsResultTeam::getIsMyTeam)
+				.flatMap(t -> t.getTeamPlayers().stream())
+				.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
+				.findFirst();
+
+			builder.append("\n")
+				.append(String.format("%02d", startTimestamp.toHoursPart()))
+				.append(":")
+				.append(String.format("%02d", startTimestamp.toMinutesPart()))
+				.append(":")
+				.append(String.format("%02d", startTimestamp.toSecondsPart()))
+				.append(" #")
+				.append(gameNumber)
+				.append(": ")
+				.append(game.getOwnJudgement())
+				.append(" ");
+
+			gameNumber++;
+
+			var betweenChar = "";
+			for (var team : game.getTeams()) {
+				var points = team.getScore() != null
+					? String.format("%d", team.getScore())
+					: team.getPaintRatio() != null ? String.format("%.1f%%", team.getPaintRatio() * 100) : "??";
+
+				builder.append(betweenChar).append(points);
+				betweenChar = "-";
+			}
+
+			builder
+				.append(game.getKnockout() != null && !"NEITHER".equals(game.getKnockout()) ? " KO - " : " - ")
+				.append(ownPlayer.map(o -> o.getWeapon().getName()).orElse("UNKNOWN WEAPON"))
+				.append(" - ")
+				.append(game.getMode().getName())
+				.append(" - ")
+				.append(game.getRule().getName())
+				.append(" - ")
+				.append(game.getStage().getName())
+				.append("\n")
+				.append(endTimestamp.toHoursPart())
+				.append(":")
+				.append(String.format("%02d", endTimestamp.toMinutesPart()))
+				.append(":")
+				.append(String.format("%02d", endTimestamp.toSecondsPart()))
+				.append(" No Game");
+		}
+
+		return builder.toString().trim();
 	}
 
 	@GetMapping("latest-game-string")
