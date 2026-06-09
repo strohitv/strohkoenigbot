@@ -19,7 +19,10 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3ApiQuerySender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3RequestKey;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsMode;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
@@ -30,9 +33,16 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/bot")
@@ -53,8 +63,9 @@ public class BotController implements ScheduledService {
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 	private final Splatoon3VsModeRepository modeRepository;
+	private final Splatoon3VsResultRepository vsResultRepository;
 
-	public BotController(LogSender logSender, S3Downloader s3Downloader, TwitchBotClient twitchBotClient, S3ApiQuerySender s3ApiQuerySender, ObjectMapper mapper, AccountRepository accountRepository, ConfigurationRepository configurationRepository, Splatoon3VsModeRepository modeRepository) {
+	public BotController(LogSender logSender, S3Downloader s3Downloader, TwitchBotClient twitchBotClient, S3ApiQuerySender s3ApiQuerySender, ObjectMapper mapper, AccountRepository accountRepository, ConfigurationRepository configurationRepository, Splatoon3VsModeRepository modeRepository, Splatoon3VsResultRepository vsResultRepository) {
 		this.logSender = logSender;
 		this.s3Downloader = s3Downloader;
 		this.twitchBotClient = twitchBotClient;
@@ -63,6 +74,7 @@ public class BotController implements ScheduledService {
 		this.accountRepository = accountRepository;
 		this.configurationRepository = configurationRepository;
 		this.modeRepository = modeRepository;
+		this.vsResultRepository = vsResultRepository;
 
 		var limit = Bandwidth.builder()
 			.capacity(10)
@@ -137,6 +149,119 @@ public class BotController implements ScheduledService {
 		}
 
 		return "";
+	}
+
+
+	@GetMapping("previous-recording-name")
+	public String getPreviousRecordingName() {
+		final var previousStreamStartTime = Instant.ofEpochSecond(
+			Long.parseLong(
+				configurationRepository.findByConfigName("TwitchBotClient_getPreviousStreamStartEpochSecond")
+					.orElseGet(() -> configurationRepository.save(
+						Configuration.builder()
+							.configName("TwitchBotClient_getPreviousStreamStartEpochSecond")
+							.configValue(String.format("%d", Instant.now().getEpochSecond()))
+							.build()
+					))
+					.getConfigValue()));
+
+		final var allGamesInStream = vsResultRepository.findByPlayedTimeBetween(previousStreamStartTime, Instant.now());
+
+		final var allWeaponsSortedByUsage = allGamesInStream.stream()
+			.flatMap(g -> g.getTeams().stream())
+			.filter(Splatoon3VsResultTeam::getIsMyTeam)
+			.flatMap(t -> t.getTeamPlayers().stream())
+			.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
+			.map(p -> p.getWeapon().getName())
+			.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+			.entrySet().stream()
+			.sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+			.collect(Collectors.toList());
+
+		final var allModesSortedByOccurrence = allGamesInStream.stream()
+			.map(g -> g.getMode().getName())
+			.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+			.entrySet().stream()
+			.sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+			.collect(Collectors.toList());
+
+		final var streamDate = previousStreamStartTime
+			.atZone(ZoneId.of("Europe/Berlin"))
+			.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+
+		final var titleFormat = String.format("Splatoon 3 %%s in %%s vom %s", streamDate);
+
+		final var includedModes = new ArrayList<String>();
+		for (var modeWithCount : allModesSortedByOccurrence) {
+			final var mode = modeWithCount.getKey();
+
+			if (includedModes.size() < 3
+				&& Stream.concat(includedModes.stream(), Stream.of(mode))
+				.map(this::shortenModeName)
+				.reduce((a, b) -> String.format("%s, %s", a, b))
+				.orElse("").length() <= 20) {
+
+				includedModes.add(shortenModeName(mode));
+			} else {
+				includedModes.add("etc");
+				break;
+			}
+		}
+
+		final var modeString = includedModes.stream()
+			.reduce((a, b) -> String.format("%s, %s", a, b))
+			.orElse("")
+			.replace(", etc", " etc");
+
+		final var includedWeapons = new ArrayList<String>();
+		for (var weaponWithCount : allWeaponsSortedByUsage) {
+			final var weapon = weaponWithCount.getKey();
+
+			if (String.format(titleFormat, Stream.concat(includedWeapons.stream(), Stream.of(weapon))
+				.reduce((a, b) -> String.format("%s, %s", a, b))
+				.orElse(""), modeString).length() < 96) {
+				includedWeapons.add(weapon);
+			} else {
+				includedWeapons.add("etc");
+				break;
+			}
+		}
+
+		var weaponsString = includedWeapons.stream()
+			.reduce((a, b) -> String.format("%s, %s", a, b))
+			.orElse("")
+			.replace(", etc", " etc");
+
+		if (weaponsString.isBlank()) {
+			weaponsString = String.format("%d", new Random().nextInt(100000));
+		}
+
+		return String.format(titleFormat, weaponsString, modeString);
+	}
+
+	private String shortenModeName(String mode) {
+		switch (mode) {
+			case "Regular Battle":
+				return "Turf War";
+			case "Anarchy Series":
+				return "Series";
+			case "Anarchy Open":
+				return "Open";
+			case "X Battle":
+				return "X Rank";
+//			case "Challenge":
+//				return "Challenge";
+			case "Splatfest Open":
+				return "SF Open";
+			case "Splatfest Pro":
+				return "SF Pro";
+			case "Splatfest Tricolor":
+				return "SF Tricolor";
+//			case "Private Battle":
+//				return "PB";
+			default:
+				return mode;
+		}
 	}
 
 	@PostMapping("start")

@@ -141,19 +141,9 @@ public class TwitchBotClient implements ScheduledService {
 		botActions.addAll(actions);
 	}
 
-	private AutoSoAction autoSoAction;
+	private final AutoSoAction autoSoAction;
 
-	@Autowired
-	public void setAutoSoAction(AutoSoAction autoSoAction) {
-		this.autoSoAction = autoSoAction;
-	}
-
-	private AccountRepository accountRepository;
-
-	@Autowired
-	public void setAccountRepository(AccountRepository accountRepository) {
-		this.accountRepository = accountRepository;
-	}
+	private final AccountRepository accountRepository;
 
 	public static void setResultsExporter(ResultsExporter resultsExporter) {
 		TwitchBotClient.resultsExporter = resultsExporter;
@@ -164,12 +154,14 @@ public class TwitchBotClient implements ScheduledService {
 	private final ConfigurationRepository configurationRepository;
 
 	@Autowired
-	public TwitchBotClient(TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository, ConfigurationRepository configurationRepository, TwitchAccessRepository twitchAccessRepository, LogSender logSender) {
+	public TwitchBotClient(TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository, ConfigurationRepository configurationRepository, TwitchAccessRepository twitchAccessRepository, LogSender logSender, AutoSoAction autoSoAction, AccountRepository accountRepository) {
 		this.twitchGoingLiveAlertRepository = twitchGoingLiveAlertRepository;
 		this.configurationRepository = configurationRepository;
 		this.twitchAccessRepository = twitchAccessRepository;
 
 		this.logSender = logSender;
+		this.autoSoAction = autoSoAction;
+		this.accountRepository = accountRepository;
 
 		twitchAccessRepository.findByUseForMessages(true)
 			.ifPresent(access -> {
@@ -192,6 +184,13 @@ public class TwitchBotClient implements ScheduledService {
 				var twitchClient = initializeClient(newBotCredential, access);
 
 				twitchClients.add(new TwitchAccessInformation(access, twitchClient, newBotCredential));
+
+				final var liveChannelId = configurationRepository.findByConfigName("TwitchBotClient_getStreamChannelId");
+				final var liveChannelEpochSecond = configurationRepository.findByConfigName("TwitchBotClient_getStreamStartEpochSecond");
+
+				if (liveChannelId.isPresent() && liveChannelEpochSecond.isPresent()) {
+					goLive(liveChannelId.get().getConfigName(), Instant.ofEpochSecond(Long.parseLong(liveChannelEpochSecond.get().getConfigValue())));
+				}
 			});
 	}
 
@@ -338,6 +337,9 @@ public class TwitchBotClient implements ScheduledService {
 	public void goOffline(String channelId) {
 		wentLiveTime = null;
 
+		configurationRepository.deleteAll(configurationRepository.findAllByConfigName("TwitchBotClient_getStreamChannelId"));
+		configurationRepository.deleteAll(configurationRepository.findAllByConfigName("TwitchBotClient_getStreamStartEpochSecond"));
+
 		ObsController.setIsLive(false);
 
 		if (resultsExporter != null) {
@@ -351,7 +353,47 @@ public class TwitchBotClient implements ScheduledService {
 	}
 
 	public void goLive(String channelId) {
-		wentLiveTime = Instant.now();
+		goLive(channelId, Instant.now());
+	}
+
+	public void goLive(String channelId, Instant startTime) {
+		wentLiveTime = startTime;
+
+		configurationRepository.save(
+			configurationRepository.findByConfigName("TwitchBotClient_getStreamChannelId")
+				.orElseGet(() -> configurationRepository.save(
+					Configuration.builder()
+						.configName("TwitchBotClient_getStreamChannelId")
+						.configValue(channelId)
+						.build()
+				))
+				.toBuilder()
+				.configValue(channelId)
+				.build());
+
+		configurationRepository.save(
+			configurationRepository.findByConfigName("TwitchBotClient_getStreamStartEpochSecond")
+				.orElseGet(() -> configurationRepository.save(
+					Configuration.builder()
+						.configName("TwitchBotClient_getStreamStartEpochSecond")
+						.configValue(String.format("%d", wentLiveTime.getEpochSecond()))
+						.build()
+				))
+				.toBuilder()
+				.configValue(String.format("%d", wentLiveTime.getEpochSecond()))
+				.build());
+
+		configurationRepository.save(
+			configurationRepository.findByConfigName("TwitchBotClient_getPreviousStreamStartEpochSecond")
+				.orElseGet(() -> configurationRepository.save(
+					Configuration.builder()
+						.configName("TwitchBotClient_getPreviousStreamStartEpochSecond")
+						.configValue(String.format("%d", wentLiveTime.getEpochSecond()))
+						.build()
+				))
+				.toBuilder()
+				.configValue(String.format("%d", wentLiveTime.getEpochSecond()))
+				.build());
 
 		ObsController.setIsLive(true);
 
