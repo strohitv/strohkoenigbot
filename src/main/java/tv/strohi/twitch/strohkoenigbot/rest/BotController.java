@@ -159,31 +159,38 @@ public class BotController implements ScheduledService {
 				continue;
 			}
 
-			final var allPausesBefore = allPauses.stream()
-				.filter(p -> p[0].isBefore(game.getPlayedTime()) && p[1] != null && p[1].isBefore(game.getPlayedTime()))
-				.map(p -> Duration.between(p[0], p[1]))
-				.reduce(Duration::plus)
-				.orElse(Duration.ZERO);
-
-			final var startTimestamp = Duration.between(previousStreamStartTime, game.getPlayedTime())
-				.minus(allPausesBefore);
-
-			final var allPausesBetween = allPauses.stream()
-				.filter(p -> p[0].isAfter(game.getPlayedTime()) && p[1] != null && p[0].isBefore(game.getPlayedTime().plusSeconds(game.getDuration())))
-				.map(p -> Duration.between(p[0], p[1]))
-				.reduce(Duration::plus)
-				.orElse(Duration.ZERO);
-
-			final var endingTime = allPauses.stream()
-				.filter(p -> p[0].isAfter(game.getPlayedTime()) && p[0].isBefore(game.getPlayedTime().plusSeconds(game.getDuration()))
-					&& (p[1] == null || p[1].isAfter(game.getPlayedTime().plusSeconds(game.getDuration()))))
+			final var startingTime = allPauses.stream()
+				.filter(p -> p[0].isBefore(game.getPlayedTime())
+					&& p[1] != null
+					&& p[1].isAfter(game.getPlayedTime())
+					&& p[1].isBefore(game.getPlayedTime().plusSeconds(game.getDuration())))
 				.findFirst()
 				.map(p -> p[0])
-				.orElse(game.getPlayedTime().plusSeconds(game.getDuration()));
+				.orElse(game.getPlayedTime());
 
-			final var endTimestamp = Duration.between(previousStreamStartTime, endingTime)
+			final var timeDifference = Duration.between(game.getPlayedTime(), startingTime).toSeconds();
+
+			final var allPausesBefore = allPauses.stream()
+				.filter(p -> p[0].isBefore(startingTime) && p[1] != null && p[1].isBefore(startingTime))
+				.map(p -> Duration.between(p[0], p[1]))
+				.reduce(Duration::plus)
+				.orElse(Duration.ZERO);
+
+			final var startTimestamp = Duration.between(previousStreamStartTime, startingTime)
 				.minus(allPausesBefore)
-				.minus(allPausesBetween);
+				.minusSeconds(20); // Intro
+
+			final var allPausesBetween = allPauses.stream()
+				.filter(p -> p[0].isAfter(startingTime) && p[1] != null && p[0].isBefore(game.getPlayedTime().plusSeconds(game.getDuration())))
+				.map(p -> Duration.between(p[0], p[1]))
+				.reduce(Duration::plus)
+				.orElse(Duration.ZERO);
+
+			final var endTimestamp = startTimestamp.plusSeconds(Math.max(5, game.getDuration()))
+				.minus(allPausesBetween)
+				.minusSeconds(timeDifference)
+				.plusSeconds(20) // Intro
+				.plusSeconds(22); // Outro
 
 			final var ownPlayer = game.getTeams().stream()
 				.filter(Splatoon3VsResultTeam::getIsMyTeam)
@@ -192,7 +199,7 @@ public class BotController implements ScheduledService {
 				.findFirst();
 
 			builder.append("\n")
-				.append(String.format("%02d", startTimestamp.toHoursPart()))
+				.append(startTimestamp.toHoursPart())
 				.append(":")
 				.append(String.format("%02d", startTimestamp.toMinutesPart()))
 				.append(":")

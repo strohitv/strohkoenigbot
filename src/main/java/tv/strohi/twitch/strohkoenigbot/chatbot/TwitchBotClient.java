@@ -67,6 +67,13 @@ import java.util.stream.Collectors;
 
 @Component
 public class TwitchBotClient implements ScheduledService {
+	private final static String STREAM_START_CONFIG = "TwitchBotClient_streamChannelId";
+	private final static String STREAM_CHANNEL_ID_CONFIG = "TwitchBotClient_streamStartEpochMilli";
+
+	private final static String PREVIOUS_STREAM_START_CONFIG = "TwitchBotClient_previousStreamStartEpochMilli";
+	private final static String PREVIOUS_STREAM_END_CONFIG = "TwitchBotClient_previousStreamEndEpochMilli";
+	private final static String PREVIOUS_STREAM_PAUSE = "TwitchBotClient_pause";
+
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final List<Consumer<ChannelGoLiveEvent>> goingLiveAlertConsumers = new ArrayList<>();
@@ -186,11 +193,11 @@ public class TwitchBotClient implements ScheduledService {
 
 				twitchClients.add(new TwitchAccessInformation(access, twitchClient, newBotCredential));
 
-				final var liveChannelId = configurationRepository.findByConfigName("TwitchBotClient_getStreamChannelId");
-				final var liveChannelEpochSecond = configurationRepository.findByConfigName("TwitchBotClient_getStreamStartEpochSecond");
+				final var liveChannelId = configurationRepository.findByConfigName(STREAM_START_CONFIG);
+				final var liveChannelEpochMilli = configurationRepository.findByConfigName(STREAM_CHANNEL_ID_CONFIG);
 
-				if (liveChannelId.isPresent() && liveChannelEpochSecond.isPresent()) {
-					goLive(liveChannelId.get().getConfigName(), Instant.ofEpochSecond(Long.parseLong(liveChannelEpochSecond.get().getConfigValue())));
+				if (liveChannelId.isPresent() && liveChannelEpochMilli.isPresent()) {
+					goLive(liveChannelId.get().getConfigValue(), Instant.ofEpochMilli(Long.parseLong(liveChannelEpochMilli.get().getConfigValue())));
 				}
 			});
 	}
@@ -339,21 +346,21 @@ public class TwitchBotClient implements ScheduledService {
 		triggerUnpause();
 
 		configurationRepository.save(
-			configurationRepository.findByConfigName("TwitchBotClient_getPreviousStreamEndEpochSecond")
+			configurationRepository.findByConfigName(PREVIOUS_STREAM_END_CONFIG)
 				.orElseGet(() -> configurationRepository.save(
 					Configuration.builder()
-						.configName("TwitchBotClient_getPreviousStreamEndEpochSecond")
-						.configValue(String.format("%d", Instant.now().getEpochSecond()))
+						.configName(PREVIOUS_STREAM_END_CONFIG)
+						.configValue(String.format("%d", Instant.now().toEpochMilli()))
 						.build()
 				))
 				.toBuilder()
-				.configValue(String.format("%d", Instant.now().getEpochSecond()))
+				.configValue(String.format("%d", Instant.now().toEpochMilli()))
 				.build());
 
 		wentLiveTime = null;
 
-		configurationRepository.deleteAll(configurationRepository.findAllByConfigName("TwitchBotClient_getStreamChannelId"));
-		configurationRepository.deleteAll(configurationRepository.findAllByConfigName("TwitchBotClient_getStreamStartEpochSecond"));
+		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(STREAM_START_CONFIG));
+		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(STREAM_CHANNEL_ID_CONFIG));
 
 		ObsController.setIsLive(false);
 
@@ -374,13 +381,13 @@ public class TwitchBotClient implements ScheduledService {
 	public void goLive(String channelId, Instant startTime) {
 		wentLiveTime = startTime;
 
-		configurationRepository.deleteAll(configurationRepository.findAllByConfigName("TwitchBotClient_getPreviousStreamEndEpochSecond"));
+		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(PREVIOUS_STREAM_END_CONFIG));
 
 		configurationRepository.save(
-			configurationRepository.findByConfigName("TwitchBotClient_getStreamChannelId")
+			configurationRepository.findByConfigName(STREAM_START_CONFIG)
 				.orElseGet(() -> configurationRepository.save(
 					Configuration.builder()
-						.configName("TwitchBotClient_getStreamChannelId")
+						.configName(STREAM_START_CONFIG)
 						.configValue(channelId)
 						.build()
 				))
@@ -389,30 +396,30 @@ public class TwitchBotClient implements ScheduledService {
 				.build());
 
 		configurationRepository.save(
-			configurationRepository.findByConfigName("TwitchBotClient_getStreamStartEpochSecond")
+			configurationRepository.findByConfigName(STREAM_CHANNEL_ID_CONFIG)
 				.orElseGet(() -> configurationRepository.save(
 					Configuration.builder()
-						.configName("TwitchBotClient_getStreamStartEpochSecond")
-						.configValue(String.format("%d", wentLiveTime.getEpochSecond()))
+						.configName(STREAM_CHANNEL_ID_CONFIG)
+						.configValue(String.format("%d", wentLiveTime.toEpochMilli()))
 						.build()
 				))
 				.toBuilder()
-				.configValue(String.format("%d", wentLiveTime.getEpochSecond()))
+				.configValue(String.format("%d", wentLiveTime.toEpochMilli()))
 				.build());
 
 		configurationRepository.save(
-			configurationRepository.findByConfigName("TwitchBotClient_getPreviousStreamStartEpochSecond")
+			configurationRepository.findByConfigName(PREVIOUS_STREAM_START_CONFIG)
 				.orElseGet(() -> configurationRepository.save(
 					Configuration.builder()
-						.configName("TwitchBotClient_getPreviousStreamStartEpochSecond")
-						.configValue(String.format("%d", wentLiveTime.getEpochSecond()))
+						.configName(PREVIOUS_STREAM_START_CONFIG)
+						.configValue(String.format("%d", wentLiveTime.toEpochMilli()))
 						.build()
 				))
 				.toBuilder()
-				.configValue(String.format("%d", wentLiveTime.getEpochSecond()))
+				.configValue(String.format("%d", wentLiveTime.toEpochMilli()))
 				.build());
 
-		configurationRepository.deleteAll(configurationRepository.findAllByConfigName("TwitchBotClient_pause"));
+		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(PREVIOUS_STREAM_PAUSE));
 
 		ObsController.setIsLive(true);
 
@@ -425,57 +432,57 @@ public class TwitchBotClient implements ScheduledService {
 	}
 
 	public Instant getPreviousStreamStartTime() {
-		return Instant.ofEpochSecond(
+		return Instant.ofEpochMilli(
 			Long.parseLong(
-				configurationRepository.findByConfigName("TwitchBotClient_getPreviousStreamStartEpochSecond")
+				configurationRepository.findByConfigName(PREVIOUS_STREAM_START_CONFIG)
 					.orElseGet(() -> configurationRepository.save(
 						Configuration.builder()
-							.configName("TwitchBotClient_getPreviousStreamStartEpochSecond")
-							.configValue(String.format("%d", Instant.now().getEpochSecond()))
+							.configName(PREVIOUS_STREAM_START_CONFIG)
+							.configValue(String.format("%d", Instant.now().toEpochMilli()))
 							.build()
 					))
 					.getConfigValue()));
 	}
 
 	public Instant getPreviousStreamEndTime() {
-		return configurationRepository.findByConfigName("TwitchBotClient_getPreviousStreamEndEpochSecond")
-			.map(c -> Instant.ofEpochSecond(Long.parseLong(c.getConfigValue())))
+		return configurationRepository.findByConfigName(PREVIOUS_STREAM_END_CONFIG)
+			.map(c -> Instant.ofEpochMilli(Long.parseLong(c.getConfigValue())))
 			.orElse(null);
 	}
 
 	public void triggerPause() {
-		var lastPause = configurationRepository.findAllByConfigName("TwitchBotClient_pause").stream()
+		var lastPause = configurationRepository.findAllByConfigName(PREVIOUS_STREAM_PAUSE).stream()
 			.reduce((a, b) -> b)
 			.orElse(null);
 
 		if (lastPause == null || lastPause.getConfigValue().contains(";")) {
 			configurationRepository.save(Configuration.builder()
-				.configName("TwitchBotClient_pause")
-				.configValue(String.format("%d", Instant.now().getEpochSecond()))
+				.configName(PREVIOUS_STREAM_PAUSE)
+				.configValue(String.format("%d", Instant.now().toEpochMilli()))
 				.build());
 		}
 	}
 
 	public void triggerUnpause() {
-		var lastPause = configurationRepository.findAllByConfigName("TwitchBotClient_pause").stream()
+		var lastPause = configurationRepository.findAllByConfigName(PREVIOUS_STREAM_PAUSE).stream()
 			.reduce((a, b) -> b)
 			.orElse(null);
 
 		if (lastPause != null && !lastPause.getConfigValue().contains(";")) {
 			configurationRepository.save(lastPause.toBuilder()
-				.configValue(String.format("%s;%d", lastPause.getConfigValue(), Instant.now().getEpochSecond()))
+				.configValue(String.format("%s;%d", lastPause.getConfigValue(), Instant.now().toEpochMilli()))
 				.build());
 		}
 	}
 
 	public List<Instant[]> getPauses() {
-		return configurationRepository.findAllByConfigName("TwitchBotClient_pause").stream()
+		return configurationRepository.findAllByConfigName(PREVIOUS_STREAM_PAUSE).stream()
 			.map(c -> {
 				var split = c.getConfigValue().split(";");
 
 				return new Instant[]{
-					Instant.ofEpochSecond(Long.parseLong(split[0])),
-					split.length == 2 ? Instant.ofEpochSecond(Long.parseLong(split[1])) : null
+					Instant.ofEpochMilli(Long.parseLong(split[0])),
+					split.length == 2 ? Instant.ofEpochMilli(Long.parseLong(split[1])) : null
 				};
 			})
 			.collect(Collectors.toList());
