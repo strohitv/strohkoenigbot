@@ -83,14 +83,19 @@ public class TwitchBotClient implements ScheduledService {
 	@Getter
 	private Instant wentLiveTime = null;
 
+	private void setWentLiveTime(Instant newWentLiveTime) {
+		wentLiveTime = newWentLiveTime;
+		logSender.queueLogs(logger, "wentLiveTime was set to `%s`", wentLiveTime);
+	}
+
 	private final LogSender logSender;
 
 	public void forceLive() {
-		wentLiveTime = Instant.now();
+		setWentLiveTime(Instant.now());
 	}
 
 	public void forceOffline() {
-		wentLiveTime = null;
+		setWentLiveTime(null);
 	}
 
 	private final Map<TwitchClient, TwitchClientSentAds> adNotifications = new HashMap<>();
@@ -357,7 +362,7 @@ public class TwitchBotClient implements ScheduledService {
 				.configValue(String.format("%d", Instant.now().toEpochMilli()))
 				.build());
 
-		wentLiveTime = null;
+		setWentLiveTime(null);
 
 		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(STREAM_CHANNEL_ID_CONFIG));
 		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(STREAM_START_CONFIG));
@@ -379,7 +384,7 @@ public class TwitchBotClient implements ScheduledService {
 	}
 
 	public void goLive(String channelId, Instant startTime) {
-		wentLiveTime = startTime;
+		setWentLiveTime(startTime);
 
 		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(PREVIOUS_STREAM_END_CONFIG));
 
