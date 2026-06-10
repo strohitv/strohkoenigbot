@@ -85,7 +85,11 @@ public class TwitchBotClient implements ScheduledService {
 
 	private void setWentLiveTime(Instant newWentLiveTime) {
 		wentLiveTime = newWentLiveTime;
-		logSender.queueLogs(logger, "wentLiveTime was set to `%s`", wentLiveTime);
+		logSender.queueLogs(
+			logger,
+			"wentLiveTime was set to `%s`%s",
+			wentLiveTime,
+			wentLiveTime != null ? String.format(" (epoch milli: `%d`)", wentLiveTime.toEpochMilli()) : "");
 	}
 
 	private final LogSender logSender;
@@ -461,9 +465,12 @@ public class TwitchBotClient implements ScheduledService {
 			.orElse(null);
 
 		if (lastPause == null || lastPause.getConfigValue().contains(";")) {
+			final var pauseStart = Instant.now();
+
+			logSender.queueLogs(logger, "triggered pause at `%s` (epoch milli: `%d`)", pauseStart, pauseStart.toEpochMilli());
 			configurationRepository.save(Configuration.builder()
 				.configName(PREVIOUS_STREAM_PAUSE)
-				.configValue(String.format("%d", Instant.now().toEpochMilli()))
+				.configValue(String.format("%d", pauseStart.toEpochMilli()))
 				.build());
 		}
 	}
@@ -474,8 +481,11 @@ public class TwitchBotClient implements ScheduledService {
 			.orElse(null);
 
 		if (lastPause != null && !lastPause.getConfigValue().contains(";")) {
+			final var pauseEnd = Instant.now();
+
+			logSender.queueLogs(logger, "triggered pause end at `%s` (epoch milli: `%d`)", pauseEnd, pauseEnd.toEpochMilli());
 			configurationRepository.save(lastPause.toBuilder()
-				.configValue(String.format("%s;%d", lastPause.getConfigValue(), Instant.now().toEpochMilli()))
+				.configValue(String.format("%s;%d", lastPause.getConfigValue(), pauseEnd.toEpochMilli()))
 				.build());
 		}
 	}
