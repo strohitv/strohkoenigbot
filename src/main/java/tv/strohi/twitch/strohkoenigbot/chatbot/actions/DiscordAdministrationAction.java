@@ -777,7 +777,7 @@ public class DiscordAdministrationAction extends ChatAction {
 						.reduce((a, b) -> String.format("%s %s", a, b))
 						.orElse(null);
 
-					logSender.queueLogs(log, "# Replay Codes marked with Error flag\n%s\nUse this command:\n```\n!replay reset %s\n```", replayCodeList, replayCodeCommand)
+					logSender.queueLogs(log, "# Replay Codes marked with Error flag\n%s\nUse this command:\n```\n!replay reset %s\n```", replayCodeList, replayCodeCommand);
 				}
 
 				logSender.queueLogs(log, "Error codes were sent");
