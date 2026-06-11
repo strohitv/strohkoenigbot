@@ -763,11 +763,22 @@ public class DiscordAdministrationAction extends ChatAction {
 						});
 				}
 			} else if (lowercaseMessage.startsWith("!replays failed")) {
-				resultRepository.findByMmrLoadFailedTrue().stream()
+				var allReplayCodes = resultRepository.findByMmrLoadFailedTrue().stream()
 					.map(Splatoon3VsResult::getReplayCode)
-					.map(code -> String.format("- `%s`", code))
-					.reduce((a, b) -> String.format("%s\n%s", a, b))
-					.ifPresent(codes -> logSender.queueLogs(log, "# Replay Codes marked with Error flag\n%s", codes));
+					.collect(Collectors.toList());
+
+				if (!allReplayCodes.isEmpty()) {
+					var replayCodeList = allReplayCodes.stream()
+						.map(code -> String.format("- `%s`", code))
+						.reduce((a, b) -> String.format("%s\n%s", a, b))
+						.orElse(null);
+
+					var replayCodeCommand = allReplayCodes.stream()
+						.reduce((a, b) -> String.format("%s %s", a, b))
+						.orElse(null);
+
+					logSender.queueLogs(log, "# Replay Codes marked with Error flag\n%s\nUse this command:\n```\n!replay reset %s\n```", replayCodeList, replayCodeCommand)
+				}
 
 				logSender.queueLogs(log, "Error codes were sent");
 			} else if (lowercaseMessage.startsWith("!replays download")) {
