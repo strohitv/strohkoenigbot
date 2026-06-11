@@ -171,8 +171,6 @@ public class BotController implements ScheduledService {
 				.map(p -> p[0])
 				.orElse(game.getPlayedTime());
 
-			final var timeDifference = Duration.between(game.getPlayedTime(), startingTime).toSeconds();
-
 			final var allPausesBefore = allPauses.stream()
 				.filter(p -> p[0].isBefore(startingTime) && p[1] != null && p[1].isBefore(startingTime))
 				.map(p -> Duration.between(p[0], p[1]))
@@ -184,17 +182,19 @@ public class BotController implements ScheduledService {
 				.plusSeconds(SECONDS_SHIFT) // because for some reason, timestamps are off ~25 seconds
 				.minusSeconds(INTRO_TIME);
 
-			final var allPausesBetween = allPauses.stream()
-				.filter(p -> p[0].isAfter(startingTime) && p[1] != null && p[0].isBefore(game.getPlayedTime().plusSeconds(game.getDuration())))
-				.map(p -> Duration.between(p[0], p[1]))
-				.reduce(Duration::plus)
-				.orElse(Duration.ZERO);
+//			final var timeDifference = Duration.between(game.getPlayedTime(), startingTime).toSeconds();
 
-			final var endTimestamp = startTimestamp.plusSeconds(Math.max(5, game.getDuration()))
-				.minus(allPausesBetween)
-				.minusSeconds(timeDifference)
-				.plusSeconds(INTRO_TIME)
-				.plusSeconds(OUTRO_TIME);
+//			final var allPausesBetween = allPauses.stream()
+//				.filter(p -> p[0].isAfter(startingTime) && p[1] != null && p[0].isBefore(game.getPlayedTime().plusSeconds(game.getDuration())))
+//				.map(p -> Duration.between(p[0], p[1]))
+//				.reduce(Duration::plus)
+//				.orElse(Duration.ZERO);
+
+//			final var endTimestamp = startTimestamp.plusSeconds(Math.max(5, game.getDuration()))
+//				.minus(allPausesBetween)
+//				.minusSeconds(timeDifference)
+//				.plusSeconds(INTRO_TIME)
+//				.plusSeconds(OUTRO_TIME);
 
 			final var ownPlayer = game.getTeams().stream()
 				.filter(Splatoon3VsResultTeam::getIsMyTeam)
@@ -235,13 +235,14 @@ public class BotController implements ScheduledService {
 				.append(game.getRule().getName())
 				.append(" - ")
 				.append(game.getStage().getName())
-				.append("\n")
-				.append(endTimestamp.toHoursPart())
-				.append(":")
-				.append(String.format("%02d", endTimestamp.toMinutesPart()))
-				.append(":")
-				.append(String.format("%02d", endTimestamp.toSecondsPart()))
-				.append(" No Game");
+//				.append("\n")
+//				.append(endTimestamp.toHoursPart())
+//				.append(":")
+//				.append(String.format("%02d", endTimestamp.toMinutesPart()))
+//				.append(":")
+//				.append(String.format("%02d", endTimestamp.toSecondsPart()))
+//				.append(" No Game")
+			;
 		}
 
 		return builder.toString().trim();
