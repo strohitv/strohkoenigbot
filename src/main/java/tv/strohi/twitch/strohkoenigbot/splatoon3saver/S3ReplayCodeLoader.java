@@ -139,6 +139,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 				var towerXP = myself.getStats().getXPowerTower();
 				var rainXP = myself.getStats().getXPowerRain();
 				var clamsXP = myself.getStats().getXPowerClams();
+				var xmmr = myself.getStats().getXmmr();
 				var playerLevel = myself.getStats().getPlayerLevel();
 				var alivePct = myself.getStats().getAlivePct();
 
@@ -148,6 +149,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					.replayJson(replayJson)
 					.mmr(mmr)
 					.innerMmr(innerMmr)
+					.xmmr(xmmr)
 					.power(power)
 					.xPowerZones(zonesXP)
 					.xPowerTower(towerXP)
@@ -224,6 +226,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 
 						var playerMmr = player.getStats().getMmr().orElse(result.getMmr());
 						var playerInnerMmr = player.getStats().getInnerMmr() * 4;
+						var playerXmmr = player.getStats().getXmmr();
 						var playerPower = player.getStats().getXPower().orElse(player.getStats().getMmr().orElse(null));
 						var playerZonesXP = player.getStats().getXPowerZones();
 						var playerTowerXP = player.getStats().getXPowerTower();
@@ -257,6 +260,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 							.power(playerPower)
 							.mmr(playerMmr)
 							.innerMmr(playerInnerMmr)
+							.xmmr(playerXmmr)
 							.xPowerZones(playerZonesXP)
 							.xPowerTower(playerTowerXP)
 							.xPowerRain(playerRainXP)

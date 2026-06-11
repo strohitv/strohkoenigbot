@@ -63,6 +63,8 @@ public class Splatoon3VsResult {
 
 	private Double innerMmr;
 
+	private Double xmmr;
+
 	private Double alivePct;
 
 	private Integer playerLevel;

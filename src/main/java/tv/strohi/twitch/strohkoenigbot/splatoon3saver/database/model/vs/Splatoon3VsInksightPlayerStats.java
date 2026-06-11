@@ -35,6 +35,8 @@ public class Splatoon3VsInksightPlayerStats {
 
 	private Double innerMmr;
 
+	private Double xmmr;
+
 	private Double alivePct;
 
 	private Integer playerLevel;

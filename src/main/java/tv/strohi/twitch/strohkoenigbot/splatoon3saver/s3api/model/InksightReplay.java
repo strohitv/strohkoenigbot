@@ -148,6 +148,7 @@ public class InksightReplay {
 		@JsonProperty("x_power_cb")
 		private Double xPowerClams;
 		private Double innerMmr;
+		private Double xmmr;
 		private Double alivePct;
 		private Double mmr;
 		private Integer boilSeconds;
