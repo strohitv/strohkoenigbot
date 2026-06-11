@@ -49,6 +49,9 @@ import java.util.stream.Stream;
 @Log4j2
 public class BotController implements ScheduledService {
 	private final String BEELINK_BOOT_MESSAGE_CONFIG = "BotController_BeelinkMessageTime";
+	private final int SECONDS_SHIFT = 25;
+	private final int INTRO_TIME = 20;
+	private final int OUTRO_TIME = 22;
 
 	private final Bucket adminMessageBucket;
 	private final Bucket loadLatestGameStringBucket;
@@ -178,7 +181,8 @@ public class BotController implements ScheduledService {
 
 			final var startTimestamp = Duration.between(previousStreamStartTime, startingTime)
 				.minus(allPausesBefore)
-				.minusSeconds(20); // Intro
+				.plusSeconds(SECONDS_SHIFT) // because for some reason, timestamps are off ~25 seconds
+				.minusSeconds(INTRO_TIME);
 
 			final var allPausesBetween = allPauses.stream()
 				.filter(p -> p[0].isAfter(startingTime) && p[1] != null && p[0].isBefore(game.getPlayedTime().plusSeconds(game.getDuration())))
@@ -189,8 +193,8 @@ public class BotController implements ScheduledService {
 			final var endTimestamp = startTimestamp.plusSeconds(Math.max(5, game.getDuration()))
 				.minus(allPausesBetween)
 				.minusSeconds(timeDifference)
-				.plusSeconds(20) // Intro
-				.plusSeconds(22); // Outro
+				.plusSeconds(INTRO_TIME)
+				.plusSeconds(OUTRO_TIME);
 
 			final var ownPlayer = game.getTeams().stream()
 				.filter(Splatoon3VsResultTeam::getIsMyTeam)
@@ -282,16 +286,7 @@ public class BotController implements ScheduledService {
 
 	@GetMapping("previous-recording-name")
 	public String getPreviousRecordingName() {
-		final var previousStreamStartTime = Instant.ofEpochSecond(
-			Long.parseLong(
-				configurationRepository.findByConfigName("TwitchBotClient_getPreviousStreamStartEpochSecond")
-					.orElseGet(() -> configurationRepository.save(
-						Configuration.builder()
-							.configName("TwitchBotClient_getPreviousStreamStartEpochSecond")
-							.configValue(String.format("%d", Instant.now().getEpochSecond()))
-							.build()
-					))
-					.getConfigValue()));
+		final var previousStreamStartTime = twitchBotClient.getPreviousStreamStartTime();
 
 		final var allGamesInStream = vsResultRepository.findByPlayedTimeBetween(previousStreamStartTime, Instant.now());
 
