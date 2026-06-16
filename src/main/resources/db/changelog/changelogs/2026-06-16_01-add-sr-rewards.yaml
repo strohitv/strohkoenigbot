@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-06-11_01-add-xmmr-from-inksight
+      author: strohkoenig
+      changes:
+        - addColumn:
+            tableName: splatoon_3_sr_rotation
+            columns:
+              - column:
+                  name: lean_date
+                  type: varchar(30)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: lean_money
+                  type: int
+                  constraints:
+                    nullable: true
+              - column:
+                  name: lean_money_ticket_small
+                  type: int
+                  constraints:
+                    nullable: true
+              - column:
+                  name: lean_money_ticket_big
+                  type: int
+                  constraints:
+                    nullable: true
+              - column:
+                  name: lean_silver_scales
+                  type: int
+                  constraints:
+                    nullable: true
+              - column:
+                  name: lean_gold_scales
+                  type: int
+                  constraints:
+                    nullable: true
+              - column:
+                  name: lean_result_entries
+                  type: clob
+                  constraints:
+                    nullable: true
