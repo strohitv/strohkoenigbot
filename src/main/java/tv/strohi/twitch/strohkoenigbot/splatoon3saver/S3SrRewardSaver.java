@@ -9,6 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.SrReward;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -21,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Log4j2
 public class S3SrRewardSaver {
+	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
 	private final Splatoon3SrModeRepository srModeRepository;
@@ -37,41 +39,45 @@ public class S3SrRewardSaver {
 			var allRotations = new ArrayList<>(srRotationRepository.findByEndTimeAfter(Instant.now()));
 
 			for (int i = allRotations.size() - 1; i >= 0; i--) {
-				var srReward = srRewards.get(i);
+				var reward = srRewards.get(i);
 
-				var modeName = srReward.getDate().split("[()]")[1];
+				var modeName = reward.getDate().split("[()]")[1];
 				var mode = srModeRepository.findByName(modeName)
 					.orElse(null);
 
 				if (mode == null) {
+					logSender.queueLogs(log, "# ERROR: Did not find mode `%s`", modeName);
 					continue;
 				}
 
-				var date = LocalDate.parse(srReward.getDate().split("[ ()]")[0], DateTimeFormatter.ofPattern("M/d/yyyy"))
+				var date = LocalDate.parse(reward.getDate().split("[ ()]")[0], DateTimeFormatter.ofPattern("M/d/yyyy"))
 					.atStartOfDay()
 					.atZone(ZoneId.systemDefault())
 					.toInstant();
 
-				var firstRotation = allRotations.stream()
+				var foundRotation = allRotations.stream()
 					.filter(r -> r.getStartTime().isAfter(date) && r.getMode().equals(mode))
 					.reduce((a, b) -> b)
 					.orElse(null);
 
-				if (firstRotation == null) {
+				if (foundRotation == null) {
+					logSender.queueLogs(log, "# ERROR: Did not find rotation for startDate after `%s` and mode `%s`", date, modeName);
 					continue;
 				}
 
-				allRotations.remove(firstRotation);
+				allRotations.remove(foundRotation);
 
-				srRotationRepository.save(firstRotation.toBuilder()
-					.leanDate(srReward.getDate())
-					.leanMoney(srReward.getMoney())
-					.leanMoneyTicketSmall(srReward.getMoney_ticket_small())
-					.leanMoneyTicketBig(srReward.getMoney_ticket_big())
-					.leanSilverScales(srReward.getSilver_scales())
-					.leanGoldScales(srReward.getGold_scales())
-					.leanResultEntries(srReward.getResults())
+				srRotationRepository.save(foundRotation.toBuilder()
+					.leanDate(reward.getDate())
+					.leanMoney(reward.getMoney())
+					.leanMoneyTicketSmall(reward.getMoney_ticket_small())
+					.leanMoneyTicketBig(reward.getMoney_ticket_big())
+					.leanSilverScales(reward.getSilver_scales())
+					.leanGoldScales(reward.getGold_scales())
+					.leanResultEntries(reward.getResults())
 					.build());
+
+				logSender.queueLogs(log, "# Added SR rewards to rotation with id `%d`\n```\n%s\n```", foundRotation.getId(), reward);
 			}
 		} catch (Exception e) {
 			exceptionLogger.logExceptionAsAttachment(log, "Exception happened during Lean Sr Result upload", e);
