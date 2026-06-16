@@ -15,6 +15,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.rest.model.S2Tokens;
 import tv.strohi.twitch.strohkoenigbot.rest.model.S3Tokens;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3ReplayCodeLoader;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3SrRewardSaver;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3TokenRefresher;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
@@ -43,17 +44,19 @@ public class SplatNet3DataController {
 	private final LogSender logSender;
 
 	private final S3ReplayCodeLoader replayCodeLoader;
+	private final S3SrRewardSaver rewardSaver;
 
 	private final Map<String, Bucket> buckets;
 
 	private final Map<String, Object> data = new HashMap<>();
 
-	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogSender logSender, AccountRepository accountRepository, S3ReplayCodeLoader replayCodeLoader) {
+	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogSender logSender, AccountRepository accountRepository, S3ReplayCodeLoader replayCodeLoader, S3SrRewardSaver rewardSaver) {
 		this.s3TokenRefresher = s3TokenRefresher;
 		this.configurationRepository = configurationRepository;
 		this.accountRepository = accountRepository;
 		this.logSender = logSender;
 		this.replayCodeLoader = replayCodeLoader;
+		this.rewardSaver = rewardSaver;
 
 		var now = Instant.now().toEpochMilli();
 
@@ -111,7 +114,13 @@ public class SplatNet3DataController {
 					.capacity(5)
 					.refillGreedy(5, Duration.ofMinutes(1))
 					.build())
-				.build());
+				.build(),
+			"upload-sr-rewards", Bucket.builder()
+			.addLimit(Bandwidth.builder()
+				.capacity(5)
+				.refillGreedy(5, Duration.ofMinutes(1))
+				.build())
+			.build());
 	}
 
 	public void refresh(String key, Object newValue) {
@@ -288,6 +297,23 @@ public class SplatNet3DataController {
 			}
 
 			return ResponseEntity.badRequest().build();
+		}
+
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+	}
+
+	@PostMapping(value = "/sr-rewards")
+	public ResponseEntity<Void> uploadSrRewards(@RequestHeader("Authorization") String auth, @RequestBody String srRewards) {
+		if (buckets.get("upload-sr-rewards").tryConsume(1)) {
+			var authCheckResult = doAuthCheck(auth, "replay json upload", Void.class);
+
+			if (authCheckResult.isPresent()) {
+				return authCheckResult.get();
+			}
+
+			rewardSaver.addSrRewards(srRewards);
+
+			return ResponseEntity.ok().build();
 		}
 
 		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();

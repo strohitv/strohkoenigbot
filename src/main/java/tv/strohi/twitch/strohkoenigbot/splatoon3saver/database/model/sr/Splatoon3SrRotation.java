@@ -20,6 +20,21 @@ public class Splatoon3SrRotation {
 
 	private Instant endTime;
 
+	private String leanDate;
+
+	private Integer leanMoney;
+
+	private Integer leanMoneyTicketSmall;
+
+	private Integer leanMoneyTicketBig;
+
+	private Integer leanSilverScales;
+
+	private Integer leanGoldScales;
+
+	@Lob
+	private String leanResultEntries;
+
 	@Lob
 	private String shortenedJson;
 
