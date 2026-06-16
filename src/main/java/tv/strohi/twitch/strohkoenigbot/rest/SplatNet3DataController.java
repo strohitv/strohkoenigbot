@@ -116,11 +116,11 @@ public class SplatNet3DataController {
 					.build())
 				.build(),
 			"upload-sr-rewards", Bucket.builder()
-			.addLimit(Bandwidth.builder()
-				.capacity(5)
-				.refillGreedy(5, Duration.ofMinutes(1))
-				.build())
-			.build());
+				.addLimit(Bandwidth.builder()
+					.capacity(5)
+					.refillGreedy(5, Duration.ofMinutes(1))
+					.build())
+				.build());
 	}
 
 	public void refresh(String key, Object newValue) {
