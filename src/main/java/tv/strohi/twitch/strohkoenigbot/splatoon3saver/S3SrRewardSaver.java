@@ -67,6 +67,8 @@ public class S3SrRewardSaver {
 
 				allRotations.remove(foundRotation);
 
+				final var firstUploaded = foundRotation.getLeanDate() == null;
+
 				srRotationRepository.save(foundRotation.toBuilder()
 					.leanDate(reward.getDate())
 					.leanMoney(reward.getMoney())
@@ -77,7 +79,9 @@ public class S3SrRewardSaver {
 					.leanResultEntries(reward.getResults())
 					.build());
 
-				logSender.queueLogs(log, "# Added SR rewards to rotation with id `%d`\n```\n%s\n```", foundRotation.getId(), reward);
+				if (firstUploaded) {
+					logSender.queueLogs(log, "# Added SR rewards to rotation with id `%d`\n```\n%s\n```", foundRotation.getId(), reward);
+				}
 			}
 		} catch (Exception e) {
 			exceptionLogger.logExceptionAsAttachment(log, "Exception happened during Lean Sr Result upload", e);

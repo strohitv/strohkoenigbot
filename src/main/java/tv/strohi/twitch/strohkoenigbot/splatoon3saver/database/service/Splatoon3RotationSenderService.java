@@ -63,7 +63,10 @@ public class Splatoon3RotationSenderService {
 		srModeDiscordChannelRepository.findAll().forEach(channel ->
 			srRotationRepository.findByModeAndStartTimeLessThanEqualAndEndTimeGreaterThan(channel.getMode(), time, time)
 				.filter(rotation -> force || Math.abs(rotation.getStartTime().getEpochSecond() - now.getEpochSecond()) <= 300)
-				.ifPresent(rotation -> sendSrRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), rotation)));
+				.ifPresent(rotation -> {
+					sendSrRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), rotation);
+					sendValuableSrRotationToDiscord(DiscordChannelDecisionMaker.getS3SalmonRunValuableChannelName(), rotation);
+				}));
 
 		log.info("Done posting rotations to discord");
 	}
@@ -206,6 +209,52 @@ public class Splatoon3RotationSenderService {
 			.append(":R>)");
 
 		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getStage().getImage().getUrl());
+	}
+
+	private void sendValuableSrRotationToDiscord(String channelName, Splatoon3SrRotation rotation) {
+		var score = Optional.ofNullable(rotation.getLeanMoney()).map(lm -> lm / 5000).orElse(0)
+			+ Optional.ofNullable(rotation.getLeanMoneyTicketSmall()).map(lmt -> lmt * 2).orElse(0)
+			+ Optional.ofNullable(rotation.getLeanMoneyTicketBig()).map(lmt -> lmt * 4).orElse(0);
+
+		if ("Triumvirate".equals(rotation.getBoss().getName())) {
+			score += 10;
+		}
+
+		if (score >= 8) {
+			var builder = new StringBuilder(String.format("# %s\nScore: %d\n\n### Stage\n- ", rotation.getLeanDate(), score))
+				.append(rotation.getStage().getName()).append("\n\n### Valuable rewards");
+
+			if ("Triumvirate".equals(rotation.getBoss().getName())) {
+				builder.append("\n- Boss: ").append(rotation.getBoss().getName());
+			}
+
+			if (rotation.getLeanMoney() > 0) {
+				builder.append("\n- Money: ").append(rotation.getLeanMoney());
+			}
+
+			if (rotation.getLeanMoneyTicketSmall() > 0) {
+				builder.append("\n- +50% money tickets: ").append(rotation.getLeanMoneyTicketSmall());
+			}
+
+			if (rotation.getLeanMoneyTicketBig() > 0) {
+				builder.append("\n- +100% money tickets: ").append(rotation.getLeanMoneyTicketBig());
+			}
+			builder.append("\n- Silver Scales: ").append(rotation.getLeanMoneyTicketBig());
+			builder.append("\n- Gold Scales: ").append(rotation.getLeanMoneyTicketBig());
+
+			builder.append("\n\n### Weapons\n");
+
+			Stream.of(rotation.getWeapon1(), rotation.getWeapon2(), rotation.getWeapon3(), rotation.getWeapon4())
+				.forEach(w -> builder.append("- ").append(w.getName()).append("\n"));
+
+			builder.append("\nRotation will be running until **<t:")
+				.append(rotation.getEndTime().getEpochSecond())
+				.append(":f>** (<t:")
+				.append(rotation.getEndTime().getEpochSecond())
+				.append(":R>)");
+
+			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getStage().getImage().getUrl());
+		}
 	}
 
 	public String getEmoji(String modeId) {

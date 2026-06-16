@@ -29,6 +29,7 @@ public class DiscordChannelDecisionMaker {
 	private final static String s3SalmonRunChannel = "s3-salmon-run-rotations";
 	private final static String s3SalmonRunBigRunChannel = "s3-big-run-rotations";
 	private final static String s3SalmonRunEggstraWorkChannel = "s3-eggstra-work-rotations";
+	private final static String s3SalmonRunValuableRotationChannel = "s3-valuable-sr-rotations";
 
 	private final static String s3BadgesChannel = "s3-badges";
 	private final static String s3EmotesChannel = "s3-emotes";
@@ -207,6 +208,14 @@ public class DiscordChannelDecisionMaker {
 			return debugTempChannel;
 		} else {
 			return s3SalmonRunEggstraWorkChannel;
+		}
+	}
+
+	public static String getS3SalmonRunValuableChannelName() {
+		if (isLocalDebug) {
+			return debugTempChannel;
+		} else {
+			return s3SalmonRunValuableRotationChannel;
 		}
 	}
 

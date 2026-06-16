@@ -15,5 +15,7 @@ public class SrReward {
 	private int money_ticket_big;
 	private int silver_scales;
 	private int gold_scales;
+
+	@ToString.Exclude
 	private String results;
 }
