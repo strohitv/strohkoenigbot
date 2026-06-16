@@ -38,7 +38,7 @@ public class S3SrRewardSaver {
 			var srRewards = objectMapper.readValue(rewards, ref);
 			var allRotations = new ArrayList<>(srRotationRepository.findByEndTimeAfter(Instant.now()));
 
-			for (int i = allRotations.size() - 1; i >= 0; i--) {
+			for (int i = srRewards.size() - 1; i >= 0; i--) {
 				var reward = srRewards.get(i);
 
 				var modeName = reward.getDate().split("[()]")[1];
