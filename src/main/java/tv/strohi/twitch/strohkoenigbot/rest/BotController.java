@@ -154,6 +154,7 @@ public class BotController implements ScheduledService {
 		final var allGamesInStream = vsResultRepository.findByPlayedTimeBetween(previousStreamStartTime, previousStreamEndTime != null ? previousStreamEndTime : Instant.now());
 
 		var gameNumber = 1;
+		var endTimestamp = Duration.ZERO;
 		for (var game : allGamesInStream) {
 			final var wasDuringPause = allPauses.stream()
 				.anyMatch(p -> p[0].isBefore(game.getPlayedTime()) && (p[1] == null || p[1].isAfter(game.getPlayedTime().plusSeconds(game.getDuration()))));
@@ -182,19 +183,19 @@ public class BotController implements ScheduledService {
 				.plusSeconds(SECONDS_SHIFT) // because for some reason, timestamps are off ~25 seconds
 				.minusSeconds(INTRO_TIME);
 
-//			final var timeDifference = Duration.between(game.getPlayedTime(), startingTime).toSeconds();
+			final var timeDifference = Duration.between(game.getPlayedTime(), startingTime).toSeconds();
 
-//			final var allPausesBetween = allPauses.stream()
-//				.filter(p -> p[0].isAfter(startingTime) && p[1] != null && p[0].isBefore(game.getPlayedTime().plusSeconds(game.getDuration())))
-//				.map(p -> Duration.between(p[0], p[1]))
-//				.reduce(Duration::plus)
-//				.orElse(Duration.ZERO);
+			final var allPausesBetween = allPauses.stream()
+				.filter(p -> p[0].isAfter(startingTime) && p[1] != null && p[0].isBefore(game.getPlayedTime().plusSeconds(game.getDuration())))
+				.map(p -> Duration.between(p[0], p[1]))
+				.reduce(Duration::plus)
+				.orElse(Duration.ZERO);
 
-//			final var endTimestamp = startTimestamp.plusSeconds(Math.max(5, game.getDuration()))
-//				.minus(allPausesBetween)
-//				.minusSeconds(timeDifference)
-//				.plusSeconds(INTRO_TIME)
-//				.plusSeconds(OUTRO_TIME);
+			endTimestamp = startTimestamp.plusSeconds(Math.max(5, game.getDuration()))
+				.minus(allPausesBetween)
+				.minusSeconds(timeDifference)
+				.plusSeconds(INTRO_TIME)
+				.plusSeconds(OUTRO_TIME);
 
 			final var ownPlayer = game.getTeams().stream()
 				.filter(Splatoon3VsResultTeam::getIsMyTeam)
@@ -234,15 +235,17 @@ public class BotController implements ScheduledService {
 				.append(" - ")
 				.append(game.getRule().getName())
 				.append(" - ")
-				.append(game.getStage().getName())
-//				.append("\n")
-//				.append(endTimestamp.toHoursPart())
-//				.append(":")
-//				.append(String.format("%02d", endTimestamp.toMinutesPart()))
-//				.append(":")
-//				.append(String.format("%02d", endTimestamp.toSecondsPart()))
-//				.append(" No Game")
-			;
+				.append(game.getStage().getName());
+		}
+
+		if (!endTimestamp.isZero()) {
+			builder.append("\n")
+				.append(endTimestamp.toHoursPart())
+				.append(":")
+				.append(String.format("%02d", endTimestamp.toMinutesPart()))
+				.append(":")
+				.append(String.format("%02d", endTimestamp.toSecondsPart()))
+				.append(" Outro");
 		}
 
 		return builder.toString().trim();
