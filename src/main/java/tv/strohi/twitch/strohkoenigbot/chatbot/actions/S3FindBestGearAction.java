@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
@@ -8,7 +9,11 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3NewGearChecker;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.GearPower;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -17,15 +22,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
+@Log4j2
 public class S3FindBestGearAction extends ChatAction {
 	public static final String COMMAND_NAME = "!find";
 
 	private final S3NewGearChecker gearChecker;
+	private final ExceptionLogger exceptionLogger;
 
 	private Instant lastUsed = Instant.now().truncatedTo(ChronoUnit.DAYS);
 
-	public S3FindBestGearAction(S3NewGearChecker gearChecker) {
+	public S3FindBestGearAction(S3NewGearChecker gearChecker, ExceptionLogger exceptionLogger) {
 		this.gearChecker = gearChecker;
+		this.exceptionLogger = exceptionLogger;
 
 		var abilities = new HashMap<String, String>();
 		abilities.put("ism", "Ink Saver (Main)");
@@ -44,6 +52,46 @@ public class S3FindBestGearAction extends ChatAction {
 		abilities.put("ia", "Intensify Action");
 
 		genericAbilities = Map.copyOf(abilities);
+
+		abilities = new HashMap<>();
+		// head
+		abilities.put("t", "ten");
+		abilities.put("og", "og");
+		abilities.put("cb", "cbk");
+		abilities.put("lde", "lde");
+
+		// shirts
+		abilities.put("rp", "rp");
+		abilities.put("ns", "nin");
+		abilities.put("h", "hau");
+		abilities.put("ti", "ti");
+		abilities.put("ad", "ad");
+
+		// shoes
+		abilities.put("os", "os");
+		abilities.put("sj", "sj");
+		abilities.put("dr", "dr");
+
+		// regular
+		abilities.put("ism", "ism");
+		abilities.put("iss", "iss");
+		abilities.put("iru", "iru");
+		abilities.put("rsu", "rsu");
+		abilities.put("ssu", "ssu");
+		abilities.put("scu", "scu");
+		abilities.put("ss", "ss");
+		abilities.put("spu", "sppu");
+		abilities.put("qr", "qr");
+		abilities.put("qsj", "qsj");
+		abilities.put("bru", "supu");
+		abilities.put("res", "res");
+		abilities.put("sru", "sru");
+		abilities.put("ia", "ia");
+
+		// empty
+		abilities.put("U", "");
+
+		sendouAbilities = Map.copyOf(abilities);
 	}
 
 	@Override
@@ -55,6 +103,7 @@ public class S3FindBestGearAction extends ChatAction {
 	private final Map<String, String> clothesAbilities = Map.of("nin", "Ninja Squid", "hau", "Haunt", "ti", "Thermal Ink", "rp", "Respawn Punisher", "ad", "Ability Doubler");
 	private final Map<String, String> shoesAbilities = Map.of("sj", "Stealth Jump", "os", "Object Shredder", "dr", "Drop Roller");
 	private final Map<String, String> genericAbilities;
+	private final Map<String, String> sendouAbilities;
 
 	private final int exclusivePoints = 150;
 	private final int mainPoints = 100;
@@ -84,6 +133,102 @@ public class S3FindBestGearAction extends ChatAction {
 
 		if (gearChecker.getAllOwnedGear().isEmpty()) {
 			args.getReplySender().send("ERROR: I could not find gear via SplatNet!");
+			return;
+		}
+
+		if (message.contains("sendou.ink")) {
+			try {
+				var sendouLink = Arrays.stream(message.split(" "))
+					.filter(m -> m.contains("sendou.ink"))
+					.findFirst()
+					.orElse("https://sendou.ink/analyzer?weapon=252&build=U%2CU%2CU%2CU%2CU%2CU%2CU%2CU%2CU%2CU%2CU%2CU&build2=U%2CU%2CU%2CU%2CU%2CU%2CU%2CU%2CU%2CU%2CU%2CU&lde=0&focused=1");
+				var uri = new URI(sendouLink);
+
+				var builds = Arrays.stream(uri.getRawQuery().split("&"))
+					.filter(q -> q.contains("build"))
+					.map(param -> decode(param.split("=")[1]))
+					.collect(Collectors.toList());
+
+				var buildCounter = 1;
+				for (var build : builds) {
+					var abilities = build.split(",");
+
+					var mains = new ArrayList<String>();
+					var subs = new ArrayList<String>();
+					var counter = 0;
+					for (var ability : abilities) {
+						var translated = sendouAbilities.getOrDefault(ability, "");
+
+						if (!translated.isBlank()) {
+							if (counter % 4 == 0) {
+								mains.add(translated);
+							} else {
+								subs.add(translated);
+							}
+						}
+
+						counter++;
+					}
+
+					var builder = new StringBuilder();
+					while (!mains.isEmpty()) {
+						var firstMain = mains.get(0);
+
+						var mainCounter = mains.stream()
+							.filter(firstMain::equals)
+							.count();
+
+						mains = mains.stream()
+							.filter(ab -> !firstMain.equals(ab))
+							.collect(Collectors.toCollection(ArrayList::new));
+
+						var subCounter = subs.stream()
+							.filter(firstMain::equals)
+							.count();
+
+						subs = subs.stream()
+							.filter(ab -> !firstMain.equals(ab))
+							.collect(Collectors.toCollection(ArrayList::new));
+
+						builder
+							.append(" ")
+							.append(mainCounter)
+							.append("m")
+							.append(subCounter)
+							.append("s ")
+							.append(firstMain);
+					}
+
+					while (!subs.isEmpty()) {
+						var firstSub = subs.get(0);
+
+						var subCounter = subs.stream()
+							.filter(firstSub::equals)
+							.count();
+
+						subs = subs.stream()
+							.filter(ab -> !firstSub.equals(ab))
+							.collect(Collectors.toCollection(ArrayList::new));
+
+						builder
+							.append(" 0m")
+							.append(subCounter)
+							.append("s ")
+							.append(firstSub);
+					}
+
+					if (builder.length() > 0) {
+						builder.append(" ");
+						args.getReplySender().send(String.format("# Build #%d", buildCounter));
+						args.getArguments().put(ArgumentKey.Message, message.replace(sendouLink, builder.toString()));
+						execute(args);
+						buildCounter++;
+					}
+				}
+			} catch (Exception e) {
+				exceptionLogger.logExceptionAsAttachment(log, "Exception During sendou.ink find gear parsing", e);
+			}
+
 			return;
 		}
 
@@ -266,6 +411,10 @@ public class S3FindBestGearAction extends ChatAction {
 		} else {
 			args.getReplySender().send(String.format("- %s\n - %s\n - %s", describeGear(bestHead), describeGear(bestShirt), describeGear(bestShoes)));
 		}
+	}
+
+	private String decode(String value) {
+		return URLDecoder.decode(value, StandardCharsets.UTF_8);
 	}
 
 	private String describeGear(Gear gear) {
