@@ -264,6 +264,7 @@ public class BotController implements ScheduledService {
 					.append(gameNumber)
 					.append(": ")
 					.append(srGame.getSuccessful() ? "CLEAR" : "DEFEAT")
+					.append(" - ")
 					.append(srGame.getWaves().size())
 					.append(" waves - ")
 					.append(srGame.getJobScore())
@@ -340,9 +341,10 @@ public class BotController implements ScheduledService {
 	public String getPreviousRecordingName() {
 		final var previousStreamStartTime = twitchBotClient.getPreviousStreamStartTime();
 
-		final var allGamesInStream = vsResultRepository.findByPlayedTimeBetween(previousStreamStartTime, Instant.now());
+		final var allVsGamesInStream = vsResultRepository.findByPlayedTimeBetween(previousStreamStartTime, Instant.now());
+		final var allSrGamesInStream = srResultRepository.findByPlayedTimeBetween(previousStreamStartTime, Instant.now());
 
-		final var allWeaponsSortedByUsage = allGamesInStream.stream()
+		final var allWeaponsSortedByUsage = allVsGamesInStream.stream()
 			.flatMap(g -> g.getTeams().stream())
 			.filter(Splatoon3VsResultTeam::getIsMyTeam)
 			.flatMap(t -> t.getTeamPlayers().stream())
@@ -353,7 +355,7 @@ public class BotController implements ScheduledService {
 			.sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
 			.collect(Collectors.toList());
 
-		final var allModesSortedByOccurrence = allGamesInStream.stream()
+		final var allModesSortedByOccurrence = allVsGamesInStream.stream()
 			.map(g -> g.getMode().getName())
 			.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
 			.entrySet().stream()
@@ -364,7 +366,9 @@ public class BotController implements ScheduledService {
 			.atZone(ZoneId.of("Europe/Berlin"))
 			.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
 
-		final var titleFormat = String.format("Splatoon 3 %%s in %%s vom %s", streamDate);
+		final var titleFormat = String.format("Splatoon 3 %%s in %%s%s vom %s",
+			!allSrGamesInStream.isEmpty() ? " & Salmon Run" : "",
+			streamDate);
 
 		final var includedModes = new ArrayList<String>();
 		for (var modeWithCount : allModesSortedByOccurrence) {
