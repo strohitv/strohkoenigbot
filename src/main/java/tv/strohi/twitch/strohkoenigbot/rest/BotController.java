@@ -163,7 +163,8 @@ public class BotController implements ScheduledService {
 			.sorted(Comparator.comparing((SplatoonGame a) -> a.getPlayedTime()))
 			.collect(Collectors.toList());
 
-		var gameNumber = 1;
+		var vsGameNumber = 1;
+		var srGameNumber = 1;
 		var endTimestamp = Duration.ZERO;
 		for (var game : allGames) {
 			final var wasDuringPause = allPauses.stream()
@@ -221,13 +222,13 @@ public class BotController implements ScheduledService {
 					.append(String.format("%02d", startTimestamp.toMinutesPart()))
 					.append(":")
 					.append(String.format("%02d", startTimestamp.toSecondsPart()))
-					.append(" #")
-					.append(gameNumber)
+					.append(" VS #")
+					.append(vsGameNumber)
 					.append(": ")
 					.append(vsGame.getOwnJudgement())
 					.append(" ");
 
-				gameNumber++;
+				vsGameNumber++;
 
 				var betweenChar = "";
 				for (var team : vsGame.getTeams()) {
@@ -261,7 +262,7 @@ public class BotController implements ScheduledService {
 					.append(":")
 					.append(String.format("%02d", startTimestamp.toSecondsPart()))
 					.append(" SR #")
-					.append(gameNumber)
+					.append(srGameNumber)
 					.append(": ")
 					.append(srGame.getSuccessful() ? "CLEAR" : "DEFEAT")
 					.append(" - ")
@@ -286,7 +287,7 @@ public class BotController implements ScheduledService {
 						.append(srGame.getSuccessful() ? " (killed)" : " (fail)");
 				}
 
-				gameNumber++;
+				srGameNumber++;
 			}
 		}
 
