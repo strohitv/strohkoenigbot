@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResult;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,4 +18,6 @@ public interface Splatoon3SrResultRepository extends CrudRepository<Splatoon3SrR
 
 	Page<Splatoon3SrResult> findAllByPlayedTimeGreaterThanEqual(Instant playedTimeAfter, Pageable pageable);
 	Page<Splatoon3SrResult> findAllByBossNotNull(Pageable pageable);
+
+	List<Splatoon3SrResult> findByPlayedTimeBetween(Instant start, Instant end);
 }

@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.interfaces.SplatoonGame;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -16,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @ToString(exclude = {"teams", "inksightPlayerStats"})
-public class Splatoon3VsResult {
+public class Splatoon3VsResult implements SplatoonGame {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;

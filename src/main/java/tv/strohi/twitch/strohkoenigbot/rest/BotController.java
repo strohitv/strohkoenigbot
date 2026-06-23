@@ -18,9 +18,14 @@ import tv.strohi.twitch.strohkoenigbot.rest.model.BotStatus;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3ApiQuerySender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3RequestKey;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.interfaces.SplatoonGame;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResult;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResultPlayer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsMode;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeamPlayer;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
@@ -36,10 +41,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,8 +69,9 @@ public class BotController implements ScheduledService {
 	private final ConfigurationRepository configurationRepository;
 	private final Splatoon3VsModeRepository modeRepository;
 	private final Splatoon3VsResultRepository vsResultRepository;
+	private final Splatoon3SrResultRepository srResultRepository;
 
-	public BotController(LogSender logSender, S3Downloader s3Downloader, TwitchBotClient twitchBotClient, S3ApiQuerySender s3ApiQuerySender, ObjectMapper mapper, AccountRepository accountRepository, ConfigurationRepository configurationRepository, Splatoon3VsModeRepository modeRepository, Splatoon3VsResultRepository vsResultRepository) {
+	public BotController(LogSender logSender, S3Downloader s3Downloader, TwitchBotClient twitchBotClient, S3ApiQuerySender s3ApiQuerySender, ObjectMapper mapper, AccountRepository accountRepository, ConfigurationRepository configurationRepository, Splatoon3VsModeRepository modeRepository, Splatoon3VsResultRepository vsResultRepository, Splatoon3SrResultRepository srResultRepository) {
 		this.logSender = logSender;
 		this.s3Downloader = s3Downloader;
 		this.twitchBotClient = twitchBotClient;
@@ -78,6 +81,7 @@ public class BotController implements ScheduledService {
 		this.configurationRepository = configurationRepository;
 		this.modeRepository = modeRepository;
 		this.vsResultRepository = vsResultRepository;
+		this.srResultRepository = srResultRepository;
 
 		var limit = Bandwidth.builder()
 			.capacity(10)
@@ -151,11 +155,17 @@ public class BotController implements ScheduledService {
 		final var previousStreamStartTime = twitchBotClient.getPreviousStreamStartTime();
 		final var previousStreamEndTime = twitchBotClient.getPreviousStreamEndTime();
 		final var allPauses = twitchBotClient.getPauses();
-		final var allGamesInStream = vsResultRepository.findByPlayedTimeBetween(previousStreamStartTime, previousStreamEndTime != null ? previousStreamEndTime : Instant.now());
+		final var allVsGamesInStream = vsResultRepository.findByPlayedTimeBetween(previousStreamStartTime, previousStreamEndTime != null ? previousStreamEndTime : Instant.now());
+		final var allSrGamesInStream = srResultRepository.findByPlayedTimeBetween(previousStreamStartTime, previousStreamEndTime != null ? previousStreamEndTime : Instant.now());
+
+		final var allGames = Stream.of(allVsGamesInStream, allSrGamesInStream)
+			.flatMap(Collection::stream)
+			.sorted(Comparator.comparing((SplatoonGame a) -> a.getPlayedTime()))
+			.collect(Collectors.toList());
 
 		var gameNumber = 1;
 		var endTimestamp = Duration.ZERO;
-		for (var game : allGamesInStream) {
+		for (var game : allGames) {
 			final var wasDuringPause = allPauses.stream()
 				.anyMatch(p -> p[0].isBefore(game.getPlayedTime()) && (p[1] == null || p[1].isAfter(game.getPlayedTime().plusSeconds(game.getDuration()))));
 
@@ -197,45 +207,83 @@ public class BotController implements ScheduledService {
 				.plusSeconds(INTRO_TIME)
 				.plusSeconds(OUTRO_TIME);
 
-			final var ownPlayer = game.getTeams().stream()
-				.filter(Splatoon3VsResultTeam::getIsMyTeam)
-				.flatMap(t -> t.getTeamPlayers().stream())
-				.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
-				.findFirst();
+			if (game instanceof Splatoon3VsResult) {
+				var vsGame = (Splatoon3VsResult) game;
+				final var ownPlayer = vsGame.getTeams().stream()
+					.filter(Splatoon3VsResultTeam::getIsMyTeam)
+					.flatMap(t -> t.getTeamPlayers().stream())
+					.filter(Splatoon3VsResultTeamPlayer::getIsMyself)
+					.findFirst();
 
-			builder.append("\n")
-				.append(startTimestamp.toHoursPart())
-				.append(":")
-				.append(String.format("%02d", startTimestamp.toMinutesPart()))
-				.append(":")
-				.append(String.format("%02d", startTimestamp.toSecondsPart()))
-				.append(" #")
-				.append(gameNumber)
-				.append(": ")
-				.append(game.getOwnJudgement())
-				.append(" ");
+				builder.append("\n")
+					.append(startTimestamp.toHoursPart())
+					.append(":")
+					.append(String.format("%02d", startTimestamp.toMinutesPart()))
+					.append(":")
+					.append(String.format("%02d", startTimestamp.toSecondsPart()))
+					.append(" #")
+					.append(gameNumber)
+					.append(": ")
+					.append(vsGame.getOwnJudgement())
+					.append(" ");
 
-			gameNumber++;
+				gameNumber++;
 
-			var betweenChar = "";
-			for (var team : game.getTeams()) {
-				var points = team.getScore() != null
-					? String.format("%d", team.getScore())
-					: team.getPaintRatio() != null ? String.format("%.1f%%", team.getPaintRatio() * 100) : "??";
+				var betweenChar = "";
+				for (var team : vsGame.getTeams()) {
+					var points = team.getScore() != null
+						? String.format("%d", team.getScore())
+						: team.getPaintRatio() != null ? String.format("%.1f%%", team.getPaintRatio() * 100) : "??";
 
-				builder.append(betweenChar).append(points);
-				betweenChar = "-";
+					builder.append(betweenChar).append(points);
+					betweenChar = "-";
+				}
+
+				builder
+					.append(vsGame.getKnockout() != null && !"NEITHER".equals(vsGame.getKnockout()) ? " KO - " : " - ")
+					.append(ownPlayer.map(o -> o.getWeapon().getName()).orElse("UNKNOWN WEAPON"))
+					.append(" - ")
+					.append(vsGame.getMode().getName())
+					.append(" - ")
+					.append(vsGame.getRule().getName())
+					.append(" - ")
+					.append(vsGame.getStage().getName());
+			} else if (game instanceof Splatoon3SrResult) {
+				var srGame = (Splatoon3SrResult) game;
+				final var ownPlayer = srGame.getPlayers().stream()
+					.filter(Splatoon3SrResultPlayer::getIsMyself)
+					.findFirst();
+
+				builder.append("\n")
+					.append(startTimestamp.toHoursPart())
+					.append(":")
+					.append(String.format("%02d", startTimestamp.toMinutesPart()))
+					.append(":")
+					.append(String.format("%02d", startTimestamp.toSecondsPart()))
+					.append(" SR #")
+					.append(gameNumber)
+					.append(": ")
+					.append(srGame.getSuccessful() ? "CLEAR" : "DEFEAT")
+					.append(srGame.getWaves().size())
+					.append(" waves - ")
+					.append(srGame.getJobScore())
+					.append(" Gold Eggs - ")
+					.append(srGame.getStage().getName());
+
+				ownPlayer.ifPresent(p -> builder
+					.append(" - ")
+					.append(p.getEnemiesDefeated())
+					.append(" Boss Kills"));
+
+				if (srGame.getBoss() != null) {
+					builder
+						.append(" - KING: ")
+						.append(srGame.getBoss().getName())
+						.append(srGame.getSuccessful() ? " (killed)" : " (fail)");
+				}
+
+				gameNumber++;
 			}
-
-			builder
-				.append(game.getKnockout() != null && !"NEITHER".equals(game.getKnockout()) ? " KO - " : " - ")
-				.append(ownPlayer.map(o -> o.getWeapon().getName()).orElse("UNKNOWN WEAPON"))
-				.append(" - ")
-				.append(game.getMode().getName())
-				.append(" - ")
-				.append(game.getRule().getName())
-				.append(" - ")
-				.append(game.getStage().getName());
 		}
 
 		if (!endTimestamp.isZero()) {

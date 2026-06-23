@@ -1,8 +1,10 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr;
 
 import lombok.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.interfaces.SplatoonGame;
 
 import javax.persistence.*;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -13,7 +15,15 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @ToString(exclude = {"shortenedJson", "mode", "rotation", "boss", "stage", "afterGrade", "players", "waves", "enemyStats", "bossResults"})
-public class Splatoon3SrResult {
+public class Splatoon3SrResult implements SplatoonGame {
+	private static int GAME_DURATION_W1_START = Long.valueOf(Duration.ofMinutes(0).plusSeconds(30).toSeconds()).intValue();
+	private static int GAME_DURATION_W2_START = Long.valueOf(Duration.ofMinutes(2).plusSeconds(30).toSeconds()).intValue();
+	private static int GAME_DURATION_W3_START = Long.valueOf(Duration.ofMinutes(4).plusSeconds(30).toSeconds()).intValue();
+	private static int GAME_DURATION_KING_START = Long.valueOf(Duration.ofMinutes(6).plusSeconds(30).toSeconds()).intValue();
+	private static int GAME_DURATION_REGULAR_END = Long.valueOf(Duration.ofMinutes(6).plusSeconds(20).toSeconds()).intValue();
+	private static int GAME_DURATION_KING_END = Long.valueOf(Duration.ofMinutes(8).plusSeconds(17).toSeconds()).intValue();
+	private static List<Integer> GAME_DURATION_STARTS = List.of(GAME_DURATION_W1_START, GAME_DURATION_W2_START, GAME_DURATION_W3_START, GAME_DURATION_KING_START, GAME_DURATION_KING_END);
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -48,6 +58,15 @@ public class Splatoon3SrResult {
 
 	@Lob
 	private String shortenedJson;
+
+	@Override
+	public Integer getDuration() {
+		if (successful) {
+			return waves.size() == 4 ? GAME_DURATION_KING_END : GAME_DURATION_REGULAR_END;
+		} else {
+			return GAME_DURATION_STARTS.get(waves.size()) + (GAME_DURATION_STARTS.get(waves.size() + 1) - GAME_DURATION_STARTS.get(waves.size()));
+		}
+	}
 
 	// ---
 
