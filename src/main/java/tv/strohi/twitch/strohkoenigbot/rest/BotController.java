@@ -276,7 +276,10 @@ public class BotController implements ScheduledService {
 					.append(p.getEnemiesDefeated())
 					.append(" Boss Kills"));
 
-				if (srGame.getBoss() != null) {
+				if (srGame.getBoss() != null
+					&& srGame.getWaves().size() == 4
+					&& srGame.getWaves().get(3).getGoldenEggsRequired() == null) {
+
 					builder
 						.append(" - KING: ")
 						.append(srGame.getBoss().getName())
