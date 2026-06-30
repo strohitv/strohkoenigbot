@@ -83,13 +83,19 @@ public class TwitchBotClient implements ScheduledService {
 	@Getter
 	private Instant wentLiveTime = null;
 
+	private Instant nextWentLiveTimeUpdateAllowed = Instant.now();
+
 	private void setWentLiveTime(Instant newWentLiveTime) {
-		wentLiveTime = newWentLiveTime;
-		logSender.queueLogs(
-			logger,
-			"wentLiveTime was set to `%s`%s",
-			wentLiveTime,
-			wentLiveTime != null ? String.format(" (epoch milli: `%d`)", wentLiveTime.toEpochMilli()) : "");
+		if (Instant.now().isAfter(nextWentLiveTimeUpdateAllowed)) {
+			wentLiveTime = newWentLiveTime;
+			nextWentLiveTimeUpdateAllowed = Instant.now().plus(2, ChronoUnit.MINUTES);
+			logSender.queueLogs(
+				logger,
+				"wentLiveTime was set to `%s`%s, nextWentLiveTimeUpdateAllowed was set to `%s`",
+				wentLiveTime,
+				wentLiveTime != null ? String.format(" (epoch milli: `%d`)", wentLiveTime.toEpochMilli()) : "",
+				nextWentLiveTimeUpdateAllowed);
+		}
 	}
 
 	private final LogSender logSender;
