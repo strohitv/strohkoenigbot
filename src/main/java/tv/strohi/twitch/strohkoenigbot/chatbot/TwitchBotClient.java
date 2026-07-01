@@ -359,6 +359,8 @@ public class TwitchBotClient implements ScheduledService {
 	}
 
 	public void goOffline(String channelId) {
+		logSender.queueLogs(logger, "TwitchBotClient.goOffline() was called");
+
 		triggerUnpause();
 
 		configurationRepository.save(
@@ -395,6 +397,11 @@ public class TwitchBotClient implements ScheduledService {
 	}
 
 	public void goLive(String channelId, Instant startTime) {
+		logSender.queueLogs(logger, "TwitchBotClient.goLive() was called with channelId = %s and startTime = `%s`%s",
+			channelId,
+			startTime,
+			startTime != null ? String.format(" (epoch milli: `%d`)", startTime.toEpochMilli()) : "");
+
 		setWentLiveTime(startTime);
 
 		configurationRepository.deleteAll(configurationRepository.findAllByConfigName(PREVIOUS_STREAM_END_CONFIG));
