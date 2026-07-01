@@ -86,9 +86,10 @@ public class TwitchBotClient implements ScheduledService {
 	private Instant nextWentLiveTimeUpdateAllowed = Instant.now();
 
 	private void setWentLiveTime(Instant newWentLiveTime) {
-		if (Instant.now().isAfter(nextWentLiveTimeUpdateAllowed)) {
+		if (newWentLiveTime == null || Instant.now().isAfter(nextWentLiveTimeUpdateAllowed)) {
 			wentLiveTime = newWentLiveTime;
 			nextWentLiveTimeUpdateAllowed = Instant.now().plus(2, ChronoUnit.MINUTES);
+
 			logSender.queueLogs(
 				logger,
 				"wentLiveTime was set to `%s`%s, nextWentLiveTimeUpdateAllowed was set to `%s`",
