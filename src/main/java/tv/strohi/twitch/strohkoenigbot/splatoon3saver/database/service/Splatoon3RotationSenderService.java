@@ -18,6 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeDiscordChannelRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationSlotRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import javax.transaction.Transactional;
@@ -32,6 +33,7 @@ import java.util.stream.Stream;
 @Log4j2
 public class Splatoon3RotationSenderService {
 	private final DiscordBot discordBot;
+	private final LogSender logSender;
 
 	private final Splatoon3VsModeDiscordChannelRepository vsModeDiscordChannelRepository;
 	private final Splatoon3VsRotationRepository vsRotationRepository;
@@ -253,6 +255,8 @@ public class Splatoon3RotationSenderService {
 				.append(rotation.getEndTime().getEpochSecond())
 				.append(":R>)");
 
+			logSender.queueLogs(log, builder.toString());
+//			discordBot.sendPrivateMessageWithAttachment(DiscordBot.ADMIN_ID, builder.toString(), "current-salmon-stage.png", rotation.getStage().getImage().getUrl());
 			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getStage().getImage().getUrl());
 		}
 	}
