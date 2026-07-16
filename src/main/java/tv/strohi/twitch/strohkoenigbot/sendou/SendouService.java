@@ -62,84 +62,93 @@ public class SendouService implements ScheduledService {
 	private final Map<Integer, Integer> responseCodes = new HashMap<>();
 
 	@Setter
-	private Long sendouUserId = null;
-	@Setter
-	private Long tournamentId = null;
-	@Setter
-	private boolean searchSendouQ = false;
+	private Long s3OverlaySendouUserId = null;
 
-	public Optional<SendouMatch> loadActiveMatch(Account account, @NonNull String sendouUser, Long tournamentId, boolean searchSendouQ) {
+	public Optional<SendouMatch> loadActiveMatch(Account account, @NonNull String sendouUser) {
 		callingUsers.putIfAbsent(sendouUser, Instant.MIN);
 		if (callingUsers.get(sendouUser).isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
-			logSender.queueLogs(log, "# New user is using the overlay\n- User: `%s`\n- Url: https://sendou.ink/u/%s\n- Tournament: https://sendou.ink/to/%s\n- SendouQ: %b", sendouUser, sendouUser, tournamentId, searchSendouQ);
+			logSender.queueLogs(log, "# New user is using the overlay\n- User: `%s`\n- Url: https://sendou.ink/u/%s", sendouUser, sendouUser);
 		}
 		callingUsers.put(sendouUser, Instant.now());
-
-		var tournamentMatch = Optional.<SendouMatch>empty();
 
 		var sendouUserId = loadSendouUserId(account, sendouUser)
 			.map(SendouApiUserIds::getId)
 			.orElse(6238L);
 
-		if (tournamentId != null) {
-			var foundTournament = loadTournament(account, tournamentId);
+		var usersActiveMatch = loadActiveSendouMatch(account, sendouUserId);
 
-			if (foundTournament.isPresent()) {
-				var tournament = foundTournament.get();
+		if (usersActiveMatch.isEmpty()) {
+			return Optional.empty();
+		}
 
-				var allTeams = loadTournamentTeams(account, tournamentId);
+		var match = usersActiveMatch.get();
 
-				var teamOfPlayer = allTeams
+		switch (match.getLobbyAsEnum()) {
+			case TOURNAMENT:
+				return loadTournament(account, sendouUserId, match.getTournamentId(), match.getBracketIdx());
+			case SENDOU_Q:
+				return loadSendouQMatch(account, match.getMatchId())
+					.flatMap(m -> mapToActiveMatch(account, sendouUserId, m));
+			case NONE:
+			default:
+				return Optional.empty();
+		}
+	}
+
+	private Optional<SendouMatch> loadTournament(Account account, Long sendouUserId, Long tournamentId, Integer bracketNumber) {
+		var foundTournament = loadTournament(account, tournamentId);
+
+		if (foundTournament.isPresent()) {
+			var tournament = foundTournament.get();
+
+			var allTeams = loadTournamentTeams(account, tournamentId);
+
+			var teamOfPlayer = allTeams
+				.stream()
+				.flatMap(l -> l.stream().filter(t -> t.getMembers().stream().anyMatch(p -> Objects.equals(p.getUserId(), sendouUserId))))
+				.findFirst();
+
+			var teamIdOfPlayer = teamOfPlayer.map(SendouTournamentTeam::getId);
+
+			var winCondition = "";
+			var currentMatchId = 0L;
+			if (tournament.hasStarted() && teamIdOfPlayer.isPresent() && bracketNumber < tournament.getBrackets().size()) {
+				var teamId = teamIdOfPlayer.get();
+
+				var bracket = loadTournamentBracket(account, tournamentId, bracketNumber);
+				var allGamesOfBracket = bracket
 					.stream()
-					.flatMap(l -> l.stream().filter(t -> t.getMembers().stream().anyMatch(p -> Objects.equals(p.getUserId(), sendouUserId))))
+					.flatMap(b -> b.getData().getMatch().stream())
+					.collect(Collectors.toList());
+
+				var allGamesOfTeam = allGamesOfBracket.stream()
+					.filter(m -> m.getOpponent1() != null && m.getOpponent2() != null)
+					.filter(m -> Objects.equals(m.getOpponent1().getId(), teamId) || Objects.equals(m.getOpponent2().getId(), teamId))
+					.collect(Collectors.toList());
+
+				var runningGameOfTeam = allGamesOfTeam.stream()
+					.filter(m ->
+						SendouTournamentMatchStatus.READY.equals(m.getStatus()) || SendouTournamentMatchStatus.RUNNING.equals(m.getStatus()))
 					.findFirst();
 
-				var teamIdOfPlayer = teamOfPlayer.map(SendouTournamentTeam::getId);
+				if (runningGameOfTeam.isPresent()) {
+					var game = runningGameOfTeam.get();
 
-				var winCondition = "";
-				var currentMatchId = 0L;
-				var currentMatchStartedAt = 0L;
-				var bracketNumber = 0;
-				while (tournament.hasStarted() && teamIdOfPlayer.isPresent() && bracketNumber < tournament.getBrackets().size()) {
-					var teamId = teamIdOfPlayer.get();
-
-					var bracket = loadTournamentBracket(account, tournamentId, bracketNumber);
-					var allGamesOfBracket = bracket
-						.stream()
-						.flatMap(b -> b.getData().getMatch().stream())
-						.collect(Collectors.toList());
-
-					var allGamesOfTeam = allGamesOfBracket.stream()
-						.filter(m -> m.getOpponent1() != null && m.getOpponent2() != null)
-						.filter(m -> Objects.equals(m.getOpponent1().getId(), teamId) || Objects.equals(m.getOpponent2().getId(), teamId))
-						.collect(Collectors.toList());
-
-					var runningGameOfTeam = allGamesOfTeam.stream()
-						.filter(m ->
-							SendouTournamentMatchStatus.READY.equals(m.getStatus()) || SendouTournamentMatchStatus.RUNNING.equals(m.getStatus()))
-						.findFirst();
-
-					if (runningGameOfTeam.isPresent()) {
-						var game = runningGameOfTeam.get();
-
-						currentMatchId = game.getId();
-						winCondition = bracket.get().getData().getRound().stream()
-							.filter(b -> Objects.equals(b.getId(), game.getRound_id()))
-							.findFirst()
-							.map(r -> "BEST_OF".equals(r.getMaps().getType()) ? String.format("bo%d", r.getMaps().getCount()) : String.format("pa%d", r.getMaps().getCount()))
-							.orElse("");
-						break;
-					}
-
+					currentMatchId = game.getId();
+					winCondition = bracket.get().getData().getRound().stream()
+						.filter(b -> Objects.equals(b.getId(), game.getRound_id()))
+						.findFirst()
+						.map(r -> "BEST_OF".equals(r.getMaps().getType()) ? String.format("bo%d", r.getMaps().getCount()) : String.format("pa%d", r.getMaps().getCount()))
+						.orElse("");
+				} else {
 					var newestCompletedGame = allGamesOfTeam.stream()
 						.filter(m -> SendouTournamentMatchStatus.COMPLETED.equals(m.getStatus()))
 						.filter(m -> !tournament.getIsFinalized() || Instant.now().isBefore(Instant.ofEpochSecond(m.getStartedAt()).plus(90, ChronoUnit.MINUTES)))
 						.max(Comparator.comparing(SendouTournamentBracket.SendouTournamentBracketDataMatch::getStartedAt));
 
-					if (newestCompletedGame.isPresent() && newestCompletedGame.get().getStartedAt() > currentMatchStartedAt) {
+					if (newestCompletedGame.isPresent()) {
 						var game = newestCompletedGame.get();
 						currentMatchId = game.getId();
-						currentMatchStartedAt = game.getStartedAt();
 
 						winCondition = bracket.get().getData().getRound().stream()
 							.filter(b -> Objects.equals(b.getId(), game.getRound_id()))
@@ -147,36 +156,36 @@ public class SendouService implements ScheduledService {
 							.map(r -> "BEST_OF".equals(r.getMaps().getType()) ? String.format("bo%d", r.getMaps().getCount()) : String.format("pa%d", r.getMaps().getCount()))
 							.orElse("");
 					}
-
-					bracketNumber++;
 				}
+			}
 
-				if (currentMatchId > 0L) {
-					final var finalWinCondition = winCondition;
+			if (currentMatchId > 0L) {
+				final var finalWinCondition = winCondition;
 
-					tournamentMatch = loadTournamentMatch(account, currentMatchId)
-						.flatMap(match -> {
-							var otherTeam = allTeams.stream()
-								.flatMap(Collection::stream)
-								.filter(t -> !t.getId().equals(teamIdOfPlayer.get()))
-								.filter(t -> t.getId().equals(match.getTeamOne().getId()) || t.getId().equals(match.getTeamTwo().getId()))
-								.findFirst();
+				return loadTournamentMatch(account, currentMatchId)
+					.flatMap(match -> {
+						var otherTeam = allTeams.stream()
+							.flatMap(Collection::stream)
+							.filter(t -> !t.getId().equals(teamIdOfPlayer.get()))
+							.filter(t -> t.getId().equals(match.getTeamOne().getId()) || t.getId().equals(match.getTeamTwo().getId()))
+							.findFirst();
 
-							return otherTeam.flatMap(sendouTournamentTeam -> mapToActiveMatch(account, tournament, sendouUserId, teamOfPlayer.get(), sendouTournamentTeam, match, finalWinCondition));
-						});
-				}
+						return otherTeam.flatMap(sendouTournamentTeam -> mapToActiveMatch(account, tournament, sendouUserId, teamOfPlayer.get(), sendouTournamentTeam, match, finalWinCondition));
+					});
 			}
 		}
 
-		if (tournamentMatch.isPresent()) {
-			return tournamentMatch;
+		return Optional.empty();
+	}
+
+	private Optional<ActiveSendouMatch> loadActiveSendouMatch(Account account, Long sendouUserId) {
+		var matchIdResponse = this.generateRequest(account, ActiveSendouMatch.class, "/api/user/%s/active-match", sendouUserId);
+
+		if (matchIdResponse == null || matchIdResponse.getMatchId() == null) {
+			return Optional.empty();
 		}
 
-		return Optional.of(searchSendouQ)
-			.filter(b -> b)
-			.flatMap(ignored -> loadActiveSendouQMatchId(account, sendouUserId))
-			.flatMap(matchId -> loadSendouQMatch(account, matchId.getMatchId()))
-			.flatMap(match -> mapToActiveMatch(account, sendouUserId, match));
+		return Optional.of(matchIdResponse);
 	}
 
 	public Optional<MatchId> loadActiveSendouQMatchId(Account account, Long sendouUserId) {
@@ -367,7 +376,7 @@ public class SendouService implements ScheduledService {
 			.ownScore(ownTeam.getScore())
 			.opponentScore(otherTeam.getScore())
 			.myself(ownSendouTeam.getPlayers().stream()
-				.filter(p -> p.isMyself())
+				.filter(SendouPlayer::isMyself)
 				.findFirst()
 				.orElse(null))
 			.ownTeam(ownSendouTeam)
@@ -449,7 +458,7 @@ public class SendouService implements ScheduledService {
 			.ownScore(ownTeam.getScore())
 			.opponentScore(otherTeam.getScore())
 			.myself(ownSendouTeam.getPlayers().stream()
-				.filter(p -> p.isMyself())
+				.filter(SendouPlayer::isMyself)
 				.findFirst()
 				.orElse(null))
 			.ownTeam(ownSendouTeam)
@@ -472,7 +481,7 @@ public class SendouService implements ScheduledService {
 
 		accountRepository.findByIsMainAccount(true).stream()
 			.findFirst()
-			.flatMap(account -> loadActiveMatch(account, String.format("%d", sendouUserId != null ? sendouUserId : account.getSendouId()), tournamentId, searchSendouQ))
+			.flatMap(account -> loadActiveMatch(account, String.format("%d", s3OverlaySendouUserId != null ? s3OverlaySendouUserId : account.getSendouId())))
 			.ifPresent(streamStatistics::setSendouMatchResult);
 	}
 

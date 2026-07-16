@@ -65,15 +65,8 @@ public class OverlayController {
 		final Long sendouUserId = NUMBER_PATTERN.matcher(sendouUserQueryString).matches()
 			? Long.parseLong(sendouUserQueryString)
 			: null;
-		final Long tournamentId = NUMBER_PATTERN.matcher(tournamentString).matches()
-			? Long.parseLong(tournamentString)
-			: null;
-		final boolean searchSendouQ = BOOLEAN_NUMBER_PATTERN.matcher(searchSendouQString).matches()
-			&& "1".equals(searchSendouQString);
 
-		sendouService.setSendouUserId(sendouUserId);
-		sendouService.setTournamentId(tournamentId);
-		sendouService.setSearchSendouQ(searchSendouQ);
+		sendouService.setS3OverlaySendouUserId(sendouUserId);
 
 		return s3StreamStatistics.getFinishedHtml();
 	}
