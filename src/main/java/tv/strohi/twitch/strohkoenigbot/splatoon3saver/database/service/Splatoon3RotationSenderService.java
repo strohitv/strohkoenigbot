@@ -267,10 +267,11 @@ public class Splatoon3RotationSenderService {
 				.append(rotation.getEndTime().getEpochSecond())
 				.append(":R>)");
 
-			logSender.queueLogs(log, builder.toString());
 			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, String.format("# Raw Text of StringBuilder in `sendValuableSrRotationToDiscord`\n```\n%s\n```", builder.toString()));
-//			discordBot.sendPrivateMessageWithAttachment(DiscordBot.ADMIN_ID, builder.toString(), "current-salmon-stage.png", rotation.getStage().getImage().getUrl());
+
+			logSender.queueLogs(log, builder.toString());
 			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getStage().getImage().getUrl());
+//			discordBot.sendPrivateMessageWithAttachment(DiscordBot.ADMIN_ID, builder.toString(), "current-salmon-stage.png", rotation.getStage().getImage().getUrl());
 		}
 	}
 
