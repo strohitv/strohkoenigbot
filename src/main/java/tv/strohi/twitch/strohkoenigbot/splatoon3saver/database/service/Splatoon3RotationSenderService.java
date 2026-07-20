@@ -18,6 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeDiscordChannelRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationSlotRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
@@ -34,6 +35,7 @@ import java.util.stream.Stream;
 public class Splatoon3RotationSenderService {
 	private final DiscordBot discordBot;
 	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
 
 	private final Splatoon3VsModeDiscordChannelRepository vsModeDiscordChannelRepository;
 	private final Splatoon3VsRotationRepository vsRotationRepository;
@@ -66,8 +68,17 @@ public class Splatoon3RotationSenderService {
 			srRotationRepository.findByModeAndStartTimeLessThanEqualAndEndTimeGreaterThan(channel.getMode(), time, time)
 				.filter(rotation -> force || Math.abs(rotation.getStartTime().getEpochSecond() - now.getEpochSecond()) <= 300)
 				.ifPresent(rotation -> {
-					sendSrRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), rotation);
-					sendValuableSrRotationToDiscord(DiscordChannelDecisionMaker.getS3SalmonRunValuableChannelName(), rotation);
+					try {
+						sendSrRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), rotation);
+					} catch (Exception ex) {
+						exceptionLogger.logExceptionAsAttachment(log, "Error during Splatoon3RotationSender.sendSrRotationToDiscord", ex);
+					}
+
+					try {
+						sendValuableSrRotationToDiscord(DiscordChannelDecisionMaker.getS3SalmonRunValuableChannelName(), rotation);
+					} catch (Exception ex) {
+						exceptionLogger.logExceptionAsAttachment(log, "Error during Splatoon3RotationSender.sendValuableSrRotationToDiscord", ex);
+					}
 				}));
 
 		log.info("Done posting rotations to discord");
@@ -222,7 +233,8 @@ public class Splatoon3RotationSenderService {
 			score += 10;
 		}
 
-		if (score >= 8) {
+//		if (score >= 8) {
+		if (score >= 0) {
 			var builder = new StringBuilder(String.format("# %s\nScore: %d\n\n### Stage\n- ", rotation.getLeanDate(), score))
 				.append(rotation.getStage().getName()).append("\n\n### Valuable rewards");
 
@@ -235,11 +247,11 @@ public class Splatoon3RotationSenderService {
 			}
 
 			if (rotation.getLeanMoneyTicketSmall() > 0) {
-				builder.append("\n- +50% money tickets: ").append(rotation.getLeanMoneyTicketSmall());
+				builder.append("\n- x1.5 money tickets: ").append(rotation.getLeanMoneyTicketSmall());
 			}
 
 			if (rotation.getLeanMoneyTicketBig() > 0) {
-				builder.append("\n- +100% money tickets: ").append(rotation.getLeanMoneyTicketBig());
+				builder.append("\n- x2 money tickets: ").append(rotation.getLeanMoneyTicketBig());
 			}
 			builder.append("\n- Silver Scales: ").append(rotation.getLeanMoneyTicketBig());
 			builder.append("\n- Gold Scales: ").append(rotation.getLeanMoneyTicketBig());
@@ -256,6 +268,7 @@ public class Splatoon3RotationSenderService {
 				.append(":R>)");
 
 			logSender.queueLogs(log, builder.toString());
+			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, String.format("# Raw Text of StringBuilder in `sendValuableSrRotationToDiscord`\n```\n%s\n```", builder.toString()));
 //			discordBot.sendPrivateMessageWithAttachment(DiscordBot.ADMIN_ID, builder.toString(), "current-salmon-stage.png", rotation.getStage().getImage().getUrl());
 			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getStage().getImage().getUrl());
 		}
