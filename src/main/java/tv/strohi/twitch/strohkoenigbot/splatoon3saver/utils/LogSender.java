@@ -23,8 +23,12 @@ public class LogSender {
 	public void queueLogs(Logger logger, @NonNull String message, Object... args) {
 		var formattedMessage = String.format(message, args);
 
-		logger.info(formattedMessage);
-		discordBot.queuePrivateMessageWithImageUrls(DiscordBot.ADMIN_ID, formattedMessage);
+		queueLogsNoFormat(logger, formattedMessage);
+	}
+
+	public void queueLogsNoFormat(Logger logger, @NonNull String message) {
+		logger.info(message);
+		discordBot.queuePrivateMessageWithImageUrls(DiscordBot.ADMIN_ID, message);
 	}
 
 	public void sendLogs(Logger logger, String message) {

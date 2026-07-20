@@ -253,6 +253,7 @@ public class Splatoon3RotationSenderService {
 			if (rotation.getLeanMoneyTicketBig() > 0) {
 				builder.append("\n- x2 money tickets: ").append(rotation.getLeanMoneyTicketBig());
 			}
+
 			builder.append("\n- Silver Scales: ").append(rotation.getLeanMoneyTicketBig());
 			builder.append("\n- Gold Scales: ").append(rotation.getLeanMoneyTicketBig());
 
@@ -269,7 +270,7 @@ public class Splatoon3RotationSenderService {
 
 			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, String.format("# Raw Text of StringBuilder in `sendValuableSrRotationToDiscord`\n```\n%s\n```", builder.toString()));
 
-			logSender.queueLogs(log, builder.toString());
+			logSender.queueLogsNoFormat(log, builder.toString());
 			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getStage().getImage().getUrl());
 //			discordBot.sendPrivateMessageWithAttachment(DiscordBot.ADMIN_ID, builder.toString(), "current-salmon-stage.png", rotation.getStage().getImage().getUrl());
 		}
