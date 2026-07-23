@@ -3,7 +3,9 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import tv.strohi.twitch.strohkoenigbot.rest.FrontendController;
 import tv.strohi.twitch.strohkoenigbot.sendou.SendouService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsMode;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResultTeam;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsStage;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultEnemyRepository;
@@ -266,6 +269,7 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		countMapOccurrenceStatsAndSendToDiscord(account);
 		sendWeaponPerformanceStatsToDiscord(account);
+		countWeaponOccurrenceStatsAndSendToDiscord(account);
 
 		sendModeWinStatsToDiscord(wonOnlineGames, yesterdayStats, account);
 		sendSpecialWeaponWinStatsToDiscord(winCountSpecialWeapons, yesterdayStats, account);
@@ -340,6 +344,73 @@ public class S3DailyStatsSender implements ScheduledService {
 				allStages,
 				account);
 		}
+	}
+
+	private void countWeaponOccurrenceStatsAndSendToDiscord(Account account) {
+		var baseForFilter = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.SECONDS);
+		var allResultsYesterday = vsResultRepository.findByPlayedTimeBetween(baseForFilter.minus(1, ChronoUnit.DAYS), baseForFilter);
+
+		if (allResultsYesterday.isEmpty()) {
+			return;
+		}
+
+		var allWeaponsOwnTeamsYesterday = allResultsYesterday.stream()
+			.flatMap(r -> r.getTeams().stream())
+			.filter(Splatoon3VsResultTeam::getIsMyTeam)
+			.flatMap(t -> t.getTeamPlayers().stream())
+			.filter(p -> !p.getIsMyself())
+			.map(p -> p.getWeapon().getName())
+			.collect(Collectors.groupingBy((a) -> a));
+
+		var allWeaponsOtherTeamsYesterday = allResultsYesterday.stream()
+			.flatMap(r -> r.getTeams().stream())
+			.filter(splatoon3VsResultTeam -> !splatoon3VsResultTeam.getIsMyTeam())
+			.flatMap(t -> t.getTeamPlayers().stream())
+			.map(p -> p.getWeapon().getName())
+			.collect(Collectors.groupingBy((a) -> a));
+
+		var occurrences = new HashMap<String, WeaponOccurrence>();
+
+		for (var weapon : allWeaponsOwnTeamsYesterday.entrySet()) {
+			occurrences.putIfAbsent(weapon.getKey(), new WeaponOccurrence());
+			occurrences.get(weapon.getKey()).weaponName = weapon.getKey();
+			occurrences.get(weapon.getKey()).ownTeam += weapon.getValue().size();
+		}
+
+		for (var weapon : allWeaponsOtherTeamsYesterday.entrySet()) {
+			occurrences.putIfAbsent(weapon.getKey(), new WeaponOccurrence());
+			occurrences.get(weapon.getKey()).weaponName = weapon.getKey();
+			occurrences.get(weapon.getKey()).otherTeam += weapon.getValue().size();
+		}
+
+		var sortedOccurrences = occurrences.values().stream()
+			.sorted((a, b) -> Integer.compare(b.ownTeam + b.otherTeam, a.ownTeam + a.otherTeam))
+			.sorted(Comparator.comparingDouble(WeaponOccurrence::getOwnTeamChance))
+			.collect(Collectors.toList());
+
+		var builder = new StringBuilder("## Yesterday, these weapons were on your team this often");
+
+		int counter = 1;
+		for (var occ : sortedOccurrences) {
+			builder
+				.append("\n")
+				.append(counter)
+				.append(". `")
+				.append(String.format("%.2f", occ.getOwnTeamChance() * 100))
+				.append("%`: **")
+				.append(occ.weaponName)
+				.append("** (`")
+				.append(occ.ownTeam + occ.otherTeam)
+				.append("` games = `")
+				.append(occ.ownTeam)
+				.append("` own + `")
+				.append(occ.otherTeam)
+				.append("` opp)");
+
+			counter++;
+		}
+
+		discordBot.sendPrivateMessage(account.getDiscordId(), builder.toString());
 	}
 
 	private void sendWeaponPerformanceStatsToDiscord(Account account) {
@@ -1782,5 +1853,18 @@ public class S3DailyStatsSender implements ScheduledService {
 			int currentEnemyTeamSpecialsCount = enemyTeamUsedSpecialsTotal.getOrDefault(weapon, 0);
 			enemyTeamUsedSpecialsTotal.put(weapon, currentEnemyTeamSpecialsCount + count);
 		});
+	}
+
+	@Getter
+	@Setter
+	@RequiredArgsConstructor
+	private static class WeaponOccurrence {
+		private String weaponName;
+		private int ownTeam = 0;
+		private int otherTeam = 0;
+
+		public double getOwnTeamChance() {
+			return ownTeam / Math.max(1.0, ownTeam + otherTeam);
+		}
 	}
 }
