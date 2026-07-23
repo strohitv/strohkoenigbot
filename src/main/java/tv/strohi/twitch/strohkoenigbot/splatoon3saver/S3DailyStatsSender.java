@@ -49,6 +49,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -263,12 +264,6 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		var minTop500XPowers = xLeaderboardDownloader.loadTop500MinPower();
 
-		var allWeaponsBelow4Stars = weaponDownloader.getWeapons().stream()
-			.filter(w -> w.getStats() == null || w.getStats().getLevel() < 4)
-			.collect(Collectors.toList());
-
-		var requiredExpFor4StarGrind = getExpNeededFor4StarGrind(allWeaponsBelow4Stars);
-
 		countMapOccurrenceStatsAndSendToDiscord(account);
 		sendWeaponPerformanceStatsToDiscord(account);
 
@@ -278,7 +273,16 @@ public class S3DailyStatsSender implements ScheduledService {
 		sendGearStatsToDiscord(gearStars, gearStarCountPerBrand, yesterdayStats, account);
 		sendGearStarCountStatsToDiscord(gearStarCounts, yesterdayStats, account);
 
-		sendRequiredExpFor4StarGrindToDiscord(requiredExpFor4StarGrind, yesterdayStats, allWeaponsBelow4Stars, account);
+		for (int i = 1; i <= 10; i++) {
+			final var starCount = i;
+			var allWeaponsBelowIStars = weaponDownloader.getWeapons().stream()
+				.filter(w -> w.getStats() == null || w.getStats().getLevel() < starCount)
+				.collect(Collectors.toList());
+
+			var requiredExpForStarGrind = getExpNeededForStarGrind(allWeaponsBelowIStars, i);
+			sendRequiredExpForStarGrindToDiscord(i, requiredExpForStarGrind, yesterdayStats, allWeaponsBelowIStars, account);
+		}
+
 		sendWeaponLevelNumbersToDiscord(weaponLevelNumbers, yesterdayStats, account);
 		sendWeaponExpNumbersToDiscord(weaponExpTierNumbers, yesterdayStats, account);
 
@@ -521,71 +525,68 @@ public class S3DailyStatsSender implements ScheduledService {
 		}
 	}
 
-	private static int getCurrentExpLowerBound(Weapon weapon) {
-		int nextExpGoal;
-
-		switch (weapon.getStats().getLevel()) {
+	private static long getExpLowerBoundForLevel(int level) {
+		switch (level) {
 			case 0:
-				nextExpGoal = 5_000;
-				break;
+				return 5_000L;
 			case 1:
-				nextExpGoal = 25_000;
-				break;
+				return 25_000L;
 			case 2:
-				nextExpGoal = 60_000;
-				break;
+				return 60_000L;
 			case 3:
-				nextExpGoal = 160_000;
-				break;
+				return 160_000L;
 			case 4:
-				nextExpGoal = 1_160_000;
-				break;
+				return 1_160_000L;
 			case 5:
-				nextExpGoal = 2_000_000;
-				break;
+				return 2_000_000L;
 			case 6:
-				nextExpGoal = 3_000_000;
-				break;
+				return 3_000_000L;
 			case 7:
-				nextExpGoal = 4_000_000;
-				break;
+				return 4_000_000L;
 			case 8:
-				nextExpGoal = 5_000_000;
-				break;
+				return 5_000_000L;
 			case 9:
 			case 10:
 			default:
-				nextExpGoal = 6_000_000;
-				break;
+				return 6_000_000L;
 		}
+	}
 
+	private static long getCurrentExpLowerBound(Weapon weapon) {
+		long nextExpGoal = getExpLowerBoundForLevel(weapon.getStats().getLevel());
 		var currentWeaponExp = nextExpGoal - weapon.getStats().getExpToLevelUp();
 		return currentWeaponExp - (currentWeaponExp % 10_000);
 	}
 
-	private void sendRequiredExpFor4StarGrindToDiscord(int requiredExpFor4StarGrind, DailyStatsSaveModel yesterdayStats, List<Weapon> unfinishedWeapons, Account account) {
-		var df = new DecimalFormat("#,###,###");
-		var yesterdayExpRequired = yesterdayStats.getPreviousRequiredExpFor4StarGrind() != null
-			? yesterdayStats.getPreviousRequiredExpFor4StarGrind()
-			: requiredExpFor4StarGrind;
+	private void sendRequiredExpForStarGrindToDiscord(int starGoal, long requiredExpForStarGrind, DailyStatsSaveModel yesterdayStats, List<Weapon> unfinishedWeapons, Account account) {
+		if (requiredExpForStarGrind == 0) {
+			return;
+		}
 
-		StringBuilder expBuilder = new StringBuilder("**Current amount of weapon exp points required to finish 4 star grind:**\n- **")
-			.append(df.format(requiredExpFor4StarGrind).replaceAll(",", " "))
+		var df = new DecimalFormat("#,###,###");
+		var yesterdayExpRequired = yesterdayStats.getPreviousRequiredExpForStarGrind().getOrDefault(starGoal, null) != null
+			? yesterdayStats.getPreviousRequiredExpForStarGrind().getOrDefault(starGoal, null)
+			: requiredExpForStarGrind;
+
+		StringBuilder expBuilder = new StringBuilder("**Current amount of weapon exp points required to finish `")
+			.append(starGoal)
+			.append("` star grind:**\n- **")
+			.append(df.format(requiredExpForStarGrind).replaceAll(",", " "))
 			.append("** exp");
 
-		if (!Objects.equals(yesterdayExpRequired, requiredExpFor4StarGrind)) {
+		if (!Objects.equals(yesterdayExpRequired, requiredExpForStarGrind)) {
 			expBuilder.append(" (")
-				.append(yesterdayExpRequired < requiredExpFor4StarGrind ? "+" : "-")
-				.append(df.format(Math.abs(yesterdayExpRequired - requiredExpFor4StarGrind)).replaceAll(",", " "))
+				.append(yesterdayExpRequired < requiredExpForStarGrind ? "+" : "-")
+				.append(df.format(Math.abs(yesterdayExpRequired - requiredExpForStarGrind)).replaceAll(",", " "))
 				.append(")");
 		}
 
-		var requiredKoWinsFor4StarGrind = (int) Math.ceil(requiredExpFor4StarGrind / 2_500.0);
-		var yesterdayKoWins = (int) Math.ceil(yesterdayStats.getPreviousRequiredExpFor4StarGrind() != null
-			? yesterdayStats.getPreviousRequiredExpFor4StarGrind() / 2_500.0
-			: requiredExpFor4StarGrind / 2_500.0);
+		var requiredKoWinsFor4StarGrind = (int) Math.ceil(requiredExpForStarGrind / 2_500.0);
+		var yesterdayKoWins = (int) Math.ceil(yesterdayStats.getPreviousRequiredExpForStarGrind().getOrDefault(starGoal, null) != null
+			? yesterdayStats.getPreviousRequiredExpForStarGrind().getOrDefault(starGoal, null) / 2_500.0
+			: requiredExpForStarGrind / 2_500.0);
 
-		expBuilder.append("\n- = **").append(requiredKoWinsFor4StarGrind).append("** knockout wins");
+		expBuilder.append("\n- = **").append(df.format(Math.abs(requiredKoWinsFor4StarGrind)).replaceAll(",", " ")).append("** knockout wins");
 
 		if (!Objects.equals(yesterdayKoWins, requiredKoWinsFor4StarGrind)) {
 			expBuilder.append(" (")
@@ -594,9 +595,11 @@ public class S3DailyStatsSender implements ScheduledService {
 				.append(")");
 		}
 
-		expBuilder.append("\n- I will need roughly **").append((int) Math.ceil(requiredExpFor4StarGrind / 50_000.0)).append(" days** if I farm 50k exp every day.");
+		expBuilder.append("\n- I will need roughly **")
+			.append(df.format(Math.abs((int) Math.ceil(requiredExpForStarGrind / 50_000.0))).replaceAll(",", " "))
+			.append(" days** if I farm 50k exp every day.");
 
-		var todayAverage = 160_000 - (int) (Math.ceil(requiredExpFor4StarGrind / (double) Math.max(1, unfinishedWeapons.size())));
+		var todayAverage = getExpLowerBoundForLevel(starGoal - 1) - (int) (Math.ceil(requiredExpForStarGrind / (double) Math.max(1, unfinishedWeapons.size())));
 		expBuilder.append("\n- On average, I have  **")
 			.append(df.format(todayAverage).replaceAll(",", " "))
 			.append(" exp** on every of the **")
@@ -604,12 +607,12 @@ public class S3DailyStatsSender implements ScheduledService {
 			.append("** remaining weapons");
 
 		int yesterdayUnfinishedCount = yesterdayStats.getPreviousWeaponStarsCount().keySet().stream()
-			.filter(k -> !k.contains("4") && !k.contains("5") && !k.contains("6") && !k.contains("7") && !k.contains("8") && !k.contains("9") && !k.contains("10"))
+			.filter(k -> !Pattern.compile("^[0-9]+$").matcher(k).matches() || Integer.parseInt(k) < starGoal)
 			.map((a) -> yesterdayStats.getPreviousWeaponStarsCount().get(a))
 			.reduce(Integer::sum)
-			.orElse(0);
+			.orElse(unfinishedWeapons.size());
 
-		var yesterdayAverage = 160_000 - (int) Math.ceil(yesterdayExpRequired / (double) Math.max(1, yesterdayUnfinishedCount));
+		var yesterdayAverage = getExpLowerBoundForLevel(starGoal - 1) - (int) Math.ceil(yesterdayExpRequired / (double) Math.max(1, yesterdayUnfinishedCount));
 
 		if (todayAverage != yesterdayAverage) {
 			expBuilder.append(" (")
@@ -624,7 +627,8 @@ public class S3DailyStatsSender implements ScheduledService {
 				.append("** remaining weapons");
 		}
 
-		yesterdayStats.setPreviousRequiredExpFor4StarGrind(requiredExpFor4StarGrind);
+//		yesterdayStats.setPreviousRequiredExpFor4StarGrind(requiredExpForStarGrind);
+		yesterdayStats.getPreviousRequiredExpForStarGrind().put(starGoal, requiredExpForStarGrind);
 
 		discordBot.sendPrivateMessage(account.getDiscordId(), expBuilder.toString());
 
@@ -637,24 +641,47 @@ public class S3DailyStatsSender implements ScheduledService {
 //				.orElse("")));
 	}
 
-	private int getExpNeededFor4StarGrind(List<Weapon> unfinishedWeapons) {
-		int requiredExp = 0;
+	private long getExpNeededForStarGrind(List<Weapon> unfinishedWeapons, int levelGoal) {
+		long requiredExp = 0;
 
 		for (var weapon : unfinishedWeapons) {
 			if (weapon.getStats() == null || weapon.getStats().getLevel() == null) {
 				// not purchased yet
-				requiredExp += 160_000;
+				requiredExp += getExpLowerBoundForLevel(levelGoal);
 				continue;
 			}
 
+			// required from 0 stars -> 1 star
 			var requiredExpForWeapon = weapon.getStats().getExpToLevelUp();
-			if (weapon.getStats().getLevel() < 3) {
+
+			if (weapon.getStats().getLevel() < 10 && levelGoal > 10) {
+				requiredExpForWeapon += 1_000_000;
+			}
+			if (weapon.getStats().getLevel() < 9 && levelGoal > 9) {
+				requiredExpForWeapon += 1_000_000;
+			}
+			if (weapon.getStats().getLevel() < 8 && levelGoal > 8) {
+				requiredExpForWeapon += 1_000_000;
+			}
+			if (weapon.getStats().getLevel() < 7 && levelGoal > 7) {
+				requiredExpForWeapon += 1_000_000;
+			}
+			if (weapon.getStats().getLevel() < 6 && levelGoal > 6) {
+				requiredExpForWeapon += 1_000_000;
+			}
+			if (weapon.getStats().getLevel() < 5 && levelGoal > 5) {
+				requiredExpForWeapon += 840_000;
+			}
+			if (weapon.getStats().getLevel() < 4 && levelGoal > 4) {
+				requiredExpForWeapon += 1_000_000;
+			}
+			if (weapon.getStats().getLevel() < 3 && levelGoal > 3) {
 				requiredExpForWeapon += 100_000;
 			}
-			if (weapon.getStats().getLevel() < 2) {
+			if (weapon.getStats().getLevel() < 2 && levelGoal > 2) {
 				requiredExpForWeapon += 35_000;
 			}
-			if (weapon.getStats().getLevel() < 1) {
+			if (weapon.getStats().getLevel() < 1 && levelGoal > 1) {
 				requiredExpForWeapon += 20_000;
 			}
 
