@@ -31,5 +31,6 @@ public class DailyStatsSaveModel {
 	private Map<String, Double> previousXRankTop500Thresholds = new HashMap<>();
 	private Map<String, Map<String, Double>> previousXRankTop500ThresholdsAllRegions = new HashMap<>();
 
-	private Integer previousRequiredExpFor4StarGrind = null;
+//	private Integer previousRequiredExpFor4StarGrind = null;
+	private Map<Integer, Long> previousRequiredExpForStarGrind = new HashMap<>();
 }
