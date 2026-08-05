@@ -23,11 +23,14 @@ public class InksightReplay {
 	@JsonProperty("has_flag")
 	private Boolean hasFlag;
 
+	private Integer netLastFrame;
+
 	private MatchData match;
 	private List<TeamData> teams;
 	private Map<String, Map<String, Integer>> killMatrix;
 	private List<KillCounts> killCountsIndexed;
 	private List<List<Integer>> pingSamples;
+	private List<NetGap> netGaps;
 	private List<ClampdownPacket> clampdownPackets;
 	private Map<String, List<Integer>> teamColors;
 
@@ -216,6 +219,7 @@ public class InksightReplay {
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 	public static class Anticheat {
 		private String status;
+		private String statusCode;
 		private List<Integer> deviations;
 		private List<String> deviationLabels;
 		private List<String> internalReports;
@@ -226,6 +230,20 @@ public class InksightReplay {
 		private Boolean disconnected;
 		private Long usableCycles;
 		private Boolean lagDowngraded;
+	}
+
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@ToString
+	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+	public static class NetGap {
+		private Integer observer;
+		private Integer observed;
+		private Integer start_frame;
+		private Integer end_frame;
 	}
 
 
