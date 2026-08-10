@@ -347,8 +347,7 @@ public class S3DailyStatsSender implements ScheduledService {
 	}
 
 	private void countWeaponOccurrenceStatsAndSendToDiscord(Account account) {
-		var baseForFilter = Instant.now().truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.SECONDS);
-		var allResultsYesterday = vsResultRepository.findByPlayedTimeBetween(baseForFilter.minus(1, ChronoUnit.DAYS), baseForFilter);
+		var allResultsYesterday = vsResultRepository.findByPlayedTimeAfter(Instant.now().minus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS));
 
 		if (allResultsYesterday.isEmpty()) {
 			return;
