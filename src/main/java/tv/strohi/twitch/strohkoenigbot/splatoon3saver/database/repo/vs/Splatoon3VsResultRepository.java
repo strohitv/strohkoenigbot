@@ -29,7 +29,6 @@ public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsR
 	List<Splatoon3VsResult> findAllByReplayCodeNotNullAndMmrLoadFailedFalseAndReplayJsonNull();
 
 	List<Splatoon3VsResult> findByApiId(String apiId);
-	List<Splatoon3VsResult> findByPlayedTimeAfter(Instant playedTimeStart);
 	List<Splatoon3VsResult> findByPlayedTimeBetween(Instant playedTimeStart, Instant playedTimeEnd);
 	List<Splatoon3VsResult> findByPlayedTimeAfterOrderByPlayedTimeAsc(Instant time);
 	List<Splatoon3VsResult> findByMmrLoadFailedTrue();
