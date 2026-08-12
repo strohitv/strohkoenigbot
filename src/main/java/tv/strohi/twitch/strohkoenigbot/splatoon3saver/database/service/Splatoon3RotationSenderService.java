@@ -254,8 +254,8 @@ public class Splatoon3RotationSenderService {
 				builder.append("\n- x2 money tickets: ").append(rotation.getLeanMoneyTicketBig());
 			}
 
-			builder.append("\n- Silver Scales: ").append(rotation.getLeanMoneyTicketBig());
-			builder.append("\n- Gold Scales: ").append(rotation.getLeanMoneyTicketBig());
+			builder.append("\n- Silver Scales: ").append(rotation.getLeanSilverScales());
+			builder.append("\n- Gold Scales: ").append(rotation.getLeanGoldScales());
 
 			builder.append("\n\n### Weapons\n");
 
