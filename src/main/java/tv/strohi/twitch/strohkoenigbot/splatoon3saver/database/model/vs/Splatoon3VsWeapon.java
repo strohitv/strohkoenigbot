@@ -20,6 +20,12 @@ public class Splatoon3VsWeapon {
 
 	private String name;
 
+	private int weaponLevel;
+
+	private int exp;
+
+	private int expRequired;
+
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)

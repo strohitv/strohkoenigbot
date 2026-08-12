@@ -13,7 +13,6 @@ import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
-import discord4j.core.spec.MessageCreateMono;
 import discord4j.core.spec.MessageCreateSpec;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -452,19 +451,51 @@ public class DiscordBot implements ScheduledService {
 	}
 
 	private boolean sendMessage(MessageChannel channel, String message, List<Tuple<String, InputStream>> imageUrls) {
-		MessageCreateMono createMono = channel.createMessage(message.substring(0, Math.min(message.length(), 2000)));
+		var success = true;
+		var messageBlocks = Arrays.stream(message.split("\n"))
+			.collect(Collectors.toCollection(ArrayList::new));
 
-		List<Tuple<String, InputStream>> streams = new ArrayList<>(imageUrls);
+		for (int i = 0; i < messageBlocks.size(); i++) {
+			if (messageBlocks.get(i).length() > 2000) {
+				var first = messageBlocks.get(i).substring(0, 1900);
+				var second = messageBlocks.get(i).substring(1900, messageBlocks.get(i).length() - 1900);
+				messageBlocks.remove(i);
+				messageBlocks.add(i, first);
+				messageBlocks.add(i + 1, second);
+				i--;
+				continue;
+			}
 
-		createMono = createMono.withFiles(
-			streams.stream()
-				.map(s -> MessageCreateFields.File.of(s.x, s.y))
-				.collect(Collectors.toList())
-		);
+			if (i + 1 < messageBlocks.size()
+				&& String.format("%s\n%s", messageBlocks.get(i), messageBlocks.get(i + 1)).length() < 2000) {
+				var first = messageBlocks.remove(i);
+				var second = messageBlocks.remove(i);
+				messageBlocks.add(i, String.format("%s\n%s", first, second));
+				i--;
+			}
+		}
 
-		Message msg = createMono.retry(5).block();
-		logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
-		return msg != null;
+		for (int i = 0; i < messageBlocks.size(); i++) {
+			var messageBlock = messageBlocks.get(i);
+
+			var createMono = channel.createMessage(messageBlock.substring(0, Math.min(messageBlock.length(), 2000)));
+
+			if (i == messageBlocks.size() - 1) {
+				var streams = new ArrayList<>(imageUrls);
+
+				createMono = createMono.withFiles(
+					streams.stream()
+						.map(s -> MessageCreateFields.File.of(s.x, s.y))
+						.collect(Collectors.toList())
+				);
+			}
+
+			var msg = createMono.retry(5).block();
+			logger.info("sent message to server channel '{}': messageBlock: '{}'", channel.getId().asLong(), messageBlock);
+			success &= msg != null;
+		}
+
+		return success;
 	}
 
 	private PrivateChannel getPrivateChannelForUserInGuild(Long userId, List<Guild> guilds) {

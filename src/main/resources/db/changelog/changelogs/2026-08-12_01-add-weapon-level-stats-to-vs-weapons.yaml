@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-08-12_01-add-weapon-level-stats-to-vs-weapons
+      author: strohkoenig
+      changes:
+        - addColumn:
+            tableName: splatoon_3_vs_weapon
+            columns:
+              - column:
+                  name: weapon_level
+                  type: int
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: exp
+                  type: int
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: exp_required
+                  type: int
+                  defaultValueNumeric: "5000"
+                  constraints:
+                    nullable: false

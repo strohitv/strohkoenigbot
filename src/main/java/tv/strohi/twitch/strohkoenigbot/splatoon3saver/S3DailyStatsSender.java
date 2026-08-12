@@ -550,10 +550,26 @@ public class S3DailyStatsSender implements ScheduledService {
 				.append("\n")
 				.append(index)
 				.append(". `")
-				.append(String.format("%05.2f", sendWins ? stat.getWinRate() : stat.getDefeatRate()))
-				.append("%`: **")
-				.append(stat.getWeapon().getName())
-				.append("** (")
+				.append(String.format("%05.2f", sendWins ? stat.getWinRate() : stat.getDefeatRate()));
+
+			if ("myself".equals(groupName) && stat.getWeapon().getWeaponLevel() < 4) {
+				responseBuilder
+					.append("%`: ")
+					.append(stat.getWeapon().getName())
+					.append(" (");
+			} else if ("myself".equals(groupName) && stat.getWeapon().getWeaponLevel() >= 5) {
+				responseBuilder
+					.append("%`: **___")
+					.append(stat.getWeapon().getName())
+					.append("___** (");
+			} else {
+				responseBuilder
+					.append("%`: **")
+					.append(stat.getWeapon().getName())
+					.append("** (");
+			}
+
+			responseBuilder
 				.append(stat.getTotalGames())
 				.append(" g = ")
 				.append(stat.getTotalWins())

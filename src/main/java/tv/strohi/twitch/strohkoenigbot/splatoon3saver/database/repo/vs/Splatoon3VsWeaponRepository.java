@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs;
 
 import feign.Param;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,9 @@ import java.util.Optional;
 
 @Repository
 public interface Splatoon3VsWeaponRepository extends CrudRepository<Splatoon3VsWeapon, Long> {
-	Optional<Splatoon3VsWeapon> findByApiId(String apiId);
+	@NotNull List<Splatoon3VsWeapon> findAll();
+
+	@NotNull Optional<Splatoon3VsWeapon> findByApiId(String apiId);
 
 	@Query("SELECT new tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.OwnUsedWeaponStatsWithWeapon(mode.name as modeName, weapon.id as weaponId, COUNT(*) as total, COUNT(case when result.ownJudgement like 'WIN' then 1 end) as wins, COUNT(case when result.ownJudgement like 'LOSE' then 1 end) as defeats) " +
 		"FROM splatoon_3_vs_result_team_player rtp " +
