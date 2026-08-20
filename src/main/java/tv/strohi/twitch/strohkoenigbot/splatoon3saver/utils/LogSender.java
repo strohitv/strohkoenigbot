@@ -48,7 +48,7 @@ public class LogSender {
 		var now = LocalDateTime.now();
 		discordBot.sendPrivateMessageWithAttachment(DiscordBot.ADMIN_ID,
 			message,
-			String.format("exception-log_%04d-%02d-%02d_%02d-%02d-%02d.md", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond()),
+			String.format("attachment-log_%04d-%02d-%02d_%02d-%02d-%02d.md", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond()),
 			IOUtils.toInputStream(attachment, StandardCharsets.UTF_8));
 	}
 }
