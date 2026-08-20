@@ -143,21 +143,28 @@ public class S3ReplayCodeLoader implements ScheduledService {
 				var playerLevel = myself.getStats().getPlayerLevel();
 				var alivePct = myself.getStats().getAlivePct();
 
+				var inksightHasPowerValues = innerMmr > 0.0 && innerMmr != 1600.0 && zonesXP != 1600.0 && towerXP != 1600.0 && rainXP != 1600.0 && clamsXP != 1600.0;
+
 				var savedResult = resultRepository.save(result.toBuilder()
 					.mmrLoadFailed(false)
 					.inksightJsonVersion(inksightData.getVersion())
 					.replayJson(replayJson)
-					.mmr(mmr)
-					.innerMmr(innerMmr)
-					.xmmr(xmmr)
-					.power(power)
-					.xPowerZones(zonesXP)
-					.xPowerTower(towerXP)
-					.xPowerRain(rainXP)
-					.xPowerClams(clamsXP)
 					.alivePct(alivePct)
 					.playerLevel(playerLevel)
-					.build());
+					.build());;
+
+				if (inksightHasPowerValues) {
+					savedResult = resultRepository.save(result.toBuilder()
+						.mmr(mmr)
+						.innerMmr(innerMmr)
+						.xmmr(xmmr)
+						.power(power)
+						.xPowerZones(zonesXP)
+						.xPowerTower(towerXP)
+						.xPowerRain(rainXP)
+						.xPowerClams(clamsXP)
+						.build());
+				}
 
 				var gameDuration = Duration.ofSeconds(result.getDuration());
 				var ownAliveDuration = Duration.ofSeconds((int) (result.getDuration() * alivePct / 100));
@@ -257,19 +264,24 @@ public class S3ReplayCodeLoader implements ScheduledService {
 						}
 
 						inksightPlayerStatsRepository.save(Splatoon3VsInksightPlayerStats.builder()
-							.power(playerPower)
-							.mmr(playerMmr)
-							.innerMmr(playerInnerMmr)
-							.xmmr(playerXmmr)
-							.xPowerZones(playerZonesXP)
-							.xPowerTower(playerTowerXP)
-							.xPowerRain(playerRainXP)
-							.xPowerClams(playerClamsXP)
 							.playerLevel(playerPlayerLevel)
 							.alivePct(playerAlivePct)
 							.result(savedResult)
 							.player(playerFromResult.getPlayer())
 							.build());
+
+						if (inksightHasPowerValues) {
+							inksightPlayerStatsRepository.save(Splatoon3VsInksightPlayerStats.builder()
+								.power(playerPower)
+								.mmr(playerMmr)
+								.innerMmr(playerInnerMmr)
+								.xmmr(playerXmmr)
+								.xPowerZones(playerZonesXP)
+								.xPowerTower(playerTowerXP)
+								.xPowerRain(playerRainXP)
+								.xPowerClams(playerClamsXP)
+								.build());
+						}
 					}
 				}
 
