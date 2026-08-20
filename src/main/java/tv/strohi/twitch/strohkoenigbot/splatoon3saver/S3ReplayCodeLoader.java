@@ -151,7 +151,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					.replayJson(replayJson)
 					.alivePct(alivePct)
 					.playerLevel(playerLevel)
-					.build());;
+					.build());
 
 				if (inksightHasPowerValues) {
 					savedResult = resultRepository.save(result.toBuilder()
@@ -175,6 +175,9 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					.append("- result id: `").append(result.getId()).append("`\n")
 					.append("- version: `").append(inksightData.getVersion()).append("`\n")
 					.append("- player: `").append(myself.getName()).append("#").append(myself.getDiscriminator()).append("`\n")
+					.append("- db mmr: `").append(savedResult.getMmr()).append("`\n")
+					.append("- db power: `").append(savedResult.getPower()).append("`\n")
+					.append("- db inner mmr: `").append(savedResult.getInnerMmr()).append("`\n")
 					.append("- mmr: `").append(mmr).append("`\n")
 					.append("- power: `").append(power).append("`\n")
 					.append("- inner mmr: `").append(innerMmr).append("`\n");
@@ -183,9 +186,9 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: mmr = %.1f, power = %.1f, inner mmr = %.1f, alive time = %02d:%02d, dead time = %02d:%02d, super jumps: %d, safe super jumps: %d",
 						myself.getName(),
 						myself.getDiscriminator(),
-						mmr,
-						power,
-						innerMmr,
+						savedResult.getMmr(),
+						savedResult.getPower(),
+						savedResult.getInnerMmr(),
 						ownAliveDuration.toMinutesPart(),
 						ownAliveDuration.toSecondsPart(),
 						ownDeadDuration.toMinutesPart(),
@@ -245,7 +248,46 @@ public class S3ReplayCodeLoader implements ScheduledService {
 						var aliveDuration = Duration.ofSeconds((int) (result.getDuration() * playerAlivePct / 100));
 						var deadDuration = gameDuration.minus(aliveDuration);
 
-						summaryMarkdownBuilder.append("\n### Player #`").append(playerFromResult != null ? playerFromResult.getPlayerId() : "UNKNOWN ID").append("`: `").append(player.getName()).append("#").append(player.getDiscriminator()).append("`\n")
+						summaryMarkdownBuilder.append("\n### Player #`")
+							.append(playerFromResult != null ? playerFromResult.getPlayerId() : "UNKNOWN ID")
+							.append("`: `")
+							.append(player.getName()).append("#")
+							.append(player.getDiscriminator()).append("`\n");
+
+						if (playerFromResult != null) {
+							var inksightPlayer = inksightPlayerStatsRepository.save(Splatoon3VsInksightPlayerStats.builder()
+								.playerLevel(playerPlayerLevel)
+								.alivePct(playerAlivePct)
+								.result(savedResult)
+								.player(playerFromResult.getPlayer())
+								.build());
+
+							if (inksightHasPowerValues) {
+								inksightPlayer = inksightPlayerStatsRepository.save(Splatoon3VsInksightPlayerStats.builder()
+									.power(playerPower)
+									.mmr(playerMmr)
+									.innerMmr(playerInnerMmr)
+									.xmmr(playerXmmr)
+									.xPowerZones(playerZonesXP)
+									.xPowerTower(playerTowerXP)
+									.xPowerRain(playerRainXP)
+									.xPowerClams(playerClamsXP)
+									.build());
+							}
+
+							summaryMarkdownBuilder
+								.append("- DB Power: `").append(String.format("%.1f", inksightPlayer.getPower())).append("`\n")
+								.append("- DB MMR: `").append(String.format("%.1f", inksightPlayer.getMmr())).append("`\n")
+								.append("- DB Inner MMR: `").append(String.format("%.1f", inksightPlayer.getInnerMmr())).append("`\n")
+								.append("- DB XP Splat Zones: `").append(String.format("%.1f", inksightPlayer.getXPowerZones())).append("`\n")
+								.append("- DB XP Tower Control: `").append(String.format("%.1f", inksightPlayer.getXPowerTower())).append("`\n")
+								.append("- DB XP Rainmaker: `").append(String.format("%.1f", inksightPlayer.getXPowerRain())).append("`\n")
+								.append("- DB XP Clam Blitz: `").append(String.format("%.1f", inksightPlayer.getXPowerClams())).append("`\n");
+						} else {
+							logSender.queueLogs(log, "### ERROR during inksight player stats entry creation\n- player `%s#%s` was not in the game\n- result id: `%d`", player.getName(), player.getDiscriminator(), result.getId());
+						}
+
+						summaryMarkdownBuilder
 							.append("- Power: `").append(String.format("%.1f", playerPower)).append("`\n")
 							.append("- MMR: `").append(String.format("%.1f", playerMmr)).append("`\n")
 							.append("- Inner MMR: `").append(String.format("%.1f", playerInnerMmr)).append("`\n")
@@ -257,31 +299,6 @@ public class S3ReplayCodeLoader implements ScheduledService {
 							.append("- Alive Percentage: `").append(String.format("%.1f", playerAlivePct)).append("`\n")
 							.append("- = Alive time: `").append(aliveDuration.toMinutesPart()).append(":").append(aliveDuration.toSecondsPart()).append("`\n")
 							.append("- = Dead time: `").append(deadDuration.toMinutesPart()).append(":").append(deadDuration.toSecondsPart()).append("`\n");
-
-						if (playerFromResult == null) {
-							logSender.queueLogs(log, "### ERROR during inksight player stats entry creation\n- player `%s#%s` was not in the game\n- result id: `%d`", player.getName(), player.getDiscriminator(), result.getId());
-							continue;
-						}
-
-						inksightPlayerStatsRepository.save(Splatoon3VsInksightPlayerStats.builder()
-							.playerLevel(playerPlayerLevel)
-							.alivePct(playerAlivePct)
-							.result(savedResult)
-							.player(playerFromResult.getPlayer())
-							.build());
-
-						if (inksightHasPowerValues) {
-							inksightPlayerStatsRepository.save(Splatoon3VsInksightPlayerStats.builder()
-								.power(playerPower)
-								.mmr(playerMmr)
-								.innerMmr(playerInnerMmr)
-								.xmmr(playerXmmr)
-								.xPowerZones(playerZonesXP)
-								.xPowerTower(playerTowerXP)
-								.xPowerRain(playerRainXP)
-								.xPowerClams(playerClamsXP)
-								.build());
-						}
 					}
 				}
 
