@@ -160,7 +160,7 @@ public class BotController implements ScheduledService {
 
 		final var allGames = Stream.of(allVsGamesInStream, allSrGamesInStream)
 			.flatMap(Collection::stream)
-			.sorted(Comparator.comparing((SplatoonGame a) -> a.getPlayedTime()))
+			.sorted(Comparator.comparing((SplatoonGame a) -> Optional.ofNullable(a.getPlayedTime()).orElse(Instant.MIN)))
 			.collect(Collectors.toList());
 
 		var vsGameNumber = 1;

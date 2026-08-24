@@ -64,6 +64,10 @@ public class Splatoon3SrResult implements SplatoonGame {
 		if (successful) {
 			return waves.size() == 4 ? GAME_DURATION_KING_END : GAME_DURATION_REGULAR_END;
 		} else {
+			if (waves.size() >= 4) {
+				return GAME_DURATION_KING_END;
+			}
+
 			return GAME_DURATION_STARTS.get(waves.size()) + (GAME_DURATION_STARTS.get(waves.size() + 1) - GAME_DURATION_STARTS.get(waves.size()));
 		}
 	}
