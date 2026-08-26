@@ -32,6 +32,7 @@ public class InksightReplay {
 	private List<List<Integer>> pingSamples;
 	private List<NetGap> netGaps;
 	private List<ClampdownPacket> clampdownPackets;
+	private List<NetworkFlag> networkFlags;
 	private Map<String, List<Integer>> teamColors;
 
 	private List<MatchRecorder> recorders;
@@ -301,6 +302,19 @@ public class InksightReplay {
 		private Integer voter;
 		private Integer target;
 		private Integer flag;
+	}
+
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@ToString
+	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+	public static class NetworkFlag {
+		private Integer voter;
+		private Integer target;
+		private String kind;
 	}
 }
 
