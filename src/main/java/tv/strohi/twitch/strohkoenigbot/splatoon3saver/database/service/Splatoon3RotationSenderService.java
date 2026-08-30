@@ -229,7 +229,13 @@ public class Splatoon3RotationSenderService {
 			+ Optional.ofNullable(rotation.getLeanMoneyTicketSmall()).map(lmt -> lmt * 2).orElse(0)
 			+ Optional.ofNullable(rotation.getLeanMoneyTicketBig()).map(lmt -> lmt * 4).orElse(0);
 
-		if ("Triumvirate".equals(rotation.getBoss().getName())) {
+		// eggstra work check (no boss there)
+		var bossName = "None";
+		if (rotation.getBoss() != null) {
+			bossName = rotation.getBoss().getName();
+		}
+
+		if ("Triumvirate".equals(bossName)) {
 			score += 10;
 		}
 
@@ -238,8 +244,8 @@ public class Splatoon3RotationSenderService {
 			var builder = new StringBuilder(String.format("# %s\nScore: %d\n\n### Stage\n- ", rotation.getLeanDate(), score))
 				.append(rotation.getStage().getName()).append("\n\n### Valuable rewards");
 
-			if ("Triumvirate".equals(rotation.getBoss().getName())) {
-				builder.append("\n- Boss: ").append(rotation.getBoss().getName());
+			if ("Triumvirate".equals(bossName)) {
+				builder.append("\n- Boss: ").append(bossName);
 			}
 
 			if (rotation.getLeanMoney() > 0) {
