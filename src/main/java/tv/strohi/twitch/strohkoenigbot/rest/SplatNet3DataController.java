@@ -1,6 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import lombok.extern.log4j.Log4j2;
@@ -19,6 +21,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3GearShopOfferNotificatio
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3ReplayCodeLoader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3SrRewardSaver;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3TokenRefresher;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import java.lang.reflect.Type;
@@ -44,6 +47,7 @@ public class SplatNet3DataController {
 	private final AccountRepository accountRepository;
 
 	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
 
 	private final S3GearShopOfferNotificationSender shopOfferNotificationSender;
 	private final S3ReplayCodeLoader replayCodeLoader;
@@ -53,14 +57,18 @@ public class SplatNet3DataController {
 
 	private final Map<String, Object> data = new HashMap<>();
 
-	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogSender logSender, AccountRepository accountRepository, S3GearShopOfferNotificationSender shopOfferNotificationSender, S3ReplayCodeLoader replayCodeLoader, S3SrRewardSaver rewardSaver) {
+	private final ObjectMapper objectMapper;
+
+	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogSender logSender, AccountRepository accountRepository, ExceptionLogger exceptionLogger, S3GearShopOfferNotificationSender shopOfferNotificationSender, S3ReplayCodeLoader replayCodeLoader, S3SrRewardSaver rewardSaver, ObjectMapper objectMapper) {
 		this.s3TokenRefresher = s3TokenRefresher;
 		this.configurationRepository = configurationRepository;
 		this.accountRepository = accountRepository;
 		this.logSender = logSender;
+		this.exceptionLogger = exceptionLogger;
 		this.shopOfferNotificationSender = shopOfferNotificationSender;
 		this.replayCodeLoader = replayCodeLoader;
 		this.rewardSaver = rewardSaver;
+		this.objectMapper = objectMapper;
 
 		var now = Instant.now().toEpochMilli();
 
@@ -300,6 +308,12 @@ public class SplatNet3DataController {
 
 			if (authCheckResult.isPresent()) {
 				return authCheckResult.get();
+			}
+
+			try {
+				logSender.sendLogsAsAttachment(log, "Received new Shop Offers", objectMapper.writeValueAsString(shopOffers));
+			} catch (JsonProcessingException e) {
+				exceptionLogger.logExceptionAsAttachment(log, "Could not parse shop offers", e);
 			}
 
 			if (shopOfferNotificationSender.addShopOffers(shopOffers)) {

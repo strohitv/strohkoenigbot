@@ -46,33 +46,63 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 	private final Splatoon3VsGearShopOfferRepository shopOfferRepository;
 	private final Splatoon3VsGearShopOfferNotificationRepository shopOfferNotificationRepository;
 
-	@Transactional
-	public boolean addShopOffers(List<ShopOffers> offers) {
-		var addedCount = 0;
-		try {
-			for (var offer : offers) {
-				var localDate = LocalDate.parse(offer.getDay(), formatter);
-				var day = localDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+	private final List<List<ShopOffers>> queuedOffers = new ArrayList<>();
 
-				shopOfferRepository.deleteAllByAddedAt(day);
-				var addedIterable = shopOfferRepository.saveAll(offer.getOffers().stream()
-					.map(o -> Splatoon3VsGearShopOffer.builder()
-						.addedAt(day)
-						.gear(gearRepository.findByName(o).orElseThrow())
-						.build())
-					.collect(Collectors.toList()));
+	public boolean addShopOffers(List<ShopOffers> offers) {
+		queuedOffers.add(offers);
+		logSender.queueLogs(log, "New gear shop offers have been queued.");
+		return true;
+	}
+
+	@Transactional
+	public void processShopOffers() {
+		while (!queuedOffers.isEmpty()) {
+			var offers = queuedOffers.remove(0);
+
+			var addedCount = 0;
+			try {
+				var totalMonths = 1;
+				var oldMonth = -1;
+
+				var allOffersToSave = new ArrayList<Splatoon3VsGearShopOffer>();
+
+				for (var offer : offers) {
+					var localDate = LocalDate.parse(offer.getDay(), formatter);
+					var day = localDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+
+					if (localDate.getMonth().getValue() != oldMonth) {
+						log.info("New month: {}, total months: {}, allOffersToSave size: {}",
+							localDate.getMonth().getValue(),
+							totalMonths,
+							allOffersToSave.size());
+
+						oldMonth = localDate.getMonth().getValue();
+						totalMonths++;
+					}
+
+					shopOfferRepository.deleteAllByAddedAt(day);
+					var shopOffers = offer.getOffers().stream()
+						.map(o -> Splatoon3VsGearShopOffer.builder()
+							.addedAt(day)
+							.gear(gearRepository.findByName(o).orElse(null))
+							.build())
+						.filter(o -> o.getGear() != null)
+						.collect(Collectors.toList());
+
+					allOffersToSave.addAll(shopOffers);
+				}
+
+				var addedIterable = shopOfferRepository.saveAll(allOffersToSave);
 
 				var addedList = new ArrayList<>();
 				addedIterable.forEach(addedList::add);
-				addedCount += addedList.size();
+				addedCount = addedList.size();
+			} catch (Exception e) {
+				exceptionLogger.logExceptionAsAttachment(log, "Exception occurred while adding Shop Offers to database", e);
 			}
-		} catch (Exception e) {
-			exceptionLogger.logExceptionAsAttachment(log, "Exception occurred while adding Shop Offers to database", e);
-			return false;
-		}
 
-		logSender.queueLogs(log, "## Added new gear shop offers\nA total of `%d` shop offers have been added.", addedCount);
-		return true;
+			logSender.queueLogs(log, "## Added new gear shop offers\nA total of `%d` shop offers have been added.", addedCount);
+		}
 	}
 
 	private void sendNotifications() {
@@ -139,11 +169,17 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
 		return List.of(new ScheduleRequest(
-			"S3GearShopOfferNotificationSender_sendNotifications",
-			CronSchedule.getScheduleString("45 5 * * * *"),
-			this::sendNotifications,
-			null
-		));
+				"S3GearShopOfferNotificationSender_sendNotifications",
+				CronSchedule.getScheduleString("45 5 * * * *"),
+				this::sendNotifications,
+				null
+			),
+			new ScheduleRequest(
+				"S3GearShopOfferNotificationSender_processShopOffers",
+				CronSchedule.getScheduleString("45 24 * * * *"),
+				this::processShopOffers,
+				null
+			));
 	}
 
 	@Override
