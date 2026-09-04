@@ -14,6 +14,8 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.rest.model.S2Tokens;
 import tv.strohi.twitch.strohkoenigbot.rest.model.S3Tokens;
+import tv.strohi.twitch.strohkoenigbot.rest.model.ShopOffers;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3GearShopOfferNotificationSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3ReplayCodeLoader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3SrRewardSaver;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3TokenRefresher;
@@ -43,6 +45,7 @@ public class SplatNet3DataController {
 
 	private final LogSender logSender;
 
+	private final S3GearShopOfferNotificationSender shopOfferNotificationSender;
 	private final S3ReplayCodeLoader replayCodeLoader;
 	private final S3SrRewardSaver rewardSaver;
 
@@ -50,11 +53,12 @@ public class SplatNet3DataController {
 
 	private final Map<String, Object> data = new HashMap<>();
 
-	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogSender logSender, AccountRepository accountRepository, S3ReplayCodeLoader replayCodeLoader, S3SrRewardSaver rewardSaver) {
+	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogSender logSender, AccountRepository accountRepository, S3GearShopOfferNotificationSender shopOfferNotificationSender, S3ReplayCodeLoader replayCodeLoader, S3SrRewardSaver rewardSaver) {
 		this.s3TokenRefresher = s3TokenRefresher;
 		this.configurationRepository = configurationRepository;
 		this.accountRepository = accountRepository;
 		this.logSender = logSender;
+		this.shopOfferNotificationSender = shopOfferNotificationSender;
 		this.replayCodeLoader = replayCodeLoader;
 		this.rewardSaver = rewardSaver;
 
@@ -104,6 +108,12 @@ public class SplatNet3DataController {
 					.build())
 				.build(),
 			"get-replay-queue", Bucket.builder()
+				.addLimit(Bandwidth.builder()
+					.capacity(5)
+					.refillGreedy(5, Duration.ofMinutes(1))
+					.build())
+				.build(),
+			"shop-offers", Bucket.builder()
 				.addLimit(Bandwidth.builder()
 					.capacity(5)
 					.refillGreedy(5, Duration.ofMinutes(1))
@@ -278,6 +288,25 @@ public class SplatNet3DataController {
 
 			return authCheckResult.orElseGet(() -> ResponseEntity.ok().body(replayCodeLoader.getReplayQueue()));
 
+		}
+
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+	}
+
+	@PostMapping(value = "/shop-offers")
+	public ResponseEntity<Void> uploadShopOffers(@RequestHeader("Authorization") String auth, @RequestBody List<ShopOffers> shopOffers) {
+		if (buckets.get("shop-offers").tryConsume(1)) {
+			var authCheckResult = doAuthCheck(auth, "replay json upload", Void.class);
+
+			if (authCheckResult.isPresent()) {
+				return authCheckResult.get();
+			}
+
+			if (shopOfferNotificationSender.addShopOffers(shopOffers)) {
+				return ResponseEntity.ok().build();
+			}
+
+			return ResponseEntity.badRequest().build();
 		}
 
 		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();

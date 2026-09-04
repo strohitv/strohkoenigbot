@@ -31,4 +31,9 @@ public class Splatoon3VsBrand {
 	@JoinColumn(name = "favored_ability_id")
 	@EqualsAndHashCode.Exclude
 	private Splatoon3VsAbility favoredAbility;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "unfavored_ability_id")
+	@EqualsAndHashCode.Exclude
+	private Splatoon3VsAbility unfavoredAbility;
 }

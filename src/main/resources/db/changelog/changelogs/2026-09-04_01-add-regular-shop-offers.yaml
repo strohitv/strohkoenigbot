@@ -1,0 +1,192 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-09-04_01-add-regular-shop-offers
+      author: strohkoenig
+      changes:
+        - createTable:
+            tableName: splatoon_3_vs_gear_shop_offer
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: added_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: gear_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    references: splatoon_3_vs_gear(id)
+                    foreignKeyName: fk_vs_gear_vs_gear_shop_offer
+        - createIndex:
+            indexName: idx_splatoon_3_vs_gear_shop_offer_added_at
+            tableName: splatoon_3_vs_gear_shop_offer
+            unique: false
+            columns:
+              - column:
+                  name: added_at
+                  descending: false
+        - createTable:
+            tableName: splatoon_3_vs_gear_shop_offer_notification
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: account_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    references: account(id)
+                    foreignKeyName: fk_vs_gear_shop_offer_account
+              - column:
+                  name: gear_name
+                  type: varchar(5000)
+                  constraints:
+                    nullable: false
+        - addColumn:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  type: bigint
+                  defaultValueNumeric: '2'
+                  constraints:
+                    nullable: false
+                    references: splatoon_3_vs_ability(id)
+                    foreignKeyName: fk_vs_brand_unfavored_ability
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '13'
+            where: name='SquidForce'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '3'
+            where: name='Zink'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '10'
+            where: name='Krak-On'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '15'
+            where: name='Rockenberg'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '5'
+            where: name='Zekko'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '16'
+            where: name='Forge'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '1'
+            where: name='Firefin'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '4'
+            where: name='Skalop'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '7'
+            where: name='Splash Mob'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '14'
+            where: name='Inkline'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '8'
+            where: name='Tentatek'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '12'
+            where: name='Takoroka'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '4'
+            where: name='Annaki'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '11'
+            where: name='Enperry'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '6'
+            where: name='Toni Kensa'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '1'
+            where: name='Z+F'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '6'
+            where: name='Barazushi'
+        - update:
+            tableName: splatoon_3_vs_brand
+            columns:
+              - column:
+                  name: unfavored_ability_id
+                  valueNumeric: '5'
+            where: name='Emberz'
