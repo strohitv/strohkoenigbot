@@ -1,7 +1,10 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Attachment;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
@@ -20,6 +23,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
+import tv.strohi.twitch.strohkoenigbot.rest.model.ShopOffers;
 import tv.strohi.twitch.strohkoenigbot.sendou.SendouService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
@@ -39,6 +43,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.SchedulingService;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -81,6 +86,7 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final S3DailySpecialWinsRefresher s3DailySpecialWinsRefresher;
 	private final S3NewGearChecker s3NewGearChecker;
 	private final S3GameExporter s3GameExporter;
+	private final S3GearShopOfferNotificationSender shopOfferNotificationSender;
 	private final S3ReplayCodeLoader replayCodeLoader;
 
 	private final ImageService imageService;
@@ -94,6 +100,10 @@ public class DiscordAdministrationAction extends ChatAction {
 	private final SendouService sendouService;
 
 	private final SchedulingService schedulingService;
+
+	private final ObjectMapper mapper;
+	private final TypeReference<List<ShopOffers>> shopOffersListReference = new TypeReference<>() {
+	};
 
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
@@ -788,6 +798,25 @@ public class DiscordAdministrationAction extends ChatAction {
 				logSender.sendLogs(log, "# Last ran jobs\n- %s", previousJobs.stream()
 					.reduce((a, b) -> String.format("%s\n- %s", a, b))
 					.orElse("**!!!NONE!!!**"));
+			} else if (lowercaseMessage.startsWith("!offers upload")) {
+				logSender.queueLogs(log, "adding uploaded file to shop offers queue");
+
+				var attachments = List.<Attachment>of();
+				var event = args.getArguments().getOrDefault(ArgumentKey.Event, null);
+				if (event instanceof MessageCreateEvent) {
+					attachments = ((MessageCreateEvent) event).getMessage().getAttachments();
+				}
+
+				for (var attachment : attachments) {
+					try (var contentStream = URI.create(attachment.getUrl()).toURL().openStream()) {
+						var shopOffers = mapper.readValue(contentStream, shopOffersListReference);
+						shopOfferNotificationSender.addShopOffers(shopOffers);
+					} catch (Exception e) {
+						exceptionLogger.logExceptionAsAttachment(log, "Could not add shop offers to queue", e);
+					}
+				}
+
+				logSender.queueLogs(log, "finished adding uploaded file to shop offers queue");
 			}
 		} catch (Exception e) {
 			exceptionLogger.logExceptionAsAttachment(log, "An error occurred during admin command execution\nSee logs for details!", e);
