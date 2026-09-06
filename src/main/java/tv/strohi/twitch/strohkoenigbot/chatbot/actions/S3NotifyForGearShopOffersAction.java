@@ -9,9 +9,12 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGearShopOfferNotification;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearShopOfferNotificationRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearShopOfferRepository;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -26,6 +29,8 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 	}
 
 	private final DiscordAccountLoader discordAccountLoader;
+	private final Splatoon3VsGearRepository gearRepository;
+	private final Splatoon3VsGearShopOfferRepository shopOfferRepository;
 	private final Splatoon3VsGearShopOfferNotificationRepository shopOfferNotificationRepository;
 
 	@Override
@@ -66,6 +71,21 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 
 				for (var notification : allNotifications) {
 					fillNotificationIntoStringBuilder(notification, responseBuilder);
+
+					var gear = gearRepository.findByName(notification.getGearName());
+					if (gear.isEmpty()) {
+						responseBuilder.append(" - **WARNING** You don't own a gear with this name!");
+					} else {
+						responseBuilder.append("- Next occurrence: ");
+
+						var nextNotification = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now()).stream().findFirst();
+						nextNotification.ifPresent(notif -> responseBuilder
+							.append("<t:")
+							.append(notif.getAddedAt().getEpochSecond())
+							.append(":f> (<t:")
+							.append(notif.getAddedAt().getEpochSecond())
+							.append(":R>)"));
+					}
 				}
 
 				responseBuilder.append("\n\nTo receive detailed information about one of them, use **!shops notifications <id>**.");
@@ -96,6 +116,47 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			shopOfferNotificationRepository.deleteAll(foundNotifications);
 
 			sender.send("## I deleted all your notifications as requested.");
+		} else if (lowerCaseMessage.startsWith("info")) {
+			message = message.substring("info ".length()).trim();
+
+			if (!message.matches("^[0-9]+$")) {
+				sender.send("## ERROR: id must be a number");
+				return;
+			}
+
+			var id = Long.parseLong(message);
+			var foundNotificationOptional = shopOfferNotificationRepository.findById(id);
+
+			if (foundNotificationOptional.isPresent()) {
+				var foundNotification = foundNotificationOptional.get();
+
+				var responseBuilder = new StringBuilder("## Info for notification `")
+					.append(id)
+					.append("`\n");
+
+				fillNotificationIntoStringBuilder(foundNotification, responseBuilder);
+
+				var gear = gearRepository.findByName(foundNotification.getGearName());
+				if (gear.isEmpty()) {
+					responseBuilder.append("\n\n**WARNING** You don't own a gear with this name!");
+				} else {
+					responseBuilder.append("\n\n### Next occurrences in shop");
+
+					var nextNotifications = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now());
+					for (var notification : nextNotifications) {
+						responseBuilder
+							.append("\n- <t:")
+							.append(notification.getAddedAt().getEpochSecond())
+							.append(":f> (<t:")
+							.append(notification.getAddedAt().getEpochSecond())
+							.append(":R>)");
+					}
+				}
+
+				sender.send(responseBuilder.toString());
+			} else {
+				sender.send("## ERROR: notification could not be found");
+			}
 		} else if (lowerCaseMessage.startsWith("delete")) {
 			lowerCaseMessage = lowerCaseMessage.substring("delete".length()).trim();
 
@@ -118,7 +179,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 				if (!foundNotifications.isEmpty()) {
 					shopOfferNotificationRepository.deleteAll(foundNotifications);
 
-					var responseBuilder = new StringBuilder("## I deleted the following notifications:");
+					var responseBuilder = new StringBuilder("## I deleted the following notifications");
 
 					for (var notification : foundNotifications) {
 						fillNotificationIntoStringBuilder(notification, responseBuilder);
@@ -133,13 +194,13 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			}
 		} else {
 			// no valid commands
-			sender.send("## Allowed commands\n  - !shops notify\n  - !shops notifications\n  - !shops notifications <id>\n  - !shops clear\n  - !shops delete <id>");
+			sender.send("## Allowed commands\n  - !shops notify\n  - !shops info\n  - !shops notifications\n  - !shops notifications <id>\n  - !shops clear\n  - !shops delete <id>");
 		}
 	}
 
 	private void addNotification(TwitchDiscordMessageSender sender, String gearName, Account account) {
-		if (shopOfferNotificationRepository.findAllByAccountIdOrderById(account.getId()).size() >= 12) {
-			sender.send("**ERROR**! You already have 12 notifications for this game mode. Remove some old ones first before adding a new one!");
+		if (shopOfferNotificationRepository.findAllByAccountIdOrderById(account.getId()).size() >= 120) {
+			sender.send("**ERROR**! You already have 120 notifications for this game mode. Remove some old ones first before adding a new one!");
 			return;
 		}
 
@@ -148,8 +209,25 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			.gearName(gearName)
 			.build());
 
-		var responseBuilder = new StringBuilder("## The following notification has been added:\n");
+		var responseBuilder = new StringBuilder("## The following notification has been added\n");
 		fillNotificationIntoStringBuilder(addedNotification, responseBuilder);
+
+		var gear = gearRepository.findByName(gearName);
+		if (gear.isEmpty()) {
+			responseBuilder.append("\n\n**WARNING** You don't own a gear with this name!");
+		} else {
+			responseBuilder.append("\n\n### Next occurrences in shop");
+
+			var nextNotifications = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now());
+			for (var notification : nextNotifications) {
+				responseBuilder
+					.append("\n- <t:")
+					.append(notification.getAddedAt().getEpochSecond())
+					.append(":f> (<t:")
+					.append(notification.getAddedAt().getEpochSecond())
+					.append(":R>)");
+			}
+		}
 
 		responseBuilder.append("\n\nI'm gonna send you a private message as soon as this gear appears in the shop.");
 		sender.send(responseBuilder.toString());
@@ -160,6 +238,6 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			.append(notification.getId())
 			.append("__ - Gear Name: __")
 			.append(notification.getGearName())
-			.append("__ ");
+			.append("__");
 	}
 }
