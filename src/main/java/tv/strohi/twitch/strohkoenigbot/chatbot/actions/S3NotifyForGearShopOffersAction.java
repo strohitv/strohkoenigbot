@@ -14,10 +14,12 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearShopOfferRepository;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 
+import javax.transaction.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -29,12 +31,14 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 	}
 
 	private final DiscordAccountLoader discordAccountLoader;
+
 	private final Splatoon3VsGearRepository gearRepository;
 	private final Splatoon3VsGearShopOfferRepository shopOfferRepository;
 	private final Splatoon3VsGearShopOfferNotificationRepository shopOfferNotificationRepository;
 
 	@Override
-	protected void execute(ActionArgs args) {
+	@Transactional
+	public void execute(ActionArgs args) {
 		var sender = args.getReplySender();
 
 		var message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
@@ -157,6 +161,68 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			} else {
 				sender.send("## ERROR: notification could not be found");
 			}
+		} else if (lowerCaseMessage.startsWith("next")) {
+			message = message.substring("next".length()).trim();
+
+			var offerLimit = 50L;
+
+			if (message.matches("^[0-9]+$")) {
+				offerLimit = Long.parseLong(message);
+
+				if (offerLimit < 1) {
+					offerLimit = 1L;
+				} else if (offerLimit > 100) {
+					offerLimit = 100L;
+				}
+			} else {
+				sender.send("## ERROR: count of next offers to list must be a number... Switching to the default of `50`...");
+			}
+
+			var allNotifications = shopOfferNotificationRepository.findAllByAccountIdOrderById(account.getId());
+
+			if (allNotifications.isEmpty()) {
+				sender.send("## ERROR: you don't have any notifications...");
+				return;
+			}
+
+			var allGears = allNotifications.stream()
+				.map(Splatoon3VsGearShopOfferNotification::getGearName)
+				.distinct()
+				.map(gearRepository::findByName)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.collect(Collectors.toList());
+
+			var allOffers = shopOfferRepository.findTop100ByGearInAndAddedAtAfterOrderByAddedAt(allGears, Instant.now())
+				.stream()
+				.limit(offerLimit)
+				.collect(Collectors.toList());
+
+			if (allOffers.isEmpty()) {
+				sender.send("## ERROR: I couldn't find any of the gears you're waiting for in any shops...");
+				return;
+			}
+
+			var messageBuilder = new StringBuilder("## Here are the next `")
+				.append(offerLimit)
+				.append("` occurrences of items you're waiting for in shops");
+
+			for (int i = 0; i < allOffers.size(); i++) {
+				var offer = allOffers.get(i);
+
+				messageBuilder
+					.append("\n")
+					.append(i + 1)
+					.append(". __")
+					.append(offer.getGear().getName())
+					.append("__: <t:")
+					.append(offer.getAddedAt().getEpochSecond())
+					.append(":f> (<t:")
+					.append(offer.getAddedAt().getEpochSecond())
+					.append(":R>)");
+			}
+
+			sender.send(messageBuilder.toString());
 		} else if (lowerCaseMessage.startsWith("delete")) {
 			lowerCaseMessage = lowerCaseMessage.substring("delete".length()).trim();
 
@@ -194,7 +260,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			}
 		} else {
 			// no valid commands
-			sender.send("## Allowed commands\n  - !shops notify\n  - !shops info\n  - !shops notifications\n  - !shops notifications <id>\n  - !shops clear\n  - !shops delete <id>");
+			sender.send("## Allowed commands\n  - !shops notify\n  - !shops info\n  - !shops next <number>\n  - !shops notifications\n  - !shops notifications <id>\n  - !shops clear\n  - !shops delete <id>");
 		}
 	}
 

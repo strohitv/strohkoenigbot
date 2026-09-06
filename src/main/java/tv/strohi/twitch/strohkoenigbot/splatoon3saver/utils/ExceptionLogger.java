@@ -1,8 +1,8 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
@@ -11,9 +11,13 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 
 @Component
-@RequiredArgsConstructor
 public class ExceptionLogger {
 	private final LogSender logSender;
+
+	public ExceptionLogger(LogSender logSender) {
+		this.logSender = logSender;
+		ChatAction.setExceptionLogger(this);
+	}
 
 	public void logExceptionAsAttachment(Logger logger, String title, Exception e) {
 		var sentExs = new ArrayList<Throwable>();

@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.consumer;
 
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
+import lombok.RequiredArgsConstructor;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
@@ -12,12 +13,9 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import java.util.List;
 import java.util.function.Consumer;
 
+@RequiredArgsConstructor
 public class TwitchRewardRedeemedConsumer implements Consumer<RewardRedeemedEvent> {
 	private final List<IChatAction> botActions;
-
-	public TwitchRewardRedeemedConsumer(List<IChatAction> botActions) {
-		this.botActions = botActions;
-	}
 
 	@Override
 	public void accept(RewardRedeemedEvent pointEvent) {

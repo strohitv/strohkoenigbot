@@ -1,6 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.consumer;
 
 import com.github.twitch4j.common.events.user.PrivateMessageEvent;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
@@ -15,12 +16,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Log4j2
+@RequiredArgsConstructor
 public class TwitchPrivateMessageConsumer implements Consumer<PrivateMessageEvent> {
 	private final List<IChatAction> botActions;
-
-	public TwitchPrivateMessageConsumer(List<IChatAction> botActions) {
-		this.botActions = botActions;
-	}
 
 	@Override
 	public void accept(PrivateMessageEvent event) {

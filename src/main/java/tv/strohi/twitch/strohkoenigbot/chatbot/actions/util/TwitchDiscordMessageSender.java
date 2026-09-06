@@ -2,25 +2,19 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions.util;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.channel.TextChannel;
+import lombok.RequiredArgsConstructor;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 
+@RequiredArgsConstructor
 public class TwitchDiscordMessageSender {
 	private final TwitchMessageSender messageSender;
 	private final DiscordBot discordBot;
 
 	private final ActionArgs args;
-
-	public TwitchDiscordMessageSender(TwitchMessageSender messageSender,
-									  DiscordBot discordBot,
-									  ActionArgs args) {
-		this.messageSender = messageSender;
-		this.discordBot = discordBot;
-		this.args = args;
-	}
 
 	public void send(String format, Object... args) {
 		var message = String.format(format, args);
