@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-09-07_02-add-level-to-s3-gear
+      author: strohkoenig
+      changes:
+        - addColumn:
+            tableName: splatoon_3_vs_gear
+            columns:
+              - column:
+                  name: gear_level
+                  type: int
+                  valueNumeric: "0"
+                  constraints:
+                    nullable: false

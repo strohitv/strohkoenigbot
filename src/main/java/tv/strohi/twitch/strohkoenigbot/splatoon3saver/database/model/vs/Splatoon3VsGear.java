@@ -20,6 +20,8 @@ public class Splatoon3VsGear {
 
 	private String type;
 
+	private int gearLevel;
+
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)

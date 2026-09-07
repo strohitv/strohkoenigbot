@@ -96,22 +96,47 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 
 				sender.send(responseBuilder.toString());
 			} else {
-				try {
-					lowerCaseMessage = lowerCaseMessage.split("\\s")[0];
-					var id = Integer.parseInt(lowerCaseMessage);
+				if (!lowerCaseMessage.matches("^[0-9]+$")) {
+					sender.send("## ERROR: id must be a number");
+					return;
+				}
 
-					var foundNotification = shopOfferNotificationRepository.findByIdAndAccountId(id, account.getId());
+				var id = Long.parseLong(lowerCaseMessage);
+				var foundNotificationOptional = shopOfferNotificationRepository.findById(id);
 
-					if (foundNotification.isPresent()) {
-						StringBuilder responseBuilder = new StringBuilder("## Shop Notification\n");
-						fillNotificationIntoStringBuilder(foundNotification.get(), responseBuilder);
+				if (foundNotificationOptional.isPresent()) {
+					var foundNotification = foundNotificationOptional.get();
 
-						sender.send(responseBuilder.toString());
+					var responseBuilder = new StringBuilder("## Notification `")
+						.append(id)
+						.append("`\n");
+
+					fillNotificationIntoStringBuilder(foundNotification, responseBuilder);
+
+					var gear = gearRepository.findByName(foundNotification.getGearName());
+					if (gear.isPresent()) {
+						responseBuilder
+							.append("\n- Current level: `")
+							.append(gear.get().getGearLevel())
+							.append("`")
+							.append("\n\n### Next occurrences in shop");
+
+						var nextNotifications = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now());
+						for (var notification : nextNotifications) {
+							responseBuilder
+								.append("\n- <t:")
+								.append(notification.getAddedAt().getEpochSecond())
+								.append(":f> (<t:")
+								.append(notification.getAddedAt().getEpochSecond())
+								.append(":R>)");
+						}
 					} else {
-						sender.send(String.format("**ERROR**! Sorry, you don't have a notification with number **%s**", lowerCaseMessage));
+						responseBuilder.append("\n\n**WARNING** You don't own a gear with this name!");
 					}
-				} catch (NumberFormatException ignored) {
-					sender.send(String.format("**ERROR**! Whatever you're trying to do, **%s** is not a number!", lowerCaseMessage));
+
+					sender.send(responseBuilder.toString());
+				} else {
+					sender.send("## ERROR: notification could not be found");
 				}
 			}
 
@@ -120,47 +145,6 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			shopOfferNotificationRepository.deleteAll(foundNotifications);
 
 			sender.send("## I deleted all your notifications as requested.");
-		} else if (lowerCaseMessage.startsWith("info")) {
-			message = message.substring("info ".length()).trim();
-
-			if (!message.matches("^[0-9]+$")) {
-				sender.send("## ERROR: id must be a number");
-				return;
-			}
-
-			var id = Long.parseLong(message);
-			var foundNotificationOptional = shopOfferNotificationRepository.findById(id);
-
-			if (foundNotificationOptional.isPresent()) {
-				var foundNotification = foundNotificationOptional.get();
-
-				var responseBuilder = new StringBuilder("## Info for notification `")
-					.append(id)
-					.append("`\n");
-
-				fillNotificationIntoStringBuilder(foundNotification, responseBuilder);
-
-				var gear = gearRepository.findByName(foundNotification.getGearName());
-				if (gear.isEmpty()) {
-					responseBuilder.append("\n\n**WARNING** You don't own a gear with this name!");
-				} else {
-					responseBuilder.append("\n\n### Next occurrences in shop");
-
-					var nextNotifications = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now());
-					for (var notification : nextNotifications) {
-						responseBuilder
-							.append("\n- <t:")
-							.append(notification.getAddedAt().getEpochSecond())
-							.append(":f> (<t:")
-							.append(notification.getAddedAt().getEpochSecond())
-							.append(":R>)");
-					}
-				}
-
-				sender.send(responseBuilder.toString());
-			} else {
-				sender.send("## ERROR: notification could not be found");
-			}
 		} else if (lowerCaseMessage.startsWith("next")) {
 			message = message.substring("next".length()).trim();
 
@@ -260,7 +244,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			}
 		} else {
 			// no valid commands
-			sender.send("## Allowed commands\n  - !shops notify\n  - !shops info\n  - !shops next <number>\n  - !shops notifications\n  - !shops notifications <id>\n  - !shops clear\n  - !shops delete <id>");
+			sender.send("## Allowed commands\n  - !shops notify\n  - !shops next <number>\n  - !shops notifications\n  - !shops notifications <id>\n  - !shops clear\n  - !shops delete <id>");
 		}
 	}
 
