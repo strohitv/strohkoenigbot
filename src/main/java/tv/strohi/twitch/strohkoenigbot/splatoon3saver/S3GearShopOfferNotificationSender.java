@@ -152,7 +152,9 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 
 					var messageBuilder = new StringBuilder("## The Shops contain a new offer you're interested in\n- ")
 						.append(offer.getGear().getName())
-						.append("\n- available until <t:")
+						.append("\n- Current level: `")
+						.append(offer.getGear().getGearLevel())
+						.append("`\n- available until <t:")
 						.append(today.plus(1, ChronoUnit.DAYS).getEpochSecond())
 						.append(":f> (<t:")
 						.append(today.plus(1, ChronoUnit.DAYS).getEpochSecond())
