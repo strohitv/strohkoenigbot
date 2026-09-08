@@ -1,6 +1,9 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
@@ -8,6 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGearShopOffer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGearShopOfferNotification;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearShopOfferNotificationRepository;
@@ -51,6 +55,9 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 		if (lowerCaseMessage.startsWith("!shops ")) {
 			message = message.substring("!shops ".length()).trim();
 			lowerCaseMessage = lowerCaseMessage.substring("!shops ".length()).trim();
+		} else if (lowerCaseMessage.startsWith("!shop ")) {
+			message = message.substring("!shop ".length()).trim();
+			lowerCaseMessage = lowerCaseMessage.substring("!shop ".length()).trim();
 		} else {
 			return;
 		}
@@ -73,14 +80,29 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 
 				var responseBuilder = new StringBuilder("## Current notifications");
 
-				for (var notification : allNotifications) {
-					fillNotificationIntoStringBuilder(notification, responseBuilder);
+				var list = new ArrayList<NotificationOffer>();
 
-					var gear = gearRepository.findByName(notification.getGearName());
+				allNotifications.forEach(n -> {
+					var gear = gearRepository.findByName(n.getGearName());
+					if (gear.isPresent()) {
+						list.add(new NotificationOffer(n,
+							shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now()).stream().findFirst().orElse(null)));
+					} else {
+						list.add(new NotificationOffer(n, null));
+					}
+				});
+
+				for (var n : list.stream()
+					.sorted((a, b) -> sortNo(a.offer, b.offer))
+					.collect(Collectors.toList())) {
+
+					fillNotificationIntoStringBuilder(n.notification, responseBuilder);
+
+					var gear = gearRepository.findByName(n.notification.getGearName());
 					if (gear.isEmpty()) {
 						responseBuilder.append(" - **WARNING** You don't own a gear with this name!");
 					} else {
-						responseBuilder.append("- Next occurrence: ");
+						responseBuilder.append(" - Next occurrence: ");
 
 						var nextNotification = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now()).stream().findFirst();
 						nextNotification.ifPresent(notif -> responseBuilder
@@ -148,7 +170,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 		} else if (lowerCaseMessage.startsWith("next")) {
 			message = message.substring("next".length()).trim();
 
-			var offerLimit = 50L;
+			var offerLimit = 20L;
 
 			if (message.matches("^[0-9]+$")) {
 				offerLimit = Long.parseLong(message);
@@ -159,7 +181,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 					offerLimit = 100L;
 				}
 			} else {
-				sender.send("## ERROR: count of next offers to list must be a number... Switching to the default of `50`...");
+				sender.send("## ERROR: count of next offers to list must be a number... Switching to the default of `20`...");
 			}
 
 			var allNotifications = shopOfferNotificationRepository.findAllByAccountIdOrderById(account.getId());
@@ -197,7 +219,15 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 				messageBuilder
 					.append("\n")
 					.append(i + 1)
-					.append(". __")
+					.append(". Id: __")
+					.append(allNotifications.stream()
+						.filter(n -> n.getGearName().equalsIgnoreCase(offer.getGear().getName()))
+						.findFirst()
+						.map(Splatoon3VsGearShopOfferNotification::getId)
+						.map(Object::toString)
+						.orElse("<UNKNOWN ID>"))
+					.append("__ - ")
+					.append("Gear Name: __")
 					.append(offer.getGear().getName())
 					.append("__: <t:")
 					.append(offer.getAddedAt().getEpochSecond())
@@ -289,5 +319,25 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			.append("__ - Gear Name: __")
 			.append(notification.getGearName())
 			.append("__");
+	}
+
+	private int sortNo(Splatoon3VsGearShopOffer a, Splatoon3VsGearShopOffer b) {
+		if (a == null && b != null) {
+			return 1;
+		} else if (a != null && b == null) {
+			return -1;
+		} else if (a == null && b == null) {
+			return 0;
+		} else {
+			return a.getAddedAt().compareTo(b.getAddedAt());
+		}
+	}
+
+	@AllArgsConstructor
+	@Getter
+	@Setter
+	private static class NotificationOffer {
+		private Splatoon3VsGearShopOfferNotification notification;
+		private Splatoon3VsGearShopOffer offer;
 	}
 }

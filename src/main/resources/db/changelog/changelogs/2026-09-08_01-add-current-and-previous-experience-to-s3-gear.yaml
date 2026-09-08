@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-09-08_01-add-current-and-previous-experience-to-s3-gear
+      author: strohkoenig
+      changes:
+        - addColumn:
+            tableName: splatoon_3_vs_gear
+            columns:
+              - column:
+                  name: current_experience
+                  type: int
+                  valueNumeric: "0"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: previous_experience
+                  type: int
+                  valueNumeric: "0"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: goal_experience
+                  type: int
+                  valueNumeric: "2000"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: main_ability
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_splatoon_3_vs_gear_main_ability_splatoon_3_vs_ability
+                    references: splatoon_3_vs_ability(id)
+              - column:
+                  name: sub_ability_1
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_splatoon_3_vs_gear_sub_ability_1_splatoon_3_vs_ability
+                    references: splatoon_3_vs_ability(id)
+              - column:
+                  name: sub_ability_2
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_splatoon_3_vs_gear_sub_ability_2_splatoon_3_vs_ability
+                    references: splatoon_3_vs_ability(id)
+              - column:
+                  name: sub_ability_3
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_splatoon_3_vs_gear_sub_ability_3_splatoon_3_vs_ability
+                    references: splatoon_3_vs_ability(id)

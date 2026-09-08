@@ -184,6 +184,19 @@ public class S3StreamDataService implements ScheduledService {
 			threadStopWatch.stop();
 			stoppedTimeStrs.add(String.format("- Thread `weaponDownloadThread`: Finished after `%s ms`", threadStopWatch.getTime()));
 		});
+		var gearDownloadThread = new Thread(() -> {
+			final var threadStopWatch = new StopWatch();
+			threadStopWatch.start();
+
+			try {
+				gearDownloader.saveGears();
+			} catch (Exception ex) {
+				exceptionLogger.logExceptionAsAttachment(log, "S3StreamDataService exception in gear download thread", ex);
+			}
+
+			threadStopWatch.stop();
+			stoppedTimeStrs.add(String.format("- Thread `gearDownloadThread`: Finished after `%s ms`", threadStopWatch.getTime()));
+		});
 		var xPowerDownloadThread = new Thread(() -> {
 			final var threadStopWatch = new StopWatch();
 			threadStopWatch.start();
@@ -272,11 +285,13 @@ public class S3StreamDataService implements ScheduledService {
 
 		try {
 			weaponDownloadThread.start();
+			gearDownloadThread.start();
 			xPowerDownloadThread.start();
 			historyDownloadThread.start();
 			choresThread.start();
 
 			weaponDownloadThread.join();
+			gearDownloadThread.join();
 			xPowerDownloadThread.join();
 			historyDownloadThread.join();
 			choresThread.join();

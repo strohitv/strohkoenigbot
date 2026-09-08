@@ -22,6 +22,12 @@ public class Splatoon3VsGear {
 
 	private int gearLevel;
 
+	private int currentExperience;
+
+	private int previousExperience;
+
+	private int goalExperience;
+
 	// ---
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -38,4 +44,24 @@ public class Splatoon3VsGear {
 	@JoinColumn(name = "brand_id")
 	@EqualsAndHashCode.Exclude
 	private Splatoon3VsBrand brand;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "main_ability")
+	@EqualsAndHashCode.Exclude
+	private Splatoon3VsAbility mainAbility;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "sub_ability_1")
+	@EqualsAndHashCode.Exclude
+	private Splatoon3VsAbility subAbility1;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "sub_ability_2")
+	@EqualsAndHashCode.Exclude
+	private Splatoon3VsAbility subAbility2;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "sub_ability_3")
+	@EqualsAndHashCode.Exclude
+	private Splatoon3VsAbility subAbility3;
 }
