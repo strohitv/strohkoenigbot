@@ -59,10 +59,44 @@ public class FullscreenStreamData {
 		private String anarchy_rank;
 		private Double weapon_power; // Type not specified in TS code, kept as Object
 
+		private PowerStats current_power;
+
 		private Double x_zones;
 		private Double x_tower;
 		private Double x_rain;
 		private Double x_clams;
+
+		private Integer chunks_gained;
+	}
+
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@EqualsAndHashCode
+	@ToString
+	@Builder(toBuilder = true)
+	public static class PowerStats {
+		private String mode_image;
+		private String rule_image;
+
+		private Double power_current;
+		private Double power_change;
+		private Double power_max;
+
+		public static PowerStats fromStreamDataPowerStats(StreamData.PowerStats stats) {
+			if (stats == null) {
+				return null;
+			}
+
+			return PowerStats.builder()
+				.mode_image(stats.getMode_image())
+				.rule_image(stats.getRule_image())
+				.power_current(stats.getPower_current())
+				.power_change(stats.getPower_change())
+				.power_max(stats.getPower_max())
+				.build();
+		}
 	}
 
 
@@ -160,6 +194,15 @@ public class FullscreenStreamData {
 		private String sub_1_image;
 		private String sub_2_image;
 		private String sub_3_image;
+
+		private int current_exp;
+		private int previous_exp;
+		private int exp_goal;
+		private int current_exp_ratio;
+		private int previous_exp_ratio;
+		private int exp_goal_ratio;
+
+		private int chunks_gained;
 	}
 
 

@@ -23,7 +23,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.IconBadgeNames;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.StreamData;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.HistoryResult;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Player;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Stats;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
@@ -63,6 +62,7 @@ public class S3StreamDataService implements ScheduledService {
 	private final Splatoon3VsStageRepository stageRepository;
 	private final Splatoon3VsWeaponRepository weaponRepository;
 	private final Splatoon3VsSubWeaponRepository subWeaponRepository;
+	private final Splatoon3VsGearRepository gearRepository;
 
 	private final ImageService imageService;
 
@@ -78,6 +78,8 @@ public class S3StreamDataService implements ScheduledService {
 	private List<OwnUsedWeaponStatsWithWeapon> ownUsedWeaponWinStatsAtStart = null;
 	private List<StageWinStatsWithRule> stageResultStatsAtStart = null;
 
+	private int chunksGainedStream = 0;
+
 	private void refreshStreamData() {
 //		logIfDebug("S3StreamDataService: running refresh method");
 
@@ -89,6 +91,7 @@ public class S3StreamDataService implements ScheduledService {
 			weaponStatsAtStreamStart = null;
 			ownUsedWeaponWinStatsAtStart = null;
 			stageResultStatsAtStart = null;
+			chunksGainedStream = 0;
 //			logIfDebug("S3StreamDataService: channel is offline");
 			return;
 		}
@@ -660,10 +663,15 @@ public class S3StreamDataService implements ScheduledService {
 			return;
 		}
 
-		var downloadedGears = gearDownloader.getCachedGears();
 		stopWatch.split();
 		stoppedTimeStrs.add(String.format("- gearDownloader.downloadGears `%d ms` - Total time so far: `%d ms`", stopWatch.getSplitTime() - previousStopWatchTime, stopWatch.getSplitTime()));
 		previousStopWatchTime = stopWatch.getSplitTime();
+
+		var headGear = gearRepository.findByName(parsedOwnPlayer.getHeadGear().getName());
+		var clothesGear = gearRepository.findByName(parsedOwnPlayer.getClothingGear().getName());
+		var shoesGear = gearRepository.findByName(parsedOwnPlayer.getShoesGear().getName());
+
+		chunksGainedStream += getChunksGain(headGear) + getChunksGain(clothesGear) + getChunksGain(shoesGear);
 
 		fullscreenStreamData = FullscreenStreamData.builder()
 			.type(FullscreenStreamData.Type.VS)
@@ -678,11 +686,13 @@ public class S3StreamDataService implements ScheduledService {
 				.special_wins(ownUsedSpecialWeaponStats.getWinCount())
 				.special_wins_gained(ownUsedSpecialWeaponStats.getWinCount() - ownSpecialWeaponWinsAtStreamStart)
 				.anarchy_rank(history.getData().getPlayHistory().getUdemae())
+				.current_power(FullscreenStreamData.PowerStats.fromStreamDataPowerStats(streamData.getPower_stats()))
 				.weapon_power(ownUsedWeaponStats.getStats().getCurrentWeaponPowerOrder() != null ? ownUsedWeaponStats.getStats().getCurrentWeaponPowerOrder().getWeaponPower() : null)
 				.x_zones(allXPowers.getZones())
 				.x_tower(allXPowers.getTower())
 				.x_rain(allXPowers.getRainmaker())
 				.x_clams(allXPowers.getClams())
+				.chunks_gained(chunksGainedStream)
 				.build())
 			.weapon(FullscreenStreamData.WeaponInfo.builder()
 				.name(ownPlayer.getWeapon().getName())
@@ -700,47 +710,80 @@ public class S3StreamDataService implements ScheduledService {
 				.head(FullscreenStreamData.ClothingInfo.builder()
 					.name(ownPlayer.getHeadGear().getName())
 					.image(getResourceUrl(ownPlayer.getHeadGear().getOriginalImage()))
-					.stars(downloadedGears.stream()
-						.flatMap(g -> Arrays.stream(g.getHead()))
-						.filter(g -> Objects.equals(parsedOwnPlayer.getHeadGear().getName(), g.getName()))
-						.map(Gear::getRarity)
-						.findFirst()
+					.stars(headGear
+						.map(Splatoon3VsGear::getGearLevel)
 						.orElse(0))
 					.game_count(statData.getHeadGameCount())
 					.main_image(getResourceUrl(ownPlayer.getHeadGearMainAbility().getImage()))
 					.sub_1_image(getResourceUrl(ownPlayer.getHeadGearSecondaryAbility1().getImage()))
 					.sub_2_image(Optional.ofNullable(ownPlayer.getHeadGearSecondaryAbility2()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
 					.sub_3_image(Optional.ofNullable(ownPlayer.getHeadGearSecondaryAbility3()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
+
+					.current_exp(headGear
+						.map(Splatoon3VsGear::getCurrentExperience)
+						.orElse(0))
+					.previous_exp(headGear
+						.map(Splatoon3VsGear::getPreviousExperience)
+						.orElse(0))
+					.exp_goal(headGear
+						.map(Splatoon3VsGear::getGoalExperience)
+						.orElse(0))
+					.current_exp_ratio(getGearCurrentExpRatio(headGear))
+					.previous_exp_ratio(getGearPreviousExpRatio(headGear))
+					.exp_goal_ratio(getGearRemainingExpRatio(headGear))
+					.chunks_gained(getChunksGain(headGear))
 					.build())
 				.shirt(FullscreenStreamData.ClothingInfo.builder()
 					.name(ownPlayer.getClothingGear().getName())
 					.image(getResourceUrl(ownPlayer.getClothingGear().getOriginalImage()))
-					.stars(downloadedGears.stream()
-						.flatMap(g -> Arrays.stream(g.getClothing()))
-						.filter(g -> Objects.equals(parsedOwnPlayer.getClothingGear().getName(), g.getName()))
-						.map(Gear::getRarity)
-						.findFirst()
+					.stars(clothesGear
+						.map(Splatoon3VsGear::getGearLevel)
 						.orElse(0))
 					.game_count(statData.getShirtGameCount())
 					.main_image(getResourceUrl(ownPlayer.getClothingMainAbility().getImage()))
 					.sub_1_image(getResourceUrl(ownPlayer.getClothingSecondaryAbility1().getImage()))
 					.sub_2_image(Optional.ofNullable(ownPlayer.getClothingSecondaryAbility2()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
 					.sub_3_image(Optional.ofNullable(ownPlayer.getClothingSecondaryAbility3()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
+
+					.current_exp(clothesGear
+						.map(Splatoon3VsGear::getCurrentExperience)
+						.orElse(0))
+					.previous_exp(clothesGear
+						.map(Splatoon3VsGear::getPreviousExperience)
+						.orElse(0))
+					.exp_goal(clothesGear
+						.map(Splatoon3VsGear::getGoalExperience)
+						.orElse(0))
+					.current_exp_ratio(getGearCurrentExpRatio(clothesGear))
+					.previous_exp_ratio(getGearPreviousExpRatio(clothesGear))
+					.exp_goal_ratio(getGearRemainingExpRatio(clothesGear))
+					.chunks_gained(getChunksGain(clothesGear))
 					.build())
 				.shoes(FullscreenStreamData.ClothingInfo.builder()
 					.name(ownPlayer.getShoesGear().getName())
 					.image(getResourceUrl(ownPlayer.getShoesGear().getOriginalImage()))
-					.stars(downloadedGears.stream()
-						.flatMap(g -> Arrays.stream(g.getShoes()))
-						.filter(g -> Objects.equals(parsedOwnPlayer.getShoesGear().getName(), g.getName()))
-						.map(Gear::getRarity)
-						.findFirst()
+					.stars(shoesGear
+						.map(Splatoon3VsGear::getGearLevel)
 						.orElse(0))
 					.game_count(statData.getShoesGameCount())
 					.main_image(getResourceUrl(ownPlayer.getShoesMainAbility().getImage()))
 					.sub_1_image(getResourceUrl(ownPlayer.getShoesSecondaryAbility1().getImage()))
 					.sub_2_image(Optional.ofNullable(ownPlayer.getShoesSecondaryAbility2()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
 					.sub_3_image(Optional.ofNullable(ownPlayer.getShoesSecondaryAbility3()).map(Splatoon3VsAbility::getImage).map(this::getResourceUrl).orElse(null))
+
+					.current_exp(shoesGear
+						.map(Splatoon3VsGear::getCurrentExperience)
+						.orElse(0))
+					.previous_exp(shoesGear
+						.map(Splatoon3VsGear::getPreviousExperience)
+						.orElse(0))
+					.exp_goal(shoesGear
+						.map(Splatoon3VsGear::getGoalExperience)
+						.orElse(0))
+					.current_exp_ratio(getGearCurrentExpRatio(shoesGear))
+					.previous_exp_ratio(getGearPreviousExpRatio(shoesGear))
+					.exp_goal_ratio(getGearRemainingExpRatio(shoesGear))
+					.chunks_gained(getChunksGain(shoesGear))
 					.build())
 				.build())
 			.game(FullscreenStreamData.GameData.builder()
@@ -809,6 +852,50 @@ public class S3StreamDataService implements ScheduledService {
 		}
 
 		return FullscreenStreamData.TeamData.Result.SUPPORT;
+	}
+
+	private int getChunksGain(Optional<Splatoon3VsGear> gear) {
+		if (gear.isEmpty() || gear.get().getPreviousExperience() <= gear.get().getCurrentExperience()) {
+			return 0;
+		}
+
+		return 1;
+	}
+
+	private int getGearPreviousExpRatio(Optional<Splatoon3VsGear> gear) {
+		if (gear.isEmpty()) {
+			return 0;
+		}
+
+		var g = gear.get();
+
+		if (g.getPreviousExperience() <= g.getCurrentExperience()) {
+			return g.getPreviousExperience() * 100 / g.getGoalExperience();
+		} else {
+			return 0;
+		}
+	}
+
+	private int getGearCurrentExpRatio(Optional<Splatoon3VsGear> gear) {
+		if (gear.isEmpty()) {
+			return 0;
+		}
+
+		var g = gear.get();
+
+		if (g.getPreviousExperience() <= g.getCurrentExperience()) {
+			return (g.getCurrentExperience() - g.getPreviousExperience()) * 100 / g.getGoalExperience();
+		} else {
+			return g.getCurrentExperience() * 100 / g.getGoalExperience();
+		}
+	}
+
+	private int getGearRemainingExpRatio(Optional<Splatoon3VsGear> gear) {
+		if (gear.isEmpty()) {
+			return 100;
+		}
+
+		return 100 - getGearPreviousExpRatio(gear) - getGearCurrentExpRatio(gear);
 	}
 
 	private String shortenModeName(String modeName) {
