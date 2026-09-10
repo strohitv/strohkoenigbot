@@ -104,7 +104,6 @@ public class S3GearDownloader implements ScheduledService {
 						containsChange = true;
 						dbg.setGearLevel(newLevel);
 						allUpdatedGears.add(dbg);
-
 					}
 
 					if (oldExperience != newExperience || dbg.getGoalExperience() != goalExperience) {
@@ -148,8 +147,10 @@ public class S3GearDownloader implements ScheduledService {
 
 		gearRepository.saveAll(allUpdatedGears);
 
-		if (!allUpdatedGears.isEmpty()) {
-			logSender.queueLogs(log, logBuilder.toString());
+		var message = logBuilder.toString();
+		if (!allUpdatedGears.isEmpty() && message.contains("`, new level = `")) {
+			// only send if at least one gear has a different number of stars to prevent spam while live mode active
+			logSender.queueLogs(log, message);
 		}
 	}
 
