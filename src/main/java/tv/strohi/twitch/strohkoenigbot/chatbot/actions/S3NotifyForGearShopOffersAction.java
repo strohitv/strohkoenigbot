@@ -102,7 +102,11 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 					if (gear.isEmpty()) {
 						responseBuilder.append(" - **WARNING** You don't own a gear with this name!");
 					} else {
-						responseBuilder.append(" - Next occurrence: ");
+						responseBuilder
+							.append(" - `")
+							.append(gear.get().getGearLevel())
+							.append("` stars")
+							.append(" - Next occurrence: ");
 
 						var nextNotification = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now()).stream().findFirst();
 						nextNotification.ifPresent(notif -> responseBuilder

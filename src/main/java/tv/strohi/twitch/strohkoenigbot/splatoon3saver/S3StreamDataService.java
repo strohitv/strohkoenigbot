@@ -80,6 +80,7 @@ public class S3StreamDataService implements ScheduledService {
 
 	private int chunksGainedStream = 0;
 
+	// TODO change to make it refresh both regular and fullscreen stats much faster
 	private void refreshStreamData() {
 //		logIfDebug("S3StreamDataService: running refresh method");
 
