@@ -151,7 +151,7 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 					: URI.create(offer.getGear().getOriginalImage().getUrl()).toURL().openStream()) {
 
 					var messageBuilder = new StringBuilder("## The Shops contain a new offer you're interested in\n- Id: `")
-						.append(offer.getId())
+						.append(notification.getId())
 						.append("`\n- ")
 						.append(offer.getGear().getName())
 						.append("\n- Current level: `")

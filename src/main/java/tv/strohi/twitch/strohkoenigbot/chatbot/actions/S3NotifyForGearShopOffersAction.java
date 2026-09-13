@@ -20,6 +20,8 @@ import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -86,7 +88,8 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 					var gear = gearRepository.findByName(n.getGearName());
 					if (gear.isPresent()) {
 						list.add(new NotificationOffer(n,
-							shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now()).stream().findFirst().orElse(null)));
+							shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(),
+								LocalDate.now().atStartOfDay().minusSeconds(1L).toInstant(ZoneOffset.UTC)).stream().findFirst().orElse(null)));
 					} else {
 						list.add(new NotificationOffer(n, null));
 					}
