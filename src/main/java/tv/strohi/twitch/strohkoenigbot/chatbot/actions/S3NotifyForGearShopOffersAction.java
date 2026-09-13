@@ -19,7 +19,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 
 import javax.transaction.Transactional;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -65,6 +64,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 		}
 
 		var account = discordAccountLoader.loadAccount(Long.parseLong(args.getUserId()));
+		var startOfToday = LocalDate.now().atStartOfDay().minusSeconds(1L).toInstant(ZoneOffset.UTC);
 
 		if (lowerCaseMessage.startsWith("notify")) {
 			message = message.substring("notify ".length()).trim();
@@ -87,9 +87,9 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 				allNotifications.forEach(n -> {
 					var gear = gearRepository.findByName(n.getGearName());
 					if (gear.isPresent()) {
-						list.add(new NotificationOffer(n,
-							shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(),
-								LocalDate.now().atStartOfDay().minusSeconds(1L).toInstant(ZoneOffset.UTC)).stream().findFirst().orElse(null)));
+						list.add(new NotificationOffer(n, shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), startOfToday).stream()
+							.findFirst()
+							.orElse(null)));
 					} else {
 						list.add(new NotificationOffer(n, null));
 					}
@@ -111,7 +111,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 							.append("` stars")
 							.append(" - Next occurrence: ");
 
-						var nextNotification = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now()).stream().findFirst();
+						var nextNotification = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), startOfToday).stream().findFirst();
 						nextNotification.ifPresent(notif -> responseBuilder
 							.append("<t:")
 							.append(notif.getAddedAt().getEpochSecond())
@@ -150,7 +150,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 							.append("`")
 							.append("\n\n### Next occurrences in shop");
 
-						var nextNotifications = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now());
+						var nextNotifications = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), startOfToday);
 						for (var notification : nextNotifications) {
 							responseBuilder
 								.append("\n- <t:")
@@ -206,7 +206,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 				.map(Optional::get)
 				.collect(Collectors.toList());
 
-			var allOffers = shopOfferRepository.findTop100ByGearInAndAddedAtAfterOrderByAddedAt(allGears, Instant.now())
+			var allOffers = shopOfferRepository.findTop100ByGearInAndAddedAtAfterOrderByAddedAt(allGears, startOfToday)
 				.stream()
 				.limit(offerLimit)
 				.collect(Collectors.toList());
@@ -291,6 +291,8 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			return;
 		}
 
+		var startOfToday = LocalDate.now().atStartOfDay().minusSeconds(1L).toInstant(ZoneOffset.UTC);
+
 		var addedNotification = shopOfferNotificationRepository.save(Splatoon3VsGearShopOfferNotification.builder()
 			.account(account)
 			.gearName(gearName)
@@ -305,7 +307,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 		} else {
 			responseBuilder.append("\n\n### Next occurrences in shop");
 
-			var nextNotifications = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), Instant.now());
+			var nextNotifications = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), startOfToday);
 			for (var notification : nextNotifications) {
 				responseBuilder
 					.append("\n- <t:")
