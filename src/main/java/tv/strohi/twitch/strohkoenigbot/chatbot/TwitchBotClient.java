@@ -218,35 +218,6 @@ public class TwitchBotClient implements ScheduledService {
 			});
 	}
 
-	@Override
-	public List<ScheduleRequest> createScheduleRequests() {
-		return List.of(ScheduleRequest.builder()
-				.name("TwitchBotClient_initializeOneClient")
-				.schedule(TickSchedule.getScheduleString(TickSchedule.everyMinutes(1)))
-				.runnable(this::initializeOneClient)
-				.build(),
-			ScheduleRequest.builder()
-				.name("TwitchBotClient_addOneGoLiveEventListener")
-				.schedule(TickSchedule.getScheduleString(1))
-				.runnable(this::addOneGoLiveEvent)
-				.build(),
-			ScheduleRequest.builder()
-				.name("TwitchBotClient_refreshAccessTokens")
-				.schedule(TickSchedule.getScheduleString(TickSchedule.everyMinutes(10)))
-				.runnable(this::refreshAccessTokens)
-				.build(),
-			ScheduleRequest.builder()
-				.name("TwitchBotClient_sendAdNotifications")
-				.schedule(TickSchedule.getScheduleString(3))
-				.runnable(this::sendAdNotifications)
-				.build());
-	}
-
-	@Override
-	public List<ScheduleRequest> createSingleRunRequests() {
-		return List.of();
-	}
-
 	public void addGoingLiveAlertConsumer(Consumer<ChannelGoLiveEvent> consumer) {
 		if (!goingLiveAlertConsumers.contains(consumer)) {
 			goingLiveAlertConsumers.add(consumer);
@@ -1136,5 +1107,34 @@ public class TwitchBotClient implements ScheduledService {
 					}
 				}
 			});
+	}
+
+	@Override
+	public List<ScheduleRequest> createScheduleRequests() {
+		return List.of(ScheduleRequest.builder()
+				.name("TwitchBotClient_initializeOneClient")
+				.schedule(TickSchedule.getScheduleString(TickSchedule.everyMinutes(1)))
+				.runnable(this::initializeOneClient)
+				.build(),
+			ScheduleRequest.builder()
+				.name("TwitchBotClient_addOneGoLiveEventListener")
+				.schedule(TickSchedule.getScheduleString(1))
+				.runnable(this::addOneGoLiveEvent)
+				.build(),
+			ScheduleRequest.builder()
+				.name("TwitchBotClient_refreshAccessTokens")
+				.schedule(TickSchedule.getScheduleString(TickSchedule.everyMinutes(10)))
+				.runnable(this::refreshAccessTokens)
+				.build(),
+			ScheduleRequest.builder()
+				.name("TwitchBotClient_sendAdNotifications")
+				.schedule(TickSchedule.getScheduleString(3))
+				.runnable(this::sendAdNotifications)
+				.build());
+	}
+
+	@Override
+	public List<ScheduleRequest> createSingleRunRequests() {
+		return List.of();
 	}
 }

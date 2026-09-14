@@ -1,5 +1,6 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -45,16 +46,30 @@ public class Splatoon3RotationSenderService {
 	private final Splatoon3SrRotationRepository srRotationRepository;
 
 	@Transactional
-	public void sendRotationsFromDatabase(boolean force) {
+	public void sendRotationsFromDatabase(boolean force, boolean sendToAdmin) {
 		var now = Instant.now();
 		var time = getSlotStartTime(now);
 		var timeNextDay = getSlotStartTime(now.plus(24, ChronoUnit.HOURS));
+
+		if (sendToAdmin) {
+			logSender.queueLogs(log, "Splatoon3RotationSenderService: Rotations should be sent to discord admin!");
+		}
 
 		vsModeDiscordChannelRepository.findAll().forEach(channel ->
 			vsRotationSlotRepository.findByStartTime(time).stream()
 				.filter(slot -> slot.getRotation().getMode().equals(channel.getMode()))
 				.filter(slot -> force || Math.abs(slot.getStartTime().getEpochSecond() - Instant.now().getEpochSecond()) <= 300)
-				.forEach(slot -> sendVsRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), slot.getRotation())));
+				.forEach(slot -> {
+					if (logSender.areDebugLogsActivated()) {
+						logSender.sendLogs(log, "Reached `sendRotationToDiscord` caller in `Splatoon3RotationSenderService");
+					}
+
+					if (sendToAdmin) {
+						sendVsRotationToDiscordPrivateMessage(slot.getRotation());
+					}
+
+					sendVsRotationToDiscord(DiscordChannelDecisionMaker.chooseChannel(channel.getDiscordChannelName()), slot.getRotation());
+				}));
 
 		vsRotationSlotRepository.findByStartTime(time).stream()
 			.filter(slot -> force || Math.abs(slot.getStartTime().getEpochSecond() - Instant.now().getEpochSecond()) <= 300)
@@ -92,15 +107,27 @@ public class Splatoon3RotationSenderService {
 		}
 	}
 
-	private void sendRegularRotationToDiscord(String channelName, Splatoon3VsRotation rotation) {
-		String image1 = rotation.getStage1().getImage().getUrl();
+	private void sendVsRotationToDiscordPrivateMessage(Splatoon3VsRotation rotation) {
+		if (rotation.getEventRegulation() == null) {
+			sendRegularRotationToDiscordPrivateMessage(DiscordBot.ADMIN_ID, rotation);
+		} else {
+			sendChallengeRotationToDiscordPrivateMessage(DiscordBot.ADMIN_ID, rotation);
+		}
+	}
+
+	private RotationMessage getRotationMessage(Splatoon3VsRotation rotation) {
+		var image1 = rotation.getStage1().getImage().getUrl();
 
 		// Tricolor => second stage == null
-		String image2 = rotation.getStage2() != null
+		var image2 = rotation.getStage2() != null
 			? rotation.getStage2().getImage().getUrl()
 			: null;
 
-		StringBuilder builder = new StringBuilder("**").append(rotation.getMode().getName()).append("**: ")
+		var images = image2 != null
+			? new String[]{image1, image2}
+			: new String[]{image1};
+
+		var builder = new StringBuilder("**").append(rotation.getMode().getName()).append("**: ")
 			.append("**").append(getEmoji(rotation.getRule().getName())).append(rotation.getRule().getName()).append("**\n")
 			.append("- Stage A: **").append(rotation.getStage1().getName()).append("**\n");
 
@@ -135,18 +162,34 @@ public class Splatoon3RotationSenderService {
 				}
 			);
 
-		if (image2 != null) {
-			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1, image2);
-		} else {
-			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1);
-		}
+		return new RotationMessage(builder.toString(), images);
+	}
+
+	private void sendRegularRotationToDiscord(String channelName, Splatoon3VsRotation rotation) {
+		var message = getRotationMessage(rotation);
+		discordBot.sendServerMessageWithImageUrls(channelName, message.text, message.images);
+	}
+
+	private void sendRegularRotationToDiscordPrivateMessage(Long userId, Splatoon3VsRotation rotation) {
+		var message = getRotationMessage(rotation);
+		discordBot.sendPrivateMessageWithImageUrls(userId, message.text, message.images);
 	}
 
 	private void sendChallengeRotationToDiscord(String channelName, Splatoon3VsRotation rotation) {
+		var message = getRotationChallengeMessage(rotation);
+		discordBot.sendServerMessageWithImageUrls(channelName, message.text, message.images);
+	}
+
+	private void sendChallengeRotationToDiscordPrivateMessage(long userId, Splatoon3VsRotation rotation) {
+		var message = getRotationChallengeMessage(rotation);
+		discordBot.sendPrivateMessageWithImageUrls(userId, message.text, message.images);
+	}
+
+	private RotationMessage getRotationChallengeMessage(Splatoon3VsRotation rotation) {
 		var event = rotation.getEventRegulation();
 
-		String image1 = rotation.getStage1().getImage().getUrl();
-		String image2 = rotation.getStage2().getImage().getUrl();
+		var image1 = rotation.getStage1().getImage().getUrl();
+		var image2 = rotation.getStage2().getImage().getUrl();
 
 		StringBuilder builder = new StringBuilder("**").append(rotation.getMode().getName()).append("**:\n")
 			.append("- Event: **").append(event.getName()).append("**\n")
@@ -199,7 +242,7 @@ public class Splatoon3RotationSenderService {
 					.append("**")
 			);
 
-		discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), image1, image2);
+		return new RotationMessage(builder.toString(), new String[]{image1, image2});
 	}
 
 	private void sendSrRotationToDiscord(String channelName, Splatoon3SrRotation rotation) {
@@ -274,7 +317,7 @@ public class Splatoon3RotationSenderService {
 				.append(rotation.getEndTime().getEpochSecond())
 				.append(":R>)");
 
-			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, String.format("# Raw Text of StringBuilder in `sendValuableSrRotationToDiscord`\n```\n%s\n```", builder.toString()));
+			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, String.format("# Raw Text of StringBuilder in `sendValuableSrRotationToDiscord`\n```\n%s\n```", builder));
 
 			logSender.queueLogsNoFormat(log, builder.toString());
 			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getStage().getImage().getUrl());
@@ -466,5 +509,11 @@ public class Splatoon3RotationSenderService {
 		}
 
 		return startTime.getHour() < allowedStartHour || startTime.getHour() > allowedEndHour;
+	}
+
+	@AllArgsConstructor
+	private static class RotationMessage {
+		private String text;
+		private String[] images;
 	}
 }

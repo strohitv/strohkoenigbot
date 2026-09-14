@@ -93,6 +93,21 @@ public class S3RotationSender implements ScheduledService {
 
 	@Transactional
 	public void refreshRotations(boolean force) {
+		var sendToAdmin = "true".equalsIgnoreCase(
+			configurationRepository
+				.findByConfigName("S3RotationSender_sendToAdmin")
+				.orElseGet(() ->
+					configurationRepository.save(Configuration.builder()
+						.configName("S3RotationSender_sendToAdmin")
+						.configValue("false")
+						.build()))
+				.getConfigValue());
+
+		refreshRotations(force, sendToAdmin);
+	}
+
+	@Transactional
+	public void refreshRotations(boolean force, boolean sendToAdmin) {
 		if (pauseSender && !force) {
 			log.info("rotation sender is pause, returning early!");
 			return;
@@ -105,7 +120,7 @@ public class S3RotationSender implements ScheduledService {
 
 		if (useNewWay) {
 			importRotationsToDatabase();
-			rotationSenderService.sendRotationsFromDatabase(force);
+			rotationSenderService.sendRotationsFromDatabase(force, sendToAdmin);
 		} else {
 			refreshRotationsOld(force);
 		}
@@ -159,7 +174,7 @@ public class S3RotationSender implements ScheduledService {
 		} catch (JsonProcessingException e) {
 //			logSender.queueLogs(log, String.format("exception during rotation refresh!! %s", e.getMessage()));
 			log.error(e);
-			exceptionLogger.logExceptionAsAttachment(log,"An exception occurred during S3 rotation posting\nSee logs for details!", e);
+			exceptionLogger.logExceptionAsAttachment(log, "An exception occurred during S3 rotation posting\nSee logs for details!", e);
 		} catch (IOException e) {
 			log.error(e);
 			exceptionLogger.logExceptionAsAttachment(log, "An IO exception occurred during S3 rotation posting\nSee logs for details!", e);

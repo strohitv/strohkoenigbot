@@ -6,6 +6,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
+import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.nio.charset.StandardCharsets;
@@ -15,6 +17,20 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class LogSender {
 	private final DiscordBot discordBot;
+	private final ConfigurationRepository configurationRepository;
+
+	public boolean areDebugLogsActivated() {
+		return "true".equalsIgnoreCase(configurationRepository
+			.findByConfigName("LogSender_debugLogs")
+			.orElseGet(() ->
+				configurationRepository.save(
+					Configuration.builder()
+						.configName("LogSender_debugLogs")
+						.configValue("false")
+						.build()
+				))
+			.getConfigValue());
+	}
 
 	public void sendLogs(Logger logger, @NonNull String message, Object... args) {
 		sendLogs(logger, String.format(message, args));
