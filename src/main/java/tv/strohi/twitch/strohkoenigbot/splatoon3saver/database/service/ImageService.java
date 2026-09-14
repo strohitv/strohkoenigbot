@@ -7,7 +7,6 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.ImageRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
@@ -37,21 +36,12 @@ public class ImageService implements ScheduledService {
 
 	private final ImageRepository imageRepository;
 	private final ResourcesDownloader resourcesDownloader;
-	private final DiscordBot discordBot;
+	private final LogSender logSender;
 
 	@Getter
 	@Setter
 	private boolean pauseService = false;
 
-	private LogSender logSender = null;
-
-	private LogSender getLogSender() {
-		if (logSender == null) {
-			logSender = new LogSender(discordBot);
-		}
-
-		return logSender;
-	}
 
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
@@ -117,7 +107,7 @@ public class ImageService implements ScheduledService {
 		}
 
 		if (!notDownloadedImages.isEmpty()) {
-			getLogSender().sendLogs(log, String.format("### ImageService scheduled download result\n- **%d** successful\n- **%d** failed", i, brokenImages.size()));
+			logSender.sendLogs(log, String.format("### ImageService scheduled download result\n- **%d** successful\n- **%d** failed", i, brokenImages.size()));
 		}
 	}
 
@@ -149,7 +139,7 @@ public class ImageService implements ScheduledService {
 		}
 
 		if (successfulCount > 0 || failedCount > 0) {
-			getLogSender().sendLogs(log, String.format("### ImageService fix filepath result\n- **%d** successful\n- **%d** failed", successfulCount, failedCount));
+			logSender.sendLogs(log, String.format("### ImageService fix filepath result\n- **%d** successful\n- **%d** failed", successfulCount, failedCount));
 		}
 	}
 
