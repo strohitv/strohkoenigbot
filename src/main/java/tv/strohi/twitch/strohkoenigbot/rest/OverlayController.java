@@ -7,14 +7,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.sendou.SendouService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3BadgeSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3Downloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3EmoteSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3StreamStatistics;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ExtendedStatisticsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.Statistics;
 
