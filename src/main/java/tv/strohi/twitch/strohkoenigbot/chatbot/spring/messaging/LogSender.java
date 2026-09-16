@@ -1,6 +1,5 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -10,12 +9,12 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.model.QueuedMessageInfo;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Attachment;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Target;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.QueuedMessageRepository;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.model.QueuedMessageInfo;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
@@ -151,7 +150,7 @@ public class LogSender implements ScheduledService {
 
 				log.info("Sending message which was queued at `{}`", queued.getQueuedAt());
 				send(log, Level.forName(messageInfo.getLevel().name(), messageInfo.getLevel().intLevel()), messageInfo.getTargets(), messageInfo.getAttachments(), messageInfo.getMessage());
-			} catch (JsonProcessingException e) {
+			} catch (Exception e) {
 				log.error("Exception while sending a queued message", e);
 
 				send(

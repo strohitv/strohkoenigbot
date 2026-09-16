@@ -12,9 +12,10 @@ import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
-import lombok.Builder;
+import discord4j.discordjson.json.MessageReferenceData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -83,10 +84,6 @@ public class DiscordBot {
 		}
 
 		return adminIds;
-	}
-
-	public boolean isAdminAccount(String adminId) {
-		return getAdminIds().stream().anyMatch(id -> Objects.equals(String.format("%d", id), adminId));
 	}
 
 	private GatewayDiscordClient gateway = null;
@@ -167,7 +164,7 @@ public class DiscordBot {
 		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
 			return guilds.stream()
-				.map(g -> g.getChannels().retry(5).collectList().block())
+				.map(g -> g.getChannels().retry(5).onErrorResume(e -> Mono.empty()).collectList().block())
 				.filter(Objects::nonNull)
 				.flatMap(Collection::stream)
 				.filter(c -> c instanceof TextChannel)
@@ -188,14 +185,19 @@ public class DiscordBot {
 		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
 			var allMembersOfAllServers = guilds.stream()
-				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
+				.map(g -> g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block())
+				.filter(Objects::nonNull)
+				.flatMap(Collection::stream)
 				.collect(Collectors.toList());
 
 			return allMembersOfAllServers.stream()
-				.filter(m ->
-					(m.getMemberData().user().username().equals(username) && (m.getMemberData().user().discriminator().equals("0") || m.getMemberData().user().discriminator().isBlank()))
+				.filter(m -> {
+					var discriminator = m.getMemberData().user().discriminator();
+
+					return (m.getMemberData().user().username().equals(username) && (discriminator == null || discriminator.equals("0") || discriminator.isBlank()))
 						|| String.format("%s#0", m.getMemberData().user().username()).equals(username)
-						|| String.format("%s#%s", m.getMemberData().user().username(), m.getMemberData().user().discriminator()).equals(username))
+						|| String.format("%s#%s", m.getMemberData().user().username(), discriminator).equals(username);
+				})
 				.map(m -> m.getId().asLong())
 				.findFirst();
 		}
@@ -211,16 +213,20 @@ public class DiscordBot {
 		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
 			var allMembersOfAllServers = guilds.stream()
-				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
+				.map(g -> g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block())
+				.filter(Objects::nonNull)
+				.flatMap(Collection::stream)
 				.collect(Collectors.toList());
 
 			return allMembersOfAllServers.stream()
 				.filter(m -> m.getId().asLong() == id)
 				.map(m -> {
-					if (m.getMemberData().user().discriminator().isBlank() || m.getMemberData().user().discriminator().equals("0")) {
+					var discriminator = m.getMemberData().user().discriminator();
+
+					if (discriminator == null || discriminator.isBlank() || discriminator.equals("0")) {
 						return m.getMemberData().user().username();
 					} else {
-						return String.format("%s#%s", m.getMemberData().user().username(), m.getMemberData().user().discriminator());
+						return String.format("%s#%s", m.getMemberData().user().username(), discriminator);
 					}
 				})
 				.findFirst();
@@ -239,16 +245,54 @@ public class DiscordBot {
 		}
 
 		if (message == null) {
-			message = "ERROR: Message was NULL!";
+			message = "sendServerMessageWithImageUrls(String channelName, String message, boolean storeOnLocalDrive, String... imageUrls) **ERROR**: message was NULL!";
 		}
 
 		var result = false;
 
 		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
-			var allChannelsOfAllServers = guilds.stream()
-				.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
+			var allChannelsOfAllServers = loadChannelsFromGuilds(guilds);
+
+			var allChannels = allChannelsOfAllServers.stream()
+				.filter(c -> c.getName().equals(channelName))
+				.filter(c -> c instanceof TextChannel)
+				.map(c -> (TextChannel) c)
 				.collect(Collectors.toList());
+
+			for (var channel : allChannels) {
+				if (channel != null) {
+					result = sendMessage(channel, message, storeOnLocalDrive, imageUrls);
+					log.info("sendServerMessageWithImageUrls(String channelName, String message, boolean storeOnLocalDrive, String... imageUrls): sent message to server channel '{}': message: '{}'", channel.getName(), message);
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private @NonNull List<GuildChannel> loadChannelsFromGuilds(List<Guild> guilds) {
+		return guilds.stream()
+			.map(g -> g.getChannels().retry(5).onErrorResume(e -> Mono.empty()).collectList().block())
+			.filter(Objects::nonNull)
+			.flatMap(Collection::stream)
+			.collect(Collectors.toList());
+	}
+
+	public boolean sendServerMessageWithImages(String channelName, String message, BufferedImage... images) {
+		if (getGateway() == null) {
+			return false;
+		}
+
+		if (message == null) {
+			message = "sendServerMessageWithImages(String channelName, String message, BufferedImage... images) **ERROR**: Message was NULL!";
+		}
+
+		var result = false;
+
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
+		if (guilds != null && !guilds.isEmpty()) {
+			var allChannelsOfAllServers = loadChannelsFromGuilds(guilds);
 
 			var allChannels = allChannelsOfAllServers.stream()
 				.filter(c -> c.getName().equals(channelName))
@@ -258,42 +302,8 @@ public class DiscordBot {
 
 			for (TextChannel channel : allChannels) {
 				if (channel != null) {
-					result = sendMessage(channel, message, storeOnLocalDrive, imageUrls);
-					log.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
-				}
-			}
-		}
-
-		return result;
-	}
-
-	public boolean sendServerMessageWithImages(String channelName, String message, BufferedImage... images) {
-		if (getGateway() == null) {
-			return false;
-		}
-
-		if (message == null) {
-			message = "ERROR: Message was NULL!";
-		}
-
-		boolean result = false;
-
-		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-		if (guilds != null && !guilds.isEmpty()) {
-			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
-				.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
-				.collect(Collectors.toList());
-
-			List<TextChannel> allChannels = allChannelsOfAllServers.stream()
-				.filter(c -> c.getName().equals(channelName))
-				.filter(c -> c instanceof TextChannel)
-				.map(c -> (TextChannel) c)
-				.collect(Collectors.toList());
-
-			for (TextChannel channel : allChannels) {
-				if (channel != null) {
 					result = sendMessage(channel, message, images);
-					log.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
+					log.info("sendServerMessageWithImages(String channelName, String message, BufferedImage... images): sent message to server channel '{}': message: '{}'", channel.getName(), message);
 				}
 			}
 		}
@@ -307,19 +317,21 @@ public class DiscordBot {
 		}
 
 		if (message == null) {
-			message = "ERROR: Message was NULL!";
+			message = "sendServerMessageWithImageUrls(long guildId, long channelId, String message, String... imageUrls) **ERROR**: Message was NULL!";
 		}
 
-		boolean result = false;
+		var result = false;
 
 		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
-			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
+			var allChannelsOfAllServers = guilds.stream()
 				.filter(g -> g.getId().asLong() == guildId)
-				.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
+				.map(g -> g.getChannels().retry(5).onErrorResume(e -> Mono.empty()).collectList().block())
+				.filter(Objects::nonNull)
+				.flatMap(Collection::stream)
 				.collect(Collectors.toList());
 
-			List<TextChannel> allChannels = allChannelsOfAllServers.stream()
+			var allChannels = allChannelsOfAllServers.stream()
 				.filter(c -> c.getId().asLong() == channelId)
 				.filter(c -> c instanceof TextChannel)
 				.map(c -> (TextChannel) c)
@@ -328,7 +340,7 @@ public class DiscordBot {
 			for (TextChannel channel : allChannels) {
 				if (channel != null) {
 					result = sendMessage(channel, message, imageUrls);
-					log.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
+					log.info("sendServerMessageWithImageUrls(long guildId, long channelId, String message, String... imageUrls): sent message to server channel '{}': message: '{}'", channel.getName(), message);
 				}
 			}
 		}
@@ -342,7 +354,7 @@ public class DiscordBot {
 		}
 
 		if (message == null) {
-			message = "ERROR: Message was NULL!";
+			message = "sendServerMessageWithImages(long guildId, long channelId, String message, BufferedImage... imageUrls) **ERROR**: Message was NULL!";
 		}
 
 		boolean result = false;
@@ -351,7 +363,9 @@ public class DiscordBot {
 		if (guilds != null && !guilds.isEmpty()) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 				.filter(g -> g.getId().asLong() == guildId)
-				.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
+				.map(g -> g.getChannels().retry(5).onErrorResume(e -> Mono.empty()).collectList().block())
+				.filter(Objects::nonNull)
+				.flatMap(Collection::stream)
 				.collect(Collectors.toList());
 
 			List<TextChannel> allChannels = allChannelsOfAllServers.stream()
@@ -363,7 +377,7 @@ public class DiscordBot {
 			for (TextChannel channel : allChannels) {
 				if (channel != null) {
 					result = sendMessage(channel, message, imageUrls);
-					log.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
+					log.info("sendServerMessageWithImages(long guildId, long channelId, String message, BufferedImage... imageUrls): sent message to server channel '{}': message: '{}'", channel.getName(), message);
 				}
 			}
 		}
@@ -371,23 +385,19 @@ public class DiscordBot {
 		return result;
 	}
 
-	public boolean sendPrivateMessageWithImageUrls(Long userId, String message, String... imageUrls) {
+	public void sendPrivateMessageWithImageUrls(Long userId, String message, String... imageUrls) {
 		if (userId == null || getGateway() == null) {
-			return false;
+			return;
 		}
-
-		boolean result = false;
 
 		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
-			var channel = getPrivateChannelForUserInGuild(userId, guilds);
-			if (channel != null) {
-				result = sendMessage(channel, message, imageUrls);
-				log.info("sent message to server channel '{}': message: '{}'", userId, message);
-			}
+			getPrivateChannelForUserInGuild(userId, guilds)
+				.ifPresent(channel -> {
+					sendMessage(channel, message, imageUrls);
+					log.info("sendPrivateMessageWithImageUrls(Long userId, String message, String... imageUrls): sent message to server channel '{}': message: '{}'", userId, message);
+				});
 		}
-
-		return result;
 	}
 
 	private boolean sendMessage(MessageChannel channel, String message, String... imageUrls) {
@@ -437,7 +447,7 @@ public class DiscordBot {
 
 				tuples.add(Attachment.builder()
 					.name(String.format("%d.png", i))
-					.content(new String(is.readAllBytes()))
+					.stream(is)
 					.build());
 			} catch (IOException ex) {
 				log.error(ex);
@@ -482,7 +492,7 @@ public class DiscordBot {
 			var createMono = channel.createMessage(messageBlock.substring(0, Math.min(messageBlock.length(), 2000)));
 
 			if (i == 0 && reference != null) {
-				createMono = createMono.withMessageReference(reference);
+				createMono = createMono.withMessageReference(MessageReferenceData.builder().messageId(reference.asLong()).build());
 			}
 
 			if (i == messageBlocks.size() - 1) {
@@ -490,7 +500,7 @@ public class DiscordBot {
 
 				createMono = createMono.withFiles(
 					streams.stream()
-						.map(s -> MessageCreateFields.File.of(s.getName(), s.openStream()))
+						.map(s -> MessageCreateFields.File.of(s.getName(), s.getStream()))
 						.collect(Collectors.toList())
 				);
 			}
@@ -506,6 +516,8 @@ public class DiscordBot {
 				})
 				.block();
 
+			attachments.forEach(Attachment::close);
+
 			log.info("sent message to channel with id '{}': messageBlock: '{}'", channel.getId().asLong(), messageBlock);
 			success &= msg != null;
 		}
@@ -513,9 +525,11 @@ public class DiscordBot {
 		return success;
 	}
 
-	private PrivateChannel getPrivateChannelForUserInGuild(Long userId, List<Guild> guilds) {
+	private Optional<PrivateChannel> getPrivateChannelForUserInGuild(Long userId, List<Guild> guilds) {
 		var allMembersOfAllServers = guilds.stream()
-			.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
+			.map(g -> g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block())
+			.filter(Objects::nonNull)
+			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
 
 		return allMembersOfAllServers.stream()
@@ -528,8 +542,7 @@ public class DiscordBot {
 				.blockOptional()
 				.flatMap(u -> u.getPrivateChannel().retry(5).onErrorResume(e -> Mono.empty()).blockOptional()))
 			.stream()
-			.findFirst()
-			.orElse(null);
+			.findFirst();
 	}
 
 	public boolean sendPrivateMessage(Long userId, String message) {
@@ -543,10 +556,9 @@ public class DiscordBot {
 
 		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
-			var channel = getPrivateChannelForUserInGuild(userId, guilds);
-			if (channel != null) {
-				return sendMessage(channel, message, attachments);
-			}
+			return getPrivateChannelForUserInGuild(userId, guilds)
+				.map(channel -> sendMessage(channel, message, attachments))
+				.orElse(false);
 		}
 
 		return false;
@@ -554,7 +566,7 @@ public class DiscordBot {
 
 	private Optional<TextChannel> getServerChannelInGuilds(Long channelId, List<Guild> guilds) {
 		return guilds.stream()
-			.map(g -> g.getChannels().retry(5).collectList().block())
+			.map(g -> g.getChannels().retry(5).onErrorResume(e -> Mono.empty()).collectList().block())
 			.filter(Objects::nonNull)
 			.flatMap(Collection::stream)
 			.filter(c -> c instanceof TextChannel)
@@ -563,30 +575,19 @@ public class DiscordBot {
 			.findFirst();
 	}
 
-	public boolean sendServerMessage(Long channelId, String message, List<Attachment> attachments) {
+	public void sendServerMessage(Long channelId, String message, List<Attachment> attachments) {
 		if (channelId == null || getGateway() == null) {
-			return false;
+			return;
 		}
 
 		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
-			return getServerChannelInGuilds(channelId, guilds)
-				.map(channel -> sendMessage(channel, message, attachments))
-				.orElse(false);
+			getServerChannelInGuilds(channelId, guilds)
+				.ifPresent(channel -> sendMessage(channel, message, attachments));
 		}
-
-		return false;
 	}
 
 	public void reply(String message, TextChannel channel, Snowflake reference) {
 		sendMessage(channel, message, reference, List.of());
-	}
-
-	@Builder
-	private static class QueuedMessage {
-		private String channelName;
-		private Long userId;
-		private String message;
-		private String[] imageUrls;
 	}
 }
