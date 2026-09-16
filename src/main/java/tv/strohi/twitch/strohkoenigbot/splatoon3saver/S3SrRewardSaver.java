@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrModeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.SrReward;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -22,8 +22,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Log4j2
 public class S3SrRewardSaver {
-	private final LogSender logSender;
-	private final ExceptionLogger exceptionLogger;
+	private final LogQueuer logQueuer;
+	private final ExceptionQueuer exceptionQueuer;
 
 	private final Splatoon3SrModeRepository srModeRepository;
 	private final Splatoon3SrRotationRepository srRotationRepository;
@@ -46,7 +46,7 @@ public class S3SrRewardSaver {
 					.orElse(null);
 
 				if (mode == null) {
-					logSender.queueLogs(log, "# ERROR: Did not find mode `%s`", modeName);
+					logQueuer.infoQueue(log, "# ERROR: Did not find mode `%s`", modeName);
 					continue;
 				}
 
@@ -61,7 +61,7 @@ public class S3SrRewardSaver {
 					.orElse(null);
 
 				if (foundRotation == null) {
-					logSender.queueLogs(log, "# ERROR: Did not find rotation for startDate after `%s` and mode `%s`", date, modeName);
+					logQueuer.infoQueue(log, "# ERROR: Did not find rotation for startDate after `%s` and mode `%s`", date, modeName);
 					continue;
 				}
 
@@ -80,11 +80,11 @@ public class S3SrRewardSaver {
 					.build());
 
 				if (firstUploaded) {
-					logSender.queueLogs(log, "# Added SR rewards to rotation with id `%d`\n```\n%s\n```", foundRotation.getId(), reward);
+					logQueuer.infoQueue(log, "# Added SR rewards to rotation with id `%d`\n```\n%s\n```", foundRotation.getId(), reward);
 				}
 			}
 		} catch (Exception e) {
-			exceptionLogger.logExceptionAsAttachment(log, "Exception happened during Lean Sr Result upload", e);
+			exceptionQueuer.queueExceptionAsAttachment(log, "Exception happened during Lean Sr Result upload", e);
 		}
 	}
 }

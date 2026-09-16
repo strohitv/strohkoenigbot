@@ -2,8 +2,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -15,7 +14,8 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splat
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.HistoryResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Badge;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -36,10 +36,10 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class S3BadgeSender implements ScheduledService {
 	private final static String BADGES_FILE_PATH = "resources/bot/all-badges.json";
 
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final ExceptionLogger exceptionLogger;
 
 	private final List<Badge> allOwnedBadges = new ArrayList<>();
@@ -57,6 +57,7 @@ public class S3BadgeSender implements ScheduledService {
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	private final DiscordBot discordBot;
+	private final LogSender logSender;
 	private final ResourcesDownloader resourcesDownloader;
 
 	private final AccountRepository accountRepository;
@@ -130,8 +131,7 @@ public class S3BadgeSender implements ScheduledService {
 				}
 
 				if (allMessages.length() > 0) {
-					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-						String.format("## Changes to badge database table%s", allMessages));
+					logSender.info(log, "## Changes to badge database table%s", allMessages);
 				}
 
 				var allBadgesYesterday = loadBadgesFailsafe();
@@ -202,14 +202,14 @@ public class S3BadgeSender implements ScheduledService {
 						builder.append("\n- ").append(indexStr).append(badge.getDescription());
 					}
 
-					logger.info("Sending notification to discord account: {}", account.getDiscordId());
+					log.info("Sending notification to discord account: {}", account.getDiscordId());
 					discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getS3BadgesChannel(), builder.toString(), allBadgesImage);
-					logger.info("Done sending notification to discord account: {}", account.getDiscordId());
+					log.info("Done sending notification to discord account: {}", account.getDiscordId());
 
 					saveBadgesFailsafe(allOwnedBadges);
 				}
 			} catch (Exception e) {
-				exceptionLogger.logExceptionAsAttachment(logger, "An exception occurred during S3 badge download\nSee logs for details!", e);
+				exceptionLogger.logExceptionAsAttachment(log, "An exception occurred during S3 badge download\nSee logs for details!", e);
 			}
 		}
 	}
@@ -242,7 +242,7 @@ public class S3BadgeSender implements ScheduledService {
 			String htmlTemplate = new String(Files.readAllBytes(mainBadgeHtml.getFile().toPath()));
 			result = htmlTemplate.replace("%img-div%", imageContainerHtmlBuilder.toString());
 		} catch (IOException e) {
-			logger.error("could not read image template!!");
+			log.error("could not read image template!!");
 		}
 
 		return result;
@@ -281,27 +281,27 @@ public class S3BadgeSender implements ScheduledService {
 
 	private void saveBadgesFailsafe(List<Badge> badges) {
 		String path = Paths.get(System.getProperty("user.dir"), BADGES_FILE_PATH).toString();
-		logger.debug("path '{}'", path);
+		log.debug("path '{}'", path);
 
 		File file = Paths.get(path).toFile();
 		if (file.getParentFile().exists() || file.getParentFile().mkdirs()) {
 			try {
 				mapper.writeValue(file, badges);
 
-				logger.info("badges write successful, path: '{}'", path);
+				log.info("badges write successful, path: '{}'", path);
 			} catch (IOException e) {
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not save badges because of an Exception!");
-				logger.error("exception occured!!!");
-				logger.error(e);
+				log.error("exception occured!!!");
+				log.error(e);
 			}
 		} else {
-			logger.error("could not create directory to store the resources, returning original URL");
+			log.error("could not create directory to store the resources, returning original URL");
 		}
 	}
 
 	private List<Badge> loadBadgesFailsafe() {
 		String path = Paths.get(System.getProperty("user.dir"), BADGES_FILE_PATH).toString();
-		logger.debug("path '{}'", path);
+		log.debug("path '{}'", path);
 
 		File file = Paths.get(path).toFile();
 		if (file.exists()) {
@@ -310,11 +310,11 @@ public class S3BadgeSender implements ScheduledService {
 					.collect(Collectors.toCollection(ArrayList::new));
 			} catch (IOException e) {
 				discordBot.sendServerMessageWithImages(DiscordChannelDecisionMaker.getDebugChannelName(), "Could not load badges because of an Exception!");
-				logger.error("exception occured!!!");
-				logger.error(e);
+				log.error("exception occured!!!");
+				log.error(e);
 			}
 		} else {
-			logger.warn("file for badges does not exist!");
+			log.warn("file for badges does not exist!");
 		}
 
 		return List.of();

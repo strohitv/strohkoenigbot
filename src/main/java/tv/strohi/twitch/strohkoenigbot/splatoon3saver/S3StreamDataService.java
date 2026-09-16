@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.time.StopWatch;
+import org.apache.logging.log4j.Level;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
@@ -26,8 +28,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.HistoryResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Player;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Stats;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
@@ -43,7 +44,7 @@ import java.util.stream.Stream;
 @Log4j2
 public class S3StreamDataService implements ScheduledService {
 	private final TwitchBotClient twitchBotClient;
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 	private final ObjectMapper objectMapper;
 	private final S3ApiQuerySender apiQuerySender;
@@ -302,7 +303,7 @@ public class S3StreamDataService implements ScheduledService {
 
 			if (statData.containsEmptyField()) {
 				newestFoundGameStartTime = null;
-				logSender.sendLogsAsAttachment(log, "At least one field was not filled properly!", statData.toString());
+				logQueuer.queueLogsAsAttachment(log, Level.ERROR, "At least one field was not filled properly!", statData.toString());
 				return;
 			}
 		} catch (Exception ex) {
@@ -1179,7 +1180,7 @@ public class S3StreamDataService implements ScheduledService {
 				.build()));
 
 		if ("true".equalsIgnoreCase(shouldLogConfig.getConfigValue())) {
-			logSender.queueLogs(log, message, args);
+			logQueuer.infoQueue(log, message, args);
 		} else {
 			log.info(String.format(message, args));
 		}

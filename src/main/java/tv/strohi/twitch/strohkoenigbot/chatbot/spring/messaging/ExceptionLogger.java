@@ -1,5 +1,6 @@
-package tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils;
+package tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
@@ -46,6 +47,6 @@ public class ExceptionLogger {
 		}
 
 		var wholeMessage = messageBuilder.toString();
-		logSender.sendLogsAsAttachment(logger, String.format("## Error\n%s\n### Exception", title), wholeMessage);
+		logSender.sendLogsAsAttachment(logger, Level.ERROR, String.format("## Error\n%s\n### Exception", title), wholeMessage);
 	}
 }

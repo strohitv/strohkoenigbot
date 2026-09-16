@@ -7,6 +7,8 @@ import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
@@ -22,8 +24,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopGrou
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.CoopRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Rotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.RotationMatchSetting;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
@@ -49,7 +49,7 @@ public class S3RotationSender implements ScheduledService {
 	private final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {
 	};
 
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 
@@ -131,7 +131,7 @@ public class S3RotationSender implements ScheduledService {
 		var account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
 		if (account == null) {
-			logSender.queueLogs(log, "No account found to import rotations to database!");
+			logQueuer.infoQueue(log, "No account found to import rotations to database!");
 			return;
 		}
 
@@ -241,7 +241,7 @@ public class S3RotationSender implements ScheduledService {
 		Account account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
 		if (account == null) {
-			logSender.queueLogs(log, "No account found to refresh rotations!");
+			logQueuer.infoQueue(log, "No account found to refresh rotations!");
 			return;
 		}
 

@@ -8,14 +8,14 @@ import org.apache.commons.lang.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.rest.model.S3Tokens;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3CookieHandler;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.S3RequestSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
@@ -41,7 +41,7 @@ public class S3ApiQuerySender {
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 
 	public String queryS3Api(Account account, S3RequestKey key) {
@@ -113,7 +113,7 @@ public class S3ApiQuerySender {
 							account.setBulletTokenSplatoon3(tokens.getBulletToken());
 							accountRepository.save(account);
 
-							logSender.queueLogs(logger, "Bot instance = %s debug = %s loaded new tokens from Prod", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug());
+							logQueuer.infoQueue(logger, "Bot instance = %s debug = %s loaded new tokens from Prod", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug());
 						}
 					} else {
 						logger.error("Could not load Tokens from Prod, response code {}", response.statusCode());
@@ -192,7 +192,7 @@ public class S3ApiQuerySender {
 		logger.info("Request to NSA took {} ms. Body: {}", stopWatch.getTime(), body);
 
 		if (result == null) {
-			logSender.queueLogs(logger, "S3ApiQuerySender could not fulfill request.");
+			logQueuer.infoQueue(logger, "S3ApiQuerySender could not fulfill request.");
 		}
 
 		return result;

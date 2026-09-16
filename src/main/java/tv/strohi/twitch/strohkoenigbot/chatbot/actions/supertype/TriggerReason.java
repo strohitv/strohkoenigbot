@@ -10,12 +10,28 @@ public enum TriggerReason {
 	Host,
 	Raid,
 	Follow,
+	LiveStatus,
 
 	// Discord
 	DiscordMessage,
-	DiscordPrivateMessage;
+	DiscordPrivateMessage,
+	DiscordNewsMessage,
+	DiscordVoiceMessage;
 
 	public static final EnumSet<TriggerReason> All = EnumSet.allOf(TriggerReason.class);
-	public static final EnumSet<TriggerReason> Twitch = EnumSet.of(TriggerReason.ChatMessage, TriggerReason.PrivateMessage, TriggerReason.ChannelPointReward, TriggerReason.Host, TriggerReason.Raid, TriggerReason.Follow);
-	public static final EnumSet<TriggerReason> Discord = EnumSet.of(TriggerReason.DiscordMessage, TriggerReason.DiscordPrivateMessage);
+
+	public static final EnumSet<TriggerReason> Twitch = EnumSet.of(
+		TriggerReason.ChatMessage,
+		TriggerReason.PrivateMessage,
+		TriggerReason.ChannelPointReward,
+		TriggerReason.Host,
+		TriggerReason.Raid,
+		TriggerReason.Follow,
+		TriggerReason.LiveStatus);
+
+	public static final EnumSet<TriggerReason> Discord = EnumSet.of(
+		TriggerReason.DiscordMessage,
+		TriggerReason.DiscordPrivateMessage,
+		TriggerReason.DiscordNewsMessage,
+		TriggerReason.DiscordVoiceMessage);
 }

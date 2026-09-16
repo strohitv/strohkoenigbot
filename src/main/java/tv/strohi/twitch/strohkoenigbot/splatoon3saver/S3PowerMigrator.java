@@ -11,8 +11,8 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
@@ -98,7 +98,7 @@ public class S3PowerMigrator implements ScheduledService {
 			pageable = games.nextPageable();
 		}
 
-		logSender.sendLogs(log, "## Finished adding power to existing games in splatoon_3_vs_result table\n- total number of games: %d\n- games with power added: %d", totalGames, gamesWithPowerAdded);
+		logSender.info(log, "## Finished adding power to existing games in splatoon_3_vs_result table\n- total number of games: %d\n- games with power added: %d", totalGames, gamesWithPowerAdded);
 
 		configurationRepository.save(Configuration.builder()
 			.configName("Splatoon3PowerExporter_addMissingPowers_finished")

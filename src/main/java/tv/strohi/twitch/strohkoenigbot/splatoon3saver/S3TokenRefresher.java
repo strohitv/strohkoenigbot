@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -25,7 +25,7 @@ import java.util.HashMap;
 public class S3TokenRefresher {
 	public static final String SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME = "SplatNet3NextTimeTokenExpires";
 
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 
 	private final AccountRepository accountRepository;
@@ -52,13 +52,13 @@ public class S3TokenRefresher {
 					}
 
 					if (s3S3sRunner.getResult(runToken) == null || !s3S3sRunner.getResult(runToken)) {
-						logSender.queueLogs(log, String.format("### ERROR during S3TokenRefresh\ns3s with Token '%s' did not finish in time or it failed!", runToken));
+						logQueuer.infoQueue(log, String.format("### ERROR during S3TokenRefresh\ns3s with Token '%s' did not finish in time or it failed!", runToken));
 						return;
 					}
 
 					var s3sLocation = configurationRepository.findAllByConfigName("s3sLocation").stream().findFirst();
 					if (s3sLocation.isEmpty() || !new File(Paths.get(s3sLocation.get().getConfigValue(), "config.txt").toString()).exists()) {
-						logSender.queueLogs(log, "### ERROR during S3TokenRefresh\n'config.txt' file could not be found!");
+						logQueuer.infoQueue(log, "### ERROR during S3TokenRefresh\n'config.txt' file could not be found!");
 						return;
 					}
 
@@ -68,7 +68,7 @@ public class S3TokenRefresher {
 					if (s3sConfig == null
 						|| s3sConfig.getGtoken() == null || s3sConfig.getGtoken().isBlank()
 						|| s3sConfig.getBullettoken() == null || s3sConfig.getBullettoken().isBlank()) {
-						logSender.queueLogs(log, "### ERROR during S3TokenRefresh\n'config.txt' file did not contain gtoken or bullettoken!");
+						logQueuer.infoQueue(log, "### ERROR during S3TokenRefresh\n'config.txt' file did not contain gtoken or bullettoken!");
 						return;
 					}
 
@@ -79,7 +79,7 @@ public class S3TokenRefresher {
 					var newTokenExp = (Integer) newToken.getOrDefault("exp", null);
 
 					if (currentTokenExp == null || newTokenExp == null) {
-						logSender.queueLogs(log, String.format("### ERROR during S3TokenRefresh\nOne of the two exp values of the token was `null`!\n- current token exp: `%s`\n- new token exp: `%s`", currentTokenExp, newTokenExp));
+						logQueuer.infoQueue(log, String.format("### ERROR during S3TokenRefresh\nOne of the two exp values of the token was `null`!\n- current token exp: `%s`\n- new token exp: `%s`", currentTokenExp, newTokenExp));
 						return;
 					}
 
@@ -97,10 +97,10 @@ public class S3TokenRefresher {
 							accountRepository.save(accountWithNewTokens);
 							log.info("S3TokenRefresher successful.");
 						} else {
-							logSender.queueLogs(log, "### ERROR during S3TokenRefresh\nHomepage response did not load successfully, tokens were invalid.");
+							logQueuer.infoQueue(log, "### ERROR during S3TokenRefresh\nHomepage response did not load successfully, tokens were invalid.");
 						}
 					} else {
-						logSender.queueLogs(log, "### ERROR during S3TokenRefresh\n S3TokenRefresher did not find a newer token!");
+						logQueuer.infoQueue(log, "### ERROR during S3TokenRefresh\n S3TokenRefresher did not find a newer token!");
 					}
 
 				} catch (Exception e) {

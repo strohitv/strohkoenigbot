@@ -1,4 +1,4 @@
-package tv.strohi.twitch.strohkoenigbot.chatbot;
+package tv.strohi.twitch.strohkoenigbot.chatbot.spring;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,9 +21,9 @@ import com.github.twitch4j.pubsub.events.AdsScheduleUpdateEvent;
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -31,13 +31,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.AutoSoAction;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
-import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.TwitchChannelMessageConsumer;
-import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.TwitchPrivateMessageConsumer;
-import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.TwitchRaidEventConsumer;
-import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.TwitchRewardRedeemedConsumer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.model.*;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.TwitchEvent;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.TwitchLiveEvent;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchAccess;
@@ -48,7 +45,6 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchAccessRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchGoingLiveAlertRepository;
 import tv.strohi.twitch.strohkoenigbot.obs.ObsController;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.utils.Constants;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -66,6 +62,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Component
+@Log4j2
 public class TwitchBotClient implements ScheduledService {
 	private final static String STREAM_START_CONFIG = "TwitchBotClient_streamStartEpochMilli";
 	private final static String STREAM_CHANNEL_ID_CONFIG = "TwitchBotClient_streamChannelId";
@@ -73,8 +70,6 @@ public class TwitchBotClient implements ScheduledService {
 	private final static String PREVIOUS_STREAM_START_CONFIG = "TwitchBotClient_previousStreamStartEpochMilli";
 	private final static String PREVIOUS_STREAM_END_CONFIG = "TwitchBotClient_previousStreamEndEpochMilli";
 	private final static String PREVIOUS_STREAM_PAUSE = "TwitchBotClient_pause";
-
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final List<Consumer<ChannelGoLiveEvent>> goingLiveAlertConsumers = new ArrayList<>();
 
@@ -90,8 +85,8 @@ public class TwitchBotClient implements ScheduledService {
 			wentLiveTime = newWentLiveTime;
 			nextWentLiveTimeUpdateAllowed = Instant.now().plus(2, ChronoUnit.MINUTES);
 
-			logSender.queueLogs(
-				logger,
+			logQueuer.infoQueue(
+				log,
 				"wentLiveTime was set to `%s`%s, nextWentLiveTimeUpdateAllowed was set to `%s`",
 				wentLiveTime,
 				wentLiveTime != null ? String.format(" (epoch milli: `%d`)", wentLiveTime.toEpochMilli()) : "",
@@ -99,7 +94,7 @@ public class TwitchBotClient implements ScheduledService {
 		}
 	}
 
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 
 	public void forceLive() {
 		setWentLiveTime(Instant.now());
@@ -155,19 +150,11 @@ public class TwitchBotClient implements ScheduledService {
 	@Setter
 	private boolean fakeDebug = false;
 
-	private final List<IChatAction> botActions = new ArrayList<>();
-
 	private String lastStateNonce = null;
 
-	@Autowired
-	public void setBotActions(List<IChatAction> actions) {
-		botActions.clear();
-		botActions.addAll(actions);
-	}
-
-	private final AutoSoAction autoSoAction;
-
 	private final AccountRepository accountRepository;
+
+	private final ApplicationEventPublisher eventPublisher;
 
 	public static void setResultsExporter(ResultsExporter resultsExporter) {
 		TwitchBotClient.resultsExporter = resultsExporter;
@@ -178,14 +165,18 @@ public class TwitchBotClient implements ScheduledService {
 	private final ConfigurationRepository configurationRepository;
 
 	@Autowired
-	public TwitchBotClient(TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository, ConfigurationRepository configurationRepository, TwitchAccessRepository twitchAccessRepository, LogSender logSender, AutoSoAction autoSoAction, AccountRepository accountRepository) {
+	public TwitchBotClient(TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository,
+						   ConfigurationRepository configurationRepository,
+						   TwitchAccessRepository twitchAccessRepository,
+						   LogQueuer logQueuer,
+						   AccountRepository accountRepository, ApplicationEventPublisher eventPublisher) {
 		this.twitchGoingLiveAlertRepository = twitchGoingLiveAlertRepository;
 		this.configurationRepository = configurationRepository;
 		this.twitchAccessRepository = twitchAccessRepository;
 
-		this.logSender = logSender;
-		this.autoSoAction = autoSoAction;
+		this.logQueuer = logQueuer;
 		this.accountRepository = accountRepository;
+		this.eventPublisher = eventPublisher;
 
 		twitchAccessRepository.findByUseForMessages(true)
 			.ifPresent(access -> {
@@ -270,7 +261,9 @@ public class TwitchBotClient implements ScheduledService {
 					client.getClientHelper().enableClipEventListener(channelName);
 
 					client.getPubSub().listenForChannelPointsRedemptionEvents(botCredential, access.getUserId());
-					client.getEventManager().onEvent(RewardRedeemedEvent.class, new TwitchRewardRedeemedConsumer(botActions));
+					client.getEventManager().onEvent(
+						RewardRedeemedEvent.class,
+						event -> eventPublisher.publishEvent(new TwitchEvent(this, event)));
 				}
 
 				var allAlerts = twitchGoingLiveAlertRepository.findAll().stream().map(TwitchGoingLiveAlert::getTwitchChannelName).distinct().collect(Collectors.toList());
@@ -281,20 +274,20 @@ public class TwitchBotClient implements ScheduledService {
 				}
 
 				goLiveListener = client.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
-					logger.info(String.format("alert fired for channel: %s", event.getChannel().getName()));
+					log.info(String.format("alert fired for channel: %s", event.getChannel().getName()));
 					for (var consumer : goingLiveAlertConsumers) {
 						consumer.accept(event);
 					}
 
 					if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
-						logSender.queueLogs(logger, String.format("going live for channel: %s", event.getChannel().getName()));
+						logQueuer.infoQueue(log, String.format("going live for channel: %s", event.getChannel().getName()));
 						goLive(event.getChannel().getId());
 					}
 				});
 
 				goOfflineListener = client.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
 					if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(event.getChannel().getName())) {
-						logSender.queueLogs(logger, String.format("going offline for channel: %s", event.getChannel().getName()));
+						logQueuer.infoQueue(log, String.format("going offline for channel: %s", event.getChannel().getName()));
 						goOffline(event.getChannel().getId());
 					}
 				});
@@ -302,35 +295,44 @@ public class TwitchBotClient implements ScheduledService {
 				client.getEventManager().onEvent(ChannelClipCreatedEvent.class, event -> {
 					var channelName = event.getChannel().getName();
 					if (Constants.ALL_TWITCH_CHANNEL_NAMES.contains(channelName)) {
-						logger.info("Adding clip for channel {}, url {}", event.getChannel().getName(), event.getClip().getUrl());
+						log.info("Adding clip for channel {}, url {}", event.getChannel().getName(), event.getClip().getUrl());
 						createdClips.get(channelName).add(event);
 					}
 				});
 
-				client.getEventManager().onEvent(RaidEvent.class, new TwitchRaidEventConsumer(botActions));
-				client.getEventManager().onEvent(ChannelMessageEvent.class, new TwitchChannelMessageConsumer(botActions));
-				client.getEventManager().onEvent(PrivateMessageEvent.class, new TwitchPrivateMessageConsumer(botActions));
-				logSender.queueLogs(logger, "fully connected twitch bot client for messages");
+				client.getEventManager().onEvent(
+					RaidEvent.class,
+					event -> eventPublisher.publishEvent(new TwitchEvent(this, event)));
+
+				client.getEventManager().onEvent(
+					ChannelMessageEvent.class,
+					event -> eventPublisher.publishEvent(new TwitchEvent(this, event)));
+
+				client.getEventManager().onEvent(
+					PrivateMessageEvent.class,
+					event -> eventPublisher.publishEvent(new TwitchEvent(this, event)));
+
+				logQueuer.infoQueue(log, "fully connected twitch bot client for messages");
 			} else {
 				client.getEventManager().onEvent(ChannelAdBreakBeginEvent.class, this::reactToAdBreakBeginEvent);
 				client.getEventManager().onEvent(AdsScheduleUpdateEvent.class, this::reactToAdScheduleEvent);
 
-				logSender.queueLogs(logger, "fully connected twitch bot client for live channel");
+				logQueuer.infoQueue(log, "fully connected twitch bot client for live channel");
 			}
 
 //			logSender.queueLogs(logger, "fully connected twitch bot client");
 
 			return client;
 		} catch (Exception ex) {
-			logSender.queueLogs(logger, String.format("something in twitch bot client went wrong, message: `%s`. see logs for details", ex.getMessage()));
-			logger.error(ex);
+			logQueuer.infoQueue(log, String.format("something in twitch bot client went wrong, message: `%s`. see logs for details", ex.getMessage()));
+			log.error(ex);
 		}
 
 		return null;
 	}
 
 	public void goOffline(String channelId) {
-		logSender.queueLogs(logger, "TwitchBotClient.goOffline() was called");
+		logQueuer.infoQueue(log, "TwitchBotClient.goOffline() was called");
 
 		triggerUnpause();
 
@@ -358,9 +360,9 @@ public class TwitchBotClient implements ScheduledService {
 			resultsExporter.stop(account);
 		}
 
-		autoSoAction.endStream();
+		eventPublisher.publishEvent(new TwitchEvent(this, new TwitchLiveEvent(false)));
 
-		logSender.queueLogs(logger, "Went offline");
+		logQueuer.infoQueue(log, "Went offline");
 	}
 
 	public void goLive(String channelId) {
@@ -368,7 +370,7 @@ public class TwitchBotClient implements ScheduledService {
 	}
 
 	public void goLive(String channelId, Instant startTime) {
-		logSender.queueLogs(logger, "TwitchBotClient.goLive() was called with channelId = %s and startTime = `%s`%s",
+		logQueuer.infoQueue(log, "TwitchBotClient.goLive() was called with channelId = %s and startTime = `%s`%s",
 			channelId,
 			startTime,
 			startTime != null ? String.format(" (epoch milli: `%d`)", startTime.toEpochMilli()) : "");
@@ -422,7 +424,7 @@ public class TwitchBotClient implements ScheduledService {
 			resultsExporter.start(account);
 		}
 
-		autoSoAction.startStream();
+		eventPublisher.publishEvent(new TwitchEvent(this, new TwitchLiveEvent(false)));
 	}
 
 	public Instant getPreviousStreamStartTime() {
@@ -452,7 +454,7 @@ public class TwitchBotClient implements ScheduledService {
 		if (lastPause == null || lastPause.getConfigValue().contains(";")) {
 			final var pauseStart = Instant.now();
 
-			logSender.queueLogs(logger, "triggered pause at `%s` (epoch milli: `%d`)", pauseStart, pauseStart.toEpochMilli());
+			logQueuer.infoQueue(log, "triggered pause at `%s` (epoch milli: `%d`)", pauseStart, pauseStart.toEpochMilli());
 			configurationRepository.save(Configuration.builder()
 				.configName(PREVIOUS_STREAM_PAUSE)
 				.configValue(String.format("%d", pauseStart.toEpochMilli()))
@@ -468,7 +470,7 @@ public class TwitchBotClient implements ScheduledService {
 		if (lastPause != null && !lastPause.getConfigValue().contains(";")) {
 			final var pauseEnd = Instant.now();
 
-			logSender.queueLogs(logger, "triggered pause end at `%s` (epoch milli: `%d`)", pauseEnd, pauseEnd.toEpochMilli());
+			logQueuer.infoQueue(log, "triggered pause end at `%s` (epoch milli: `%d`)", pauseEnd, pauseEnd.toEpochMilli());
 			configurationRepository.save(lastPause.toBuilder()
 				.configValue(String.format("%s;%d", lastPause.getConfigValue(), pauseEnd.toEpochMilli()))
 				.build());
@@ -579,7 +581,7 @@ public class TwitchBotClient implements ScheduledService {
 		try {
 			claimsRequestParam = String.format("&claims=%s", new ObjectMapper().writeValueAsString(new TwitchClaims(new TwitchClaims.TwitchClaimsIdToken())));
 		} catch (JsonProcessingException e) {
-			logger.error("could not parse TwitchClaims wtf", e);
+			log.error("could not parse TwitchClaims wtf", e);
 		}
 
 		return String.format("https://id.twitch.tv/oauth2/authorize" +
@@ -679,30 +681,30 @@ public class TwitchBotClient implements ScheduledService {
 
 	public Splatoon2Clip createClip(String message, String channelId, boolean isGoodPlay) {
 		if (!isLiveIgnoreDebug(channelId)) {
-			logger.warn("Can't create clip -> stream not running");
+			log.warn("Can't create clip -> stream not running");
 			return null;
 		}
 
 		if (channelId == null || channelId.isBlank()) {
-			logger.warn("Can't create clip -> channel not found");
+			log.warn("Can't create clip -> channel not found");
 			return null;
 		}
 
 		if (Instant.now().isBefore(lastClipCreatedTime.plus(20, ChronoUnit.SECONDS))) {
-			logger.warn("Can't create clip -> a clip has already been created in the last 20 seconds");
-			logger.warn("Current time: {} - last created Clip: {}", Instant.now(), lastClipCreatedTime);
+			log.warn("Can't create clip -> a clip has already been created in the last 20 seconds");
+			log.warn("Current time: {} - last created Clip: {}", Instant.now(), lastClipCreatedTime);
 			return null;
 		}
 
 		lastClipCreatedTime = Instant.now();
-		logger.info("Creating clip at time: {}", lastClipCreatedTime);
+		log.info("Creating clip at time: {}", lastClipCreatedTime);
 
 		Splatoon2Clip clip = null;
 
 		try {
 			var connection = getMessageConnection();
 			if (connection == null) {
-				logger.warn("Can't create clip -> there is no twitch client!!");
+				log.warn("Can't create clip -> there is no twitch client!!");
 				return null;
 			}
 
@@ -711,7 +713,7 @@ public class TwitchBotClient implements ScheduledService {
 			List<String> ids = new ArrayList<>();
 			newClip.getData().forEach(c -> ids.add(c.getId()));
 
-			logger.info("Created clip ids: {}", ids);
+			log.info("Created clip ids: {}", ids);
 
 			if (!ids.isEmpty()) {
 				String id = ids.get(0);
@@ -723,7 +725,7 @@ public class TwitchBotClient implements ScheduledService {
 					.execute()).getData().isEmpty()) {
 					try {
 						if (attempt > 1) {
-							logger.info("attempt number: {}", attempt);
+							log.info("attempt number: {}", attempt);
 						}
 						attempt++;
 						Thread.sleep(1000);
@@ -741,17 +743,17 @@ public class TwitchBotClient implements ScheduledService {
 					clip.setIsGoodPlay(isGoodPlay);
 					clip.setClipUrl(loadedClip.getUrl());
 
-					logger.info("Created clip: {}", clip);
+					log.info("Created clip: {}", clip);
 				} else {
-					logger.warn("Couldn't load the clip with id: {}", ids.get(0));
+					log.warn("Couldn't load the clip with id: {}", ids.get(0));
 				}
 			} else {
-				logger.warn("Didn't receive any clip ids!!");
+				log.warn("Didn't receive any clip ids!!");
 			}
 		} catch (Exception ex) {
 			// for example: Stream is not live
-			logger.error("clip creation failed due to an exception");
-			logger.error(ex);
+			log.error("clip creation failed due to an exception");
+			log.error(ex);
 		}
 
 		return clip;
@@ -993,7 +995,7 @@ public class TwitchBotClient implements ScheduledService {
 		twitchClients.stream()
 			.filter(tc -> tc.getAccess().getExpiresAt() == null || tc.getAccess().getExpiresAt().isBefore(Instant.now().plus(15, ChronoUnit.MINUTES)))
 			.forEach(tc -> {
-				logger.info(String.format("refreshing access token for user **%s**...", tc.getAccess().getPreferredUsername()));
+				log.info(String.format("refreshing access token for user **%s**...", tc.getAccess().getPreferredUsername()));
 
 				var refreshedAccessToken = refreshAccessToken(tc.getAccess());
 
@@ -1022,13 +1024,13 @@ public class TwitchBotClient implements ScheduledService {
 		if (firstEntry != null) {
 			if (firstEntry.isEnable()) {
 				if (!registeredGoLiveChannels.contains(firstEntry.getChannelName())) {
-					logger.info(String.format("enabling twitch stream event listener for: %s", firstEntry.getChannelName()));
+					log.info(String.format("enabling twitch stream event listener for: %s", firstEntry.getChannelName()));
 					firstEntry.getClient().getClientHelper().enableStreamEventListener(firstEntry.getChannelName());
 					registeredGoLiveChannels.add(firstEntry.getChannelName());
 				}
 			} else {
 				if (registeredGoLiveChannels.contains(firstEntry.getChannelName())) {
-					logSender.queueLogs(logger, String.format("disabling twitch stream event listener for: %s", firstEntry.getChannelName()));
+					logQueuer.infoQueue(log, String.format("disabling twitch stream event listener for: %s", firstEntry.getChannelName()));
 					firstEntry.getClient().getClientHelper().disableStreamEventListener(firstEntry.getChannelName());
 					registeredGoLiveChannels.remove(firstEntry.getChannelName());
 				}
@@ -1065,7 +1067,7 @@ public class TwitchBotClient implements ScheduledService {
 				getMessageClient().getChat().sendMessage(event.getBroadcasterUserName(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", event.getBroadcasterUserName(), Duration.between(Instant.now(), event.getStartedAt()).toSeconds() / 60.0, event.getLengthSeconds() / 60.0));
 			}
 
-			logSender.queueLogs(logger, "ad active notification sent via twitch event");
+			logQueuer.infoQueue(log, "ad active notification sent via twitch event");
 		}
 	}
 
@@ -1094,14 +1096,14 @@ public class TwitchBotClient implements ScheduledService {
 							&& (notificationInfo.getLastAdIsActiveWarningSentAt() == null || notificationInfo.getLastAdIsActiveWarningSentAt().isBefore(lastAdAt))) {
 							// Ads running, send !ads
 							getMessageClient().getChat().sendMessage(tc.getAccess().getPreferredUsername(), String.format("!ads @%s", tc.getAccess().getPreferredUsername()));
-							logSender.queueLogs(logger, "ad active notification sent via scheduled service");
+							logQueuer.infoQueue(log, "ad active notification sent via scheduled service");
 							adNotifications.put(tc.getClient(), notificationInfo.toBuilder().lastAdIsActiveWarningSentAt(Instant.now()).build());
 						} else if (nextAdAt.isBefore(Instant.now().plus(5, ChronoUnit.MINUTES))
 							&& nextAdAt.isAfter(Instant.now().minus(1, ChronoUnit.MINUTES))
 							&& (notificationInfo.getLastAdComesUpWarningSentAt() == null || notificationInfo.getLastAdComesUpWarningSentAt().isBefore(nextAdAt.minus(5, ChronoUnit.MINUTES)))) {
 							// Ads soon, notify streamer via chat
 							getMessageClient().getChat().sendMessage(tc.getAccess().getPreferredUsername(), String.format("@%s AN AD BREAK WILL START SOON! Ads will start in %.2f minutes and will run for %.2f minutes.", tc.getAccess().getPreferredUsername(), Duration.between(Instant.now(), nextAdAt).toSeconds() / 60.0, adLengthSeconds / 60.0));
-							logSender.queueLogs(logger, "ad active notification sent via scheduled service");
+							logQueuer.infoQueue(log, "ad active notification sent via scheduled service");
 							adNotifications.put(tc.getClient(), notificationInfo.toBuilder().lastAdComesUpWarningSentAt(Instant.now()).build());
 						}
 					}

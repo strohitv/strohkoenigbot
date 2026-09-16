@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Badge;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Nameplate;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.player.Splatoon3Player;
@@ -11,7 +12,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splat
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3PlayerRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Badge;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Nameplate;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import java.util.Base64;
 @RequiredArgsConstructor
 @Log4j2
 public class Splatoon3GeneralService {
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 
 	private final ImageService imageService;
 
@@ -66,7 +66,7 @@ public class Splatoon3GeneralService {
 				.image(imageService.ensureExists(nameplate.getBackground().getImage().getUrl()))
 				.build());
 
-			logSender.queueLogs(log, String.format("Set image for nameplate with id `%d` to `%s`", s3Nameplate.getId(), nameplate.getBackground().getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for nameplate with id `%d` to `%s`", s3Nameplate.getId(), nameplate.getBackground().getImage().getUrl()));
 		}
 
 		if (myself && !s3Nameplate.getOwned()) {
@@ -95,7 +95,7 @@ public class Splatoon3GeneralService {
 				.image(imageService.ensureExists(badge.getImage().getUrl()))
 				.build());
 
-			logSender.queueLogs(log, String.format("Set image for badge with id `%d` to `%s`", s3Badge.getId(), badge.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for badge with id `%d` to `%s`", s3Badge.getId(), badge.getImage().getUrl()));
 		}
 
 		if (myself && !s3Badge.getOwned()) {

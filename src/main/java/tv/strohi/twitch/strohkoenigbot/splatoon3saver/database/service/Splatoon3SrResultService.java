@@ -3,11 +3,11 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 @Log4j2
 public class Splatoon3SrResultService {
 	// todo add indices based on the repository searches to make the algorithm fast
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 
 	private final ImageService imageService;
 	private final Splatoon3GeneralService generalService;
@@ -171,7 +171,7 @@ public class Splatoon3SrResultService {
 				.image(imageService.ensureExists(enemy.getImage().getUrl()))
 				.build());
 
-			logSender.queueLogs(log, String.format("Set image for sr enemy with id `%d` to `%s`", dbEnemy.getId(), enemy.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for sr enemy with id `%d` to `%s`", dbEnemy.getId(), enemy.getImage().getUrl()));
 		}
 
 		return dbEnemy;
@@ -271,7 +271,7 @@ public class Splatoon3SrResultService {
 				.image(imageService.ensureExists(uniform.getImage().getUrl()))
 				.build());
 
-			logSender.queueLogs(log, String.format("Set image for sr uniform with id `%d` to `%s`", dbUniform.getId(), uniform.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for sr uniform with id `%d` to `%s`", dbUniform.getId(), uniform.getImage().getUrl()));
 		}
 
 		return dbUniform;
@@ -350,7 +350,7 @@ public class Splatoon3SrResultService {
 				.image(imageService.ensureExists(special.getImage().getUrl()))
 				.build());
 
-			logSender.queueLogs(log, String.format("Set image for sr special with id `%d` to `%s`", dbSpecial.getId(), special.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for sr special with id `%d` to `%s`", dbSpecial.getId(), special.getImage().getUrl()));
 		}
 
 		try {

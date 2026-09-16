@@ -9,7 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3S3sRunner;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ConfigFileConnector;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.*;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.FParamLoginResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.UserInfo;
@@ -94,7 +94,7 @@ public class S3Authenticator {
 						webViewConfigs.setConfigValue(webViewVersion);
 
 						configurationRepository.save(webViewConfigs);
-						logSender.sendLogs(logger, String.format("Saved newest WebViewVersion: **%s**", webViewVersion));
+						logSender.info(logger, String.format("Saved newest WebViewVersion: **%s**", webViewVersion));
 					}
 				}
 
@@ -129,7 +129,7 @@ public class S3Authenticator {
 				nsoAppVersionConfigs.setConfigValue(nsoAppVersion);
 
 				configurationRepository.save(nsoAppVersionConfigs);
-				logSender.sendLogs(logger, String.format("Saved newest NsoAppVersion: **%s**", nsoAppVersion));
+				logSender.info(logger, String.format("Saved newest NsoAppVersion: **%s**", nsoAppVersion));
 			}
 		}
 
@@ -166,7 +166,7 @@ public class S3Authenticator {
 			if (s3sResult) {
 				// load tokens from s3s config file
 				var s3sConfigFile = configFileConnector.readConfigFile(s3sLocation);
-				logSender.sendLogs(logger, "s3s fallback for gtoken succeeded!");
+				logSender.info(logger, "s3s fallback for gtoken succeeded!");
 
 				return S3AuthenticationData.builder()
 					.gToken(s3sConfigFile.getGtoken())

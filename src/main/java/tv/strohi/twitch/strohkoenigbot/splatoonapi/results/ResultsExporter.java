@@ -1,25 +1,24 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.results;
 
 import lombok.Setter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.WeaponRequestRankingAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Match;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2MatchRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResult;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetMatchResultsCollection;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.utils.*;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
-import tv.strohi.twitch.strohkoenigbot.utils.ExceptionSender;
 import tv.strohi.twitch.strohkoenigbot.utils.SplatoonMatchColorComponent;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
@@ -35,9 +34,8 @@ import java.util.stream.Collectors;
 import static tv.strohi.twitch.strohkoenigbot.utils.TimezoneUtils.timeOfTimezoneIsBetweenTimes;
 
 @Component
+@Log4j2
 public class ResultsExporter implements ScheduledService {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-
 	private final AccountRepository accountRepository;
 	private final Splatoon2MatchRepository matchRepository;
 
@@ -47,11 +45,19 @@ public class ResultsExporter implements ScheduledService {
 	private final AbilityMatchFiller abilityMatchFiller;
 	private final ClipRefresher clipRefresher;
 	private final Splatoon2ObsController splatoon2ObsController;
-	private final LogSender logSender;
-	private final ExceptionSender exceptionSender;
+	private final LogQueuer logQueuer;
+	private final ExceptionLogger exceptionLogger;
 
 	@Autowired
-	public ResultsExporter(AccountRepository accountRepository, Splatoon2MatchRepository matchRepository, MatchFiller matchFiller, MatchReloader matchReloader, WeaponStatsFiller weaponStatsFiller, AbilityMatchFiller abilityMatchFiller, ClipRefresher clipRefresher, Splatoon2ObsController splatoon2ObsController, LogSender logSender, ExceptionSender exceptionSender) {
+	public ResultsExporter(AccountRepository accountRepository,
+						   Splatoon2MatchRepository matchRepository,
+						   MatchFiller matchFiller,
+						   MatchReloader matchReloader,
+						   WeaponStatsFiller weaponStatsFiller,
+						   AbilityMatchFiller abilityMatchFiller,
+						   ClipRefresher clipRefresher,
+						   Splatoon2ObsController splatoon2ObsController,
+						   LogQueuer logQueuer, ExceptionLogger exceptionLogger) {
 		this.accountRepository = accountRepository;
 		this.matchRepository = matchRepository;
 		this.matchFiller = matchFiller;
@@ -60,8 +66,8 @@ public class ResultsExporter implements ScheduledService {
 		this.abilityMatchFiller = abilityMatchFiller;
 		this.clipRefresher = clipRefresher;
 		this.splatoon2ObsController = splatoon2ObsController;
-		this.logSender = logSender;
-		this.exceptionSender = exceptionSender;
+		this.logQueuer = logQueuer;
+		this.exceptionLogger = exceptionLogger;
 
 		TwitchBotClient.setResultsExporter(this);
 	}
@@ -156,7 +162,7 @@ public class ResultsExporter implements ScheduledService {
 
 	public void start(Account account) {
 		if (account != null) {
-			logSender.queueLogs(logger, "starting the stream!");
+			logQueuer.infoQueue(log, "starting the stream!");
 			statistics.reset();
 			extendedStatisticsExporter.start(Instant.now(), account.getId());
 		}
@@ -164,7 +170,7 @@ public class ResultsExporter implements ScheduledService {
 
 	public void stop(Account account) {
 		if (account != null) {
-			logSender.queueLogs(logger, "stopping the stream!");
+			logQueuer.infoQueue(log, "stopping the stream!");
 			stop();
 		}
 	}
@@ -188,7 +194,7 @@ public class ResultsExporter implements ScheduledService {
 			return;
 		}
 
-		logger.debug("running results exporter");
+		log.debug("running results exporter");
 
 		List<Account> accounts = accountRepository.findAll().stream()
 				.filter(da -> da.getSplatoonCookie() != null && !da.getSplatoonCookie().isBlank())
@@ -205,7 +211,7 @@ public class ResultsExporter implements ScheduledService {
 			}
 
 			if (forceRefresh || account.getRateLimitNumber() == 0) {
-				logger.info("loading results");
+				log.info("loading results");
 
 				if (isMidnight) {
 					blockedAccounts.add(account);
@@ -275,8 +281,7 @@ public class ResultsExporter implements ScheduledService {
 						splatoon2ObsController.controlOBS(account, extendedStatisticsExporter.getStarted().getEpochSecond());
 					}
 				} catch (Exception ex) {
-					logger.error(ex);
-					exceptionSender.send(ex);
+					exceptionLogger.logExceptionAsAttachment(log, "Exception occurred during ResultsExporter.loadGameResultsScheduled", ex);
 				}
 			}
 

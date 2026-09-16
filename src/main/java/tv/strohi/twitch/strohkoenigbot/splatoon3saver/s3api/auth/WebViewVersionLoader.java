@@ -10,7 +10,7 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3CookieHandler;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.S3RequestSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -143,7 +143,7 @@ public class WebViewVersionLoader implements ScheduledService {
 						webViewConfigs.setConfigValue(webViewVersion);
 
 						configurationRepository.save(webViewConfigs);
-						logSender.sendLogs(logger, String.format("Saved newest WebViewVersion: **%s**", webViewVersion));
+						logSender.info(logger, String.format("Saved newest WebViewVersion: **%s**", webViewVersion));
 					}
 				}
 			});

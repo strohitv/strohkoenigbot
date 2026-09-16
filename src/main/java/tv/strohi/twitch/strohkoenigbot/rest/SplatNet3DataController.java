@@ -7,10 +7,13 @@ import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.logging.log4j.Level;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
@@ -21,8 +24,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3GearShopOfferNotificatio
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3ReplayCodeLoader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3SrRewardSaver;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3TokenRefresher;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -46,7 +47,7 @@ public class SplatNet3DataController {
 	private final ConfigurationRepository configurationRepository;
 	private final AccountRepository accountRepository;
 
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 
 	private final S3GearShopOfferNotificationSender shopOfferNotificationSender;
@@ -59,11 +60,11 @@ public class SplatNet3DataController {
 
 	private final ObjectMapper objectMapper;
 
-	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogSender logSender, AccountRepository accountRepository, ExceptionLogger exceptionLogger, S3GearShopOfferNotificationSender shopOfferNotificationSender, S3ReplayCodeLoader replayCodeLoader, S3SrRewardSaver rewardSaver, ObjectMapper objectMapper) {
+	public SplatNet3DataController(S3TokenRefresher s3TokenRefresher, ConfigurationRepository configurationRepository, LogQueuer logQueuer, AccountRepository accountRepository, ExceptionLogger exceptionLogger, S3GearShopOfferNotificationSender shopOfferNotificationSender, S3ReplayCodeLoader replayCodeLoader, S3SrRewardSaver rewardSaver, ObjectMapper objectMapper) {
 		this.s3TokenRefresher = s3TokenRefresher;
 		this.configurationRepository = configurationRepository;
 		this.accountRepository = accountRepository;
-		this.logSender = logSender;
+		this.logQueuer = logQueuer;
 		this.exceptionLogger = exceptionLogger;
 		this.shopOfferNotificationSender = shopOfferNotificationSender;
 		this.replayCodeLoader = replayCodeLoader;
@@ -222,11 +223,11 @@ public class SplatNet3DataController {
 				.orElse(null);
 
 			if (account == null) {
-				logSender.queueLogs(log, "### ERROR during gToken retrieval!\nNo main account found!");
+				logQueuer.infoQueue(log, "### ERROR during gToken retrieval!\nNo main account found!");
 				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
 			}
 
-			logSender.queueLogs(log, "Someone successfully loaded gToken!");
+			logQueuer.infoQueue(log, "Someone successfully loaded gToken!");
 			return ResponseEntity.ok(account.getGTokenSplatoon3());
 		}
 
@@ -247,11 +248,11 @@ public class SplatNet3DataController {
 				.orElse(null);
 
 			if (account == null) {
-				logSender.queueLogs(log, "### ERROR during token loading!\nNo main account found!");
+				logQueuer.infoQueue(log, "### ERROR during token loading!\nNo main account found!");
 				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
 			}
 
-			logSender.queueLogs(log, "Someone successfully loaded gToken and bulletToken!");
+			logQueuer.infoQueue(log, "Someone successfully loaded gToken and bulletToken!");
 			return ResponseEntity.ok(new S3Tokens(account.getGTokenSplatoon3(), account.getBulletTokenSplatoon3()));
 		}
 
@@ -272,11 +273,11 @@ public class SplatNet3DataController {
 				.orElse(null);
 
 			if (account == null) {
-				logSender.queueLogs(log, "### ERROR during spl2 token loading!\nNo main account found!");
+				logQueuer.infoQueue(log, "### ERROR during spl2 token loading!\nNo main account found!");
 				return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
 			}
 
-			logSender.queueLogs(log, "Someone successfully loaded spl2 cookie!");
+			logQueuer.infoQueue(log, "Someone successfully loaded spl2 cookie!");
 			return ResponseEntity.ok(S2Tokens.builder()
 				.cookie(account.getSplatoonCookie())
 				.expiresAt(account.getSplatoonCookieExpiresAt())
@@ -311,7 +312,7 @@ public class SplatNet3DataController {
 			}
 
 			try {
-				logSender.sendLogsAsAttachment(log, "Received new Shop Offers", objectMapper.writeValueAsString(shopOffers));
+				logQueuer.queueLogsAsAttachment(log, Level.INFO, "Received new Shop Offers", objectMapper.writeValueAsString(shopOffers));
 			} catch (JsonProcessingException e) {
 				exceptionLogger.logExceptionAsAttachment(log, "Could not parse shop offers", e);
 			}
@@ -377,13 +378,13 @@ public class SplatNet3DataController {
 		var pass = configurationRepository.findAllByConfigName("uploadS3sConfigPassword").stream().findFirst();
 
 		if (user.isEmpty() || pass.isEmpty()) {
-			logSender.queueLogs(log, "### ERROR during %s!\nAuth credentials could not be found!", caller);
+			logQueuer.infoQueue(log, "### ERROR during %s!\nAuth credentials could not be found!", caller);
 			return Optional.of(ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build());
 		}
 
 		var comparisonString = String.format("Basic %s", Base64.encodeBase64String(String.format("%s:%s", user.get().getConfigValue(), pass.get().getConfigValue()).getBytes(StandardCharsets.UTF_8)));
 		if (!comparisonString.equals(auth)) {
-			logSender.queueLogs(log, "### ERROR during %s!\nUser and/or password were not correct!", caller);
+			logQueuer.infoQueue(log, "### ERROR during %s!\nUser and/or password were not correct!", caller);
 			return Optional.of(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
 		}
 

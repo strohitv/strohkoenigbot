@@ -9,7 +9,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
@@ -29,7 +30,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -58,7 +58,7 @@ public class BotController implements ScheduledService {
 	private final Bucket adminMessageBucket;
 	private final Bucket loadLatestGameStringBucket;
 
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final S3Downloader s3Downloader;
 	private final TwitchBotClient twitchBotClient;
 
@@ -71,8 +71,17 @@ public class BotController implements ScheduledService {
 	private final Splatoon3VsResultRepository vsResultRepository;
 	private final Splatoon3SrResultRepository srResultRepository;
 
-	public BotController(LogSender logSender, S3Downloader s3Downloader, TwitchBotClient twitchBotClient, S3ApiQuerySender s3ApiQuerySender, ObjectMapper mapper, AccountRepository accountRepository, ConfigurationRepository configurationRepository, Splatoon3VsModeRepository modeRepository, Splatoon3VsResultRepository vsResultRepository, Splatoon3SrResultRepository srResultRepository) {
-		this.logSender = logSender;
+	public BotController(LogQueuer logQueuer,
+						 S3Downloader s3Downloader,
+						 TwitchBotClient twitchBotClient,
+						 S3ApiQuerySender s3ApiQuerySender,
+						 ObjectMapper mapper,
+						 AccountRepository accountRepository,
+						 ConfigurationRepository configurationRepository,
+						 Splatoon3VsModeRepository modeRepository,
+						 Splatoon3VsResultRepository vsResultRepository,
+						 Splatoon3SrResultRepository srResultRepository) {
+		this.logQueuer = logQueuer;
 		this.s3Downloader = s3Downloader;
 		this.twitchBotClient = twitchBotClient;
 		this.s3ApiQuerySender = s3ApiQuerySender;
@@ -495,7 +504,7 @@ public class BotController implements ScheduledService {
 			config.setConfigValue(String.format("%d", Instant.now().getEpochSecond()));
 			configurationRepository.save(config);
 		} else {
-			logSender.queueLogs(log, String.format("Instance `%s`, debug = `%s` received message via web interface:\n```\n%s\n```", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), message));
+			logQueuer.infoQueue(log, String.format("Instance `%s`, debug = `%s` received message via web interface:\n```\n%s\n```", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), message));
 		}
 
 		return ResponseEntity.ok().build();
@@ -511,7 +520,7 @@ public class BotController implements ScheduledService {
 		var lastMessageTimestamp = Instant.ofEpochSecond(Long.parseLong(config.getConfigValue()));
 
 		if (Instant.now().isAfter(lastMessageTimestamp.plus(6, ChronoUnit.HOURS))) {
-			logSender.queueLogs(log, String.format("## WARNING\nInstance `%s`, debug = `%s` did **not** receive a message from Beelink for 6 hours! Last message EpochSecond: `%s`", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), config.getConfigValue()));
+			logQueuer.infoQueue(log, String.format("## WARNING\nInstance `%s`, debug = `%s` did **not** receive a message from Beelink for 6 hours! Last message EpochSecond: `%s`", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug(), config.getConfigValue()));
 		}
 	}
 

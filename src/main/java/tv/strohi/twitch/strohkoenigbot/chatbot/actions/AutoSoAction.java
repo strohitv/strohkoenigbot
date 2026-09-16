@@ -1,14 +1,14 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.TwitchLiveEvent;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchSoAccountRepository;
 
 import java.util.EnumSet;
@@ -16,33 +16,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
+@Log4j2
 public class AutoSoAction extends ChatAction {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
-		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.Raid);
+		return EnumSet.of(TriggerReason.ChatMessage, TriggerReason.Raid, TriggerReason.LiveStatus);
 	}
 
 	private final Map<String, Boolean> accountsToShoutOut = new HashMap<>();
 
-	private TwitchSoAccountRepository twitchSoAccountRepository;
-
-	@Autowired
-	public void setTwitchSoAccountRepository(TwitchSoAccountRepository twitchSoAccountRepository) {
-		this.twitchSoAccountRepository = twitchSoAccountRepository;
-	}
-
-	private TwitchMessageSender twitchMessageSender;
-
-	@Autowired
-	public void setTwitchMessageSender(TwitchMessageSender twitchMessageSender) {
-		this.twitchMessageSender = twitchMessageSender;
-	}
+	private final TwitchSoAccountRepository twitchSoAccountRepository;
+	private final TwitchMessageSender twitchMessageSender;
 
 	@Override
 	public void execute(ActionArgs args) {
-		if (args.getReason() == TriggerReason.Raid) {
+		if (args.getReason() == TriggerReason.LiveStatus) {
+			if (((TwitchLiveEvent) args.getArguments().get(ArgumentKey.Event)).isLive()) {
+				startStream();
+			} else {
+				endStream();
+			}
+		} else if (args.getReason() == TriggerReason.Raid) {
 			accountsToShoutOut.put(args.getUser().toLowerCase(), false);
 			new Thread(() -> sendTwitchSoMessage(args.getUser(), (String) args.getArguments().get(ArgumentKey.ChannelName), 15_000)).start();
 		} else if (accountsToShoutOut.getOrDefault(args.getUser().toLowerCase(), false)) {
@@ -56,7 +51,7 @@ public class AutoSoAction extends ChatAction {
 			try {
 				Thread.sleep(waitTime);
 			} catch (InterruptedException e) {
-				logger.error(e);
+				log.error(e);
 			}
 		}
 

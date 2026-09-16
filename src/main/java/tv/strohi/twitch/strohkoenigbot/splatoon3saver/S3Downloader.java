@@ -7,11 +7,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
@@ -25,8 +26,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
@@ -48,10 +48,11 @@ import static java.util.stream.Collectors.groupingBy;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class S3Downloader implements ScheduledService {
 	private final EntityManager entityManager;
 
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+	private final LogQueuer logQueuer;
 	private final LogSender logSender;
 
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -142,7 +143,7 @@ public class S3Downloader implements ScheduledService {
 //
 //		CompletableFuture.runAsync(this::fillStreamStatistics);
 
-		logSender.queueLogs(logger, "went live on twitch!");
+		logQueuer.infoQueue(log, "went live on twitch!");
 	}
 
 	public void goOffline() {
@@ -150,7 +151,7 @@ public class S3Downloader implements ScheduledService {
 
 //		streamStatistics.reset();
 
-		logSender.queueLogs(logger, "went offline on twitch!");
+		logQueuer.infoQueue(log, "went offline on twitch!");
 	}
 
 	public void resetSemaphore() {
@@ -161,7 +162,7 @@ public class S3Downloader implements ScheduledService {
 
 	public void runS3sIfGamesWereFound() {
 		if (shouldRunS3s) {
-			logSender.queueLogs(logger, "Found games which need to be imported to stat.ink / running s3s");
+			logQueuer.infoQueue(log, "Found games which need to be imported to stat.ink / running s3s");
 
 			// start refresh of s3s script asynchronously
 			s3sRunner.runS3S();
@@ -176,14 +177,14 @@ public class S3Downloader implements ScheduledService {
 
 	public void downloadBattles(boolean force) {
 		if (!semaphore.tryAcquire()) {
-			logSender.queueLogs(logger, "Skipping import because there's already one import running");
+			logQueuer.infoQueue(log, "Skipping import because there's already one import running");
 			return;
 		}
 
-		logger.debug("Enter download battles for Splatoon 3 games...");
+		log.debug("Enter download battles for Splatoon 3 games...");
 
 		if (pauseDownloader && !force) {
-			logger.info("Downloader is paused, stopping loading Splatoon 3 games early");
+			log.info("Downloader is paused, stopping loading Splatoon 3 games early");
 			return;
 		}
 
@@ -196,19 +197,19 @@ public class S3Downloader implements ScheduledService {
 		if (wentLiveInstant != null
 			|| force
 			|| refreshMinutes.contains(LocalDateTime.now().getMinute())) {
-			logger.info("Loading Splatoon 3 games...");
+			log.info("Loading Splatoon 3 games...");
 			try {
 				downloadGamesDecideWay();
 			} catch (Exception e) {
 				try {
-					exceptionLogger.logExceptionAsAttachment(logger, "An exception occurred during S3 download\nSee logs for details!", e);
+					exceptionLogger.logExceptionAsAttachment(log, "An exception occurred during S3 download\nSee logs for details!", e);
 				} catch (Exception ignored) {
 				}
 
-				logger.error(e);
+				log.error(e);
 			}
 
-			logger.info("Finished loading Splatoon 3 games.");
+			log.info("Finished loading Splatoon 3 games.");
 		}
 
 		semaphore.release();
@@ -302,7 +303,7 @@ public class S3Downloader implements ScheduledService {
 			shouldRunS3s |= foundGames;
 
 			if (foundGames) {
-				logSender.sendLogsToDebugChannel(logger, builder.toString());
+				logSender.sendLogsToDebugChannel(log, builder.toString());
 			}
 		}
 	}
@@ -404,7 +405,7 @@ public class S3Downloader implements ScheduledService {
 				try {
 					Files.createDirectories(directory);
 				} catch (IOException e) {
-					logSender.queueLogs(logger, String.format("Could not create game directory!! %s", directory));
+					logQueuer.infoQueue(log, String.format("Could not create game directory!! %s", directory));
 					continue;
 				}
 			}
@@ -418,12 +419,12 @@ public class S3Downloader implements ScheduledService {
 					allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
 					objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
 				} else {
-					logSender.queueLogs(logger, "COULD NOT OPEN FILE!!!");
+					logQueuer.infoQueue(log, "COULD NOT OPEN FILE!!!");
 					continue;
 				}
 			} catch (IOException e) {
-				logSender.queueLogs(logger, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
-				logger.error(e);
+				logQueuer.infoQueue(log, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
+				log.error(e);
 				continue;
 			}
 
@@ -471,20 +472,20 @@ public class S3Downloader implements ScheduledService {
 			}
 
 			String salmonListResponse = requestSender.queryS3Api(account, S3RequestKey.Salmon);
-			logger.debug(salmonListResponse);
+			log.debug(salmonListResponse);
 
 			List<String> salmonShiftsToDownload = new ArrayList<>();
 			if (salmonListResponse.contains("coop")) {
 				downloadSalmonRunGames(account, directory, allDownloadedGames, timeString, salmonListResponse, salmonShiftsToDownload);
 			} else {
-				logSender.queueLogs(logger, "Could not load Salmon Run Stats from SplatNet3");
+				logQueuer.infoQueue(log, "Could not load Salmon Run Stats from SplatNet3");
 			}
 
 			try {
 				objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
 			} catch (IOException e) {
-				logSender.queueLogs(logger, "IOEXCEPTION WHILE WRITING REFRESHED OVERVIEW FILE!!!");
-				logger.error(e);
+				logQueuer.infoQueue(log, "IOEXCEPTION WHILE WRITING REFRESHED OVERVIEW FILE!!!");
+				log.error(e);
 			}
 
 			if (!onlineRegularGamesToDownload.isEmpty()
@@ -519,7 +520,7 @@ public class S3Downloader implements ScheduledService {
 					message = String.format("%s\n- **%d** new salmon run shifts", message, salmonShiftsToDownload.size());
 				}
 
-				logSender.sendLogsToDebugChannel(logger, message);
+				logSender.sendLogsToDebugChannel(log, message);
 
 				// start refresh of s3s script asynchronously
 				s3sRunner.runS3S();
@@ -558,11 +559,11 @@ public class S3Downloader implements ScheduledService {
 	}
 
 	public void tryParseAllBattles(String folderName) {
-		logSender.queueLogs(logger, String.format("Loading Splatoon 3 games for account with folder name '%s'...", folderName));
+		logQueuer.infoQueue(log, String.format("Loading Splatoon 3 games for account with folder name '%s'...", folderName));
 
 		Path directory = Path.of("game-results", folderName);
 		if (directoryCreationFails(directory)) {
-			logSender.queueLogs(logger, String.format("Folder name '%s' does not exist an could not be created!", folderName));
+			logQueuer.infoQueue(log, String.format("Folder name '%s' does not exist an could not be created!", folderName));
 			return;
 		}
 
@@ -594,7 +595,7 @@ public class S3Downloader implements ScheduledService {
 			parseBattleResult(game, directory);
 		}
 
-		logSender.queueLogs(logger, String.format("Done with loading Splatoon 3 games for account with folder name '%s'...", folderName));
+		logQueuer.infoQueue(log, String.format("Done with loading Splatoon 3 games for account with folder name '%s'...", folderName));
 	}
 
 	@Getter
@@ -613,7 +614,7 @@ public class S3Downloader implements ScheduledService {
 
 		Path directory = Path.of("game-results", folderName);
 		if (directoryCreationFails(directory)) {
-			logSender.queueLogs(logger, String.format("Folder name '%s' does not exist an could not be created!", folderName));
+			logQueuer.infoQueue(log, String.format("Folder name '%s' does not exist an could not be created!", folderName));
 			return;
 		}
 
@@ -638,7 +639,7 @@ public class S3Downloader implements ScheduledService {
 			.sorted((a, b) -> getPlayedTime(a, directory).compareTo(getPlayedTime(b, directory)))
 			.forEach(sg -> {
 				if (battleCounter.getCount() == 0) {
-					logSender.queueLogs(logger, String.format("Importing Splatoon 3 games of account with folder name '%s' from json into database...", folderName));
+					logQueuer.infoQueue(log, String.format("Importing Splatoon 3 games of account with folder name '%s' from json into database...", folderName));
 				}
 
 				var fileContent = readFile(sg, directory);
@@ -655,19 +656,19 @@ public class S3Downloader implements ScheduledService {
 						Files.deleteIfExists(directory.resolve(sg.getFilename()).toAbsolutePath());
 					}
 				} catch (Exception ex) {
-					logSender.queueLogs(logger, String.format("Folder name '%s': Exception during import of file '%s', see logs for details!", folderName, sg.getFilename()));
-					logger.error(ex);
+					logQueuer.infoQueue(log, String.format("Folder name '%s': Exception during import of file '%s', see logs for details!", folderName, sg.getFilename()));
+					log.error(ex);
 				}
 
 				battleCounter.increaseCount();
 
 				if (battleCounter.getCount() % 250 == 0) {
-					logSender.queueLogs(logger, String.format("Folder name '%s': Total imported games now at %d", folderName, battleCounter.getCount()));
+					logQueuer.infoQueue(log, String.format("Folder name '%s': Total imported games now at %d", folderName, battleCounter.getCount()));
 				}
 			});
 
 		if (battleCounter.getCount() > 0) {
-			logSender.queueLogs(logger, String.format("Done with importing Splatoon 3 games of account with folder name '%s' from json into database. Total number of imported games: %d", folderName, battleCounter.getCount()));
+			logQueuer.infoQueue(log, String.format("Done with importing Splatoon 3 games of account with folder name '%s' from json into database. Total number of imported games: %d", folderName, battleCounter.getCount()));
 		}
 
 		entityManager.setFlushMode(oldFLushMode);
@@ -687,7 +688,7 @@ public class S3Downloader implements ScheduledService {
 			try {
 				Files.createDirectories(directory);
 			} catch (IOException e) {
-				logSender.queueLogs(logger, String.format("Could not create game directory!! %s", directory));
+				logQueuer.infoQueue(log, String.format("Could not create game directory!! %s", directory));
 				return true;
 			}
 		}
@@ -705,12 +706,12 @@ public class S3Downloader implements ScheduledService {
 				allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
 				objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
 			} else {
-				logSender.queueLogs(logger, "COULD NOT OPEN FILE!!!");
+				logQueuer.infoQueue(log, "COULD NOT OPEN FILE!!!");
 				return null;
 			}
 		} catch (IOException e) {
-			logSender.queueLogs(logger, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
-			logger.error(e);
+			logQueuer.infoQueue(log, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
+			log.error(e);
 			return null;
 		}
 
@@ -727,12 +728,12 @@ public class S3Downloader implements ScheduledService {
 
 		String result = null;
 		try (var stream = new FileInputStream(filename)) {
-			logger.info(filename);
+			log.info(filename);
 			result = new String(stream.readAllBytes());
-			logger.debug(result);
+			log.debug(result);
 		} catch (IOException e) {
-			logSender.queueLogs(logger, String.format("Couldn't read file '%s' OH OH", filename));
-			logger.error(e);
+			logQueuer.infoQueue(log, String.format("Couldn't read file '%s' OH OH", filename));
+			log.error(e);
 		}
 
 		return result;
@@ -742,10 +743,10 @@ public class S3Downloader implements ScheduledService {
 		BattleResult result = null;
 		try {
 			result = objectMapper.readValue(json, BattleResult.class);
-			logger.debug(result);
+			log.debug(result);
 		} catch (IOException e) {
-			logSender.queueLogs(logger, "Couldn't parse battle result json content OH OH");
-			logger.error(e);
+			logQueuer.infoQueue(log, "Couldn't parse battle result json content OH OH");
+			log.error(e);
 		}
 
 		return result;
@@ -755,21 +756,21 @@ public class S3Downloader implements ScheduledService {
 		String filename = directory.resolve(game.getFilename()).toAbsolutePath().toString();
 
 		try {
-			logger.info(filename);
+			log.info(filename);
 			var result = objectMapper.readValue(new File(filename), BattleResult.class);
-			logger.debug(result);
+			log.debug(result);
 		} catch (IOException e) {
-			logSender.queueLogs(logger, String.format("Couldn't parse battle result json file '%s' OH OH", filename));
-			logger.error(e);
+			logQueuer.infoQueue(log, String.format("Couldn't parse battle result json file '%s' OH OH", filename));
+			log.error(e);
 		}
 	}
 
 	private void downloadPvPGames(Account account, Path directory, ConfigFile.DownloadedGameList allDownloadedGames, String timeString, List<String> onlineRegularGamesToDownload, List<String> onlineAnarchyGamesToDownload, List<String> onlineXRankGamesToDownload, List<String> onlineChallengeGamesToDownload, List<String> onlinePrivateGamesToDownload, S3RequestKey key) {
 		String gameListResponse = requestSender.queryS3Api(account, key);
-		logger.debug(gameListResponse);
+		log.debug(gameListResponse);
 		if (!gameListResponse.contains("assistAverage")) {
-			logSender.queueLogs(logger, String.format("Could not load results from SplatNet3: %s", key));
-			logger.error(gameListResponse);
+			logQueuer.infoQueue(log, String.format("Could not load results from SplatNet3: %s", key));
+			log.error(gameListResponse);
 			return;
 		}
 
@@ -777,12 +778,12 @@ public class S3Downloader implements ScheduledService {
 		try {
 			parsedResult = objectMapper.readValue(gameListResponse, BattleResults.class);
 		} catch (JsonProcessingException e) {
-			logSender.queueLogs(logger, String.format("Could not parse results from SplatNet3: %s", key));
-			logger.error(e);
+			logQueuer.infoQueue(log, String.format("Could not parse results from SplatNet3: %s", key));
+			log.error(e);
 			return;
 		}
 
-		logger.debug(parsedResult);
+		log.debug(parsedResult);
 
 		// Eventuell auch die latest results pullen?
 		// Aktuell nicht umgesetzt, da selbe matches unterschiedliche IDs haben in den unterschiedlichen Listen
@@ -793,7 +794,7 @@ public class S3Downloader implements ScheduledService {
 				String filename = String.format("%s_List_%s.json", key, timeString);
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
-			logger.debug(onlineRegularGamesToDownload);
+			log.debug(onlineRegularGamesToDownload);
 		}
 
 		if (parsedResult.getData().getBankaraBattleHistories() != null) {
@@ -803,7 +804,7 @@ public class S3Downloader implements ScheduledService {
 				String filename = String.format("%s_List_%s.json", key, timeString);
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
-			logger.debug(onlineAnarchyGamesToDownload);
+			log.debug(onlineAnarchyGamesToDownload);
 		}
 
 		if (parsedResult.getData().getXBattleHistories() != null) {
@@ -813,7 +814,7 @@ public class S3Downloader implements ScheduledService {
 				String filename = String.format("%s_List_%s.json", key, timeString);
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
-			logger.debug(onlineXRankGamesToDownload);
+			log.debug(onlineXRankGamesToDownload);
 		}
 
 		if (parsedResult.getData().getEventBattleHistories() != null) {
@@ -823,7 +824,7 @@ public class S3Downloader implements ScheduledService {
 				String filename = String.format("%s_List_%s.json", key, timeString);
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
-			logger.debug(onlineChallengeGamesToDownload);
+			log.debug(onlineChallengeGamesToDownload);
 		}
 
 		if (parsedResult.getData().getPrivateBattleHistories() != null) {
@@ -833,7 +834,7 @@ public class S3Downloader implements ScheduledService {
 				String filename = String.format("%s_List_%s.json", key, timeString);
 				saveFile(directory.resolve(filename), gameListResponse);
 			}
-			logger.debug(onlinePrivateGamesToDownload);
+			log.debug(onlinePrivateGamesToDownload);
 		}
 	}
 
@@ -842,8 +843,8 @@ public class S3Downloader implements ScheduledService {
 		try {
 			parsedResult = objectMapper.readValue(salmonListResponse, BattleResults.class);
 		} catch (JsonProcessingException e) {
-			logSender.queueLogs(logger, "Could not parse results from SplatNet3: Salmon Run");
-			logger.error(e);
+			logQueuer.infoQueue(log, "Could not parse results from SplatNet3: Salmon Run");
+			log.error(e);
 		}
 
 		if (parsedResult != null) {
@@ -856,10 +857,10 @@ public class S3Downloader implements ScheduledService {
 
 			for (String salmonShiftId : salmonShiftsToDownload) {
 				String salmonShiftJson = requestSender.queryS3Api(account, S3RequestKey.SalmonDetail, "coopHistoryDetailId", salmonShiftId);
-				logger.debug(salmonShiftJson);
+				log.debug(salmonShiftJson);
 
 				if (!salmonShiftJson.contains("coopHistoryDetail")) {
-					logSender.queueLogs(logger, "could not load match detail from splatnet!");
+					logQueuer.infoQueue(log, "could not load match detail from splatnet!");
 					continue;
 				}
 
@@ -870,8 +871,8 @@ public class S3Downloader implements ScheduledService {
 
 						allDownloadedGames.getSalmon_games().put(salmonShiftId, new ConfigFile.StoredGame(allDownloadedGames.getSalmon_games().size() + 1, filename, Instant.parse(data.getData().getCoopHistoryDetail().getPlayedTime())));
 					} catch (JsonProcessingException e) {
-						logSender.queueLogs(logger, "Could not parse single salmon shift result!");
-						logger.error(e);
+						logQueuer.infoQueue(log, "Could not parse single salmon shift result!");
+						log.error(e);
 					}
 				}
 			}
@@ -880,10 +881,10 @@ public class S3Downloader implements ScheduledService {
 
 	private void storeOnlineGame(Account account, String filenamePrefix, Path directory, Map<String, ConfigFile.StoredGame> games, String matchId) {
 		String matchJson = requestSender.queryS3Api(account, S3RequestKey.GameDetail, "vsResultId", matchId);
-		logger.debug(matchJson);
+		log.debug(matchJson);
 
 		if (!matchJson.contains("vsHistoryDetail")) {
-			logSender.queueLogs(logger, "could not load match detail from splatnet!");
+			logQueuer.infoQueue(log, "could not load match detail from splatnet!");
 		}
 
 		String filename = String.format("%s_Result_%05d.json", filenamePrefix, games.size() + 1);
@@ -893,8 +894,8 @@ public class S3Downloader implements ScheduledService {
 
 				games.put(matchId, new ConfigFile.StoredGame(games.size() + 1, filename, Instant.parse(data.getData().getVsHistoryDetail().getPlayedTime())));
 			} catch (JsonProcessingException e) {
-				logSender.queueLogs(logger, "Could not parse single match result!");
-				logger.error(e);
+				logQueuer.infoQueue(log, "Could not parse single match result!");
+				log.error(e);
 			}
 		}
 	}
@@ -905,7 +906,7 @@ public class S3Downloader implements ScheduledService {
 			try {
 				Files.createDirectories(directory);
 			} catch (IOException e) {
-				logSender.queueLogs(logger, String.format("Could not create directory for file! %s", path));
+				logQueuer.infoQueue(log, String.format("Could not create directory for file! %s", path));
 				return false;
 			}
 		}
@@ -914,7 +915,7 @@ public class S3Downloader implements ScheduledService {
 			writer.write(content);
 			return true;
 		} catch (IOException e) {
-			logSender.queueLogs(logger, String.format("Could not write file! %s", path));
+			logQueuer.infoQueue(log, String.format("Could not write file! %s", path));
 		}
 
 		return false;

@@ -1,8 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.utils.scheduling;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -10,7 +9,8 @@ import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
@@ -29,8 +29,9 @@ import java.util.concurrent.TimeoutException;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class SchedulingService {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
 	private final ArrayList<String> lastRanJobs = new ArrayList<>();
@@ -68,7 +69,7 @@ public class SchedulingService {
 
 	@Scheduled(fixedDelay = 5000)
 	private void run() {
-		LocalDateTime now = LocalDateTime.now();
+		var now = LocalDateTime.now();
 
 		var computerName = ComputerNameEvaluator.getComputerName();
 		var debug = DiscordChannelDecisionMaker.isLocalDebug();
@@ -76,10 +77,10 @@ public class SchedulingService {
 		var executor = Executors.newSingleThreadExecutor();
 
 		for (int i = 0; i < singleRunSchedules.size(); i++) {
-			Schedule schedule = singleRunSchedules.get(i);
+			var schedule = singleRunSchedules.get(i);
 
 			if (!schedule.isFailed(MAX_ERRORS_SINGLE) && schedule.shouldRun(now)) {
-				logger.info("running single run job `{}`...", schedule.getName());
+				log.info("running single run job `{}`...", schedule.getName());
 				lastRanJobs.add(String.format("single run job `%s`", schedule.getName()));
 				if (lastRanJobs.size() > 100) {
 					lastRanJobs.remove(0);
@@ -96,10 +97,10 @@ public class SchedulingService {
 					schedule.increaseErrorCount();
 
 					if (ex instanceof TimeoutException) {
-						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+						logSender.info(log,
 							String.format("## Timeout\nSingle Runnable '**%s**' (%s, debug: `%s`) ran into timeout!!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
 					} else if (schedule.isFailed(MAX_ERRORS_SINGLE)) {
-						exceptionLogger.logExceptionAsAttachment(logger,
+						exceptionLogger.logExceptionAsAttachment(log,
 							String.format("Single Runnable failed **%d** times and got removed from Scheduler (%s, debug: `%s`)!! Schedule:\n```\n%s\n```", MAX_ERRORS_SINGLE, computerName, debug, schedule),
 							ex);
 						singleRunSchedules.remove(i);
@@ -107,15 +108,15 @@ public class SchedulingService {
 					}
 				}
 
-				logger.info("finished job...");
+				log.info("finished job...");
 			}
 		}
 
 		for (int i = 0; i < schedules.size(); i++) {
-			Schedule schedule = schedules.get(i);
+			var schedule = schedules.get(i);
 
 			if (!schedule.isFailed(MAX_ERRORS_REPEATED) && schedule.shouldRun(now)) {
-				logger.info("running repeated job `{}`...", schedule.getName());
+				log.info("running repeated job `{}`...", schedule.getName());
 				lastRanJobs.add(String.format("repeated job `%s`", schedule.getName()));
 				if (lastRanJobs.size() > 100) {
 					lastRanJobs.remove(0);
@@ -129,47 +130,46 @@ public class SchedulingService {
 					schedule.increaseErrorCount();
 
 					if (ex instanceof TimeoutException) {
-						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+						logSender.info(log,
 							String.format("## Timeout\nRunnable '**%s**' (%s, debug: `%s`) ran into timeout!!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
 					} else {
-						exceptionLogger.logExceptionAsAttachment(logger,
+						exceptionLogger.logExceptionAsAttachment(log,
 							String.format("Runnable '**%s**' ran into an unexpected Exception!!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule),
 							ex);
 					}
 
 
 					if (schedule.getErrorCleanUpRunnable() != null) {
-						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+						logSender.info(log,
 							String.format("Running error cleanup runnable for schedule '**%s**' (%s, debug: `%s`)!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
 
 						transactionalRunner.run(schedule.getErrorCleanUpRunnable());
 
-						discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+						logSender.info(log,
 							String.format("Done running error cleanup runnable for schedule '**%s**' (%s, debug: `%s`)!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
 					}
 				}
 
 				if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
-					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+					logSender.info(log,
 						String.format("Repeated Runnable '**%s**' (%s, debug: `%s`) failed **%d** times and got removed from Scheduler!! Schedule:\n```\n%s\n```", schedule.getName(), computerName, debug, MAX_ERRORS_REPEATED, schedule));
 
-					List<Exception> exceptions = schedule.getErrors();
+					var exceptions = schedule.getErrors();
 					Exception exception = exceptions.get(exceptions.size() - 1);
 
-					Long discordId = DiscordBot.ADMIN_ID;
+					discordBot.getAdminIds().forEach(id -> discordBot.sendPrivateMessage(id, String.format("**Message of last exception**: '%s'", exception.getMessage())));
 
-					discordBot.sendPrivateMessage(discordId, String.format("**Message of last exception**: '%s'", exception.getMessage()));
-
-					StringWriter stringWriter = new StringWriter();
-					PrintWriter printWriter = new PrintWriter(stringWriter);
+					var stringWriter = new StringWriter();
+					var printWriter = new PrintWriter(stringWriter);
 					exception.printStackTrace(printWriter);
 
-					String stacktrace = stringWriter.toString();
+					var stacktrace = stringWriter.toString();
 					if (stacktrace.length() > 1900) {
 						stacktrace = stacktrace.substring(0, 1900);
 					}
 
-					discordBot.sendPrivateMessage(discordId, String.format("**Stacktrace of last exception**:\n'%s'", stacktrace));
+					final var finalStacktrace = stacktrace;
+					discordBot.getAdminIds().forEach(id -> discordBot.sendPrivateMessage(id, String.format("**Stacktrace of last exception**:\n'%s'", finalStacktrace)));
 
 					schedules.remove(i);
 					i--;
@@ -196,11 +196,11 @@ public class SchedulingService {
 	}
 
 	private void register(String configName, String defaultValue, Runnable runnable, Runnable errorCleanUpRunnable) {
-		Configuration config = configurationRepository.findAllByConfigName(configName).stream().findFirst().orElse(null);
+		var config = configurationRepository.findAllByConfigName(configName).stream().findFirst().orElse(null);
 
 		if (config == null) {
 			config = configurationRepository.save(new Configuration(0, configName, defaultValue));
-			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
+			logSender.info(log,
 				String.format("Added new Schedule: id = `%d`, name = `%s`, value = `%s` (%s, debug: `%s`)", config.getId(), configName, defaultValue, ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug()));
 		}
 

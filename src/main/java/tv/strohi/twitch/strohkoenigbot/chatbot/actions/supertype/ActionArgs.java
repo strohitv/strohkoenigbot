@@ -17,6 +17,8 @@ public class ActionArgs {
 	private String user;
 	@Setter
 	private String userId;
+	@Setter
+	private boolean admin;
 
 	@Setter
 	private TwitchDiscordMessageSender replySender;

@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Log4j2
 public class Splatoon3VsResultService {
-	private final LogSender logSender;
-	private final ExceptionLogger exceptionLogger;
+	private final LogQueuer logQueuer;
+	private final ExceptionQueuer exceptionQueuer;
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -250,7 +250,7 @@ public class Splatoon3VsResultService {
 				.originalImage(imageService.ensureExists(gear.getOriginalImage().getUrl()))
 				.build();
 
-			logSender.queueLogs(log, String.format("Set original image for gear with id `%d` to `%s`", dbGear.getId(), gear.getOriginalImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set original image for gear with id `%d` to `%s`", dbGear.getId(), gear.getOriginalImage().getUrl()));
 		}
 
 		if (imageService.isFailed(dbGear.getThumbnailImage())
@@ -261,7 +261,7 @@ public class Splatoon3VsResultService {
 				.thumbnailImage(imageService.ensureExists(gear.getThumbnailImage().getUrl()))
 				.build();
 
-			logSender.queueLogs(log, String.format("Set thumbnail image for gear with id `%d` to `%s`", dbGear.getId(), gear.getThumbnailImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set thumbnail image for gear with id `%d` to `%s`", dbGear.getId(), gear.getThumbnailImage().getUrl()));
 		}
 
 		if (changed) {
@@ -300,7 +300,7 @@ public class Splatoon3VsResultService {
 				.image(imageService.ensureExists(brand.getImage().getUrl()))
 				.build());
 
-			logSender.queueLogs(log, String.format("Set image for brand with id `%d` to `%s`", dbBrand.getId(), brand.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for brand with id `%d` to `%s`", dbBrand.getId(), brand.getImage().getUrl()));
 		}
 
 		return dbBrand;
@@ -331,7 +331,7 @@ public class Splatoon3VsResultService {
 				.image(imageService.ensureExists(usualGearPower.getImage().getUrl()))
 				.build());
 
-			logSender.queueLogs(log, String.format("Set image for ability with id `%d` to `%s`", dbAbility.getId(), usualGearPower.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for ability with id `%d` to `%s`", dbAbility.getId(), usualGearPower.getImage().getUrl()));
 		}
 
 		return dbAbility;
@@ -382,7 +382,7 @@ public class Splatoon3VsResultService {
 				.image(imageService.ensureExists(weapon.getImage().getUrl()))
 				.build();
 
-			logSender.queueLogs(log, String.format("Set image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage().getUrl()));
 		}
 
 		if (imageService.isFailed(dbWeapon.getImage2D())
@@ -393,7 +393,7 @@ public class Splatoon3VsResultService {
 				.image2D(imageService.ensureExists(weapon.getImage2d().getUrl()))
 				.build();
 
-			logSender.queueLogs(log, String.format("Set 2d image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage2d().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set 2d image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage2d().getUrl()));
 		}
 
 		if (imageService.isFailed(dbWeapon.getImage2DThumbnail())
@@ -404,7 +404,7 @@ public class Splatoon3VsResultService {
 				.image2DThumbnail(imageService.ensureExists(weapon.getImage2dThumbnail().getUrl()))
 				.build();
 
-			logSender.queueLogs(log, String.format("Set 2d thumbnail image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage2dThumbnail().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set 2d thumbnail image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage2dThumbnail().getUrl()));
 		}
 
 		if (imageService.isFailed(dbWeapon.getImage3D())
@@ -415,7 +415,7 @@ public class Splatoon3VsResultService {
 				.image3D(imageService.ensureExists(weapon.getImage3d().getUrl()))
 				.build();
 
-			logSender.queueLogs(log, String.format("Set 3d image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage3d().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set 3d image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage3d().getUrl()));
 		}
 
 		if (imageService.isFailed(dbWeapon.getImage3DThumbnail())
@@ -426,7 +426,7 @@ public class Splatoon3VsResultService {
 				.image3DThumbnail(imageService.ensureExists(weapon.getImage3dThumbnail().getUrl()))
 				.build();
 
-			logSender.queueLogs(log, String.format("Set 3d thumbnail image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage3dThumbnail().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set 3d thumbnail image for weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage3dThumbnail().getUrl()));
 		}
 
 		if (changed) {
@@ -456,7 +456,7 @@ public class Splatoon3VsResultService {
 				.image(imageService.ensureExists(subWeapon.getImage().getUrl()))
 				.build());
 
-			logSender.queueLogs(log, String.format("Set image for sub weapon with id `%d` to `%s`", dbSubWeapon.getId(), subWeapon.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for sub weapon with id `%d` to `%s`", dbSubWeapon.getId(), subWeapon.getImage().getUrl()));
 		}
 
 		return dbSubWeapon;
@@ -489,7 +489,7 @@ public class Splatoon3VsResultService {
 				.image(imageService.ensureExists(specialWeapon.getImage().getUrl()))
 				.build();
 
-			logSender.queueLogs(log, String.format("Set image for special weapon with id `%d` to `%s`", dbSpecialWeapon.getId(), specialWeapon.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for special weapon with id `%d` to `%s`", dbSpecialWeapon.getId(), specialWeapon.getImage().getUrl()));
 		}
 
 		if (imageService.isFailed(dbSpecialWeapon.getOverlayImage())
@@ -500,7 +500,7 @@ public class Splatoon3VsResultService {
 				.overlayImage(imageService.ensureExists(specialWeapon.getMaskingImage().getOverlayImageUrl()))
 				.build();
 
-			logSender.queueLogs(log, String.format("Set overlay image for special weapon with id `%d` to `%s`", dbSpecialWeapon.getId(), specialWeapon.getMaskingImage().getOverlayImageUrl()));
+			logQueuer.infoQueue(log, String.format("Set overlay image for special weapon with id `%d` to `%s`", dbSpecialWeapon.getId(), specialWeapon.getMaskingImage().getOverlayImageUrl()));
 		}
 
 		if (imageService.isFailed(dbSpecialWeapon.getMaskingImage())
@@ -511,7 +511,7 @@ public class Splatoon3VsResultService {
 				.maskingImage(imageService.ensureExists(specialWeapon.getMaskingImage().getMaskImageUrl()))
 				.build();
 
-			logSender.queueLogs(log, String.format("Set masking image for special weapon with id `%d` to `%s`", dbSpecialWeapon.getId(), specialWeapon.getMaskingImage().getMaskImageUrl()));
+			logQueuer.infoQueue(log, String.format("Set masking image for special weapon with id `%d` to `%s`", dbSpecialWeapon.getId(), specialWeapon.getMaskingImage().getMaskImageUrl()));
 		}
 
 		if (changed) {
@@ -596,32 +596,32 @@ public class Splatoon3VsResultService {
 		var alleDoubledEntries = resultRepository.findDoubledEntries();
 
 		if (!alleDoubledEntries.isEmpty()) {
-			logSender.queueLogs(log, String.format("Found `%d` results with doubled api id", alleDoubledEntries.size()));
+			logQueuer.infoQueue(log, String.format("Found `%d` results with doubled api id", alleDoubledEntries.size()));
 		}
 
 		for (var entry : alleDoubledEntries) {
 			var apiId = entry.getApiId();
 
-			logSender.queueLogs(log, String.format("Trying to reduce doubled result entries for api id: `%s`", apiId));
+			logQueuer.infoQueue(log, String.format("Trying to reduce doubled result entries for api id: `%s`", apiId));
 
 			var allGames = resultRepository.findByApiId(apiId);
 
 			try {
 				var gameToKeep = allGames.stream().findFirst().orElseThrow();
-				logSender.queueLogs(log, String.format("game with id: `%d` will be kept for api id: `%s`", gameToKeep.getId(), apiId));
+				logQueuer.infoQueue(log, String.format("game with id: `%d` will be kept for api id: `%s`", gameToKeep.getId(), apiId));
 
 				for (var game : allGames) {
 					if (!Objects.equals(game.getId(), gameToKeep.getId())) {
-						logSender.queueLogs(log, String.format("deleting game with id: `%d` for api id: `%s`", game.getId(), apiId));
+						logQueuer.infoQueue(log, String.format("deleting game with id: `%d` for api id: `%s`", game.getId(), apiId));
 
 						game.getTeams().forEach(t -> teamPlayerRepository.deleteAll(t.getTeamPlayers()));
 						teamRepository.deleteAll(game.getTeams());
 						resultRepository.delete(game);
 					}
 				}
-				logSender.queueLogs(log, String.format("Done with entries for api id: `%s`", apiId));
+				logQueuer.infoQueue(log, String.format("Done with entries for api id: `%s`", apiId));
 			} catch (Exception ex) {
-				exceptionLogger.logExceptionAsAttachment(log, String.format("An exception occurred during removal of doubled result entries for api id: `%s`", apiId), ex);
+				exceptionQueuer.queueExceptionAsAttachment(log, String.format("An exception occurred during removal of doubled result entries for api id: `%s`", apiId), ex);
 			}
 		}
 	}

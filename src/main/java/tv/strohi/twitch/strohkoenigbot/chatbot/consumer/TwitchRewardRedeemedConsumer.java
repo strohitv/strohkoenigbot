@@ -2,26 +2,36 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.consumer;
 
 import com.github.twitch4j.pubsub.events.RewardRedeemedEvent;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.TwitchEvent;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.util.List;
-import java.util.function.Consumer;
 
+@Component
 @RequiredArgsConstructor
-public class TwitchRewardRedeemedConsumer implements Consumer<RewardRedeemedEvent> {
+public class TwitchRewardRedeemedConsumer implements ApplicationListener<TwitchEvent> {
 	private final List<IChatAction> botActions;
 
 	@Override
-	public void accept(RewardRedeemedEvent pointEvent) {
+	public void onApplicationEvent(@NotNull TwitchEvent twitchEvent) {
 		if (DiscordChannelDecisionMaker.isLocalDebug()) {
 			return;
 		}
+
+		if (!(twitchEvent.getEvent() instanceof RewardRedeemedEvent)) {
+			return;
+		}
+
+		var pointEvent = (RewardRedeemedEvent) twitchEvent.getEvent();
 
 		ActionArgs args = new ActionArgs();
 

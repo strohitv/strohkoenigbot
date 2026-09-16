@@ -9,7 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.RotationSchedulesResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
@@ -229,7 +229,7 @@ public class Splatoon3VsRotationService {
 				.image(imageService.ensureExists(bestUrl.get()))
 				.build());
 
-			logSender.sendLogs(log, String.format("Set image for vs stage with id `%d` to `%s`", dbStage.getId(), bestUrl.get()));
+			logSender.info(log, String.format("Set image for vs stage with id `%d` to `%s`", dbStage.getId(), bestUrl.get()));
 		}
 
 		return dbStage;

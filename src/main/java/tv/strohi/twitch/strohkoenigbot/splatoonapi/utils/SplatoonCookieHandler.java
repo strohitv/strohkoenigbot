@@ -2,16 +2,15 @@ package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.rest.model.S2Tokens;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.Authenticator;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.model.AuthenticationData;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.CookieRefreshException;
@@ -36,14 +35,13 @@ import java.util.List;
 import java.util.Map;
 
 @Transactional
+@Log4j2
 public class SplatoonCookieHandler extends CookieHandler {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-
 	private Account account;
 
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
-	private final DiscordBot discordBot;
+	private final LogQueuer logQueuer;
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
 
@@ -52,13 +50,12 @@ public class SplatoonCookieHandler extends CookieHandler {
 	private SplatoonCookieHandler(Account account,
 								  AccountRepository accountRepository,
 								  ConfigurationRepository configurationRepository,
-								  DiscordBot discordBot,
-								  LogSender logSender,
+								  LogQueuer logQueuer, LogSender logSender,
 								  ExceptionLogger exceptionLogger) {
 		this.account = account;
 		this.accountRepository = accountRepository;
 		this.configurationRepository = configurationRepository;
-		this.discordBot = discordBot;
+		this.logQueuer = logQueuer;
 		this.logSender = logSender;
 		this.exceptionLogger = exceptionLogger;
 	}
@@ -66,17 +63,17 @@ public class SplatoonCookieHandler extends CookieHandler {
 	public static SplatoonCookieHandler of(Account account,
 										   AccountRepository accountRepository,
 										   ConfigurationRepository configurationRepository,
-										   DiscordBot discordBot,
+										   LogQueuer logQueuer,
 										   LogSender logSender,
 										   ExceptionLogger exceptionLogger) {
 
-		return new SplatoonCookieHandler(account, accountRepository, configurationRepository, discordBot, logSender, exceptionLogger);
+		return new SplatoonCookieHandler(account, accountRepository, configurationRepository, logQueuer, logSender, exceptionLogger);
 	}
 
 	@Override
 	@Transactional
 	public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
-		logger.debug("putting authentication information into request");
+		log.debug("putting authentication information into request");
 		if (account.getSplatoonCookieExpiresAt() == null || Instant.now().isAfter(account.getSplatoonCookieExpiresAt())) {
 			if (DiscordChannelDecisionMaker.isLocalDebug()) {
 				var botTokenLoadUrl = configurationRepository.findByConfigName("RequestSender_loadTokensFromProdUrl")
@@ -115,18 +112,18 @@ public class SplatoonCookieHandler extends CookieHandler {
 
 							account = accountRepository.save(account);
 
-							logSender.queueLogs(logger, "Bot instance = %s debug = %s loaded new tokens from Prod", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug());
+							logQueuer.infoQueue(log, "Bot instance = %s debug = %s loaded new tokens from Prod", ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug());
 						} else {
-							logger.error("Could not load Tokens from Prod, response code {}", response.statusCode());
+							log.error("Could not load Tokens from Prod, response code {}", response.statusCode());
 						}
 					} catch (Exception ex) {
-						exceptionLogger.logExceptionAsAttachment(logger, "Error during S3 Token loading from Prod", ex);
+						exceptionLogger.logExceptionAsAttachment(log, "Error during S3 Token loading from Prod", ex);
 					} finally {
 						if (client != null) {
 							try {
 								((AutoCloseable) client).close();
 							} catch (Exception e) {
-								exceptionLogger.logExceptionAsAttachment(logger, "WTF weird exception", e);
+								exceptionLogger.logExceptionAsAttachment(log, "WTF weird exception", e);
 							}
 						}
 					}
@@ -134,7 +131,7 @@ public class SplatoonCookieHandler extends CookieHandler {
 			} else if (account.getSplatoonSessionToken() != null && !account.getSplatoonSessionToken().isBlank()) {
 				try {
 					// refresh cookie
-					sendLogs("refreshing auth data");
+					logSender.info(log, "refreshing auth data");
 
 					AuthenticationData authData = authenticator.refreshAccess(account.getSplatoonSessionToken());
 
@@ -145,18 +142,18 @@ public class SplatoonCookieHandler extends CookieHandler {
 
 					account = accountRepository.save(account);
 				} catch (Exception ex) {
-					sendLogs("**ERROR**: could not refresh auth data because an exception occured!");
+					logSender.info(log, "**ERROR**: could not refresh auth data because an exception occured!");
 					// ERROR: Cookie refresh caused an exception -> BREAK
 					resetCookieAndThrowException("could not refresh auth data because an exception occured!");
 				}
 			} else {
-				sendLogs("**ERROR**: could not refresh auth data because session token was null!");
+				logSender.info(log, "**ERROR**: could not refresh auth data because session token was null!");
 				// ERROR: Cannot refresh Cookie because session token is missing -> BREAK
 				resetCookieAndThrowException("could not refresh auth data because session token was null!");
 			}
 		}
 
-		logger.debug("setting cookie to: 'iksm_session={}'", account.getSplatoonCookie());
+		log.debug("setting cookie to: 'iksm_session={}'", account.getSplatoonCookie());
 		Map<String, List<String>> requestHeadersCopy = new HashMap<>(requestHeaders);
 		requestHeadersCopy.put("Cookie", Collections.singletonList(String.format("iksm_session=%s", account.getSplatoonCookie())));
 
@@ -196,10 +193,5 @@ public class SplatoonCookieHandler extends CookieHandler {
 				}
 			}
 		}
-	}
-
-	private void sendLogs(String message) {
-		logger.debug(message);
-		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, message);
 	}
 }

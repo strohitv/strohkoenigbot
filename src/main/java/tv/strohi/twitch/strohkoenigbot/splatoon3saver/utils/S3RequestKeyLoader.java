@@ -7,13 +7,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3RequestKey;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Splatoon3RequestKey;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.Splatoon3RequestKeyRepository;
-import tv.strohi.twitch.strohkoenigbot.utils.ExceptionSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
@@ -25,9 +26,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-@Log4j2
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class S3RequestKeyLoader implements ScheduledService {
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
@@ -45,7 +46,6 @@ public class S3RequestKeyLoader implements ScheduledService {
 
 	private final LogSender logSender;
 	private final ExceptionLogger exceptionLogger;
-	private final ExceptionSender exceptionSender;
 
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
@@ -62,7 +62,7 @@ public class S3RequestKeyLoader implements ScheduledService {
 
 				var splatNetHomepageResponse = restTemplate.exchange("https://api.lp1.av5ja.srv.nintendo.net/", HttpMethod.GET, requestEntity, String.class);
 				if (!splatNetHomepageResponse.hasBody()) {
-					logSender.sendLogs(log, "## Error\nCould not load SplatNet3 main page, splatNetHomepageResponse has no body!");
+					logSender.info(log, "## Error\nCould not load SplatNet3 main page, splatNetHomepageResponse has no body!");
 					return;
 				}
 
@@ -73,7 +73,7 @@ public class S3RequestKeyLoader implements ScheduledService {
 					var scriptAddress = htmlMatcher.group("url");
 
 					if (scriptAddress == null || scriptAddress.isEmpty()) {
-						logSender.sendLogs(log, "## Error\nCould not load SplatNet3 main js file, scriptAddress is empty!");
+						logSender.info(log, "## Error\nCould not load SplatNet3 main js file, scriptAddress is empty!");
 						return;
 					}
 
@@ -88,14 +88,14 @@ public class S3RequestKeyLoader implements ScheduledService {
 						return;
 					}
 
-					logSender.sendLogs(log, "## New main.js path found\nFound new main.js path: `%s`", scriptAddress);
+					logSender.info(log, "## New main.js path found\nFound new main.js path: `%s`", scriptAddress);
 					configurationRepository.save(mainJsPathConfig.toBuilder().configValue(scriptAddress).build());
 
 					var scriptUrl = new URL("https://api.lp1.av5ja.srv.nintendo.net/").toURI().resolve(scriptAddress).toString();
 
 					var splatNetJsContent = restTemplate.getForObject(scriptUrl, String.class);
 					if (splatNetJsContent == null || splatNetJsContent.isEmpty()) {
-						logSender.sendLogs(log, "## Error\nCould not load SplatNet3 main page, splatNetJsContent is null or empty!");
+						logSender.info(log, "## Error\nCould not load SplatNet3 main page, splatNetJsContent is null or empty!");
 						return;
 					}
 
@@ -126,7 +126,7 @@ public class S3RequestKeyLoader implements ScheduledService {
 							}
 
 							requestKey.setQueryHash(operationId);
-							logSender.sendLogs(log, String.format("Found new query hash for `%s` via SplatNet3: `%s`", requestKey.getQueryName(), operationId));
+							logSender.info(log, String.format("Found new query hash for `%s` via SplatNet3: `%s`", requestKey.getQueryName(), operationId));
 
 							Arrays.stream(S3RequestKey.values()).filter(rk -> rk.getKey().equals(operationId))
 								.findFirst()
@@ -137,11 +137,10 @@ public class S3RequestKeyLoader implements ScheduledService {
 					}
 				}
 			} else {
-				logSender.sendLogs(log, "## Error\nCould not find main account in S3RequestKeyLoader!");
+				logSender.info(log, "## Error\nCould not find main account in S3RequestKeyLoader!");
 			}
 		} catch (Exception ex) {
 			exceptionLogger.logExceptionAsAttachment(log, "Exception during S3RequestKeyLoader", ex);
-			exceptionSender.send(ex);
 		}
 	}
 }

@@ -4,14 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsWeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3VsResultService;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.WeaponsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
@@ -26,8 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Log4j2
 public class S3WeaponDownloader implements ScheduledService {
-	private final LogSender logSender;
-	private final ExceptionLogger exceptionLogger;
+	private final LogQueuer logQueuer;
+	private final ExceptionQueuer exceptionQueuer;
 
 	private final Splatoon3VsWeaponRepository weaponRepository;
 
@@ -142,13 +142,13 @@ public class S3WeaponDownloader implements ScheduledService {
 				}
 
 				if (changes.length() > 0) {
-					logSender.queueLogs(
+					logQueuer.infoQueue(
 						log,
 						"## Weapon stats have changed\nThe following weapon stats have changed in the last hour:\n%s",
 						changes.toString().trim());
 				}
 			} catch (Exception e) {
-				exceptionLogger.logExceptionAsAttachment(log, "An exception occurred during S3 weapon download\nSee logs for details!", e);
+				exceptionQueuer.queueExceptionAsAttachment(log, "An exception occurred during S3 weapon download\nSee logs for details!", e);
 			}
 		}
 	}

@@ -5,6 +5,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Attachment;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.rest.model.ShopOffers;
@@ -12,8 +15,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearShopOfferNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearShopOfferRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
@@ -38,7 +39,7 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 	public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d LLLL yyyy");
 
 	private final DiscordBot discordBot;
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 
 	private final ConfigurationRepository configurationRepository;
@@ -50,7 +51,7 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 
 	public boolean addShopOffers(List<ShopOffers> offers) {
 		queuedOffers.add(offers);
-		logSender.queueLogs(log, "New gear shop offers have been queued.");
+		logQueuer.infoQueue(log, "New gear shop offers have been queued.");
 		return true;
 	}
 
@@ -101,7 +102,7 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 				exceptionLogger.logExceptionAsAttachment(log, "Exception occurred while adding Shop Offers to database", e);
 			}
 
-			logSender.queueLogs(log, "## Added new gear shop offers\nA total of `%d` shop offers have been added.", addedCount);
+			logQueuer.infoQueue(log, "## Added new gear shop offers\nA total of `%d` shop offers have been added.", addedCount);
 		}
 	}
 
@@ -162,7 +163,10 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 						.append(today.plus(1, ChronoUnit.DAYS).getEpochSecond())
 						.append(":R>)");
 
-					discordBot.sendPrivateMessageWithAttachment(notification.getAccount().getDiscordId(), messageBuilder.toString(), "shop_offer_gear.png", gearImageStream);
+					discordBot.sendPrivateMessage(
+						notification.getAccount().getDiscordId(),
+						messageBuilder.toString(),
+						List.of(Attachment.fromStream("shop_offer_gear.png", gearImageStream)));
 				} catch (Exception e) {
 					exceptionLogger.logExceptionAsAttachment(log, "Exception occurred while sending Shop Offer Notification", e);
 				}

@@ -9,7 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.S3GTokenRefresher;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ConfigFileConnector;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,7 +64,7 @@ public class S3S3sRunner {
 				if (!gTokenRefresher.refreshGToken(rt, configFileLocation, completeCommand)) {
 					logger.warn("Did not work..");
 					if (lastSuccessfulAttempt.isBefore(Instant.now().minus(3, ChronoUnit.HOURS))) {
-						logSender.sendLogs(logger, "Exception while executing s3s process!! Result wasn't 0 for at least three hours now!");
+						logSender.info(logger, "Exception while executing s3s process!! Result wasn't 0 for at least three hours now!");
 					}
 
 					results.put(token, false);
@@ -86,7 +86,7 @@ public class S3S3sRunner {
 					try {
 						Files.createDirectories(directory);
 					} catch (IOException e) {
-						logSender.sendLogs(logger, String.format("Could not create game directory!! %s", directory));
+						logSender.info(logger, String.format("Could not create game directory!! %s", directory));
 						continue;
 					}
 				}
@@ -100,7 +100,7 @@ public class S3S3sRunner {
 						logger.info(String.format("Moving directory %s", dir));
 						Files.move(new File(dir).toPath(), directory.resolve(dir), StandardCopyOption.REPLACE_EXISTING);
 					} catch (IOException e) {
-						logSender.sendLogs(logger, String.format("could not move directory %s", dir));
+						logSender.info(logger, String.format("could not move directory %s", dir));
 						logger.error(e);
 					}
 				}

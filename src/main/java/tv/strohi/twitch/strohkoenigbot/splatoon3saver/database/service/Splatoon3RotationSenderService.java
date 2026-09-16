@@ -8,6 +8,8 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ModeFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.RuleFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.Splatoon3Stage;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsRotation;
@@ -19,8 +21,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsModeDiscordChannelRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationSlotRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import javax.transaction.Transactional;
@@ -36,6 +37,7 @@ import java.util.stream.Stream;
 public class Splatoon3RotationSenderService {
 	private final DiscordBot discordBot;
 	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 
 	private final Splatoon3VsModeDiscordChannelRepository vsModeDiscordChannelRepository;
@@ -52,7 +54,7 @@ public class Splatoon3RotationSenderService {
 		var timeNextDay = getSlotStartTime(now.plus(24, ChronoUnit.HOURS));
 
 		if (sendToAdmin) {
-			logSender.queueLogs(log, "Splatoon3RotationSenderService: Rotations should be sent to discord admin!");
+			logQueuer.infoQueue(log, "Splatoon3RotationSenderService: Rotations should be sent to discord admin!");
 		}
 
 		vsModeDiscordChannelRepository.findAll().forEach(channel ->
@@ -60,9 +62,7 @@ public class Splatoon3RotationSenderService {
 				.filter(slot -> slot.getRotation().getMode().equals(channel.getMode()))
 				.filter(slot -> force || Math.abs(slot.getStartTime().getEpochSecond() - Instant.now().getEpochSecond()) <= 300)
 				.forEach(slot -> {
-					if (logSender.areDebugLogsActivated()) {
-						logSender.sendLogs(log, "Reached `sendRotationToDiscord` caller in `Splatoon3RotationSenderService");
-					}
+					logSender.sendOnDebug(log, "Reached `sendRotationToDiscord` caller in `Splatoon3RotationSenderService");
 
 					if (sendToAdmin) {
 						sendVsRotationToDiscordPrivateMessage(slot.getRotation());
@@ -109,9 +109,9 @@ public class Splatoon3RotationSenderService {
 
 	private void sendVsRotationToDiscordPrivateMessage(Splatoon3VsRotation rotation) {
 		if (rotation.getEventRegulation() == null) {
-			sendRegularRotationToDiscordPrivateMessage(DiscordBot.ADMIN_ID, rotation);
+			discordBot.getAdminIds().forEach(id -> sendRegularRotationToDiscordPrivateMessage(id, rotation));
 		} else {
-			sendChallengeRotationToDiscordPrivateMessage(DiscordBot.ADMIN_ID, rotation);
+			discordBot.getAdminIds().forEach(id -> sendChallengeRotationToDiscordPrivateMessage(id, rotation));
 		}
 	}
 
@@ -317,9 +317,9 @@ public class Splatoon3RotationSenderService {
 				.append(rotation.getEndTime().getEpochSecond())
 				.append(":R>)");
 
-			discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, String.format("# Raw Text of StringBuilder in `sendValuableSrRotationToDiscord`\n```\n%s\n```", builder));
+			logQueuer.infoQueue(log, String.format("# Raw Text of StringBuilder in `sendValuableSrRotationToDiscord`\n```\n%s\n```", builder));
+			logQueuer.infoQueue(log, builder.toString());
 
-			logSender.queueLogsNoFormat(log, builder.toString());
 			discordBot.sendServerMessageWithImageUrls(channelName, builder.toString(), rotation.getStage().getImage().getUrl());
 //			discordBot.sendPrivateMessageWithAttachment(DiscordBot.ADMIN_ID, builder.toString(), "current-salmon-stage.png", rotation.getStage().getImage().getUrl());
 		}

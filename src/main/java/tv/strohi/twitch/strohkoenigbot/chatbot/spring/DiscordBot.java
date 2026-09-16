@@ -5,7 +5,6 @@ import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.GuildChannel;
 import discord4j.core.object.entity.channel.MessageChannel;
@@ -13,55 +12,84 @@ import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
-import discord4j.core.spec.MessageCreateSpec;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ConnectionAccepted;
-import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
-import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.DiscordChannelMessageConsumer;
-import tv.strohi.twitch.strohkoenigbot.chatbot.consumer.DiscordPrivateMessageConsumer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Attachment;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.DiscordMessageEvent;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
-import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
-public class DiscordBot implements ScheduledService {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+@Log4j2
+public class DiscordBot {
+	private final ApplicationEventPublisher eventPublisher;
 
 	private final ConfigurationRepository configurationRepository;
 	private final AccountRepository accountRepository;
-	private final List<IChatAction> botActions = new ArrayList<>();
 
-	public static final long ADMIN_ID = 256536949756657664L;
+	private List<Long> adminIds = null;
+
+	public List<Long> getAdminIds() {
+		if (adminIds == null) {
+			var allAdminConfigs = configurationRepository.findAllByConfigName("DiscordBot_admin")
+				.stream()
+				.map(Configuration::getConfigValue)
+				.collect(Collectors.toList());
+
+			if (allAdminConfigs.isEmpty()) {
+				allAdminConfigs = Stream.of(
+						configurationRepository.save(Configuration.builder()
+							.configName("DiscordBot_admin")
+							.configValue("strohkoenig")
+							.build())
+					)
+					.map(Configuration::getConfigValue)
+					.collect(Collectors.toList());
+			}
+
+			var mutableAdminIds = new HashSet<Long>();
+
+			for (var admin : allAdminConfigs) {
+				if (admin.matches("^[0-9]+$") && searchUsername(Long.parseLong(admin)).isPresent()) {
+					mutableAdminIds.add(Long.parseLong(admin));
+				} else {
+					searchUserId(admin).ifPresent(mutableAdminIds::add);
+				}
+			}
+
+			if (!mutableAdminIds.isEmpty()) {
+				adminIds = List.copyOf(mutableAdminIds);
+			}
+		}
+
+		return adminIds;
+	}
+
+	public boolean isAdminAccount(String adminId) {
+		return getAdminIds().stream().anyMatch(id -> Objects.equals(String.format("%d", id), adminId));
+	}
 
 	private GatewayDiscordClient gateway = null;
-
-	private final Queue<QueuedMessage> queuedMessages = new LinkedList<>();
-
-	@Autowired
-	public void setBotActions(List<IChatAction> botActions) {
-		this.botActions.clear();
-		this.botActions.addAll(botActions);
-	}
 
 	private ResourcesDownloader resourcesDownloader;
 
@@ -70,36 +98,31 @@ public class DiscordBot implements ScheduledService {
 		this.resourcesDownloader = resourcesDownloader;
 	}
 
-	private final List<ConnectionAccepted> subscribers = new ArrayList<>();
-
-	public void subscribe(ConnectionAccepted callback) {
-		subscribers.add(callback);
-	}
-
 	private GatewayDiscordClient getGateway() {
-		List<Configuration> tokens = configurationRepository.findAllByConfigName("discordToken");
+		var tokens = configurationRepository.findAllByConfigName("discordToken");
 		if (gateway == null && !tokens.isEmpty()) {
-			DiscordClient client = DiscordClient.create(tokens.get(0).getConfigValue());
+			var client = DiscordClient.create(tokens.get(0).getConfigValue());
 			gateway = client.login().retry(5).block();
 
 			if (gateway != null) {
-				gateway.on(MessageCreateEvent.class).retry(5).doOnError(err -> logger.error("HARR HARR HARR DISCORD ERROR LOL", err)).subscribe(event -> {
-					final Message message = event.getMessage();
-					final MessageChannel channel = getChannelOfMessageWithRetries(message);
+				gateway.on(MessageCreateEvent.class)
+					.retry(5)
+					.doOnError(err -> log.error("HARR HARR HARR DISCORD ERROR LOL", err))
+					.subscribe(event -> {
+						final var message = event.getMessage();
+						final var channel = getChannelOfMessageWithRetries(message);
 
-					if (channel instanceof PrivateChannel) {
-						if (message.getContent().trim().toLowerCase().startsWith("yes")) {
-							event.getMessage().getAuthor().ifPresent(author ->
-								subscribers.forEach(s -> s.accept(author.getId().asLong()))
-							);
-						} else {
-							event.getMessage().getAuthor().ifPresent(author -> new DiscordPrivateMessageConsumer(botActions, this).accept(event));
-						}
-					} else if (channel instanceof TextChannel) {
-						// public channel on my discord
-						event.getMessage().getAuthor().ifPresent(author -> new DiscordChannelMessageConsumer(botActions, this, (TextChannel) channel).accept(event));
-					}
-				});
+						event
+							.getMessage()
+							.getAuthor()
+							.ifPresent(author -> eventPublisher.publishEvent(
+								new DiscordMessageEvent(
+									this,
+									event,
+									channel,
+									author,
+									adminIds.contains(author.getId().asLong()))));
+					});
 			}
 		}
 
@@ -114,15 +137,15 @@ public class DiscordBot implements ScheduledService {
 		while (attempts++ < 10 && channel == null) {
 			try {
 				if (attempts > 1) {
-					logger.info("attempt number {}", attempts);
+					log.info("attempt number {}", attempts);
 				}
 				channel = message.getChannel().retry(5).block();
 			} catch (Exception ex) {
 				lastException = ex;
 
-				logger.error("SOMETHING WENT WRONG WTF???");
-				logger.error(message);
-				logger.error(ex);
+				log.error("SOMETHING WENT WRONG WTF???");
+				log.error(message);
+				log.error(ex);
 
 				try {
 					Thread.sleep(50);
@@ -136,75 +159,78 @@ public class DiscordBot implements ScheduledService {
 		return channel;
 	}
 
-	public Long loadUserIdFromDiscordServer(String username) {
-		// TODO needs to be rewritten for the new username system!
+	public List<Long> searchServerChannelIds(String channelName) {
 		if (getGateway() == null) {
-			return null;
+			return List.of();
 		}
 
-		Long result = null;
-
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
-			List<Member> allMembersOfAllServers = guilds.stream()
-				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
+			return guilds.stream()
+				.map(g -> g.getChannels().retry(5).collectList().block())
+				.filter(Objects::nonNull)
+				.flatMap(Collection::stream)
+				.filter(c -> c instanceof TextChannel)
+				.map(c -> (TextChannel) c)
+				.filter(c -> c.getName().equals(channelName))
+				.map(c -> c.getId().asLong())
 				.collect(Collectors.toList());
-
-			result = allMembersOfAllServers.stream()
-				.filter(m -> String.format("%s#%s", m.getMemberData().user().username(), m.getMemberData().user().discriminator()).equals(username))
-				.map(m -> m.getId().asLong())
-				.findFirst()
-				.orElse(null);
 		}
 
-		return result;
+		return List.of();
 	}
 
-	public String loadUserNameFromServer(long id) {
+	public Optional<Long> searchUserId(String username) {
 		if (getGateway() == null) {
-			return null;
+			return Optional.empty();
 		}
 
-		String result = null;
-
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
-			List<Member> allMembersOfAllServers = guilds.stream()
+			var allMembersOfAllServers = guilds.stream()
 				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 				.collect(Collectors.toList());
 
-			result = allMembersOfAllServers.stream()
-				.filter(m -> m.getId().asLong() == id)
-				.map(m -> String.format("%s#%s", m.getMemberData().user().username(), m.getMemberData().user().discriminator()))
-				.findFirst()
-				.orElse(null);
+			return allMembersOfAllServers.stream()
+				.filter(m ->
+					(m.getMemberData().user().username().equals(username) && (m.getMemberData().user().discriminator().equals("0") || m.getMemberData().user().discriminator().isBlank()))
+						|| String.format("%s#0", m.getMemberData().user().username()).equals(username)
+						|| String.format("%s#%s", m.getMemberData().user().username(), m.getMemberData().user().discriminator()).equals(username))
+				.map(m -> m.getId().asLong())
+				.findFirst();
 		}
 
-		return result;
+		return Optional.empty();
+	}
+
+	public Optional<String> searchUsername(long id) {
+		if (getGateway() == null) {
+			return Optional.empty();
+		}
+
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
+		if (guilds != null && !guilds.isEmpty()) {
+			var allMembersOfAllServers = guilds.stream()
+				.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
+				.collect(Collectors.toList());
+
+			return allMembersOfAllServers.stream()
+				.filter(m -> m.getId().asLong() == id)
+				.map(m -> {
+					if (m.getMemberData().user().discriminator().isBlank() || m.getMemberData().user().discriminator().equals("0")) {
+						return m.getMemberData().user().username();
+					} else {
+						return String.format("%s#%s", m.getMemberData().user().username(), m.getMemberData().user().discriminator());
+					}
+				})
+				.findFirst();
+		}
+
+		return Optional.empty();
 	}
 
 	public boolean sendServerMessageWithImageUrls(String channelName, String message, String... imageUrls) {
 		return sendServerMessageWithImageUrls(channelName, message, true, imageUrls);
-	}
-
-	public void queueServerMessageWithImageUrls(String channelName, String message, String... imageUrls) {
-		queuedMessages.add(QueuedMessage.builder()
-			.channelName(channelName)
-			.message(message)
-			.imageUrls(imageUrls)
-			.build());
-	}
-
-	private void sendQueuedServerMessagesWithImageUrls() {
-		while (!queuedMessages.isEmpty()) {
-			var nextMessage = queuedMessages.remove();
-
-			if (nextMessage.channelName != null) {
-				sendServerMessageWithImageUrls(nextMessage.channelName, nextMessage.message, nextMessage.imageUrls);
-			} else if (nextMessage.userId != null) {
-				sendPrivateMessageWithImageUrls(nextMessage.userId, nextMessage.message, nextMessage.imageUrls);
-			}
-		}
 	}
 
 	public boolean sendServerMessageWithImageUrls(String channelName, String message, boolean storeOnLocalDrive, String... imageUrls) {
@@ -216,15 +242,15 @@ public class DiscordBot implements ScheduledService {
 			message = "ERROR: Message was NULL!";
 		}
 
-		boolean result = false;
+		var result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
-			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
+			var allChannelsOfAllServers = guilds.stream()
 				.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 				.collect(Collectors.toList());
 
-			List<TextChannel> allChannels = allChannelsOfAllServers.stream()
+			var allChannels = allChannelsOfAllServers.stream()
 				.filter(c -> c.getName().equals(channelName))
 				.filter(c -> c instanceof TextChannel)
 				.map(c -> (TextChannel) c)
@@ -233,7 +259,7 @@ public class DiscordBot implements ScheduledService {
 			for (TextChannel channel : allChannels) {
 				if (channel != null) {
 					result = sendMessage(channel, message, storeOnLocalDrive, imageUrls);
-					logger.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
+					log.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
 				}
 			}
 		}
@@ -252,7 +278,7 @@ public class DiscordBot implements ScheduledService {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 				.flatMap(g -> Optional.ofNullable(g.getChannels().retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
@@ -267,7 +293,7 @@ public class DiscordBot implements ScheduledService {
 			for (TextChannel channel : allChannels) {
 				if (channel != null) {
 					result = sendMessage(channel, message, images);
-					logger.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
+					log.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
 				}
 			}
 		}
@@ -286,7 +312,7 @@ public class DiscordBot implements ScheduledService {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 				.filter(g -> g.getId().asLong() == guildId)
@@ -302,7 +328,7 @@ public class DiscordBot implements ScheduledService {
 			for (TextChannel channel : allChannels) {
 				if (channel != null) {
 					result = sendMessage(channel, message, imageUrls);
-					logger.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
+					log.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
 				}
 			}
 		}
@@ -321,7 +347,7 @@ public class DiscordBot implements ScheduledService {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
 			List<GuildChannel> allChannelsOfAllServers = guilds.stream()
 				.filter(g -> g.getId().asLong() == guildId)
@@ -337,20 +363,12 @@ public class DiscordBot implements ScheduledService {
 			for (TextChannel channel : allChannels) {
 				if (channel != null) {
 					result = sendMessage(channel, message, imageUrls);
-					logger.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
+					log.info("sent message to server channel '{}': message: '{}'", channel.getName(), message);
 				}
 			}
 		}
 
 		return result;
-	}
-
-	public void queuePrivateMessageWithImageUrls(Long userId, String message, String... imageUrls) {
-		queuedMessages.add(QueuedMessage.builder()
-			.userId(userId)
-			.message(message)
-			.imageUrls(imageUrls)
-			.build());
 	}
 
 	public boolean sendPrivateMessageWithImageUrls(Long userId, String message, String... imageUrls) {
@@ -360,33 +378,12 @@ public class DiscordBot implements ScheduledService {
 
 		boolean result = false;
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
-			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
-
+			var channel = getPrivateChannelForUserInGuild(userId, guilds);
 			if (channel != null) {
 				result = sendMessage(channel, message, imageUrls);
-				logger.info("sent message to server channel '{}': message: '{}'", userId, message);
-			}
-		}
-
-		return result;
-	}
-
-	public boolean sendPrivateMessageWithImages(Long userId, String message, BufferedImage... imageUrls) {
-		if (userId == null || getGateway() == null) {
-			return false;
-		}
-
-		boolean result = false;
-
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-		if (guilds != null && !guilds.isEmpty()) {
-			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
-
-			if (channel != null) {
-				result = sendMessage(channel, message, imageUrls);
-				logger.info("sent message to server channel '{}': message: '{}'", userId, message);
+				log.info("sent message to server channel '{}': message: '{}'", userId, message);
 			}
 		}
 
@@ -398,33 +395,30 @@ public class DiscordBot implements ScheduledService {
 	}
 
 	private boolean sendMessage(MessageChannel channel, String message, boolean storeOnLocalDrive, String... imageUrls) {
-		List<Tuple<String, InputStream>> streams = new ArrayList<>();
+		var streams = new ArrayList<Attachment>();
 
-		for (String imageUrlFullPath : imageUrls) {
+		for (var imageUrlFullPath : imageUrls) {
 			try {
 				if (storeOnLocalDrive) {
-					String imageLocationString = resourcesDownloader.ensureExistsLocally(imageUrlFullPath);
-					String path = Paths.get(imageLocationString).toString();
-					String idStr = Paths.get(path).getFileName().toString();
+					var imageLocationString = resourcesDownloader.ensureExistsLocally(imageUrlFullPath);
+					var path = Paths.get(imageLocationString).toString();
+					var idStr = Paths.get(path).getFileName().toString();
 
-					Tuple<String, InputStream> filenameWithInputStream;
 					if (imageLocationString.startsWith("https://")) {
 						URL url = new URL(imageLocationString);
-						filenameWithInputStream = new Tuple<>(idStr, url.openStream());
+						streams.add(Attachment.fromStream(idStr, url.openStream()));
 					} else {
-						filenameWithInputStream = new Tuple<>(idStr, new FileInputStream(Paths.get(System.getProperty("user.dir"), path).toString()));
+						streams.add(Attachment.fromFile(Paths.get(System.getProperty("user.dir"), path).toString()));
 					}
-
-					streams.add(filenameWithInputStream);
 				} else {
-					String path = Paths.get(imageUrlFullPath).toString();
-					String idStr = Paths.get(path).getFileName().toString();
-					URL url = new URL(imageUrlFullPath);
+					var path = Paths.get(imageUrlFullPath).toString();
+					var idStr = Paths.get(path).getFileName().toString();
+					var url = new URL(imageUrlFullPath);
 
-					streams.add(new Tuple<>(idStr, url.openStream()));
+					streams.add(Attachment.fromStream(idStr, url.openStream()));
 				}
 			} catch (IOException e) {
-				logger.error(e);
+				log.error(e);
 			}
 		}
 
@@ -432,25 +426,32 @@ public class DiscordBot implements ScheduledService {
 	}
 
 	private boolean sendMessage(MessageChannel channel, String message, BufferedImage... images) {
-		var tuples = new ArrayList<Tuple<String, InputStream>>();
+		var tuples = new ArrayList<Attachment>();
 
 		int i = 0;
 		for (var image : images) {
 			try {
-				ByteArrayOutputStream os = new ByteArrayOutputStream();
+				var os = new ByteArrayOutputStream();
 				ImageIO.write(image, "png", os);
-				InputStream is = new ByteArrayInputStream(os.toByteArray());
+				var is = new ByteArrayInputStream(os.toByteArray());
 
-				tuples.add(new Tuple<>(String.format("%d.png", i), is));
+				tuples.add(Attachment.builder()
+					.name(String.format("%d.png", i))
+					.content(new String(is.readAllBytes()))
+					.build());
 			} catch (IOException ex) {
-				logger.error(ex);
+				log.error(ex);
 			}
 		}
 
 		return sendMessage(channel, message, new ArrayList<>(tuples));
 	}
 
-	private boolean sendMessage(MessageChannel channel, String message, List<Tuple<String, InputStream>> imageUrls) {
+	private boolean sendMessage(MessageChannel channel, String message, List<Attachment> attachments) {
+		return sendMessage(channel, message, null, attachments);
+	}
+
+	private boolean sendMessage(MessageChannel channel, String message, Snowflake reference, List<Attachment> attachments) {
 		var success = true;
 		var messageBlocks = Arrays.stream(message.split("\n"))
 			.collect(Collectors.toCollection(ArrayList::new));
@@ -480,18 +481,32 @@ public class DiscordBot implements ScheduledService {
 
 			var createMono = channel.createMessage(messageBlock.substring(0, Math.min(messageBlock.length(), 2000)));
 
+			if (i == 0 && reference != null) {
+				createMono = createMono.withMessageReference(reference);
+			}
+
 			if (i == messageBlocks.size() - 1) {
-				var streams = new ArrayList<>(imageUrls);
+				var streams = new ArrayList<>(attachments);
 
 				createMono = createMono.withFiles(
 					streams.stream()
-						.map(s -> MessageCreateFields.File.of(s.x, s.y))
+						.map(s -> MessageCreateFields.File.of(s.getName(), s.openStream()))
 						.collect(Collectors.toList())
 				);
 			}
 
-			var msg = createMono.retry(5).block();
-			logger.info("sent message to server channel '{}': messageBlock: '{}'", channel.getId().asLong(), messageBlock);
+			var msg = createMono
+				.retry(5)
+				.doOnError(e -> {
+					log.error(e);
+					accountRepository.findAll().stream()
+						.filter(Account::getIsMainAccount)
+						.findFirst()
+						.ifPresent(account -> sendPrivateMessage(account.getDiscordId(), String.format("# Error when sending a discord message\n```\n%s\n```", e.getMessage())));
+				})
+				.block();
+
+			log.info("sent message to channel with id '{}': messageBlock: '{}'", channel.getId().asLong(), messageBlock);
 			success &= msg != null;
 		}
 
@@ -499,7 +514,7 @@ public class DiscordBot implements ScheduledService {
 	}
 
 	private PrivateChannel getPrivateChannelForUserInGuild(Long userId, List<Guild> guilds) {
-		List<Member> allMembersOfAllServers = guilds.stream()
+		var allMembersOfAllServers = guilds.stream()
 			.flatMap(g -> Optional.ofNullable(g.getMembers(EntityRetrievalStrategy.REST).retry(5).collectList().block()).orElse(new ArrayList<>()).stream())
 			.collect(Collectors.toList());
 
@@ -518,106 +533,53 @@ public class DiscordBot implements ScheduledService {
 	}
 
 	public boolean sendPrivateMessage(Long userId, String message) {
+		return sendPrivateMessage(userId, message, List.of());
+	}
+
+	public boolean sendPrivateMessage(Long userId, String message, List<Attachment> attachments) {
 		if (userId == null || getGateway() == null) {
 			return false;
 		}
 
-		var messagesToSend = new ArrayList<String>();
-
-		if (message.length() < 2000) {
-			messagesToSend.add(message);
-		} else {
-			var splitMessages = message.split("\n");
-			var messageToAdd = new StringBuilder();
-
-			for (String splitMessage : splitMessages) {
-				if (messageToAdd.length() + "\n".length() + splitMessage.length() >= 2000) {
-					messagesToSend.add(messageToAdd.toString());
-					messageToAdd = new StringBuilder(splitMessage);
-				} else {
-					messageToAdd.append("\n").append(splitMessage);
-				}
-			}
-
-			if (messageToAdd.length() > 0) {
-				messagesToSend.add(messageToAdd.toString());
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
+		if (guilds != null && !guilds.isEmpty()) {
+			var channel = getPrivateChannelForUserInGuild(userId, guilds);
+			if (channel != null) {
+				return sendMessage(channel, message, attachments);
 			}
 		}
 
-		for (var singleMessage : messagesToSend) {
-			boolean result = false;
-
-			List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
-			if (guilds != null && !guilds.isEmpty()) {
-				PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
-				if (channel != null) {
-					Message msg = channel.createMessage(singleMessage)
-//						.withEmbeds(EmbedCreateSpec.builder().title("Thomas").description("<html><body><h1>marco-fuchs.de - NOCH IM BAU</h1></body></html>").build())
-						.retry(5).onErrorResume(e -> Mono.empty()).block();
-					result = msg != null;
-					logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), singleMessage);
-				}
-			}
-
-			if (!result) {
-				return false;
-			}
-		}
-
-		return true;
+		return false;
 	}
 
-	public void sendPrivateMessageWithAttachment(Long userId, String message, String fileName, InputStream content) {
-		if (userId == null || getGateway() == null) {
-			return;
+	private Optional<TextChannel> getServerChannelInGuilds(Long channelId, List<Guild> guilds) {
+		return guilds.stream()
+			.map(g -> g.getChannels().retry(5).collectList().block())
+			.filter(Objects::nonNull)
+			.flatMap(Collection::stream)
+			.filter(c -> c instanceof TextChannel)
+			.map(c -> (TextChannel) c)
+			.filter(c -> Objects.equals(c.getId().asLong(), channelId))
+			.findFirst();
+	}
+
+	public boolean sendServerMessage(Long channelId, String message, List<Attachment> attachments) {
+		if (channelId == null || getGateway() == null) {
+			return false;
 		}
 
-		List<Guild> guilds = getGateway().getGuilds().collectList().retry(5).block();
+		var guilds = getGateway().getGuilds().collectList().retry(5).onErrorResume(e -> Mono.empty()).block();
 		if (guilds != null && !guilds.isEmpty()) {
-			PrivateChannel channel = getPrivateChannelForUserInGuild(userId, guilds);
-			if (channel != null) {
-				channel.createMessage(message).withFiles(MessageCreateFields.File.of(fileName, content)).retry(5).onErrorResume(e -> Mono.empty()).block();
-				logger.info("sent message to server channel '{}': message: '{}'", channel.getId().asLong(), message);
-			}
+			return getServerChannelInGuilds(channelId, guilds)
+				.map(channel -> sendMessage(channel, message, attachments))
+				.orElse(false);
 		}
+
+		return false;
 	}
 
 	public void reply(String message, TextChannel channel, Snowflake reference) {
-		channel.createMessage(MessageCreateSpec.create().withMessageReference(reference).withContent(message))
-			.retry(5)
-			.doOnError(e -> {
-				logger.error(e);
-				accountRepository.findAll().stream()
-					.filter(Account::getIsMainAccount)
-					.findFirst()
-					.ifPresent(account -> sendPrivateMessage(account.getDiscordId(), String.format("**Error when sending a discord message**! %s", e.getMessage())));
-			})
-			.onErrorResume(e -> Mono.empty())
-			.block();
-	}
-
-	private static class Tuple<X, Y> {
-		public final X x;
-		public final Y y;
-
-		public Tuple(X x, Y y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
-
-	@Override
-	public List<ScheduleRequest> createScheduleRequests() {
-		return List.of(ScheduleRequest.builder()
-			.name("DiscordBot_sendQueuedServerMessagesWithImageUrls")
-			.schedule(TickSchedule.getScheduleString(1))
-			.runnable(this::sendQueuedServerMessagesWithImageUrls)
-			.build());
-	}
-
-	@Override
-	public List<ScheduleRequest> createSingleRunRequests() {
-		return List.of();
+		sendMessage(channel, message, reference, List.of());
 	}
 
 	@Builder

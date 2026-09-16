@@ -9,7 +9,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.authentication.DefaultUserAgentRetriever;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.model.CookieRefreshException;
 
@@ -43,7 +43,7 @@ public class RequestSender {
 				defaultUserAgentConfigs.setConfigValue(loadedUserAgent);
 
 				configurationRepository.save(defaultUserAgentConfigs);
-				logSender.sendLogs(logger, String.format("Saved newest DefaultUserAgent: `%s`", loadedUserAgent));
+				logSender.info(logger, String.format("Saved newest DefaultUserAgent: `%s`", loadedUserAgent));
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype;
 
 import lombok.extern.log4j.Log4j2;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 
 @Log4j2
 public abstract class ChatAction implements IChatAction {

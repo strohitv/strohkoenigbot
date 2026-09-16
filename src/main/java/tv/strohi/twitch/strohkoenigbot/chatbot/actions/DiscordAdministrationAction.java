@@ -9,13 +9,14 @@ import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.StrohkoenigbotApplication;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchSoAccount;
@@ -29,8 +30,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.ResultsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.results.StatsExporter;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.DailyStatsSender;
@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Log4j2
 public class DiscordAdministrationAction extends ChatAction {
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 	private final StrohkoenigbotApplication strohkoenigbotApplication;
 
@@ -113,7 +113,7 @@ public class DiscordAdministrationAction extends ChatAction {
 	@Override
 	protected void execute(ActionArgs args) {
 		var message = (String) args.getArguments().getOrDefault(ArgumentKey.Message, null);
-		if (message == null || !Long.toString(DiscordBot.ADMIN_ID).equals(args.getUserId())) {
+		if (message == null || !args.isAdmin()) {
 			return;
 		}
 
@@ -404,7 +404,7 @@ public class DiscordAdministrationAction extends ChatAction {
 					builder.append("\n\nList of all users:");
 
 					for (Account account : allUsers) {
-						builder.append("\n- id: **").append(account.getId()).append("** - name: **").append(discordBot.loadUserNameFromServer(account.getDiscordId())).append("**");
+						builder.append("\n- id: **").append(account.getId()).append("** - name: **").append(discordBot.searchUsername(account.getDiscordId())).append("**");
 					}
 				}
 
@@ -633,7 +633,7 @@ public class DiscordAdministrationAction extends ChatAction {
 					var top = Integer.parseInt(split[2]);
 					var skip = Integer.parseInt(split[3]);
 
-					s3GameExporter.exportGames(DiscordBot.ADMIN_ID, top, skip);
+					discordBot.getAdminIds().forEach(id -> s3GameExporter.exportGames(id, top, skip));
 				} catch (Exception ex) {
 					exceptionLogger.logExceptionAsAttachment(log, "Exception while exporting Games.", ex);
 				}
@@ -745,7 +745,7 @@ public class DiscordAdministrationAction extends ChatAction {
 				var allReplayCodes = message.substring("!replay reset".length()).trim().split("\\s+");
 
 				for (var replayCode : allReplayCodes) {
-					logSender.queueLogs(log, "Attempting to reset mmrLoadFailed field of replayCode `%s`...", replayCode);
+					logQueuer.infoQueue(log, "Attempting to reset mmrLoadFailed field of replayCode `%s`...", replayCode);
 
 					resultRepository.findByReplayCodeAndMmrLoadFailedTrue(replayCode)
 						.ifPresent(r -> {
@@ -753,14 +753,14 @@ public class DiscordAdministrationAction extends ChatAction {
 								.mmrLoadFailed(false)
 								.build());
 
-							logSender.queueLogs(log, "ReplayCode `%s` had its mmrLoadFailed field reset", replayCode);
+							logQueuer.infoQueue(log, "ReplayCode `%s` had its mmrLoadFailed field reset", replayCode);
 						});
 				}
 			} else if (lowercaseMessage.startsWith("!replay code remove")) {
 				var allReplayCodes = message.substring("!replay code remove".length()).trim().split("\\s+");
 
 				for (var replayCode : allReplayCodes) {
-					logSender.queueLogs(log, "Attempting to remove replay code `%s` from its result (only works for failed replay codes)...", replayCode);
+					logQueuer.infoQueue(log, "Attempting to remove replay code `%s` from its result (only works for failed replay codes)...", replayCode);
 
 					resultRepository.findByReplayCodeAndMmrLoadFailedTrue(replayCode)
 						.ifPresent(r -> {
@@ -769,7 +769,7 @@ public class DiscordAdministrationAction extends ChatAction {
 								.replayCode(null)
 								.build());
 
-							logSender.queueLogs(log, "ReplayCode `%s` was removed from its result", replayCode);
+							logQueuer.infoQueue(log, "ReplayCode `%s` was removed from its result", replayCode);
 						});
 				}
 			} else if (lowercaseMessage.startsWith("!replays failed")) {
@@ -787,19 +787,19 @@ public class DiscordAdministrationAction extends ChatAction {
 						.reduce((a, b) -> String.format("%s %s", a, b))
 						.orElse(null);
 
-					logSender.queueLogs(log, "# Replay Codes marked with Error flag\n%s\nUse this command:\n```\n!replay reset %s\n```", replayCodeList, replayCodeCommand);
+					logQueuer.infoQueue(log, "# Replay Codes marked with Error flag\n%s\nUse this command:\n```\n!replay reset %s\n```", replayCodeList, replayCodeCommand);
 				}
 
-				logSender.queueLogs(log, "Error codes were sent");
+				logQueuer.infoQueue(log, "Error codes were sent");
 			} else if (lowercaseMessage.startsWith("!replays download")) {
 				replayCodeLoader.downloadReplays();
 			} else if (lowercaseMessage.startsWith("!jobs print")) {
 				var previousJobs = schedulingService.getLastRanJobs();
-				logSender.sendLogs(log, "# Last ran jobs\n- %s", previousJobs.stream()
+				logQueuer.infoQueue(log, "# Last ran jobs\n- %s", previousJobs.stream()
 					.reduce((a, b) -> String.format("%s\n- %s", a, b))
 					.orElse("**!!!NONE!!!**"));
 			} else if (lowercaseMessage.startsWith("!offers upload")) {
-				logSender.queueLogs(log, "adding uploaded file to shop offers queue");
+				logQueuer.infoQueue(log, "adding uploaded file to shop offers queue");
 
 				var attachments = List.<Attachment>of();
 				var event = args.getArguments().getOrDefault(ArgumentKey.Event, null);
@@ -816,7 +816,7 @@ public class DiscordAdministrationAction extends ChatAction {
 					}
 				}
 
-				logSender.queueLogs(log, "finished adding uploaded file to shop offers queue");
+				logQueuer.infoQueue(log, "finished adding uploaded file to shop offers queue");
 			}
 		} catch (Exception e) {
 			exceptionLogger.logExceptionAsAttachment(log, "An error occurred during admin command execution\nSee logs for details!", e);

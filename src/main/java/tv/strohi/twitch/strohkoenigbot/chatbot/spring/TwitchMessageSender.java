@@ -3,7 +3,6 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.spring;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 
 @Component
 public class TwitchMessageSender {

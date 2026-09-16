@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3TokenRefresher;
@@ -27,7 +29,7 @@ public class S3RequestSender {
 	public static final String SPLATNET_3_MAX_RETRIES_CONFIG_NAME = "SplatNet3MaxRetryCount";
 	private static final int SPLATNET_3_DEFAULT_MAX_RETRIES = 3;
 
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final ImageService imageService;
@@ -75,7 +77,7 @@ public class S3RequestSender {
 				} else {
 					var sleepTime = 5000;
 					if (response.statusCode() == 401) {
-						logSender.queueLogs(logger, "Reset token duration because a 401 error was received.");
+						logQueuer.infoQueue(logger, "Reset token duration because a 401 error was received.");
 
 						var tokenExpirationConfig = configurationRepository.findByConfigName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME)
 							.orElse(Configuration.builder().configName(S3TokenRefresher.SPLATNET_3_TOKEN_EXPIRATION_CONFIG_NAME).configValue(String.format("%d", Instant.now().getEpochSecond())).build());
@@ -85,7 +87,7 @@ public class S3RequestSender {
 						return null;
 					} else if (response.statusCode() < 500) {
 //						logSender.queueLogs();(logger, String.format("Request could not be fulfilled.\nRequest:\n```\n%s\n```", serializeRequest(request)));
-						logSender.queueLogs(logger, String.format("Request could not be fulfilled.\nResponse:\n```\n%s\n```", serializeResponse(response)));
+						logQueuer.infoQueue(logger, String.format("Request could not be fulfilled.\nResponse:\n```\n%s\n```", serializeResponse(response)));
 						sleepTime *= 3;
 					}
 
@@ -96,7 +98,7 @@ public class S3RequestSender {
 				}
 			} catch (IOException | InterruptedException e) {
 				if (e instanceof IOException && e.getCause() != null && e.getCause() instanceof CookieRefreshException) {
-					logSender.queueLogs(logger, "The cookie for account wasn't valid anymore and no session token has been set!");
+					logQueuer.infoQueue(logger, "The cookie for account wasn't valid anymore and no session token has been set!");
 
 					return null;
 				} else {
@@ -114,7 +116,7 @@ public class S3RequestSender {
 			}
 		}
 
-		logSender.queueLogs(logger, String.format("S3RequestSender failed %d times in a row.", maxRetries));
+		logQueuer.infoQueue(logger, String.format("S3RequestSender failed %d times in a row.", maxRetries));
 		return null;
 	}
 

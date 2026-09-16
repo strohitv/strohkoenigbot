@@ -11,7 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrBossResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
@@ -34,7 +34,7 @@ public class S3SrMigrator implements ScheduledService {
 		var config = configurationRepository.findByConfigName("S3SrMigrator_success").isPresent();
 
 		if (!config) {
-			logSender.sendLogs(log, "Attempting to migrate all boss results into a dedicated table...");
+			logSender.info(log, "Attempting to migrate all boss results into a dedicated table...");
 
 			var count = 0;
 
@@ -75,7 +75,7 @@ public class S3SrMigrator implements ScheduledService {
 				.configValue("true")
 				.build());
 
-			logSender.sendLogs(log, String.format("Migrated %d boss results.", count));
+			logSender.info(log, String.format("Migrated %d boss results.", count));
 		}
 	}
 

@@ -9,14 +9,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.sendou.model.in.*;
 import tv.strohi.twitch.strohkoenigbot.sendou.model.out.*;
 import tv.strohi.twitch.strohkoenigbot.sendou.model.out.MapMode;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3StreamStatistics;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.model.Cached;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
@@ -44,6 +45,7 @@ public class SendouService implements ScheduledService {
 
 	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper;
+	private final LogQueuer logQueuer;
 	private final LogSender logSender;
 
 	private final AccountRepository accountRepository;
@@ -67,7 +69,7 @@ public class SendouService implements ScheduledService {
 	public Optional<SendouMatch> loadActiveMatch(Account account, @NonNull String sendouUser) {
 		callingUsers.putIfAbsent(sendouUser, Instant.MIN);
 		if (callingUsers.get(sendouUser).isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
-			logSender.queueLogs(log, "# New user is using the overlay\n- User: `%s`\n- Url: https://sendou.ink/u/%s", sendouUser, sendouUser);
+			logQueuer.infoQueue(log, "# New user is using the overlay\n- User: `%s`\n- Url: https://sendou.ink/u/%s", sendouUser, sendouUser);
 		}
 		callingUsers.put(sendouUser, Instant.now());
 

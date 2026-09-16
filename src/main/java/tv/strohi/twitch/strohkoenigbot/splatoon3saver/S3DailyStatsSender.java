@@ -6,12 +6,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
@@ -34,7 +35,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.DailyStatsSaveModel;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.S3RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
@@ -58,12 +58,15 @@ import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class S3DailyStatsSender implements ScheduledService {
 	private static final String YESTERDAY_CONFIG_NAME = "DailyStatsSender_yesterday";
 	private static final int PAGE_SIZE = 50;
 
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+	private final DiscordBot discordBot;
+	private final LogQueuer logQueuer;
 	private final LogSender logSender;
+
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 	private final Splatoon3VsWeaponRepository vsWeaponRepository;
@@ -76,7 +79,6 @@ public class S3DailyStatsSender implements ScheduledService {
 
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-	private final DiscordBot discordBot;
 	private final S3NewGearChecker newGearChecker;
 	private final S3WeaponDownloader weaponDownloader;
 	private final S3XLeaderboardDownloader xLeaderboardDownloader;
@@ -112,12 +114,12 @@ public class S3DailyStatsSender implements ScheduledService {
 		Account account = accountRepository.findByEnableSplatoon3(true).stream().findFirst().orElse(null);
 
 		if (account == null) {
-			logSender.queueLogs(logger, "No account found to post stats!");
+			logQueuer.infoQueue(log, "No account found to post stats!");
 			return;
 		}
 
 		if (force || LocalDateTime.now(ZoneId.of(account.getTimezone())).getHour() == 0) {
-			logger.info("Start posting stats to discord");
+			log.info("Start posting stats to discord");
 			String accountUUIDHash = String.format("%05d", account.getId());
 
 //			downloader.downloadBattles();
@@ -125,12 +127,12 @@ public class S3DailyStatsSender implements ScheduledService {
 			weaponDownloader.loadWeapons();
 			sendStatsToDiscord(accountUUIDHash, account);
 
-			logger.info("Done posting rotations to discord");
+			log.info("Done posting rotations to discord");
 		}
 	}
 
 	public void sendStatsToDiscord(String folderName, Account account) {
-		logger.info("Loading Splatoon 3 salmon run games for account with folder name '{}'...", folderName);
+		log.info("Loading Splatoon 3 salmon run games for account with folder name '{}'...", folderName);
 
 		var yesterdayStats = loadYesterdayStats();
 
@@ -205,7 +207,7 @@ public class S3DailyStatsSender implements ScheduledService {
 				try {
 					Files.createDirectories(directory);
 				} catch (IOException e) {
-					logSender.queueLogs(logger, String.format("Could not create account directory!! %s", directory));
+					logQueuer.infoQueue(log, String.format("Could not create account directory!! %s", directory));
 					return;
 				}
 			}
@@ -219,12 +221,12 @@ public class S3DailyStatsSender implements ScheduledService {
 					allDownloadedGames = new ConfigFile.DownloadedGameList(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
 					objectMapper.writeValue(battleOverviewFile, allDownloadedGames);
 				} else {
-					logSender.queueLogs(logger, "COULD NOT OPEN SR FILE!!!");
+					logQueuer.infoQueue(log, "COULD NOT OPEN SR FILE!!!");
 					return;
 				}
 			} catch (IOException e) {
-				logSender.queueLogs(logger, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
-				logger.error(e);
+				logQueuer.infoQueue(log, "IOEXCEPTION WHILE OPENING OR WRITING OVERVIEW FILE!!!");
+				log.error(e);
 				return;
 			}
 
@@ -317,7 +319,7 @@ public class S3DailyStatsSender implements ScheduledService {
 
 		refreshYesterdayStats(yesterdayStats);
 
-		logger.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
+		log.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
 	}
 
 	private void countMapOccurrenceStatsAndSendToDiscord(Account account) {
@@ -911,7 +913,7 @@ public class S3DailyStatsSender implements ScheduledService {
 			}
 
 			gamesPageable = games.nextPageable();
-			logger.info("sr game pageable now at {}", gamesPageable.getOffset());
+			log.info("sr game pageable now at {}", gamesPageable.getOffset());
 		}
 	}
 
@@ -1189,8 +1191,8 @@ public class S3DailyStatsSender implements ScheduledService {
 			try {
 				yesterdayStats = objectMapper.readValue(yesterdayStatsConfig.getConfigValue(), DailyStatsSaveModel.class);
 			} catch (JsonProcessingException e) {
-				logSender.queueLogs(logger, "yesterday stats parsing failed!!!");
-				logger.error(e);
+				logQueuer.infoQueue(log, "yesterday stats parsing failed!!!");
+				log.error(e);
 			}
 		}
 
@@ -1210,8 +1212,8 @@ public class S3DailyStatsSender implements ScheduledService {
 
 			configurationRepository.save(config);
 		} catch (JsonProcessingException e) {
-			logSender.queueLogs(logger, "yesterday stats saving failed!!!");
-			logger.error(e);
+			logQueuer.infoQueue(log, "yesterday stats saving failed!!!");
+			log.error(e);
 		}
 	}
 
@@ -1595,9 +1597,9 @@ public class S3DailyStatsSender implements ScheduledService {
 		String filename = directory.resolve(game.getValue().getFilename()).toAbsolutePath().toString();
 
 		try {
-			logger.info(filename);
+			log.info(filename);
 			BattleResult result = objectMapper.readValue(new File(filename), BattleResult.class);
-			logger.debug(result);
+			log.debug(result);
 
 			boolean wasToday = false;
 
@@ -1608,7 +1610,7 @@ public class S3DailyStatsSender implements ScheduledService {
 				wasToday = time.isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(1))
 					&& time.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
 			} else {
-				logSender.queueLogs(logger, "Instant from match was null?? WTH?");
+				logQueuer.infoQueue(log, "Instant from match was null?? WTH?");
 			}
 
 			for (EnemyResults enemyResult : result.getData().getCoopHistoryDetail().getEnemyResults()) {
@@ -1649,8 +1651,8 @@ public class S3DailyStatsSender implements ScheduledService {
 				}
 			}
 		} catch (IOException e) {
-			logSender.queueLogs(logger, String.format("Couldn't parse salmon run result json file '%s' OH OH", filename));
-			logger.error(e);
+			logQueuer.infoQueue(log, String.format("Couldn't parse salmon run result json file '%s' OH OH", filename));
+			log.error(e);
 		}
 	}
 
@@ -1692,9 +1694,9 @@ public class S3DailyStatsSender implements ScheduledService {
 		String filename = directory.resolve(game.getValue().getFilename()).toAbsolutePath().toString();
 
 		try {
-			logger.info(filename);
+			log.info(filename);
 			BattleResult result = objectMapper.readValue(new File(filename), BattleResult.class);
-			logger.debug(result);
+			log.debug(result);
 
 			if (result.getData().getVsHistoryDetail().getPlayer() == null) {
 				var builder = new StringBuilder("AT LEAST ONE UNEXPECTED FIELD HAS BEEN NULL!!!");
@@ -1706,7 +1708,7 @@ public class S3DailyStatsSender implements ScheduledService {
 					result.getData().getVsHistoryDetail().getPlayer().getWeapon().setName("ERROR UNKNOWN");
 				}
 
-				discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, builder.toString());
+				logSender.info(log, builder.toString());
 			}
 
 			if (result.getData().getVsHistoryDetail().getPlayer().getWeapon() == null) {
@@ -1831,11 +1833,11 @@ public class S3DailyStatsSender implements ScheduledService {
 				}
 			}
 		} catch (NullPointerException e) {
-			logSender.queueLogs(logger, String.format("Couldn't parse result json file '%s' because of an NULLPOINTER OH OH", filename));
-			logger.error(e);
+			logQueuer.infoQueue(log, String.format("Couldn't parse result json file '%s' because of an NULLPOINTER OH OH", filename));
+			log.error(e);
 		} catch (IOException e) {
-			logSender.queueLogs(logger, String.format("Couldn't parse result json file '%s' OH OH", filename));
-			logger.error(e);
+			logQueuer.infoQueue(log, String.format("Couldn't parse result json file '%s' OH OH", filename));
+			log.error(e);
 		}
 	}
 

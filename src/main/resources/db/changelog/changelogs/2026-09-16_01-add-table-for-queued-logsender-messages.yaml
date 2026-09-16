@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-09-16_01-add-table-for-queued-logsender-messages
+      author: strohkoenig
+      changes:
+        - createTable:
+            tableName: queued_message
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: queued_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: message
+                  type: clob
+                  constraints:
+                    nullable: false

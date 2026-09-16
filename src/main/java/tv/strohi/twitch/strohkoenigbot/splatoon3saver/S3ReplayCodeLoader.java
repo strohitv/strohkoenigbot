@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.Level;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsInksightPlayerStats;
@@ -16,8 +18,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.InksightReplay;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ReplayResult;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
@@ -41,7 +42,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 	private final TwitchMessageSender twitchMessageSender;
 
 	private final S3ApiQuerySender apiQuerySender;
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 
 	private final AccountRepository accountRepository;
@@ -88,7 +89,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 				if (builder.length() > 0) {
 					var allQueuedGames = resultRepository.findAllByReplayCodeNotNullAndMmrLoadFailedFalseAndReplayJsonNull();
 
-					logSender.queueLogs(log, "# Found new replay codes\nTotal amount of replay codes in queue: **%d** battles\n%s", allQueuedGames.size(), builder.toString().trim());
+					logQueuer.infoQueue(log, "# Found new replay codes\nTotal amount of replay codes in queue: **%d** battles\n%s", allQueuedGames.size(), builder.toString().trim());
 				}
 
 				System.out.println("done");
@@ -112,7 +113,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 		if (foundReplay.isPresent()) {
 			var result = foundReplay.get();
 			if (replayJson == null || "ERROR".equalsIgnoreCase(replayJson)) {
-				logSender.queueLogs(log, "ERROR: Could not save InkSight replay for replay code `%s`", replayCode);
+				logQueuer.infoQueue(log, "ERROR: Could not save InkSight replay for replay code `%s`", replayCode);
 
 				resultRepository.save(result.toBuilder()
 					.mmrLoadFailed(true)
@@ -210,7 +211,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 							summaryMarkdownBuilder.append("    - ").append(flag).append("\n");
 						}
 
-						logSender.queueLogs(log, "### Found notes on replay\n- player `%s#%s`:\n- %s", player.getName(), player.getDiscriminator(), player.getAnticheat().getInternalReports().stream().reduce((a, b) -> String.format("%s\n- %s", a, b)).orElse(""));
+						logQueuer.infoQueue(log, "### Found notes on replay\n- player `%s#%s`:\n- %s", player.getName(), player.getDiscriminator(), player.getAnticheat().getInternalReports().stream().reduce((a, b) -> String.format("%s\n- %s", a, b)).orElse(""));
 
 						for (var channelName : ALL_TWITCH_CHANNEL_NAMES) {
 							twitchMessageSender.send(channelName, String.format("Found notes on player %s#%s: %s", player.getName(), player.getDiscriminator(), player.getAnticheat().getInternalReports().stream().reduce((a, b) -> String.format("%s, %s", a, b)).orElse("")));
@@ -284,7 +285,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 								.append("- DB XP Rainmaker: `").append(String.format("%.1f", inksightPlayer.getXPowerRain())).append("`\n")
 								.append("- DB XP Clam Blitz: `").append(String.format("%.1f", inksightPlayer.getXPowerClams())).append("`\n");
 						} else {
-							logSender.queueLogs(log, "### ERROR during inksight player stats entry creation\n- player `%s#%s` was not in the game\n- result id: `%d`", player.getName(), player.getDiscriminator(), result.getId());
+							logQueuer.infoQueue(log, "### ERROR during inksight player stats entry creation\n- player `%s#%s` was not in the game\n- result id: `%d`", player.getName(), player.getDiscriminator(), result.getId());
 						}
 
 						summaryMarkdownBuilder
@@ -302,11 +303,11 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					}
 				}
 
-				logSender.sendLogsAsAttachment(log, "# Found new InkSight replay\nUrl: https://hana.lol/inksight/?match=" + inksightData.getMatchToken(), summaryMarkdownBuilder.toString());
+				logQueuer.queueLogsAsAttachment(log, Level.INFO, "# Found new InkSight replay\nUrl: https://inksight.live/?match=" + inksightData.getMatchToken(), summaryMarkdownBuilder.toString());
 				return true;
 			} catch (Exception ex) {
 				if (ex instanceof UnrecognizedPropertyException) {
-					logSender.sendLogsAsAttachment(log, "Could not parse replayJson!", replayJson);
+					logQueuer.queueLogsAsAttachment(log, Level.ERROR, "Could not parse replayJson!", replayJson);
 				}
 
 				resultRepository.save(result.toBuilder()

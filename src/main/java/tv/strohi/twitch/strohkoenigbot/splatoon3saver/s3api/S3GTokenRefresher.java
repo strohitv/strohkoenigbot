@@ -1,11 +1,12 @@
 package tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -68,8 +69,8 @@ public class S3GTokenRefresher {
 				}
 
 				if (!process.waitFor(5, TimeUnit.MINUTES)) {
-					logSender.sendLogs(logger, "S3S did not exit after in 5 minutes!");
-					logSender.sendLogsAsAttachment(logger, "s3s command output", sb.toString());
+					logSender.error(logger, "S3S did not exit after in 5 minutes!");
+					logSender.sendLogsAsAttachment(logger, Level.ERROR, "s3s command output", sb.toString());
 
 					try {
 						process.destroyForcibly();
@@ -81,7 +82,7 @@ public class S3GTokenRefresher {
 
 				in.close();
 			} else {
-				logSender.sendLogs(logger, String.format("Result was %d before the import even started!", result));
+				logSender.info(logger, String.format("Result was %d before the import even started!", result));
 			}
 		} catch (IOException | InterruptedException e) {
 			exceptionLogger.logExceptionAsAttachment(logger, "Exception while executing s3s process, see logs!", e);

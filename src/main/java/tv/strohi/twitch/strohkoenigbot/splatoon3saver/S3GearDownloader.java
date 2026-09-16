@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsAbility;
@@ -15,8 +17,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.OwnedGearAndWeaponsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
@@ -33,7 +33,7 @@ public class S3GearDownloader implements ScheduledService {
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
 	private final S3ApiQuerySender apiQuerySender;
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 
 	private final AccountRepository accountRepository;
@@ -150,7 +150,7 @@ public class S3GearDownloader implements ScheduledService {
 		var message = logBuilder.toString();
 		if (!allUpdatedGears.isEmpty() && message.contains("`, new level = `")) {
 			// only send if at least one gear has a different number of stars to prevent spam while live mode active
-			logSender.queueLogs(log, message);
+			logQueuer.infoQueue(log, message);
 		}
 	}
 
@@ -272,7 +272,7 @@ public class S3GearDownloader implements ScheduledService {
 		gearRepository.saveAll(allUpdatedGears);
 
 		if (!allUpdatedGears.isEmpty()) {
-			logSender.queueLogs(log, logBuilder.toString());
+			logQueuer.infoQueue(log, logBuilder.toString());
 		}
 	}
 

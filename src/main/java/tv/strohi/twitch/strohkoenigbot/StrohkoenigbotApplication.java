@@ -1,8 +1,7 @@
 package tv.strohi.twitch.strohkoenigbot;
 
 import com.zaxxer.hikari.HikariDataSource;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
@@ -12,8 +11,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import javax.annotation.PreDestroy;
@@ -25,8 +24,8 @@ import java.util.stream.Collectors;
 
 @SpringBootApplication
 @EnableScheduling
+@Log4j2
 public class StrohkoenigbotApplication {
-	private static final Logger logger = LogManager.getLogger(StrohkoenigbotApplication.class.getSimpleName());
 	private static List<String> arguments = null;
 
 	private static ConfigurableApplicationContext app = null;
@@ -44,11 +43,11 @@ public class StrohkoenigbotApplication {
 			.ifPresent(debug -> DiscordChannelDecisionMaker.setOrIsLocalDebug("TRUE".equalsIgnoreCase(debug.getConfigValue().trim())));
 	}
 
-	private DiscordBot discordBot;
+	private LogSender logSender;
 
 	@Autowired
-	public void setDiscordBot(DiscordBot discordBot) {
-		this.discordBot = discordBot;
+	public void setLogSender(LogSender logSender) {
+		this.logSender = logSender;
 		sendHello();
 	}
 
@@ -89,13 +88,13 @@ public class StrohkoenigbotApplication {
 
 	@PreDestroy
 	public void onExit() {
-		logger.info("stopping application");
+		log.info("exiting application");
 
-		logger.info("sending shutdown message to strohkoenig");
-		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, "Bot gets shut down!");
+		log.info("sending shutdown message to discord admin");
+		logSender.info(log, "Bot gets shut down!");
 
 		if (dataSource != null && !dataSource.isClosed()) {
-			logger.info("closing datasource");
+			log.info("closing datasource");
 			dataSource.close();
 		}
 	}
@@ -108,10 +107,10 @@ public class StrohkoenigbotApplication {
 	 * This method will trigger a shutdown, which will lead to a reboot in combination with the refresh-strohkoenibot.sh script
 	 */
 	public void shutdown() {
-		logger.info("stopping application");
+		log.info("stopping application");
 
-		logger.info("sending message about triggered shutdown to strohkoenig");
-		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, "Bot will shut itself down!");
+		log.info("sending message about triggered shutdown to discord admin");
+		logSender.info(log, "Bot will shut itself down!");
 
 		if (dataSource != null && !dataSource.isClosed()) {
 			dataSource.close();
@@ -126,8 +125,8 @@ public class StrohkoenigbotApplication {
 
 	//	@Scheduled(cron = "0 53 4 * * *")
 	public void sendHello() {
-		logger.info("sending hello message to strohkoenig");
-		discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, "Bot is started and ready to go!");
+		log.info("sending hello message to discord admin");
+		logSender.info(log, "Bot is started and ready to go!");
 	}
 
 	@Bean

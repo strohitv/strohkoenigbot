@@ -1,0 +1,48 @@
+package tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging;
+
+import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+
+@Component
+@RequiredArgsConstructor
+public class ExceptionQueuer {
+	private final LogQueuer logQueuer;
+
+	public void queueExceptionAsAttachment(Logger logger, String title, Exception e) {
+		var sentExs = new ArrayList<Throwable>();
+		Throwable currentEx = e;
+
+		var messageBuilder = new StringBuilder();
+		int exceptionNumber = 1;
+
+		title = String.format("%s (%s, %s)", title, ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug());
+
+		while (!sentExs.contains(currentEx) && currentEx != null) {
+			messageBuilder.append("# Exception #").append(exceptionNumber).append("\n\n");
+			exceptionNumber++;
+
+			messageBuilder.append("### Message\n- ").append(currentEx.getMessage()).append("\n\n");
+
+			StringWriter stringWriter = new StringWriter();
+			PrintWriter printWriter = new PrintWriter(stringWriter);
+			currentEx.printStackTrace(printWriter);
+
+			String stacktrace = stringWriter.toString();
+			messageBuilder.append("### Stacktrace\n```\n").append(stacktrace).append("\n```\n\n");
+
+			sentExs.add(currentEx);
+			currentEx = currentEx.getCause();
+		}
+
+		var wholeMessage = messageBuilder.toString();
+		logQueuer.queueLogsAsAttachment(logger, Level.ERROR, String.format("## Error\n%s\n### Exception", title), wholeMessage);
+	}
+}

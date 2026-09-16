@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrBoss;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrRotation;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon3SrStage;
@@ -12,7 +13,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.sr.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.*;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Log4j2
 public class Splatoon3SrRotationService {
-	private final LogSender logSender;
+	private final LogQueuer logQueuer;
 	private final Instant horrorborosIntroductionDate = Instant.parse("2023-03-04T00:00:00Z");
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -159,7 +159,7 @@ public class Splatoon3SrRotationService {
 				.image(imageService.ensureExists(weapon.getImage().getUrl()))
 				.build());
 
-			logSender.queueLogs(log, String.format("Set image for sr weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for sr weapon with id `%d` to `%s`", dbWeapon.getId(), weapon.getImage().getUrl()));
 		}
 
 		return dbWeapon;
@@ -194,11 +194,11 @@ public class Splatoon3SrRotationService {
 				.build());
 
 			if (coopStage.getImage() != null) {
-				logSender.queueLogs(log, String.format("Set image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getImage().getUrl()));
+				logQueuer.infoQueue(log, String.format("Set image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getImage().getUrl()));
 			}
 
 			if (coopStage.getThumbnailImage() != null) {
-				logSender.queueLogs(log, String.format("Set thumbnail image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getThumbnailImage().getUrl()));
+				logQueuer.infoQueue(log, String.format("Set thumbnail image for sr coop stage with id `%d` to `%s`", stage.getId(), coopStage.getThumbnailImage().getUrl()));
 			}
 		}
 
@@ -230,7 +230,7 @@ public class Splatoon3SrRotationService {
 				.image(imageService.ensureExists(boss.getImage().getUrl()))
 				.build());
 
-			logSender.queueLogs(log, String.format("Set image for sr boss with id `%d` to `%s`", dbBoss.getId(), boss.getImage().getUrl()));
+			logQueuer.infoQueue(log, String.format("Set image for sr boss with id `%d` to `%s`", dbBoss.getId(), boss.getImage().getUrl()));
 		}
 
 		return dbBoss;

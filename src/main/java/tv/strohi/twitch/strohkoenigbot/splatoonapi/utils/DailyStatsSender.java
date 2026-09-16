@@ -1,11 +1,11 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Attachment;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Match;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Weapon;
@@ -15,6 +15,7 @@ import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2MatchRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2WeaponStatsRepository;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponClass;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.weapon.WeaponKit;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -34,43 +35,17 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static tv.strohi.twitch.strohkoenigbot.utils.TimezoneUtils.timeOfTimezoneIsBetweenTimes;
 
 @Component
+@RequiredArgsConstructor
+@Log4j2
 public class DailyStatsSender implements ScheduledService {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
+	private final DiscordBot discordBot;
+	private final LogSender logSender;
 
-	private DiscordBot discordBot;
+	private final AccountRepository accountRepository;
+	private final Splatoon2WeaponRepository weaponRepository;
+	private final Splatoon2WeaponStatsRepository weaponStatsRepository;
+	private final Splatoon2MatchRepository matchRepository;
 
-	@Autowired
-	public void setDiscordBot(DiscordBot discordBot) {
-		this.discordBot = discordBot;
-	}
-
-	private AccountRepository accountRepository;
-
-	@Autowired
-	public void setAccountRepository(AccountRepository accountRepository) {
-		this.accountRepository = accountRepository;
-	}
-
-	private Splatoon2WeaponRepository weaponRepository;
-
-	@Autowired
-	public void setWeaponRepository(Splatoon2WeaponRepository weaponRepository) {
-		this.weaponRepository = weaponRepository;
-	}
-
-	private Splatoon2WeaponStatsRepository weaponStatsRepository;
-
-	@Autowired
-	public void setWeaponStatsRepository(Splatoon2WeaponStatsRepository weaponStatsRepository) {
-		this.weaponStatsRepository = weaponStatsRepository;
-	}
-
-	private Splatoon2MatchRepository matchRepository;
-
-	@Autowired
-	public void setMatchRepository(Splatoon2MatchRepository matchRepository) {
-		this.matchRepository = matchRepository;
-	}
 
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
@@ -119,7 +94,7 @@ public class DailyStatsSender implements ScheduledService {
 		long startTime = time.minusDays(1).toInstant().getEpochSecond(); //the midnight, that's the first second of the day.
 
 		List<Splatoon2Match> matches = matchRepository.findByAccountIdAndStartTimeGreaterThanEqualAndEndTimeLessThanEqual(account.getId(), startTime, endTime);
-		logger.info("found {} matches..", matches.size());
+		log.info("found {} matches..", matches.size());
 
 		long yesterdayPaint = matches.stream().map(m -> (long) m.getTurfGain()).reduce(0L, Long::sum);
 		long weaponCount = matches.stream().map(Splatoon2Match::getWeaponId).distinct().count();
@@ -221,10 +196,11 @@ public class DailyStatsSender implements ScheduledService {
 				.withZone(ZoneId.of(account.getTimezone()));
 			String strDate = formatter.format(time.minusDays(1).toInstant());
 
-			discordBot.sendPrivateMessageWithAttachment(account.getDiscordId(),
+			discordBot.sendPrivateMessage(account.getDiscordId(),
 				message,
-				String.format("%s.csv", strDate),
-				new ByteArrayInputStream(weaponStatsCsv.getBytes(StandardCharsets.UTF_8)));
+				List.of(Attachment.fromStream(
+					String.format("%s.csv", strDate),
+					new ByteArrayInputStream(weaponStatsCsv.getBytes(StandardCharsets.UTF_8)))));
 		} else {
 			message = String.format("%s\nYou won't receive a CSV today as you didn't play online and nothing has changed since the last time you received a CSV.", message);
 			discordBot.sendPrivateMessage(account.getDiscordId(), message);
@@ -255,12 +231,12 @@ public class DailyStatsSender implements ScheduledService {
 			.sorted((x, y) -> y.getTurf().compareTo(x.getTurf()))
 			.collect(Collectors.toList());
 
-		logger.info("Found {} weapons..", allWeaponStats.size());
+		log.info("Found {} weapons..", allWeaponStats.size());
 
 		boolean sendAllWeapons = false;
 
 		for (Splatoon2WeaponStats weaponStats : allWeaponStats) {
-			logger.info("Next weapon: {}..", weaponStats.getWeaponId());
+			log.info("Next weapon: {}..", weaponStats.getWeaponId());
 
 			List<Splatoon2Match> yesterdayMatchesForWeapon = yesterdayMatches.stream()
 				.filter(m -> m.getWeaponId().equals(weaponStats.getWeaponId()))
@@ -307,11 +283,9 @@ public class DailyStatsSender implements ScheduledService {
 				ObjectMapper mapper = new ObjectMapper();
 
 				try {
-					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID,
-						String.format("weapon.getName(): %s, weapon: %s",
-							weapon.getName(), mapper.writeValueAsString(weaponStats)));
+					logSender.info(log, String.format("weapon.getName(): %s, weapon: %s", weapon.getName(), mapper.writeValueAsString(weaponStats)));
 				} catch (Exception ex) {
-					logger.error(ex);
+					log.error(ex);
 				}
 			}
 
@@ -341,7 +315,7 @@ public class DailyStatsSender implements ScheduledService {
 			StringBuilder weaponNameBuilder = new StringBuilder();
 			for (WeaponKit kit : WeaponKit.All) {
 				if (weaponNameBuilder.length() + kit.getName().length() + 1 >= 2000) {
-					discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, weaponNameBuilder.toString().trim());
+					logSender.info(log, weaponNameBuilder.toString().trim());
 					weaponNameBuilder = new StringBuilder();
 				}
 
@@ -349,7 +323,7 @@ public class DailyStatsSender implements ScheduledService {
 			}
 
 			if (weaponNameBuilder.length() > 0) {
-				discordBot.sendPrivateMessage(DiscordBot.ADMIN_ID, weaponNameBuilder.toString().trim());
+				logSender.info(log, weaponNameBuilder.toString().trim());
 			}
 		}
 

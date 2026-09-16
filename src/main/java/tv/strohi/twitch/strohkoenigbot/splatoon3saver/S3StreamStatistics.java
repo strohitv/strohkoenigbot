@@ -24,8 +24,8 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Match;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -397,9 +397,9 @@ public class S3StreamStatistics {
 
 					openCurrentPower = currentMatchParsed.getBankaraPower() != null ? currentMatchParsed.getBankaraPower().getPower() : null;
 
-//					logSender.sendLogs(log, "number of matches in this rotation: `%d`", allOpenMatchesThisRotation.size());
+//					logSender.info(log, "number of matches in this rotation: `%d`", allOpenMatchesThisRotation.size());
 //
-//					logSender.sendLogs(log, "Power of games in this rotation: \n%s", includedMatches.stream()
+//					logSender.info(log, "Power of games in this rotation: \n%s", includedMatches.stream()
 //						.filter(m -> m.getRotation() != null)
 //						.filter(m -> Objects.equals(m.getRotation().getId(), lastMatch.getRotation().getId()))
 //						.map(m -> String.format("- power: `%s` - time: `%s` - id: `%s` - rotation-id: `%s`", getPower(m), m.getPlayedTime(), m.getId(), m.getRotation().getId()))
@@ -473,9 +473,9 @@ public class S3StreamStatistics {
 
 					seriesCurrentPower = currentMatchParsed.getWeaponPower();
 
-//					logSender.sendLogs(log, "number of matches in this rotation: `%d`", allSeriesMatchesOfThisWeapon.size());
+//					logSender.info(log, "number of matches in this rotation: `%d`", allSeriesMatchesOfThisWeapon.size());
 //
-//					logSender.sendLogs(log, "Power of games in this rotation: \n%s", includedMatches.stream()
+//					logSender.info(log, "Power of games in this rotation: \n%s", includedMatches.stream()
 //						.filter(m -> m.getRotation() != null)
 //						.filter(m -> Objects.equals(m.getRotation().getId(), lastMatch.getRotation().getId()))
 //						.map(m -> String.format("- power: `%s` - time: `%s` - id: `%s` - rotation-id: `%s`", getPower(m), m.getPlayedTime(), m.getId(), m.getRotation().getId()))
@@ -543,7 +543,7 @@ public class S3StreamStatistics {
 			if (specialWeapon != null) {
 				specialWeaponWins = currentSpecialWinStats.getOrDefault(specialWeapon, 0);
 
-//				logSender.sendLogs(log,
+//				logSender.info(log,
 //					"special weapon found in export! It is: `%s`, wins: `%d`",
 //					specialWeapon.getName(),
 //					specialWeaponWins);
@@ -588,14 +588,14 @@ public class S3StreamStatistics {
 						if (badgeInDb == null) continue;
 					}
 
-//					logSender.sendLogs(log,
+//					logSender.info(log,
 //						"Setting badge to `%s`",
 //						badgeInDb.getDescription());
 
 					badgeImageBase64 = getImageEncoded(badgeInDb.getImage());
 				}
 			} else {
-				logSender.sendLogs(log, "special weapon is null wtf, last result: `%d`", lastMatch.getId());
+				logSender.info(log, "special weapon is null wtf, last result: `%d`", lastMatch.getId());
 			}
 
 			var startExpWeapon = getWeaponExp(weaponStatsStart.getStats().getLevel(), weaponStatsStart.getStats().getExpToLevelUp());
@@ -676,7 +676,7 @@ public class S3StreamStatistics {
 				.map(Gear::getRarity)
 				.orElse(2);
 
-//			logSender.sendLogs(log, String.format("openCurrentPower: `%s`, openPreviousPower: `%s`, openChangeHidden: `%s`, openCurrentPower == null: `%s`, openPreviousPower == null: `%s`, openCurrentPower.doubleValue() == openPreviousPower.doubleValue(): `%s`",
+//			logSender.info(log, String.format("openCurrentPower: `%s`, openPreviousPower: `%s`, openChangeHidden: `%s`, openCurrentPower == null: `%s`, openPreviousPower == null: `%s`, openCurrentPower.doubleValue() == openPreviousPower.doubleValue(): `%s`",
 //				openCurrentPower != null ? String.format("%.1f", openCurrentPower) : "null",
 //				openPreviousPower != null ? String.format("%.1f", openPreviousPower) : "null",
 //				openChangeHidden,
@@ -1147,7 +1147,7 @@ public class S3StreamStatistics {
 
 				currentSpecialWinStats.putIfAbsent(specialWeapon, 0);
 				currentSpecialWinStats.put(specialWeapon, currentSpecialWinStats.get(specialWeapon) + 1);
-//				logSender.sendLogs(log,
+//				logSender.info(log,
 //					"special weapon found in game! It is: `%s`, wins: `%d`",
 //					specialWeapon.getName(),
 //					currentSpecialWinStats.get(specialWeapon));
@@ -1252,7 +1252,7 @@ public class S3StreamStatistics {
 					return "IO EXCEPTION DURING IMAGE CONVERSION TO BASE64";
 				}
 			} else {
-				logSender.sendLogs(log, "getImageEncoded not present");
+				logSender.info(log, "getImageEncoded not present");
 				return "UNABLE TO DOWNLOAD IMAGE TO DRIVE";
 			}
 		} catch (Exception ex) {

@@ -4,28 +4,30 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Attachment;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Target;
 import tv.strohi.twitch.strohkoenigbot.data.model.Configuration;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import javax.transaction.Transactional;
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Log4j2
 public class ResourcesDownloader {
-	private final DiscordBot discordBot;
+	private final LogQueuer logQueuer;
 	private final ConfigurationRepository configurationRepository;
-	private final ExceptionLogger exceptionLogger;
+	private final ExceptionQueuer exceptionQueuer;
 
 	@Transactional
 	public String ensureExistsLocally(String splatNetResourceUrl) {
@@ -36,13 +38,12 @@ public class ResourcesDownloader {
 	public String ensureExistsLocally(String splatNetResourceUrl, String forcePath) {
 		log.debug("downloading a resource '{}'", splatNetResourceUrl);
 
-		String imageUrl = splatNetResourceUrl;
+		var imageUrl = splatNetResourceUrl;
 		if (isValidURL(imageUrl)) {
 //			imageUrl = imageUrl.replace("https://app.splatoon2.nintendo.net", "");
 			try {
 				if (forcePath != null) {
 					var url = new URL(splatNetResourceUrl);
-
 					imageUrl = new URL(String.format("%s://%s/%s/%s", url.getProtocol(), url.getHost(), forcePath, FilenameUtils.getName(url.getPath()))).getPath();
 				} else {
 					imageUrl = new URL(splatNetResourceUrl).getPath();
@@ -54,29 +55,33 @@ public class ResourcesDownloader {
 
 		log.debug("new url '{}'", imageUrl);
 
-		String path = Paths.get(System.getProperty("user.dir"), imageUrl).toString();
+		var path = Paths.get(System.getProperty("user.dir"), imageUrl).toString();
 		log.debug("path '{}'", path);
 
-		File file = Paths.get(path).toFile();
+		var file = Paths.get(path).toFile();
 		if (!file.exists()) {
 			if (file.getParentFile().exists() || file.getParentFile().mkdirs()) {
-				String downloadUrl = splatNetResourceUrl;
+				var downloadUrl = splatNetResourceUrl;
 				if (!isValidURL(downloadUrl)) {
 					downloadUrl = String.format("https://app.splatoon2.nintendo.net%s", imageUrl);
 				}
 
 				try (
-						BufferedInputStream in = new BufferedInputStream(new URL(downloadUrl).openStream());
-						FileOutputStream fileOutputStream = new FileOutputStream(file.getPath())
+					var in = new BufferedInputStream(new URL(downloadUrl).openStream());
+					var fileOutputStream = new FileOutputStream(file.getPath())
 				) {
-					byte[] dataBuffer = new byte[1024];
+					var dataBuffer = new byte[1024];
 					int bytesRead;
 					while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
 						fileOutputStream.write(dataBuffer, 0, bytesRead);
 					}
 
-					String newPath = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
-					discordBot.queueServerMessageWithImageUrls(DiscordChannelDecisionMaker.getDebugImageChannelName(), "I downloaded an image!", newPath);
+					var newPath = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
+					logQueuer.infoQueue(
+						log,
+						List.of(Target.channel(DiscordChannelDecisionMaker.getDebugImageChannelName())),
+						List.of(Attachment.fromFile(newPath)),
+						"# I downloaded an image");
 
 					log.info("image download successful, path: '{}'", path);
 
@@ -90,7 +95,7 @@ public class ResourcesDownloader {
 				return splatNetResourceUrl;
 			}
 		} else {
-			String result = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
+			var result = path.substring(System.getProperty("user.dir").length()).replace('\\', '/');
 			log.debug("resource already existed, returning '{}'", result);
 			return result;
 		}
@@ -104,7 +109,7 @@ public class ResourcesDownloader {
 				.build()));
 
 		if ("true".equalsIgnoreCase(shouldLogConfig.getConfigValue())) {
-			exceptionLogger.logExceptionAsAttachment(log, message, ex);
+			exceptionQueuer.queueExceptionAsAttachment(log, message, ex);
 		} else {
 			log.error(message, ex);
 		}
@@ -112,7 +117,7 @@ public class ResourcesDownloader {
 
 	public static boolean isValidURL(String urlString) {
 		try {
-			URL url = new URL(urlString);
+			var url = new URL(urlString);
 			url.toURI();
 			return true;
 		} catch (Exception e) {

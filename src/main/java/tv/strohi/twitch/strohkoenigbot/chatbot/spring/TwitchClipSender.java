@@ -2,10 +2,8 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.spring;
 
 import com.github.twitch4j.events.ChannelClipCreatedEvent;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.utils.Constants;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
@@ -17,8 +15,8 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class TwitchClipSender implements ScheduledService {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 	private final TwitchBotClient twitchBotClient;
 	private final DiscordBot discordBot;
 	private final TwitchMessageSender twitchMessageSender;
@@ -42,7 +40,7 @@ public class TwitchClipSender implements ScheduledService {
 			Optional<ChannelClipCreatedEvent> createdClip;
 			while ((createdClip = twitchBotClient.pollCreatedClip(channelName)).isPresent()) {
 				var clip = createdClip.get();
-				logger.info("Posting clip {}", clip.getClip().getUrl());
+				log.info("Posting clip {}", clip.getClip().getUrl());
 
 				var twitchMessage = String.format("Thanks for creating a clip @%s! -> clip: %s, url: %s",
 					clip.getClip().getCreatorName(),

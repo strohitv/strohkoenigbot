@@ -2,7 +2,7 @@ package tv.strohi.twitch.strohkoenigbot.rest;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
 
 @RestController
 @RequestMapping("/twitch-api")

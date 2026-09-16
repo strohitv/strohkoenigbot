@@ -6,14 +6,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Attachment;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageService;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -63,11 +65,10 @@ public class S3GameExporter {
 			zos.finish();
 
 			try (var bais = new ByteArrayInputStream(baos.toByteArray())) {
-				discordBot.sendPrivateMessageWithAttachment(
+				discordBot.sendPrivateMessage(
 					userId,
 					String.format("Here are the exported games for top `%d` and skip `%d`", top, skip),
-					"export.zip",
-					bais);
+					List.of(Attachment.fromStream("export.zip", bais)));
 			}
 		} catch (Exception ex) {
 			exceptionLogger.logExceptionAsAttachment(log, "Error while exporting S3 games", ex);

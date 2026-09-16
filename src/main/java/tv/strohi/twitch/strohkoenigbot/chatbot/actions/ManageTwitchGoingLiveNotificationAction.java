@@ -3,17 +3,15 @@ package tv.strohi.twitch.strohkoenigbot.chatbot.actions;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import discord4j.core.object.entity.channel.TextChannel;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import tv.strohi.twitch.strohkoenigbot.chatbot.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchGoingLiveAlert;
 import tv.strohi.twitch.strohkoenigbot.data.model.TwitchGoingLiveAlertFilter;
 import tv.strohi.twitch.strohkoenigbot.data.repository.TwitchGoingLiveAlertRepository;
@@ -25,8 +23,6 @@ import java.util.EnumSet;
 @Component
 @RequiredArgsConstructor
 public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-
 	@Override
 	public EnumSet<TriggerReason> getCauses() {
 		return EnumSet.of(TriggerReason.DiscordMessage);
@@ -35,7 +31,6 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 	private final TwitchGoingLiveAlertRepository twitchGoingLiveAlertRepository;
 
 	private final DiscordBot discordBot;
-
 	private final TwitchBotClient twitchBotClient;
 
 	@EventListener(ApplicationReadyEvent.class)
@@ -51,7 +46,7 @@ public class ManageTwitchGoingLiveNotificationAction extends ChatAction {
 		if (guild == null) return;
 
 		// access management
-		if (!Long.toString(DiscordBot.ADMIN_ID).equals(args.getUserId())) {
+		if (!args.isAdmin()) {
 			var owner = guild.getOwner().block();
 			if (owner == null) return;
 			var ownerTag = owner.getId().asString();

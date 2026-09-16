@@ -1,14 +1,15 @@
 package tv.strohi.twitch.strohkoenigbot.splatoonapi.rotations;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.ModeFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.RuleFilter;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.model.Splatoon2Stage;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.Splatoon2RotationNotification;
 import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.Splatoon2Rotation;
@@ -17,8 +18,6 @@ import tv.strohi.twitch.strohkoenigbot.data.model.splatoon2.splatoondata.enums.S
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.Splatoon2RotationNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.splatoon2.splatoondata.Splatoon2RotationRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.ExceptionLogger;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.model.SplatNetStages;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.RequestSender;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
@@ -38,73 +37,22 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
+@Log4j2
 public class RotationWatcher implements ScheduledService {
-	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
-
 	private SplatNetStages stages = null;
 
-	private RequestSender stagesLoader;
+	private final StagesExporter stagesExporter;
+	private final RequestSender stagesLoader;
 
-	@Autowired
-	public void setStagesLoader(RequestSender stagesLoader) {
-		this.stagesLoader = stagesLoader;
-	}
+	private final LogQueuer logQueuer;
+	private final ExceptionQueuer exceptionQueuer;
+	private final DiscordBot discordBot;
+	private final TwitchMessageSender channelMessageSender;
 
-	private LogSender logSender;
-
-	@Autowired
-	public void setLogSender(LogSender logSender) {
-		this.logSender = logSender;
-	}
-
-	private StagesExporter stagesExporter;
-
-	@Autowired
-	public void setStagesExporter(StagesExporter stagesExporter) {
-		this.stagesExporter = stagesExporter;
-	}
-
-	private AccountRepository accountRepository;
-
-	@Autowired
-	public void setAccountRepository(AccountRepository accountRepository) {
-		this.accountRepository = accountRepository;
-	}
-
-	private Splatoon2RotationRepository rotationRepository;
-
-	@Autowired
-	public void setRotationRepository(Splatoon2RotationRepository rotationRepository) {
-		this.rotationRepository = rotationRepository;
-	}
-
-	private Splatoon2RotationNotificationRepository notificationRepository;
-
-	@Autowired
-	public void setNotificationRepository(Splatoon2RotationNotificationRepository notificationRepository) {
-		this.notificationRepository = notificationRepository;
-	}
-
-	private TwitchMessageSender channelMessageSender;
-
-	@Autowired
-	public void setChannelMessageSender(TwitchMessageSender channelMessageSender) {
-		this.channelMessageSender = channelMessageSender;
-	}
-
-	private DiscordBot discordBot;
-
-	@Autowired
-	public void setDiscordBot(DiscordBot discordBot) {
-		this.discordBot = discordBot;
-	}
-
-	private ExceptionLogger exceptionLogger;
-
-	@Autowired
-	public void setExceptionLogger(ExceptionLogger exceptionLogger) {
-		this.exceptionLogger = exceptionLogger;
-	}
+	private final AccountRepository accountRepository;
+	private final Splatoon2RotationRepository rotationRepository;
+	private final Splatoon2RotationNotificationRepository notificationRepository;
 
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
@@ -184,7 +132,7 @@ public class RotationWatcher implements ScheduledService {
 				}
 			}
 		} else {
-			logger.error("stages were null!");
+			log.error("stages were null!");
 		}
 	}
 
@@ -230,7 +178,7 @@ public class RotationWatcher implements ScheduledService {
 
 	private void refreshStages() {
 		if (stages == null || Arrays.stream(stages.getGachi()).anyMatch(s -> s.getEndTimeAsInstant().isBefore(Instant.now()))) {
-			logger.info("checking for new stages");
+			log.info("checking for new stages");
 
 			Account account = accountRepository.findAll().stream()
 				.filter(a -> a.getIsMainAccount() != null && a.getIsMainAccount())
@@ -244,10 +192,10 @@ public class RotationWatcher implements ScheduledService {
 				saveStagesInDatabase(stages.getGachi());
 				saveStagesInDatabase(stages.getLeague());
 
-				logger.info("finished stage loading");
-				logger.debug(stages);
+				log.info("finished stage loading");
+				log.debug(stages);
 			} else {
-				logger.error("stages were null!");
+				log.error("stages were null!");
 			}
 		}
 	}
@@ -278,7 +226,7 @@ public class RotationWatcher implements ScheduledService {
 					printException(ex);
 
 					try {
-						exceptionLogger.logExceptionAsAttachment(logger, "Exception while saving the new Rotation", ex);
+						exceptionQueuer.queueExceptionAsAttachment(log, "Exception while saving the new Rotation", ex);
 					} catch (Exception weirdEx) {
 						printException(ex);
 					}
@@ -305,7 +253,7 @@ public class RotationWatcher implements ScheduledService {
 		var currentEx = ex;
 		int number = 1;
 		while (currentEx != null && !banList.contains(currentEx)) {
-			logSender.queueLogs(logger, "## Exception #%d\n- message: **%s**\n- Stacktrace:\n```\n%s\n```",
+			logQueuer.infoQueue(log, "## Exception #%d\n- message: **%s**\n- Stacktrace:\n```\n%s\n```",
 				number,
 				currentEx.getMessage(),
 				Arrays.stream(currentEx.getStackTrace())
@@ -448,21 +396,21 @@ public class RotationWatcher implements ScheduledService {
 	}
 
 	private void sendDiscordMessageToChannel(String channelName, String message, String firstStageImageUrl, String SecondStageImageUrl) {
-		logger.info("Sending out discord notifications to server channel '{}'", channelName);
+		log.info("Sending out discord notifications to server channel '{}'", channelName);
 		discordBot.sendServerMessageWithImageUrls(channelName,
 			message,
 			String.format("https://app.splatoon2.nintendo.net%s", firstStageImageUrl),
 			String.format("https://app.splatoon2.nintendo.net%s", SecondStageImageUrl));
-		logger.info("Finished sending out discord notifications to server channel '{}'", channelName);
+		log.info("Finished sending out discord notifications to server channel '{}'", channelName);
 	}
 
 	private void sendDiscordMessageToUser(long discordId, String message, String firstStageImageUrl, String SecondStageImageUrl) {
-		logger.info("Sending out discord notifications to server channel '{}'", discordId);
+		log.info("Sending out discord notifications to server channel '{}'", discordId);
 		discordBot.sendPrivateMessageWithImageUrls(discordId,
 			message,
 			String.format("https://app.splatoon2.nintendo.net%s", firstStageImageUrl),
 			String.format("https://app.splatoon2.nintendo.net%s", SecondStageImageUrl));
-		logger.info("Finished sending out discord notifications to server channel '{}'", discordId);
+		log.info("Finished sending out discord notifications to server channel '{}'", discordId);
 	}
 
 	private boolean isOutSideAllowedTime(Splatoon2RotationNotification notification, ZonedDateTime startTime) {

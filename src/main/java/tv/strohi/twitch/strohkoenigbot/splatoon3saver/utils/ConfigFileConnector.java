@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
 
 import java.io.IOException;
@@ -25,11 +26,11 @@ public class ConfigFileConnector {
 			try {
 				return objectMapper.readValue(configFileLocation.toUri().toURL(), ConfigFile.class);
 			} catch (IOException e) {
-				logSender.sendLogs(logger, "Exception while loading config file, see logs!");
+				logSender.info(logger, "Exception while loading config file, see logs!");
 				logger.error(e);
 			}
 		} else {
-			logSender.sendLogs(logger, "Config file does not exist");
+			logSender.info(logger, "Config file does not exist");
 		}
 
 		return new ConfigFile();
@@ -40,7 +41,7 @@ public class ConfigFileConnector {
 		try {
 			objectMapper.writeValue(configFileLocation.toFile(), configFile);
 		} catch (IOException e) {
-			logSender.sendLogs(logger, "Could not store new config file on disk");
+			logSender.info(logger, "Could not store new config file on disk");
 		}
 	}
 }

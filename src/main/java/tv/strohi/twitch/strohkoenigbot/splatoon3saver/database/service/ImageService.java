@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.ImageRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.utils.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.splatoonapi.utils.ResourcesDownloader;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
@@ -107,7 +107,7 @@ public class ImageService implements ScheduledService {
 		}
 
 		if (!notDownloadedImages.isEmpty()) {
-			logSender.sendLogs(log, String.format("### ImageService scheduled download result\n- **%d** successful\n- **%d** failed", i, brokenImages.size()));
+			logSender.info(log, String.format("### ImageService scheduled download result\n- **%d** successful\n- **%d** failed", i, brokenImages.size()));
 		}
 	}
 
@@ -139,7 +139,7 @@ public class ImageService implements ScheduledService {
 		}
 
 		if (successfulCount > 0 || failedCount > 0) {
-			logSender.sendLogs(log, String.format("### ImageService fix filepath result\n- **%d** successful\n- **%d** failed", successfulCount, failedCount));
+			logSender.info(log, String.format("### ImageService fix filepath result\n- **%d** successful\n- **%d** failed", successfulCount, failedCount));
 		}
 	}
 
@@ -221,7 +221,7 @@ public class ImageService implements ScheduledService {
 		String imageLocationString = resourcesDownloader.ensureExistsLocally(image.getUrl().replace("\\u0026", "&"));
 		String path = Paths.get(imageLocationString).toString();
 
-//		logSender.sendLogs(log, String.format("Trying to download image: <%s>", path));
+//		logSender.info(log, String.format("Trying to download image: <%s>", path));
 
 		if (!imageLocationString.startsWith("https://")) {
 			var absolutePath = Paths.get(System.getProperty("user.dir"), path).toString();
@@ -233,7 +233,7 @@ public class ImageService implements ScheduledService {
 				.build());
 
 			log.info("Image id {} was successfully saved on path: {}!", savedImage.getId(), savedImage.getFilePath());
-//			logSender.sendLogs(log, String.format("Image id %d was successfully saved on path: `%s`!", savedImage.getId(), savedImage.getFilePath()));
+//			logSender.info(log, String.format("Image id %d was successfully saved on path: `%s`!", savedImage.getId(), savedImage.getFilePath()));
 			return Optional.of(savedImage);
 		} else {
 			// download failed, skip next time
@@ -243,7 +243,7 @@ public class ImageService implements ScheduledService {
 
 			brokenImages.add(savedImage);
 			log.warn("Image id {}, url '{}' could not be downloaded! Failed {} times", savedImage.getId(), savedImage.getUrl(), image.getFailedDownloadCount());
-//			logSender.sendLogs(log, String.format("Image id %d, url <%s> could not be downloaded! Failed %d times", savedImage.getId(), savedImage.getUrl(), image.getFailedDownloadCount()));
+//			logSender.info(log, String.format("Image id %d, url <%s> could not be downloaded! Failed %d times", savedImage.getId(), savedImage.getUrl(), image.getFailedDownloadCount()));
 			return Optional.empty();
 		}
 	}

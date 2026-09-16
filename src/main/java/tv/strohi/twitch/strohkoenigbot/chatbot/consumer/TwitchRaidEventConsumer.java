@@ -1,27 +1,35 @@
 package tv.strohi.twitch.strohkoenigbot.chatbot.consumer;
 
 import com.github.twitch4j.chat.events.channel.RaidEvent;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ActionArgs;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ArgumentKey;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.IChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.TwitchEvent;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.util.List;
-import java.util.function.Consumer;
 
-public class TwitchRaidEventConsumer implements Consumer<RaidEvent> {
+@Component
+@RequiredArgsConstructor
+public class TwitchRaidEventConsumer implements ApplicationListener<TwitchEvent> {
 	private final List<IChatAction> botActions;
 
-	public TwitchRaidEventConsumer(List<IChatAction> botActions) {
-		this.botActions = botActions;
-	}
-
 	@Override
-	public void accept(RaidEvent raidEvent) {
+	public void onApplicationEvent(@NotNull TwitchEvent twitchEvent) {
 		if (DiscordChannelDecisionMaker.isLocalDebug()) {
 			return;
 		}
+
+		if (!(twitchEvent.getEvent() instanceof RaidEvent)) {
+			return;
+		}
+
+		var raidEvent = (RaidEvent) twitchEvent.getEvent();
 
 		ActionArgs args = new ActionArgs();
 
