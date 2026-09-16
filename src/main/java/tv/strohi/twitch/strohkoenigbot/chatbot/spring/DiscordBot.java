@@ -13,6 +13,8 @@ import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.retriever.EntityRetrievalStrategy;
 import discord4j.core.spec.MessageCreateFields;
 import discord4j.discordjson.json.MessageReferenceData;
+import discord4j.gateway.intent.Intent;
+import discord4j.gateway.intent.IntentSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jspecify.annotations.NonNull;
@@ -99,7 +101,11 @@ public class DiscordBot {
 		var tokens = configurationRepository.findAllByConfigName("discordToken");
 		if (gateway == null && !tokens.isEmpty()) {
 			var client = DiscordClient.create(tokens.get(0).getConfigValue());
-			gateway = client.login().retry(5).block();
+			gateway = client.gateway()
+				.setEnabledIntents(IntentSet.nonPrivileged().or(IntentSet.of(Intent.MESSAGE_CONTENT)))
+				.login()
+				.retry(5)
+				.block();
 
 			if (gateway != null) {
 				gateway.on(MessageCreateEvent.class)

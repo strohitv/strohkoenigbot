@@ -291,20 +291,20 @@ public class Splatoon3RotationSenderService {
 				builder.append("\n- Boss: ").append(bossName);
 			}
 
-			if (rotation.getLeanMoney() > 0) {
-				builder.append("\n- Money: ").append(rotation.getLeanMoney());
+			if (Optional.ofNullable(rotation.getLeanMoney()).orElse(0) > 0) {
+				builder.append("\n- Money: ").append(Optional.ofNullable(rotation.getLeanMoney()).orElse(0));
 			}
 
-			if (rotation.getLeanMoneyTicketSmall() > 0) {
-				builder.append("\n- x1.5 money tickets: ").append(rotation.getLeanMoneyTicketSmall());
+			if (Optional.ofNullable(rotation.getLeanMoneyTicketSmall()).orElse(0) > 0) {
+				builder.append("\n- x1.5 money tickets: ").append(Optional.ofNullable(rotation.getLeanMoneyTicketSmall()).orElse(0));
 			}
 
-			if (rotation.getLeanMoneyTicketBig() > 0) {
-				builder.append("\n- x2 money tickets: ").append(rotation.getLeanMoneyTicketBig());
+			if (Optional.ofNullable(rotation.getLeanMoneyTicketBig()).orElse(0) > 0) {
+				builder.append("\n- x2 money tickets: ").append(Optional.ofNullable(rotation.getLeanMoneyTicketBig()).orElse(0));
 			}
 
-			builder.append("\n- Silver Scales: ").append(rotation.getLeanSilverScales());
-			builder.append("\n- Gold Scales: ").append(rotation.getLeanGoldScales());
+			builder.append("\n- Silver Scales: ").append(Optional.ofNullable(rotation.getLeanSilverScales()).orElse(0));
+			builder.append("\n- Gold Scales: ").append(Optional.ofNullable(rotation.getLeanGoldScales()).orElse(0));
 
 			builder.append("\n\n### Weapons\n");
 
