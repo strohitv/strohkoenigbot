@@ -15,6 +15,7 @@ public class TickSchedule implements Schedule {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final String name;
+	private final boolean prioritized;
 	private final int runEveryTicks;
 	private final Runnable runnable;
 	private final Runnable errorCleanUpRunnable;
@@ -87,5 +88,10 @@ public class TickSchedule implements Schedule {
 	@Override
 	public boolean isFailed(int maxAttempts) {
 		return errorCount >= maxAttempts;
+	}
+
+	@Override
+	public boolean isPrioritized() {
+		return prioritized;
 	}
 }

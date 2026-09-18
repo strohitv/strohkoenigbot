@@ -19,4 +19,6 @@ public interface Schedule {
 	void increaseErrorCount();
 
 	boolean isFailed(int maxAttempts);
+
+	boolean isPrioritized();
 }

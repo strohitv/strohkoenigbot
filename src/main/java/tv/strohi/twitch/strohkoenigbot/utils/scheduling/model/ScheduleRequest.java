@@ -12,4 +12,7 @@ public class ScheduleRequest {
 	private String schedule;
 	private Runnable runnable;
 	private Runnable errorCleanUpRunnable;
+
+	@Builder.Default
+	private boolean prioritized = false;
 }

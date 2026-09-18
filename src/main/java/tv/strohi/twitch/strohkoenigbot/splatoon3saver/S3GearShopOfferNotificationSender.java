@@ -176,18 +176,17 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 
 	@Override
 	public List<ScheduleRequest> createScheduleRequests() {
-		return List.of(new ScheduleRequest(
-				"S3GearShopOfferNotificationSender_sendNotifications",
-				CronSchedule.getScheduleString("45 5 * * * *"),
-				this::sendNotifications,
-				null
-			),
-			new ScheduleRequest(
-				"S3GearShopOfferNotificationSender_processShopOffers",
-				CronSchedule.getScheduleString("45 24 * * * *"),
-				this::processShopOffers,
-				null
-			));
+		return List.of(
+			ScheduleRequest.builder()
+				.name("S3GearShopOfferNotificationSender_sendNotifications")
+				.schedule(CronSchedule.getScheduleString("45 5 * * * *"))
+				.runnable(this::sendNotifications)
+				.build(),
+			ScheduleRequest.builder()
+				.name("S3GearShopOfferNotificationSender_processShopOffers")
+				.schedule(CronSchedule.getScheduleString("45 24 * * * *"))
+				.runnable(this::processShopOffers)
+				.build());
 	}
 
 	@Override

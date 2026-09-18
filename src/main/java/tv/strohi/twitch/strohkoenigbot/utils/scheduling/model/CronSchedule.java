@@ -14,6 +14,7 @@ public class CronSchedule implements Schedule {
 	private final Logger logger = LogManager.getLogger(this.getClass().getSimpleName());
 
 	private final String name;
+	private final boolean prioritized;
 	private final CronExpression cronExpression;
 	private final Runnable runnable;
 	private final Runnable errorCleanUpRunnable;
@@ -21,8 +22,9 @@ public class CronSchedule implements Schedule {
 	private int errorCount = 0;
 	private final List<Exception> exceptions = new ArrayList<>();
 
-	public CronSchedule(String name, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
+	public CronSchedule(String name, boolean prioritized, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
 		this.name = name;
+		this.prioritized = prioritized;
 		this.cronExpression = CronExpression.parse(cron);
 		this.runnable = runnable;
 		this.errorCleanUpRunnable = errorCleanUpRunnable;
@@ -95,5 +97,10 @@ public class CronSchedule implements Schedule {
 	@Override
 	public boolean isFailed(int maxAttempts) {
 		return errorCount >= maxAttempts;
+	}
+
+	@Override
+	public boolean isPrioritized() {
+		return prioritized;
 	}
 }

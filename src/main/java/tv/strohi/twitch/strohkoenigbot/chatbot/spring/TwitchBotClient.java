@@ -424,7 +424,10 @@ public class TwitchBotClient implements ScheduledService {
 			resultsExporter.start(account);
 		}
 
-		eventPublisher.publishEvent(new TwitchEvent(this, new TwitchLiveEvent(false)));
+		try {
+			eventPublisher.publishEvent(new TwitchEvent(this, new TwitchLiveEvent(false)));
+		} catch (Exception ignored) {
+		}
 	}
 
 	public Instant getPreviousStreamStartTime() {

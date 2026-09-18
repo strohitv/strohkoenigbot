@@ -11,8 +11,8 @@ import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.data.repository.ConfigurationRepository;
@@ -26,7 +26,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.Splatoon3
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResults;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.ConfigFile;
-import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.CronSchedule;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
@@ -53,7 +52,6 @@ public class S3Downloader implements ScheduledService {
 	private final EntityManager entityManager;
 
 	private final LogQueuer logQueuer;
-	private final LogSender logSender;
 
 	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
@@ -303,7 +301,7 @@ public class S3Downloader implements ScheduledService {
 			shouldRunS3s |= foundGames;
 
 			if (foundGames) {
-				logSender.sendLogsToDebugChannel(log, builder.toString());
+				logQueuer.queueLogsForDebugChannel(log, builder.toString());
 			}
 		}
 	}
@@ -520,7 +518,7 @@ public class S3Downloader implements ScheduledService {
 					message = String.format("%s\n- **%d** new salmon run shifts", message, salmonShiftsToDownload.size());
 				}
 
-				logSender.sendLogsToDebugChannel(log, message);
+				logQueuer.queueLogsForDebugChannel(log, message);
 
 				// start refresh of s3s script asynchronously
 				s3sRunner.runS3S();

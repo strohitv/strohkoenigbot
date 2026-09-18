@@ -14,6 +14,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Target;
 import tv.strohi.twitch.strohkoenigbot.data.model.QueuedMessage;
 import tv.strohi.twitch.strohkoenigbot.data.repository.QueuedMessageRepository;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.model.QueuedMessageInfo;
+import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -78,5 +79,9 @@ public class LogQueuer {
 				String.format("attachment-log_%04d-%02d-%02d_%02d-%02d-%02d.md", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond()),
 				IOUtils.toInputStream(attachment, StandardCharsets.UTF_8))),
 			message);
+	}
+
+	public void queueLogsForDebugChannel(Logger logger, String message) {
+		queue(logger, Level.INFO,List.of(Target.channel(DiscordChannelDecisionMaker.getDebugChannelName())), List.of(), message);
 	}
 }
