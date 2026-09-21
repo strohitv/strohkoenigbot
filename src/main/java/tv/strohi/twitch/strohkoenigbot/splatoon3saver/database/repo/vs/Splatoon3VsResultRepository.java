@@ -33,7 +33,6 @@ public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsR
 	List<Splatoon3VsResult> findByApiId(String apiId);
 	List<Splatoon3VsResult> findByPlayedTimeBetween(Instant playedTimeStart, Instant playedTimeEnd);
 
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	List<Splatoon3VsResult> findByPlayedTimeAfterOrderByPlayedTimeAsc(Instant time);
 	List<Splatoon3VsResult> findByMmrLoadFailedTrue();
 
