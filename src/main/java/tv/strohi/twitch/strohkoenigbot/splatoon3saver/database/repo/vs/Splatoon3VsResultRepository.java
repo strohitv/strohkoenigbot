@@ -3,6 +3,7 @@ package tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs;
 import feign.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -13,6 +14,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.Mod
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.SpecialWinCount;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.TeamPlayerSize;
 
+import javax.persistence.LockModeType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,8 @@ public interface Splatoon3VsResultRepository extends CrudRepository<Splatoon3VsR
 
 	List<Splatoon3VsResult> findByApiId(String apiId);
 	List<Splatoon3VsResult> findByPlayedTimeBetween(Instant playedTimeStart, Instant playedTimeEnd);
+
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	List<Splatoon3VsResult> findByPlayedTimeAfterOrderByPlayedTimeAsc(Instant time);
 	List<Splatoon3VsResult> findByMmrLoadFailedTrue();
 

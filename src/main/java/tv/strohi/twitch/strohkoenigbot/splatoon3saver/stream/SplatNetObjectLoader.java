@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.time.StopWatch;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
@@ -96,8 +97,12 @@ public class SplatNetObjectLoader implements ScheduledService {
 			log.error(ex);
 		}
 
-		// run general chores (usually fast enough)
-		runChores();
+		try {
+			// run general chores (usually fast enough)
+			runChores();
+		} catch (CannotAcquireLockException ex) {
+			exceptionLogger.logExceptionAsAttachment(log, "An Exception occurred because of synchronous repository access. It won't affect the run of the ScheduledService but please handle it!", ex);
+		}
 	}
 
 	private void runWeaponDownload() {
