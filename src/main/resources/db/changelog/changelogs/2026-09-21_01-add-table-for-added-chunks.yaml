@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-09-21_01-add-table-for-added-chunks
+      author: strohkoenig
+      changes:
+        - createTable:
+            tableName: splatoon_3_vs_gear_chunk_gain
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: gear_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_splatoon_3_vs_gear_splatoon_3_vs_gear_chunk_gain
+                    references: splatoon_3_vs_gear(id)
+                    nullable: false
+                    unique: false
+              - column:
+                  name: received_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: previous_experience
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: new_experience
+                  type: int
+                  constraints:
+                    nullable: false

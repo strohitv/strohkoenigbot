@@ -13,7 +13,9 @@ import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsAbility;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGear;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGearChunkGain;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsAbilityRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearChunkGainRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.OwnedGearAndWeaponsResult;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Gear;
@@ -22,6 +24,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,6 +41,7 @@ public class S3GearDownloader implements ScheduledService {
 
 	private final AccountRepository accountRepository;
 	private final Splatoon3VsGearRepository gearRepository;
+	private final Splatoon3VsGearChunkGainRepository gearChunkGainRepository;
 	private final Splatoon3VsAbilityRepository abilityRepository;
 
 	@Getter
@@ -100,6 +104,8 @@ public class S3GearDownloader implements ScheduledService {
 					var newExperience = gear.getStats().getExp();
 					var goalExperience = getGoalExp(gear);
 
+					var chunkGain = false;
+
 					if (oldLevel != newLevel) {
 						containsChange = true;
 						dbg.setGearLevel(newLevel);
@@ -112,6 +118,25 @@ public class S3GearDownloader implements ScheduledService {
 						dbg.setCurrentExperience(newExperience);
 						dbg.setGoalExperience(goalExperience);
 						allUpdatedGears.add(dbg);
+
+						if (oldExperience > newExperience) {
+							var foundChunkGain = gearChunkGainRepository.findByReceivedAtBetweenAndGearAndPreviousExperienceAndNewExperience(
+								Instant.now().minusSeconds(900),
+								Instant.now(),
+								dbg,
+								oldExperience,
+								newExperience);
+
+							if (foundChunkGain.isEmpty()) {
+								chunkGain = true;
+								gearChunkGainRepository.save(Splatoon3VsGearChunkGain.builder()
+									.receivedAt(Instant.now())
+									.newExperience(newExperience)
+									.previousExperience(oldExperience)
+									.gear(dbg)
+									.build());
+							}
+						}
 					}
 
 					if (containsChange) {
@@ -140,6 +165,13 @@ public class S3GearDownloader implements ScheduledService {
 								.append("`, exp goal = `")
 								.append(goalExperience)
 								.append("`");
+
+							if (chunkGain) {
+								var chunksGainedTotal = gearChunkGainRepository.getTotalChunkGainOfGear(dbg);
+								logBuilder.append("; total chunks gained = `")
+									.append(chunksGainedTotal)
+									.append("` (`+ 1`)");
+							}
 						}
 					}
 				});
@@ -148,7 +180,7 @@ public class S3GearDownloader implements ScheduledService {
 		gearRepository.saveAll(allUpdatedGears);
 
 		var message = logBuilder.toString();
-		if (!allUpdatedGears.isEmpty() && message.contains("`, new level = `")) {
+		if (!allUpdatedGears.isEmpty() && (message.contains("`, new level = `") || message.contains("; total chunks gained = `"))) {
 			// only send if at least one gear has a different number of stars to prevent spam while live mode active
 			logQueuer.infoQueue(log, message);
 		}

@@ -53,6 +53,8 @@ public class StatsFullscreenFiller implements ScheduledService {
 	private final Splatoon3VsSubWeaponRepository subWeaponRepository;
 	private final Splatoon3VsStageRepository stageRepository;
 
+	private final Splatoon3VsGearChunkGainRepository chunkGainRepository;
+
 	private final S3GearDownloader gearDownloader;
 
 	@Getter
@@ -266,7 +268,7 @@ public class StatsFullscreenFiller implements ScheduledService {
 		var clothesGear = gearRepository.findByName(parsedOwnPlayer.getClothingGear().getName());
 		var shoesGear = gearRepository.findByName(parsedOwnPlayer.getShoesGear().getName());
 
-		chunksGainedStream += getChunksGain(headGear) + getChunksGain(clothesGear) + getChunksGain(shoesGear);
+		chunksGainedStream = chunkGainRepository.findByReceivedAtAfter(twitchBotClient.getWentLiveTime()).size();
 
 		fullscreenStreamData = FullscreenStreamData.builder()
 			.type(FullscreenStreamData.Type.VS)
