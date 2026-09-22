@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.DiscordBot;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionQueuer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
@@ -26,10 +27,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsStage;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultEnemyRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.sr.Splatoon3SrResultRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsResultRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsRotationRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsStageRepository;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsWeaponRepository;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.model.WeaponPerformanceStats;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.DailyStatsSaveModel;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.BattleResult;
@@ -50,6 +48,7 @@ import java.text.NumberFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -66,10 +65,12 @@ public class S3DailyStatsSender implements ScheduledService {
 	private final DiscordBot discordBot;
 	private final LogQueuer logQueuer;
 	private final LogSender logSender;
+	private final ExceptionQueuer exceptionQueuer;
 
 	private final AccountRepository accountRepository;
 	private final ConfigurationRepository configurationRepository;
 	private final Splatoon3VsWeaponRepository vsWeaponRepository;
+	private final Splatoon3VsModeRepository modeRepository;
 	private final Splatoon3VsResultRepository vsResultRepository;
 	private final Splatoon3VsStageRepository vsStageRepository;
 	private final Splatoon3VsRotationRepository vsRotationRepository;
@@ -317,9 +318,70 @@ public class S3DailyStatsSender implements ScheduledService {
 			ownUsedWeaponsTotal, ownTeamUsedWeaponsTotal, enemyTeamUsedWeaponsTotal,
 			account);
 
+		sendSeriesAndXProgressBadgeWinsToDiscord(yesterdayStats);
+
 		refreshYesterdayStats(yesterdayStats);
 
 		log.info("Done with loading Splatoon 3 games for account with folder name '{}'...", folderName);
+	}
+
+	private void sendSeriesAndXProgressBadgeWinsToDiscord(DailyStatsSaveModel yesterdayStats) {
+		modeRepository.findByApiTypenameAndApiModeDistinction("BankaraMatchSetting", "CHALLENGE")
+			.ifPresent(mode -> {
+				var totalProgress = 0;
+
+				var currentWins = 0;
+				var currentDefeats = 0;
+
+				var seasonStart = LocalDateTime.of(2023, 12, 1, 0, 0, 0).atZone(ZoneOffset.UTC);
+				var seasonEnd = seasonStart.plusMonths(3);
+
+				try {
+					var allGamesForBadge = vsResultRepository.findByPlayedTimeAfterAndMode(seasonStart.toInstant(), mode);
+
+					for (var game : allGamesForBadge) {
+						if (game.getPlayedTime().isAfter(seasonEnd.toInstant())) {
+							currentWins = 0;
+							currentDefeats = 0;
+
+							seasonEnd = seasonEnd.plusMonths(3);
+						}
+
+						if (game.getOwnJudgement().equalsIgnoreCase("WIN")) {
+							currentWins++;
+						} else if (game.getOwnJudgement().equalsIgnoreCase("LOSE")
+							|| game.getOwnJudgement().equalsIgnoreCase("EXEMPTED_LOSE")) {
+
+							currentDefeats++;
+						}
+
+						if (currentWins == 5) {
+							totalProgress++;
+							currentWins = 0;
+							currentDefeats = 0;
+						} else if (currentDefeats == 3) {
+							currentWins = 0;
+							currentDefeats = 0;
+						}
+					}
+
+					logQueuer.infoQueue(
+						log,
+						"## Anarchy Series Badge Update\nTotal Series won: `%d`%s",
+						totalProgress,
+						yesterdayStats.getAnarchySeriesWins() < totalProgress ? String.format(" (`+ %d`)", totalProgress - yesterdayStats.getAnarchySeriesWins()) : "");
+
+					yesterdayStats.setAnarchySeriesWins(totalProgress);
+				} catch (Exception ex) {
+					exceptionQueuer.queueExceptionAsAttachment(log, "Exception during Anarchy Series badge counting", ex);
+				}
+			});
+
+		// todo X progress but there's different stuff to count:
+		//   - Rules make a difference
+		//   - Placements must be ignored (BY RULE!!)
+		//   - Do they count continuously or do they use two counters for the region..?
+		//   - only X power above 2000...
 	}
 
 	private void countMapOccurrenceStatsAndSendToDiscord(Account account) {

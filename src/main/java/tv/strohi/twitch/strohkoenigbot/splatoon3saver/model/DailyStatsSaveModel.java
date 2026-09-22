@@ -33,4 +33,6 @@ public class DailyStatsSaveModel {
 
 //	private Integer previousRequiredExpFor4StarGrind = null;
 	private Map<Integer, Long> previousRequiredExpForStarGrind = new HashMap<>();
+
+	private int anarchySeriesWins = 0;
 }
