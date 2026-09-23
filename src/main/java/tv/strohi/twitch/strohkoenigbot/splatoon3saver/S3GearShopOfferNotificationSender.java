@@ -140,6 +140,7 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 		for (var notification : allNotifications) {
 			var foundOffer = shopOffers.stream()
 				.filter(offer -> offer.getGear().getName().equalsIgnoreCase(notification.getGearName()))
+				.filter(offer -> offer.getGear().getGearLevel() < 5)
 				.findFirst();
 
 			foundOffer.ifPresent(offer -> {
