@@ -61,12 +61,18 @@ public class SplatNetObjectLoader implements ScheduledService {
 		if (twitchBotClient.getWentLiveTime() == null) {
 			loadedSplatNetObjects.reset();
 			stageResultStatsAtStart.clear();
+			loadedSplatNetObjects.getWeaponStatsAtStreamStart().clear();
 
 			return;
 		}
 
 		if (stageResultStatsAtStart.isEmpty()) {
 			stageResultStatsAtStart.addAll(stageRepository.findAllStageWinStats(twitchBotClient.getWentLiveTime()));
+		}
+
+		if (loadedSplatNetObjects.getWeaponStatsAtStreamStart().isEmpty()) {
+			weaponStatsDownloader.downloadWeaponStats()
+				.ifPresent(w -> loadedSplatNetObjects.getWeaponStatsAtStreamStart().addAll(List.of(w)));
 		}
 
 		try {

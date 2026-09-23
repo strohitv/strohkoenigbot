@@ -7,7 +7,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.*;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3SpecialWeaponWinStatsDownloader;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3WeaponStatsDownloader;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3XPowerDownloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.player.Splatoon3BadgeRepository;
@@ -17,7 +19,6 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.service.ImageServ
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.IconBadgeNames;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.model.StreamData;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Stats;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.s3api.model.inner.Weapon;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
@@ -42,7 +43,6 @@ public class StatsSidebarFiller implements ScheduledService {
 	private final Splatoon3BadgeRepository badgeRepository;
 
 	private List<SpecialWinCount> specialWinStatsAtStreamStart = null;
-	private Weapon[] weaponStatsAtStreamStart = null;
 
 	@Getter
 	private StreamData streamData = StreamData.empty();
@@ -51,7 +51,6 @@ public class StatsSidebarFiller implements ScheduledService {
 		if (twitchBotClient.getWentLiveTime() == null) {
 			streamData = StreamData.empty();
 			specialWinStatsAtStreamStart = null;
-			weaponStatsAtStreamStart = null;
 			return;
 		}
 
@@ -60,12 +59,7 @@ public class StatsSidebarFiller implements ScheduledService {
 		if (allGamesInStream.isEmpty()) {
 			streamData = StreamData.empty();
 			specialWinStatsAtStreamStart = null;
-			weaponStatsAtStreamStart = null;
 			return;
-		}
-
-		if (weaponStatsAtStreamStart == null) {
-			weaponStatsAtStreamStart = weaponStatsDownloader.downloadWeaponStats().orElse(null);
 		}
 
 		if (specialWinStatsAtStreamStart == null) {
@@ -116,7 +110,7 @@ public class StatsSidebarFiller implements ScheduledService {
 			return;
 		}
 
-		final var ownUsedWeaponStatsAtStart = Arrays.stream(weaponStatsAtStreamStart)
+		final var ownUsedWeaponStatsAtStart = loadedSplatNetObjects.getWeaponStatsAtStreamStart().stream()
 			.filter(w -> Objects.equals(w.getId(), ownPlayer.getWeapon().getApiId()))
 			.findFirst()
 			.orElse(null);

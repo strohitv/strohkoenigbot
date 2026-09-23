@@ -62,7 +62,6 @@ public class StatsFullscreenFiller implements ScheduledService {
 
 	private int chunksGainedStream = 0;
 	private List<SpecialWinCount> specialWinStatsAtStreamStart = null;
-	private Weapon[] weaponStatsAtStreamStart = null;
 	private List<OwnUsedWeaponStatsWithWeapon> ownUsedWeaponWinStatsAtStart = null;
 	private List<StageWinStatsWithRule> stageResultStatsAtStart = null;
 
@@ -75,12 +74,12 @@ public class StatsFullscreenFiller implements ScheduledService {
 			|| loadedSplatNetObjects.getHeadGameCount().isEmpty()
 			|| loadedSplatNetObjects.getShirtGameCount().isEmpty()
 			|| loadedSplatNetObjects.getShoesGameCount().isEmpty()
-			|| loadedSplatNetObjects.getStageWins().isEmpty()) {
+			|| loadedSplatNetObjects.getStageWins().isEmpty()
+			|| loadedSplatNetObjects.getWeaponStatsAtStreamStart().isEmpty()) {
 			fullscreenStreamData = FullscreenStreamData.empty();
 
 			chunksGainedStream = 0;
 			specialWinStatsAtStreamStart = null;
-			weaponStatsAtStreamStart = null;
 			ownUsedWeaponWinStatsAtStart = null;
 			stageResultStatsAtStart = null;
 
@@ -92,10 +91,6 @@ public class StatsFullscreenFiller implements ScheduledService {
 		if (allGamesInStream.isEmpty()) {
 			fullscreenStreamData = FullscreenStreamData.empty();
 			return;
-		}
-
-		if (weaponStatsAtStreamStart == null) {
-			weaponStatsAtStreamStart = weaponStatsDownloader.downloadWeaponStats().orElse(null);
 		}
 
 		if (specialWinStatsAtStreamStart == null) {
@@ -147,7 +142,7 @@ public class StatsFullscreenFiller implements ScheduledService {
 			return;
 		}
 
-		final var ownUsedWeaponStatsAtStart = Arrays.stream(weaponStatsAtStreamStart)
+		final var ownUsedWeaponStatsAtStart = loadedSplatNetObjects.getWeaponStatsAtStreamStart().stream()
 			.filter(w -> Objects.equals(w.getId(), ownPlayer.getWeapon().getApiId()))
 			.findFirst()
 			.orElse(null);

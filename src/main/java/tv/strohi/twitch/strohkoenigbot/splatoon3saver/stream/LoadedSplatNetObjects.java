@@ -28,6 +28,7 @@ public class LoadedSplatNetObjects {
 	private final List<SpecialWinCount> specialWinCounts = new ArrayList<>();
 	private final List<FullscreenStreamData.MapData> stageWins = new ArrayList<>();
 	private final Map<Long, Long> playerMatchupNumbers = new HashMap<>();
+	private final List<Weapon> weaponStatsAtStreamStart = new ArrayList<>();
 
 	public boolean containsEmptyField() {
 		return weapons.isEmpty()
@@ -39,7 +40,8 @@ public class LoadedSplatNetObjects {
 			|| shoesGameCount.isEmpty()
 			|| specialWinCounts.isEmpty()
 			|| stageWins.isEmpty()
-			|| playerMatchupNumbers.isEmpty();
+			|| playerMatchupNumbers.isEmpty()
+			|| weaponStatsAtStreamStart.isEmpty();
 	}
 
 	public boolean isReady() {
@@ -57,5 +59,6 @@ public class LoadedSplatNetObjects {
 		specialWinCounts.clear();
 		stageWins.clear();
 		playerMatchupNumbers.clear();
+		weaponStatsAtStreamStart.clear();
 	}
 }
