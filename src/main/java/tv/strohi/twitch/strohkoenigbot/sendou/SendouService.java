@@ -10,6 +10,7 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class SendouService implements ScheduledService {
 	public final static Duration DEFAULT_CACHE_DURATION = Duration.ofSeconds(35);
+	public final static Duration CACHE_PREVIOUS_GAME_DURATION = Duration.ofHours(1);
 
 	private final static URI API_URL = URI.create("https://sendou.ink/");
 
@@ -47,6 +49,7 @@ public class SendouService implements ScheduledService {
 	private final ObjectMapper objectMapper;
 	private final LogQueuer logQueuer;
 	private final LogSender logSender;
+	private final ExceptionLogger exceptionLogger;
 
 	private final AccountRepository accountRepository;
 
@@ -59,6 +62,7 @@ public class SendouService implements ScheduledService {
 	private final Set<Long> finishedMatches = new HashSet<>();
 
 	private final Map<String, Instant> callingUsers = new HashMap<>();
+	private final Map<Long, ActiveSendouMatch> usersLastPlayedGames = new HashMap<>();
 
 	@Getter
 	private final Map<Integer, Integer> responseCodes = new HashMap<>();
@@ -67,6 +71,15 @@ public class SendouService implements ScheduledService {
 	private Long s3OverlaySendouUserId = null;
 
 	public Optional<SendouMatch> loadActiveMatch(Account account, @NonNull String sendouUser) {
+		try {
+			return loadActiveMatchNoCatch(account, sendouUser);
+		} catch (Exception ex) {
+			exceptionLogger.logExceptionAsAttachment(log, "Exception during Sendou active match loader", ex);
+			return Optional.empty();
+		}
+	}
+
+	private Optional<SendouMatch> loadActiveMatchNoCatch(Account account, @NonNull String sendouUser) {
 		callingUsers.putIfAbsent(sendouUser, Instant.MIN);
 		if (callingUsers.get(sendouUser).isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
 			logQueuer.infoQueue(log, "# New user is using the overlay\n- User: `%s`\n- Url: https://sendou.ink/u/%s", sendouUser, sendouUser);
@@ -85,9 +98,53 @@ public class SendouService implements ScheduledService {
 
 		var match = usersActiveMatch.get();
 
+		usersLastPlayedGames.put(sendouUserId, match);
+
+		return loadMatch(account, sendouUserId, match);
+	}
+
+	public Optional<SendouMatch> loadLastPlayedMatch(Account account, @NonNull String sendouUser) {
+		try {
+			return loadLastPlayedMatchNoCatch(account, sendouUser);
+		} catch (Exception ex) {
+			exceptionLogger.logExceptionAsAttachment(log, "Exception during Sendou previous match loader", ex);
+			return Optional.empty();
+		}
+	}
+
+	private Optional<SendouMatch> loadLastPlayedMatchNoCatch(Account account, @NonNull String sendouUser) {
+		callingUsers.putIfAbsent(sendouUser, Instant.MIN);
+		if (callingUsers.get(sendouUser).isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
+			logQueuer.infoQueue(log, "# New user is using the overlay\n- User: `%s`\n- Url: https://sendou.ink/u/%s", sendouUser, sendouUser);
+		}
+		callingUsers.put(sendouUser, Instant.now());
+
+		var sendouUserId = loadSendouUserId(account, sendouUser)
+			.map(SendouApiUserIds::getId)
+			.orElse(6238L);
+
+		if (!usersLastPlayedGames.containsKey(sendouUserId)) {
+			return Optional.empty();
+		}
+
+		var match = usersLastPlayedGames.get(sendouUserId);
+
+		return loadMatch(account, sendouUserId, match);
+	}
+
+	public Optional<SendouMatch> loadMatch(Account account, Long sendouUserId, ActiveSendouMatch match) {
+		try {
+			return loadMatchNoCatch(account, sendouUserId, match);
+		} catch (Exception ex) {
+			exceptionLogger.logExceptionAsAttachment(log, "Exception during Sendou match loader", ex);
+			return Optional.empty();
+		}
+	}
+
+	private Optional<SendouMatch> loadMatchNoCatch(Account account, Long sendouUserId, ActiveSendouMatch match) {
 		switch (match.getLobbyAsEnum()) {
 			case TOURNAMENT:
-				return loadTournament(account, sendouUserId, match.getTournamentId(), match.getBracketIdx());
+				return loadTournament(account, sendouUserId, match);
 			case SENDOU_Q:
 				return loadSendouQMatch(account, match.getMatchId())
 					.flatMap(m -> mapToActiveMatch(account, sendouUserId, m));
@@ -97,13 +154,13 @@ public class SendouService implements ScheduledService {
 		}
 	}
 
-	private Optional<SendouMatch> loadTournament(Account account, Long sendouUserId, Long tournamentId, Integer bracketNumber) {
-		var foundTournament = loadTournament(account, tournamentId);
+	private Optional<SendouMatch> loadTournament(Account account, Long sendouUserId, ActiveSendouMatch match) {
+		var foundTournament = loadTournament(account, match.getTournamentId());
 
 		if (foundTournament.isPresent()) {
 			var tournament = foundTournament.get();
 
-			var allTeams = loadTournamentTeams(account, tournamentId);
+			var allTeams = loadTournamentTeams(account, match.getTournamentId());
 
 			var teamOfPlayer = allTeams
 				.stream()
@@ -114,10 +171,10 @@ public class SendouService implements ScheduledService {
 
 			var winCondition = "";
 			var currentMatchId = 0L;
-			if (tournament.hasStarted() && teamIdOfPlayer.isPresent() && bracketNumber < tournament.getBrackets().size()) {
+			if (tournament.hasStarted() && teamIdOfPlayer.isPresent() && match.getBracketIdx() < tournament.getBrackets().size()) {
 				var teamId = teamIdOfPlayer.get();
 
-				var bracket = loadTournamentBracket(account, tournamentId, bracketNumber);
+				var bracket = loadTournamentBracket(account, match.getTournamentId(), match.getBracketIdx());
 				var allGamesOfBracket = bracket
 					.stream()
 					.flatMap(b -> b.getData().getMatch().stream())
@@ -129,17 +186,14 @@ public class SendouService implements ScheduledService {
 					.collect(Collectors.toList());
 
 				var runningGameOfTeam = allGamesOfTeam.stream()
-					.filter(m ->
-						SendouTournamentMatchStatus.READY.equals(m.getStatus()) || SendouTournamentMatchStatus.RUNNING.equals(m.getStatus()))
+					.filter(g -> g.getId().equals(match.getMatchId()))
 					.findFirst();
 
 				if (runningGameOfTeam.isPresent()) {
 					var game = runningGameOfTeam.get();
 
 					currentMatchId = game.getId();
-					winCondition = bracket.get().getData().getRound().stream()
-						.filter(b -> Objects.equals(b.getId(), game.getRound_id()))
-						.findFirst()
+					winCondition = Optional.of(bracket.get().getData().getRound().get(allGamesOfTeam.size() - 1))
 						.map(r -> "BEST_OF".equals(r.getMaps().getType()) ? String.format("bo%d", r.getMaps().getCount()) : String.format("pa%d", r.getMaps().getCount()))
 						.orElse("");
 				} else {
@@ -165,14 +219,14 @@ public class SendouService implements ScheduledService {
 				final var finalWinCondition = winCondition;
 
 				return loadTournamentMatch(account, currentMatchId)
-					.flatMap(match -> {
+					.flatMap(tournamentMatch -> {
 						var otherTeam = allTeams.stream()
 							.flatMap(Collection::stream)
 							.filter(t -> !t.getId().equals(teamIdOfPlayer.get()))
-							.filter(t -> t.getId().equals(match.getTeamOne().getId()) || t.getId().equals(match.getTeamTwo().getId()))
+							.filter(t -> t.getId().equals(tournamentMatch.getTeamOne().getId()) || t.getId().equals(tournamentMatch.getTeamTwo().getId()))
 							.findFirst();
 
-						return otherTeam.flatMap(sendouTournamentTeam -> mapToActiveMatch(account, tournament, sendouUserId, teamOfPlayer.get(), sendouTournamentTeam, match, finalWinCondition));
+						return otherTeam.flatMap(sendouTournamentTeam -> mapToActiveMatch(account, tournament, sendouUserId, teamOfPlayer.get(), sendouTournamentTeam, tournamentMatch, finalWinCondition));
 					});
 			}
 		}
@@ -530,6 +584,7 @@ public class SendouService implements ScheduledService {
 					try {
 						return objectMapper.readValue(body.getObject(), typeToConvert);
 					} catch (JsonProcessingException e) {
+						exceptionLogger.logExceptionAsAttachment(log, "Could not parse something in SendouService", e);
 						return null;
 					}
 				})

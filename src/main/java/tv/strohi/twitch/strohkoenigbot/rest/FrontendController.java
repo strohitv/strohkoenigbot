@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static tv.strohi.twitch.strohkoenigbot.sendou.SendouService.CACHE_PREVIOUS_GAME_DURATION;
 import static tv.strohi.twitch.strohkoenigbot.sendou.SendouService.DEFAULT_CACHE_DURATION;
 
 @RestController
@@ -67,6 +68,19 @@ public class FrontendController {
 			.flatMap(account -> sendouService.loadActiveMatch(account, sendouUser))
 			.map(this::map)
 			.orElse(SendouMatchSearchResult.builder().type(MatchType.NONE.name()).build());
+
+		if (matchModel.getType().equalsIgnoreCase(MatchType.NONE.name())
+			&& cache.containsKey(cacheKey)
+			&& !cache.get(cacheKey).getObject().getType().equalsIgnoreCase(MatchType.NONE.name())
+			&& Instant.now().isBefore(cache.get(cacheKey).getExpirationTime().plus(CACHE_PREVIOUS_GAME_DURATION))) {
+
+			matchModel = accountRepository.findByIsMainAccount(true)
+				.stream()
+				.findFirst()
+				.flatMap(account -> sendouService.loadLastPlayedMatch(account, sendouUser))
+				.map(this::map)
+				.orElse(SendouMatchSearchResult.builder().type(MatchType.NONE.name()).build());
+		}
 
 		cache.put(cacheKey, new Cached<>(Instant.now().plus(DEFAULT_CACHE_DURATION), matchModel));
 
