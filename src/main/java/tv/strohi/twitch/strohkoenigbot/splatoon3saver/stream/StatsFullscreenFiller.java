@@ -7,9 +7,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.ExceptionLogger;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3GearDownloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3SpecialWeaponWinStatsDownloader;
-import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3WeaponStatsDownloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3XPowerDownloader;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.Image;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.*;
@@ -43,7 +43,8 @@ public class StatsFullscreenFiller implements ScheduledService {
 	private final TwitchBotClient twitchBotClient;
 	private final ImageService imageService;
 
-	private final S3WeaponStatsDownloader weaponStatsDownloader;
+	private final ExceptionLogger exceptionLogger;
+
 	private final S3SpecialWeaponWinStatsDownloader specialWeaponWinStatsDownloader;
 
 	private final Splatoon3BadgeRepository badgeRepository;
@@ -66,6 +67,14 @@ public class StatsFullscreenFiller implements ScheduledService {
 	private List<StageWinStatsWithRule> stageResultStatsAtStart = null;
 
 	private void run() {
+		try {
+			runNoCatch();
+		} catch (Exception ex) {
+			exceptionLogger.logExceptionAsAttachment(log, "Exception during StatsFullscreenFiller_run", ex);
+		}
+	}
+
+	private void runNoCatch() {
 		if (twitchBotClient.getWentLiveTime() == null
 			|| loadedSplatNetObjects.getWeapons().isEmpty()
 			|| loadedSplatNetObjects.getSpecialWinCounts().isEmpty()

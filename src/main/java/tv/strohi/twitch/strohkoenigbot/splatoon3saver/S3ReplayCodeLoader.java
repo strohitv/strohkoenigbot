@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchBotClient;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.TwitchMessageSender;
 import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogQueuer;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.messaging.LogSender;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Attachment;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Target;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
 import tv.strohi.twitch.strohkoenigbot.data.repository.AccountRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsInksightPlayerStats;
@@ -42,6 +45,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 	private final TwitchMessageSender twitchMessageSender;
 
 	private final S3ApiQuerySender apiQuerySender;
+	private final LogSender logSender;
 	private final LogQueuer logQueuer;
 	private final ExceptionLogger exceptionLogger;
 
@@ -303,7 +307,8 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					}
 				}
 
-				logQueuer.queueLogsAsAttachment(log, Level.INFO, "# Found new InkSight replay\nUrl: https://inksight.live/?match=" + inksightData.getMatchToken(), summaryMarkdownBuilder.toString());
+				logQueuer.infoQueue(log, List.of(Target.adminTarget()), List.of(Attachment.withDefaultName(summaryMarkdownBuilder.toString())), "# Found new InkSight replay\nUrl: https://inksight.live/?match=%s", inksightData.getMatchToken());
+				logSender.sendLogsAsAttachment(log, Level.INFO, String.format("# Found new InkSight replay (NOT QUEUED)\nUrl: https://inksight.live/?match=%s", inksightData.getMatchToken()), summaryMarkdownBuilder.toString());
 				return true;
 			} catch (Exception ex) {
 				if (ex instanceof UnrecognizedPropertyException) {

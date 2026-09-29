@@ -58,6 +58,14 @@ public class SplatNetObjectLoader implements ScheduledService {
 
 	@Transactional
 	public void run() {
+		try {
+			runNoCatch();
+		} catch (Exception ex) {
+			exceptionLogger.logExceptionAsAttachment(log, "Exception during SplatNetObjectLoader_run", ex);
+		}
+	}
+
+	public void runNoCatch() {
 		if (twitchBotClient.getWentLiveTime() == null) {
 			loadedSplatNetObjects.reset();
 			stageResultStatsAtStart.clear();
