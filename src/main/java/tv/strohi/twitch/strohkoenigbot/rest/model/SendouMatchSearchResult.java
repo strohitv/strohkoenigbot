@@ -9,6 +9,7 @@ import lombok.*;
 @Setter
 @ToString
 @Builder(toBuilder = true)
+@EqualsAndHashCode
 public class SendouMatchSearchResult {
 	private String type;
 	private String matchUrl;

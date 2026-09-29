@@ -19,10 +19,7 @@ import tv.strohi.twitch.strohkoenigbot.splatoon3saver.stream.StatsSidebarFiller;
 import tv.strohi.twitch.strohkoenigbot.utils.model.Cached;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static tv.strohi.twitch.strohkoenigbot.sendou.SendouService.CACHE_PREVIOUS_GAME_DURATION;
 import static tv.strohi.twitch.strohkoenigbot.sendou.SendouService.DEFAULT_CACHE_DURATION;
@@ -82,7 +79,9 @@ public class FrontendController {
 				.orElse(SendouMatchSearchResult.builder().type(MatchType.NONE.name()).build());
 		}
 
-		cache.put(cacheKey, new Cached<>(Instant.now().plus(DEFAULT_CACHE_DURATION), matchModel));
+		if (!Objects.equals(matchModel, cache.getOrDefault(cacheKey, Cached.<SendouMatchSearchResult>builder().build()).getObject())) {
+			cache.put(cacheKey, new Cached<>(Instant.now().plus(DEFAULT_CACHE_DURATION), matchModel));
+		}
 
 		return matchModel;
 	}
