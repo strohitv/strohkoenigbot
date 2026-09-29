@@ -74,7 +74,7 @@ public class FrontendController {
 			matchModel = accountRepository.findByIsMainAccount(true)
 				.stream()
 				.findFirst()
-				.flatMap(account -> sendouService.loadLastPlayedMatch(account, sendouUser))
+				.flatMap(account -> sendouService.loadPreviouslyPlayedMatch(account, sendouUser))
 				.map(this::map)
 				.orElse(SendouMatchSearchResult.builder().type(MatchType.NONE.name()).build());
 		}

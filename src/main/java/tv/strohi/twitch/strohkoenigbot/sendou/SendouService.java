@@ -103,16 +103,16 @@ public class SendouService implements ScheduledService {
 		return loadMatch(account, sendouUserId, match);
 	}
 
-	public Optional<SendouMatch> loadLastPlayedMatch(Account account, @NonNull String sendouUser) {
+	public Optional<SendouMatch> loadPreviouslyPlayedMatch(Account account, @NonNull String sendouUser) {
 		try {
-			return loadLastPlayedMatchNoCatch(account, sendouUser);
+			return loadPreviouslyPlayedMatchNoCatch(account, sendouUser);
 		} catch (Exception ex) {
 			exceptionLogger.logExceptionAsAttachment(log, "Exception during Sendou previous match loader", ex);
 			return Optional.empty();
 		}
 	}
 
-	private Optional<SendouMatch> loadLastPlayedMatchNoCatch(Account account, @NonNull String sendouUser) {
+	private Optional<SendouMatch> loadPreviouslyPlayedMatchNoCatch(Account account, @NonNull String sendouUser) {
 		callingUsers.putIfAbsent(sendouUser, Instant.MIN);
 		if (callingUsers.get(sendouUser).isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
 			logQueuer.infoQueue(log, "# New user is using the overlay\n- User: `%s`\n- Url: https://sendou.ink/u/%s", sendouUser, sendouUser);
