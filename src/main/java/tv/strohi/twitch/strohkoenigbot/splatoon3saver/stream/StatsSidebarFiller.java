@@ -23,6 +23,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
+import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,15 +49,17 @@ public class StatsSidebarFiller implements ScheduledService {
 	@Getter
 	private StreamData streamData = StreamData.empty();
 
-	private void run() {
+	@Transactional
+	public void run() {
 		try {
 			runNoCatch();
 		} catch (Exception ex) {
-			exceptionLogger.logExceptionAsAttachment(log, "Exception during StatsSidebarFiller_run", ex);
+			exceptionLogger.logExceptionAsAttachment(log, "Exception during StatsSidebarFiller_run - did not affect schedule running", ex);
 		}
 	}
 
-	private void runNoCatch() {
+	@Transactional(value = Transactional.TxType.REQUIRES_NEW)
+	public void runNoCatch() {
 		if (twitchBotClient.getWentLiveTime() == null) {
 			streamData = StreamData.empty();
 			specialWinStatsAtStreamStart = null;

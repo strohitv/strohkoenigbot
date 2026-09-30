@@ -29,6 +29,7 @@ import tv.strohi.twitch.strohkoenigbot.utils.scheduling.ScheduledService;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.ScheduleRequest;
 import tv.strohi.twitch.strohkoenigbot.utils.scheduling.model.TickSchedule;
 
+import javax.transaction.Transactional;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,7 +67,8 @@ public class StatsFullscreenFiller implements ScheduledService {
 	private List<OwnUsedWeaponStatsWithWeapon> ownUsedWeaponWinStatsAtStart = null;
 	private List<StageWinStatsWithRule> stageResultStatsAtStart = null;
 
-	private void run() {
+	@Transactional
+	public void run() {
 		try {
 			runNoCatch();
 		} catch (Exception ex) {
@@ -74,7 +76,8 @@ public class StatsFullscreenFiller implements ScheduledService {
 		}
 	}
 
-	private void runNoCatch() {
+	@Transactional(value = Transactional.TxType.REQUIRES_NEW)
+	public void runNoCatch() {
 		if (twitchBotClient.getWentLiveTime() == null
 			|| loadedSplatNetObjects.getWeapons().isEmpty()
 			|| loadedSplatNetObjects.getSpecialWinCounts().isEmpty()
