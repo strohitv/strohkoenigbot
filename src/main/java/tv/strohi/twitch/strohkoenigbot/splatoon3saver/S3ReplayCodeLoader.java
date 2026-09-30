@@ -188,18 +188,16 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					.append("- inner mmr: `").append(innerMmr).append("`\n");
 
 				for (var channelName : ALL_TWITCH_CHANNEL_NAMES) {
-					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: mmr = %.1f, power = %.1f, inner mmr = %.1f, alive time = %02d:%02d, dead time = %02d:%02d, super jumps: %d, safe super jumps: %d",
+					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: alive time = %02d:%02d, dead time = %02d:%02d, super jumps: %d, safe super jumps: %d, inksight: https://inksight.live/?match=%s",
 						myself.getName(),
 						myself.getDiscriminator(),
-						savedResult.getMmr(),
-						savedResult.getPower(),
-						savedResult.getInnerMmr(),
 						ownAliveDuration.toMinutesPart(),
 						ownAliveDuration.toSecondsPart(),
 						ownDeadDuration.toMinutesPart(),
 						ownDeadDuration.toSecondsPart(),
 						myself.getStats().getSuperJumpsAttempted(),
-						myself.getStats().getSuperJumpsSuccessful()));
+						myself.getStats().getSuperJumpsSuccessful(),
+						inksightData.getMatchToken()));
 				}
 
 				if (inksightData.getHasFlag()) {
