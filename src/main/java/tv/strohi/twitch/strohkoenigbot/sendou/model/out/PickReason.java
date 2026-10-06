@@ -10,6 +10,7 @@ public enum PickReason {
 	DEFAULT,
 	BOTH,
 	TO,
+	RANDOM,
 	COUNTERPICK;
 
 	public static PickReason determine(Object reason, Long teamAlphaId) {
@@ -40,10 +41,12 @@ public enum PickReason {
 				pickReason = PickReason.BOTH;
 			} else if ("TO".equals(reasonStr)) {
 				pickReason = PickReason.TO;
+			} else if ("RANDOM".equals(reasonStr)) {
+				pickReason = PickReason.RANDOM;
 			} else if ("COUNTERPICK".equals(reasonStr)) {
 				pickReason = PickReason.COUNTERPICK;
 			} else {
-				throw new IllegalArgumentException("Unknown reason: " + reason);
+				throw new IllegalArgumentException("Unknown sendou tournament pick reason: " + reason);
 			}
 		}
 
