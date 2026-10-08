@@ -4,12 +4,15 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Attachment;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Target;
 import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class ExceptionLogger {
@@ -47,6 +50,13 @@ public class ExceptionLogger {
 		}
 
 		var wholeMessage = messageBuilder.toString();
-		logSender.sendLogsAsAttachment(logger, Level.ERROR, String.format("## Error\n%s\n### Exception", title), wholeMessage);
+
+		logSender.send(
+			logger,
+			Level.ERROR,
+			List.of(Target.channel("debug-logs-errors")),
+			List.of(Attachment.withDefaultName(wholeMessage)),
+			"## Error\n%s\n### Exception",
+			title);
 	}
 }

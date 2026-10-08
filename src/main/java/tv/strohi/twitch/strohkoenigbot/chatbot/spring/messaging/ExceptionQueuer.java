@@ -4,12 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Attachment;
+import tv.strohi.twitch.strohkoenigbot.chatbot.spring.model.Target;
 import tv.strohi.twitch.strohkoenigbot.utils.ComputerNameEvaluator;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordChannelDecisionMaker;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -43,6 +46,13 @@ public class ExceptionQueuer {
 		}
 
 		var wholeMessage = messageBuilder.toString();
-		logQueuer.queueLogsAsAttachment(logger, Level.ERROR, String.format("## Error\n%s\n### Exception", title), wholeMessage);
+
+		logQueuer.queue(
+			logger,
+			Level.ERROR,
+			List.of(Target.channel("debug-logs-errors")),
+			List.of(Attachment.withDefaultName(wholeMessage)),
+			"## Error\n%s\n### Exception",
+			title);
 	}
 }
