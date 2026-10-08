@@ -307,6 +307,7 @@ public class SplatNetObjectLoader implements ScheduledService {
 		return List.of(ScheduleRequest.builder()
 			.name("SplatNetObjectLoader_run")
 			.prioritized(true)
+			.ignoreFails(true)
 			.schedule(CronSchedule.getScheduleString("*/12 * * * * *"))
 			.runnable(this::run)
 			.build());

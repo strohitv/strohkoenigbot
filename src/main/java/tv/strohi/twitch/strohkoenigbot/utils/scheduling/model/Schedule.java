@@ -21,4 +21,6 @@ public interface Schedule {
 	boolean isFailed(int maxAttempts);
 
 	boolean isPrioritized();
+
+	boolean isIgnoreFails();
 }

@@ -15,6 +15,7 @@ public class CronSchedule implements Schedule {
 
 	private final String name;
 	private final boolean prioritized;
+	private final boolean ignoreFails;
 	private final CronExpression cronExpression;
 	private final Runnable runnable;
 	private final Runnable errorCleanUpRunnable;
@@ -22,9 +23,10 @@ public class CronSchedule implements Schedule {
 	private int errorCount = 0;
 	private final List<Exception> exceptions = new ArrayList<>();
 
-	public CronSchedule(String name, boolean prioritized, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
+	public CronSchedule(String name, boolean prioritized, boolean ignoreFails, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
 		this.name = name;
 		this.prioritized = prioritized;
+		this.ignoreFails = ignoreFails;
 		this.cronExpression = CronExpression.parse(cron);
 		this.runnable = runnable;
 		this.errorCleanUpRunnable = errorCleanUpRunnable;
@@ -102,5 +104,10 @@ public class CronSchedule implements Schedule {
 	@Override
 	public boolean isPrioritized() {
 		return prioritized;
+	}
+
+	@Override
+	public boolean isIgnoreFails() {
+		return ignoreFails;
 	}
 }

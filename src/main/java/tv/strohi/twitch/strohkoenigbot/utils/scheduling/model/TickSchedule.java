@@ -16,6 +16,7 @@ public class TickSchedule implements Schedule {
 
 	private final String name;
 	private final boolean prioritized;
+	private final boolean ignoreFails;
 	private final int runEveryTicks;
 	private final Runnable runnable;
 	private final Runnable errorCleanUpRunnable;
@@ -93,5 +94,10 @@ public class TickSchedule implements Schedule {
 	@Override
 	public boolean isPrioritized() {
 		return prioritized;
+	}
+
+	@Override
+	public boolean isIgnoreFails() {
+		return ignoreFails;
 	}
 }

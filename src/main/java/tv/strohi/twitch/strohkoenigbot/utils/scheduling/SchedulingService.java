@@ -52,14 +52,14 @@ public class SchedulingService {
 		{
 			service.createSingleRunRequests().forEach(request -> {
 				if (request.getSchedule().startsWith("tick: ")) {
-					registerOnce(request.getName(), request.isPrioritized(), Integer.parseInt(request.getSchedule().replace("tick:", "").trim()), request.getRunnable(), request.getErrorCleanUpRunnable());
+					registerOnce(request.getName(), request.isPrioritized(), request.isIgnoreFails(), Integer.parseInt(request.getSchedule().replace("tick:", "").trim()), request.getRunnable(), request.getErrorCleanUpRunnable());
 				} else {
-					registerOnce(request.getName(), request.isPrioritized(), request.getSchedule().replace("cron:", "").trim(), request.getRunnable(), request.getErrorCleanUpRunnable());
+					registerOnce(request.getName(), request.isPrioritized(), request.isIgnoreFails(), request.getSchedule().replace("cron:", "").trim(), request.getRunnable(), request.getErrorCleanUpRunnable());
 				}
 			});
 
 			service.createScheduleRequests().forEach(request ->
-				register(request.getName(), request.isPrioritized(), request.getSchedule(), request.getRunnable(), request.getErrorCleanUpRunnable()));
+				register(request.getName(), request.isPrioritized(), request.isIgnoreFails(), request.getSchedule(), request.getRunnable(), request.getErrorCleanUpRunnable()));
 		});
 	}
 
@@ -88,7 +88,7 @@ public class SchedulingService {
 		for (int i = 0; i < singleRunSchedules.size(); i++) {
 			var schedule = singleRunSchedules.get(i);
 
-			if(schedule.isPrioritized() != prioritized) {
+			if (schedule.isPrioritized() != prioritized) {
 				continue;
 			}
 
@@ -110,9 +110,14 @@ public class SchedulingService {
 					schedule.increaseErrorCount();
 
 					if (ex instanceof TimeoutException) {
-						logSender.info(log,
-							String.format("## Timeout\nSingle Runnable '**%s**' (%s, debug: `%s`) ran into timeout!!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
-					} else if (schedule.isFailed(MAX_ERRORS_SINGLE)) {
+						logSender.info(
+							log,
+							"## Timeout\nSingle Runnable '**%s**' (%s, debug: `%s`) ran into timeout!!\n### Schedule\n```\n%s\n```",
+							schedule.getName(),
+							computerName,
+							debug,
+							schedule);
+					} else if (!schedule.isIgnoreFails() && schedule.isFailed(MAX_ERRORS_SINGLE)) {
 						exceptionLogger.logExceptionAsAttachment(log,
 							String.format("Single Runnable failed **%d** times and got removed from Scheduler (%s, debug: `%s`)!! Schedule:\n```\n%s\n```", MAX_ERRORS_SINGLE, computerName, debug, schedule),
 							ex);
@@ -128,7 +133,7 @@ public class SchedulingService {
 		for (int i = 0; i < schedules.size(); i++) {
 			var schedule = schedules.get(i);
 
-			if(schedule.isPrioritized() != prioritized) {
+			if (schedule.isPrioritized() != prioritized) {
 				continue;
 			}
 
@@ -147,8 +152,13 @@ public class SchedulingService {
 					schedule.increaseErrorCount();
 
 					if (ex instanceof TimeoutException) {
-						logSender.info(log,
-							String.format("## Timeout\nRunnable '**%s**' (%s, debug: `%s`) ran into timeout!!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
+						logSender.error(
+							log,
+							"## Timeout\nRunnable '**%s**' (%s, debug: `%s`) ran into timeout!!\n### Schedule\n```\n%s\n```",
+							schedule.getName(),
+							computerName,
+							debug,
+							schedule);
 					} else {
 						exceptionLogger.logExceptionAsAttachment(log,
 							String.format("Runnable '**%s**' ran into an unexpected Exception!!\n### Schedule\n```\n%s\n```", schedule.getName(), schedule),
@@ -157,19 +167,35 @@ public class SchedulingService {
 
 
 					if (schedule.getErrorCleanUpRunnable() != null) {
-						logSender.info(log,
-							String.format("Running error cleanup runnable for schedule '**%s**' (%s, debug: `%s`)!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
+						logSender.info(
+							log,
+							"Running error cleanup runnable for schedule '**%s**' (%s, debug: `%s`)!\n### Schedule\n```\n%s\n```",
+							schedule.getName(),
+							computerName,
+							debug,
+							schedule);
 
 						transactionalRunner.run(schedule.getErrorCleanUpRunnable());
 
-						logSender.info(log,
-							String.format("Done running error cleanup runnable for schedule '**%s**' (%s, debug: `%s`)!\n### Schedule\n```\n%s\n```", schedule.getName(), computerName, debug, schedule));
+						logSender.info(
+							log,
+							"Done running error cleanup runnable for schedule '**%s**' (%s, debug: `%s`)!\n### Schedule\n```\n%s\n```",
+							schedule.getName(),
+							computerName,
+							debug,
+							schedule);
 					}
 				}
 
-				if (schedule.isFailed(MAX_ERRORS_REPEATED)) {
-					logSender.info(log,
-						String.format("Repeated Runnable '**%s**' (%s, debug: `%s`) failed **%d** times and got removed from Scheduler!! Schedule:\n```\n%s\n```", schedule.getName(), computerName, debug, MAX_ERRORS_REPEATED, schedule));
+				if (!schedule.isIgnoreFails() && schedule.isFailed(MAX_ERRORS_REPEATED)) {
+					logSender.error(
+						log,
+						"Repeated Runnable '**%s**' (%s, debug: `%s`) failed **%d** times and got removed from Scheduler!! Schedule:\n```\n%s\n```",
+						schedule.getName(),
+						computerName,
+						debug,
+						MAX_ERRORS_REPEATED,
+						schedule);
 
 					var exceptions = schedule.getErrors();
 					Exception exception = exceptions.get(exceptions.size() - 1);
@@ -204,15 +230,15 @@ public class SchedulingService {
 		};
 	}
 
-	private void registerOnce(String name, boolean prioritized, int ticks, Runnable runnable, Runnable errorCleanUpRunnable) {
-		singleRunSchedules.add(new TickSchedule(name, prioritized, ticks, runnable, errorCleanUpRunnable));
+	private void registerOnce(String name, boolean prioritized, boolean ignoreFails, int ticks, Runnable runnable, Runnable errorCleanUpRunnable) {
+		singleRunSchedules.add(new TickSchedule(name, prioritized, ignoreFails, ticks, runnable, errorCleanUpRunnable));
 	}
 
-	private void registerOnce(String name, boolean prioritized, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
-		singleRunSchedules.add(new CronSchedule(name, prioritized, cron, runnable, errorCleanUpRunnable));
+	private void registerOnce(String name, boolean prioritized, boolean ignoreFails, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
+		singleRunSchedules.add(new CronSchedule(name, prioritized, ignoreFails, cron, runnable, errorCleanUpRunnable));
 	}
 
-	private void register(String configName, boolean prioritized, String defaultValue, Runnable runnable, Runnable errorCleanUpRunnable) {
+	private void register(String configName, boolean prioritized, boolean ignoreFails, String defaultValue, Runnable runnable, Runnable errorCleanUpRunnable) {
 		var config = configurationRepository.findAllByConfigName(configName).stream().findFirst().orElse(null);
 
 		if (config == null) {
@@ -221,27 +247,27 @@ public class SchedulingService {
 				String.format("Added new Schedule: id = `%d`, name = `%s`, value = `%s` (%s, debug: `%s`)", config.getId(), configName, defaultValue, ComputerNameEvaluator.getComputerName(), DiscordChannelDecisionMaker.isLocalDebug()));
 		}
 
-		schedules.add(createFromSettings(configName, prioritized, config.getConfigValue(), runnable, errorCleanUpRunnable));
+		schedules.add(createFromSettings(configName, prioritized, ignoreFails, config.getConfigValue(), runnable, errorCleanUpRunnable));
 	}
 
-	private static Schedule createFromSettings(String name, boolean prioritized, String setting, Runnable runnable, Runnable errorCleanUpRunnable) {
+	private static Schedule createFromSettings(String name, boolean prioritized, boolean ignoreFails, String setting, Runnable runnable, Runnable errorCleanUpRunnable) {
 		if (setting.toLowerCase().startsWith("cron: ")) {
-			return create(name, prioritized, setting.substring("cron: ".length()), runnable, errorCleanUpRunnable);
+			return create(name, prioritized, ignoreFails, setting.substring("cron: ".length()), runnable, errorCleanUpRunnable);
 		} else if (setting.toLowerCase().startsWith("tick: ")) {
 			try {
-				return create(name, prioritized, Integer.parseInt(setting.substring("tick: ".length())), runnable, errorCleanUpRunnable);
+				return create(name, prioritized, ignoreFails, Integer.parseInt(setting.substring("tick: ".length())), runnable, errorCleanUpRunnable);
 			} catch (NumberFormatException ignored) {
 			}
 		}
 
-		return create(name, prioritized, 720, runnable, errorCleanUpRunnable);
+		return create(name, prioritized, ignoreFails, 720, runnable, errorCleanUpRunnable);
 	}
 
-	private static Schedule create(String name, boolean prioritized, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
-		return new CronSchedule(name, prioritized, cron, runnable, errorCleanUpRunnable);
+	private static Schedule create(String name, boolean prioritized, boolean ignoreFails, String cron, Runnable runnable, Runnable errorCleanUpRunnable) {
+		return new CronSchedule(name, prioritized, ignoreFails, cron, runnable, errorCleanUpRunnable);
 	}
 
-	private static Schedule create(String name, boolean prioritized, int tickEvery, Runnable runnable, Runnable errorCleanUpRunnable) {
-		return new TickSchedule(name, prioritized, tickEvery, runnable, errorCleanUpRunnable);
+	private static Schedule create(String name, boolean prioritized, boolean ignoreFails, int tickEvery, Runnable runnable, Runnable errorCleanUpRunnable) {
+		return new TickSchedule(name, prioritized, ignoreFails, tickEvery, runnable, errorCleanUpRunnable);
 	}
 }

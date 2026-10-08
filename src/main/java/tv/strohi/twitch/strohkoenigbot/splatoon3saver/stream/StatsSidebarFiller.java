@@ -602,6 +602,7 @@ public class StatsSidebarFiller implements ScheduledService {
 		return List.of(ScheduleRequest.builder()
 			.name("StatsSidebarFiller_run")
 			.prioritized(true)
+			.ignoreFails(true)
 			.schedule(TickSchedule.getScheduleString(1))
 			.runnable(this::run)
 			.build());

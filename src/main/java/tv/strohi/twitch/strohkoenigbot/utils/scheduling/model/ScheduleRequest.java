@@ -15,4 +15,6 @@ public class ScheduleRequest {
 
 	@Builder.Default
 	private boolean prioritized = false;
+	@Builder.Default
+	private boolean ignoreFails = false;
 }
