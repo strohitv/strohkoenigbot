@@ -11,20 +11,20 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGearShopOffer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGearShopOfferNotification;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsBrandRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearShopOfferNotificationRepository;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.repo.vs.Splatoon3VsGearShopOfferRepository;
 import tv.strohi.twitch.strohkoenigbot.utils.DiscordAccountLoader;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -38,6 +38,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 	private final DiscordAccountLoader discordAccountLoader;
 
 	private final Splatoon3VsGearRepository gearRepository;
+	private final Splatoon3VsBrandRepository brandRepository;
 	private final Splatoon3VsGearShopOfferRepository shopOfferRepository;
 	private final Splatoon3VsGearShopOfferNotificationRepository shopOfferNotificationRepository;
 
@@ -244,6 +245,110 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			}
 
 			sender.send(messageBuilder.toString());
+		} else if (lowerCaseMessage.startsWith("brand")) {
+			lowerCaseMessage = lowerCaseMessage.substring("brand".length()).trim();
+
+			if (lowerCaseMessage.isBlank()) {
+				sender.send("**ERROR**! Please provide a brand which I can search for.");
+				return;
+			}
+
+			var brandName = lowerCaseMessage.trim();
+			var brand = brandRepository.findByNameIgnoreCase(brandName);
+
+			if (brand.isEmpty()) {
+				var brandMessageBuilder = new StringBuilder("**ERROR**! This Brand does not exist.\n\nThese are the brands I know:");
+
+				var allBrands = brandRepository.findAll();
+				for (var b : allBrands) {
+					brandMessageBuilder.append("\n- ").append(b.getName());
+				}
+
+				sender.send(brandMessageBuilder.toString());
+				return;
+			}
+
+			var allGearOfBrand = gearRepository.findAllByBrand(brand.get());
+
+			var allOffersNextYear = shopOfferRepository.findAllByAddedAtBetween(
+				LocalDate.now().atStartOfDay().minusSeconds(1).toInstant(ZoneOffset.UTC),
+				LocalDate.now().plusYears(1).atStartOfDay().plusSeconds(1).toInstant(ZoneOffset.UTC));
+
+			var totalMessageBuilder = new StringBuilder("# Gear schedules for the `")
+				.append(brand.get().getName())
+				.append("` brand");
+
+			for (var gearType : List.of("HeadGear", "ClothingGear", "ShoesGear")) {
+				var allGearOfType = allGearOfBrand.stream()
+					.filter(c -> gearType.equals(c.getType()))
+					.collect(Collectors.toList());
+
+				var allFinishedGears = new ArrayList<Splatoon3VsGear>();
+				var allOpenGears = new ArrayList<GearSchedules>();
+
+				allGearOfType.forEach(g -> {
+					if (g.getGearLevel() == 5) {
+						allFinishedGears.add(g);
+					} else {
+						allOpenGears.add(new GearSchedules(g, new ArrayList<>(), g.getGearLevel(), null));
+					}
+				});
+
+				for (var openGear : allOpenGears) {
+					for (var offer : allOffersNextYear) {
+						if (openGear.getLevel() >= 5) {
+							break;
+						}
+
+						if (!offer.getGear().equals(openGear.getGear())) {
+							continue;
+						}
+
+						openGear.setLevel(openGear.getLevel() + 1);
+						openGear.getOffers().add(offer);
+						openGear.setLastShopOccurrence(offer.getAddedAt());
+					}
+				}
+
+				var sortedOffers = allOpenGears.stream()
+					.filter(gs -> gs.getLastShopOccurrence() != null)
+					.sorted(Comparator.comparing(GearSchedules::getLastShopOccurrence))
+					.collect(Collectors.toList());
+
+				var messageBuilder = new StringBuilder("## ").append(gearType).append("\n### 5 stars");
+				if (!allFinishedGears.isEmpty()) {
+					for (var finishedGear : allFinishedGears) {
+						messageBuilder.append("\n- ").append(finishedGear.getName());
+					}
+				} else {
+					messageBuilder.append("\n- NONE YET");
+				}
+
+				messageBuilder.append("\n### below 5 stars");
+
+				if (!sortedOffers.isEmpty()) {
+					for (var sortedOffer : sortedOffers) {
+						messageBuilder
+							.append("\n- __")
+							.append(sortedOffer.getGear().getName())
+							.append("__ - `")
+							.append(sortedOffer.getGear().getGearLevel())
+							.append("` -> `")
+							.append(sortedOffer.getLevel())
+							.append("` <t:")
+							.append(sortedOffer.getLastShopOccurrence().getEpochSecond())
+							.append(":f> (<t:")
+							.append(sortedOffer.getLastShopOccurrence().getEpochSecond())
+							.append(":R>)");
+					}
+				} else {
+					messageBuilder.append("\n- NONE");
+				}
+
+				totalMessageBuilder.append("\n").append(messageBuilder);
+			}
+
+			sender.send(totalMessageBuilder.toString());
 		} else if (lowerCaseMessage.startsWith("delete")) {
 			lowerCaseMessage = lowerCaseMessage.substring("delete".length()).trim();
 
@@ -348,5 +453,16 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 	private static class NotificationOffer {
 		private Splatoon3VsGearShopOfferNotification notification;
 		private Splatoon3VsGearShopOffer offer;
+	}
+
+	@AllArgsConstructor
+	@Getter
+	@Setter
+	private static class GearSchedules {
+		private Splatoon3VsGear gear;
+		private List<Splatoon3VsGearShopOffer> offers;
+
+		private int level;
+		private Instant lastShopOccurrence;
 	}
 }

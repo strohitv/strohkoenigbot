@@ -16,5 +16,7 @@ public interface Splatoon3VsGearShopOfferRepository extends CrudRepository<Splat
 
 	List<Splatoon3VsGearShopOffer> findTop100ByGearInAndAddedAtAfterOrderByAddedAt(List<Splatoon3VsGear> gear, Instant addedAtAfter);
 
+	List<Splatoon3VsGearShopOffer> findAllByAddedAtBetween(Instant start, Instant end);
+
 	void deleteAllByAddedAt(Instant addedAt);
 }
