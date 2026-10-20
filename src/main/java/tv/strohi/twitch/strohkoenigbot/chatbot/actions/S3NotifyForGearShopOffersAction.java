@@ -319,10 +319,17 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 					.sorted(Comparator.comparing(GearSchedules::getLastShopOccurrence))
 					.collect(Collectors.toList());
 
+				var allNotifications = shopOfferNotificationRepository.findAll();
+
 				var messageBuilder = new StringBuilder("## ").append(gearType).append("\n### 5 stars");
 				if (!allFinishedGears.isEmpty()) {
 					for (var finishedGear : allFinishedGears) {
 						messageBuilder.append("\n- ").append(finishedGear.getName());
+
+						allNotifications.stream()
+							.filter(n -> finishedGear.getName().equals(n.getGearName()))
+							.findFirst()
+							.ifPresent(n -> messageBuilder.append(" (notification id: `").append(n.getId()).append("`)"));
 					}
 				} else {
 					messageBuilder.append("\n- NONE YET");
@@ -344,6 +351,11 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 							.append(":f> (<t:")
 							.append(sortedOffer.getLastShopOccurrence().getEpochSecond())
 							.append(":R>)");
+
+						allNotifications.stream()
+							.filter(n -> sortedOffer.getGear().getName().equals(n.getGearName()))
+							.findFirst()
+							.ifPresent(n -> messageBuilder.append(" (notification id: `").append(n.getId()).append("`)"));
 					}
 				} else {
 					messageBuilder.append("\n- NONE");
