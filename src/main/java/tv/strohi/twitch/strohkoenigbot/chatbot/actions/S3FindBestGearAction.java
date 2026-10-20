@@ -124,7 +124,7 @@ public class S3FindBestGearAction extends ChatAction {
 		}
 
 		var preferGrind = message.contains("grind");
-		var all = message.contains("all");
+		var simple = message.contains("simple");
 
 		if (lastUsed.isBefore(Instant.now().minus(30, ChronoUnit.MINUTES))) {
 			gearChecker.checkForNewGearInSplatNetShop(true);
@@ -403,13 +403,40 @@ public class S3FindBestGearAction extends ChatAction {
 		}
 
 		// result
-		if (!all) {
+		if (!simple) {
+			final var allMainFilters = new HashMap<>(mainFilters);
+			final var allSubFilters = new HashMap<>(subFilters);
+
+			var builder = new StringBuilder(String.format(
+				"## Build:\n- %s\n - %s\n - %s",
+				describeGear(bestHead, allMainFilters, allSubFilters),
+				describeGear(bestShirt, allMainFilters, allSubFilters),
+				describeGear(bestShoes, allMainFilters, allSubFilters)));
+
+			if (allMainFilters.values().stream().anyMatch(missed -> missed > 0)) {
+				builder.append("\n### Missed main abilities:");
+				for (var key : allMainFilters.keySet()) {
+					if (allMainFilters.get(key) > 0) {
+						builder.append("\n- `").append(allMainFilters.get(key)).append("x` ").append(key);
+					}
+				}
+			}
+
+			if (allSubFilters.values().stream().anyMatch(missed -> missed > 0)) {
+				builder.append("\n### Missed sub abilities:");
+				for (var key : allSubFilters.keySet()) {
+					if (allSubFilters.get(key) > 0) {
+						builder.append("\n- `").append(allSubFilters.get(key)).append("x` ").append(key);
+					}
+				}
+			}
+
+			args.getReplySender().send(builder.toString().trim());
+		} else {
 			args.getReplySender().send("**%s** (%s, %s) --- **%s** (%s, %s) --- **%s** (%s, %s)",
 				bestHead.getName(), bestHead.getBrand().getName(), bestHead.getPrimaryGearPower().getName(),
 				bestShirt.getName(), bestShirt.getBrand().getName(), bestShirt.getPrimaryGearPower().getName(),
 				bestShoes.getName(), bestShoes.getBrand().getName(), bestShoes.getPrimaryGearPower().getName());
-		} else {
-			args.getReplySender().send(String.format("- %s\n - %s\n - %s", describeGear(bestHead), describeGear(bestShirt), describeGear(bestShoes)));
 		}
 	}
 
@@ -417,14 +444,21 @@ public class S3FindBestGearAction extends ChatAction {
 		return URLDecoder.decode(value, StandardCharsets.UTF_8);
 	}
 
-	private String describeGear(Gear gear) {
+	private String describeGear(Gear gear, HashMap<String, Integer> mainFilters, HashMap<String, Integer> subFilters) {
 		var builder = new StringBuilder("**")
 			.append(gear.getName())
 			.append("** (brand = ")
 			.append(gear.getBrand().getName())
-			.append(", main = ")
-			.append(gear.getPrimaryGearPower().getName())
-			.append(", subs =");
+			.append(", main = ");
+
+		if (mainFilters.containsKey(gear.getPrimaryGearPower().getName()) && mainFilters.get(gear.getPrimaryGearPower().getName()) > 0) {
+			builder.append("__").append(gear.getPrimaryGearPower().getName()).append("__");
+			mainFilters.put(gear.getPrimaryGearPower().getName(), mainFilters.get(gear.getPrimaryGearPower().getName()) - 1);
+		} else {
+			builder.append(gear.getPrimaryGearPower().getName());
+		}
+
+		builder.append(", subs =");
 
 		var isFirst = true;
 		for (var sub : gear.getAdditionalGearPowers()) {
@@ -432,8 +466,12 @@ public class S3FindBestGearAction extends ChatAction {
 				builder.append(", ");
 			}
 
-			builder.append(" ")
-				.append(sub.getName());
+			if (subFilters.containsKey(sub.getName()) && subFilters.get(sub.getName()) > 0) {
+				builder.append(" __").append(sub.getName()).append("__");
+				subFilters.put(sub.getName(), subFilters.get(sub.getName()) - 1);
+			} else {
+				builder.append(" ").append(sub.getName());
+			}
 
 			isFirst = false;
 		}
