@@ -107,7 +107,9 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 						responseBuilder.append(" - **WARNING** You don't own a gear with this name!");
 					} else {
 						responseBuilder
-							.append(" - `")
+							.append(" (")
+							.append(gear.get().getBrand().getName())
+							.append(") - `")
 							.append(gear.get().getGearLevel())
 							.append("` stars")
 							.append(" - Next occurrence: ");
@@ -146,7 +148,9 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 					var gear = gearRepository.findByName(foundNotification.getGearName());
 					if (gear.isPresent()) {
 						responseBuilder
-							.append("\n- Current level: `")
+							.append("\n- Brand: `")
+							.append(gear.get().getBrand().getName())
+							.append("`\n- Current level: `")
 							.append(gear.get().getGearLevel())
 							.append("`")
 							.append("\n\n### Next occurrences in shop");
@@ -410,6 +414,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 		if (gear.isEmpty()) {
 			responseBuilder.append("\n\n**WARNING** You don't own a gear with this name!");
 		} else {
+			responseBuilder.append(" (Brand: `").append(gear.get().getBrand().getName()).append("`)");
 			responseBuilder.append("\n\n### Next occurrences in shop");
 
 			var nextNotifications = shopOfferRepository.findTop5ByGearAndAddedAtAfter(gear.get(), startOfToday);
