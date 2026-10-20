@@ -11,6 +11,7 @@ import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.ChatAction;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.supertype.TriggerReason;
 import tv.strohi.twitch.strohkoenigbot.chatbot.actions.util.TwitchDiscordMessageSender;
 import tv.strohi.twitch.strohkoenigbot.data.model.Account;
+import tv.strohi.twitch.strohkoenigbot.splatoon3saver.S3GearShopOfferNotificationSender;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGear;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGearShopOffer;
 import tv.strohi.twitch.strohkoenigbot.splatoon3saver.database.model.vs.Splatoon3VsGearShopOfferNotification;
@@ -36,6 +37,7 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 	}
 
 	private final DiscordAccountLoader discordAccountLoader;
+	private final S3GearShopOfferNotificationSender shopNotificationSender;
 
 	private final Splatoon3VsGearRepository gearRepository;
 	private final Splatoon3VsBrandRepository brandRepository;
@@ -400,9 +402,14 @@ public class S3NotifyForGearShopOffersAction extends ChatAction {
 			} else {
 				sender.send("**ERROR**! Please provide at least one number to delete.");
 			}
+		} else if (lowerCaseMessage.startsWith("resend")) {
+			sender.send("Resending shop notifications...");
+			shopNotificationSender.resetNotifications();
+			shopNotificationSender.sendNotifications();
+			sender.send("Shop notifications were sent again");
 		} else {
 			// no valid commands
-			sender.send("## Allowed commands\n  - !shops notify\n  - !shops next <number>\n  - !shops notifications\n  - !shops notifications <id>\n  - !shops clear\n  - !shops delete <id>");
+			sender.send("## Allowed commands\n  - !shops notify\n  - !shops next <number>\n  - !shops notifications\n  - !shops notifications <id>\n  - !shops brand <brand>\n  - !shops clear\n  - !shops delete <id>\n  - !shops resend");
 		}
 	}
 

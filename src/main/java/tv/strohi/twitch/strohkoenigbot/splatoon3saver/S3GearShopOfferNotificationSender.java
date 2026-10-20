@@ -106,7 +106,20 @@ public class S3GearShopOfferNotificationSender implements ScheduledService {
 		}
 	}
 
-	private void sendNotifications() {
+	public void resetNotifications() {
+		var config = configurationRepository
+			.findByConfigName(SHOP_OFFERS_LAST_NOTIFIED_DAY_CONFIG_NAME)
+			.orElse(Configuration.builder()
+				.configName(SHOP_OFFERS_LAST_NOTIFIED_DAY_CONFIG_NAME)
+				.configValue("1960-01-01")
+				.build());
+
+		config.setConfigValue("1960-01-01");
+
+		configurationRepository.save(config);
+	}
+
+	public void sendNotifications() {
 		var lastNotifiedConfig = configurationRepository.findByConfigName(SHOP_OFFERS_LAST_NOTIFIED_DAY_CONFIG_NAME)
 			.orElseGet(() -> configurationRepository.save(Configuration.builder()
 				.configName(SHOP_OFFERS_LAST_NOTIFIED_DAY_CONFIG_NAME)
