@@ -131,7 +131,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 
 				var myself = inksightData.getTeams().stream()
 					.flatMap(t -> t.getPlayers().stream())
-					.filter(InksightReplay.PlayerData::getIsRecorder)
+					.filter(p -> "aoebm6vpioek3yek".equalsIgnoreCase(p.getProfileId()))
 					.findFirst()
 					.orElseThrow();
 
@@ -329,11 +329,11 @@ public class S3ReplayCodeLoader implements ScheduledService {
 		var result = "";
 
 		if (myself.getStats().getEstPwr() != null) {
-			result += String.format(template, String.format("est. Power: %02f", myself.getStats().getEstPwr()));
+			result += String.format(template, String.format("est. Power: %.2f", myself.getStats().getEstPwr()));
 		}
 
 		if (myself.getStats().getEstXp() != null) {
-			result += String.format(template, String.format("est. XP: %02f", myself.getStats().getEstXp()));
+			result += String.format(template, String.format("est. XP: %.2f", myself.getStats().getEstXp()));
 		}
 
 		return result;
