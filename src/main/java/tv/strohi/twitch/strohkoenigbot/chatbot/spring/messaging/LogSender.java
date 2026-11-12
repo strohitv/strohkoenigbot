@@ -171,6 +171,7 @@ public class LogSender implements ScheduledService {
 			.name("DiscordBot_sendQueuedServerMessagesWithImageUrls")
 			.schedule(TickSchedule.getScheduleString(1))
 			.runnable(this::sendQueuedMessages)
+			.ignoreFails(true)
 			.build());
 	}
 
