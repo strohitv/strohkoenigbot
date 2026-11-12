@@ -26,8 +26,6 @@ import java.util.List;
 @Log4j2
 public class LogQueuer {
 	private final QueuedMessageRepository queuedMessageRepository;
-	private final LogSender logSender;
-
 	private final ObjectMapper objectMapper;
 
 	public void queue(Logger logger, Level level, List<Target> targets, List<Attachment> attachments, String message, Object... args) {
@@ -47,13 +45,6 @@ public class LogQueuer {
 				.build());
 		} catch (JsonProcessingException e) {
 			log.error("Exception while adding a message to the queued messages repository", e);
-
-			logSender.send(logger,
-				Level.ERROR,
-				List.of(Target.channel("debug-logs-errors")),
-				List.of(Attachment.withDefaultName(message)),
-				"## Error\n%s\n### Exception",
-				"Exception while adding a message to the queued messages repository");
 		}
 	}
 

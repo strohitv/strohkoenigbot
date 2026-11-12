@@ -50,6 +50,13 @@ public class DiscordBot {
 	private final ConfigurationRepository configurationRepository;
 	private final AccountRepository accountRepository;
 
+	private ResourcesDownloader resourcesDownloader;
+
+	@Autowired
+	public void setResourcesDownloader(ResourcesDownloader resourcesDownloader) {
+		this.resourcesDownloader = resourcesDownloader;
+	}
+
 	private List<Long> adminIds = null;
 
 	public List<Long> getAdminIds() {
@@ -89,13 +96,6 @@ public class DiscordBot {
 	}
 
 	private GatewayDiscordClient gateway = null;
-
-	private ResourcesDownloader resourcesDownloader;
-
-	@Autowired
-	public void setResourcesDownloader(ResourcesDownloader resourcesDownloader) {
-		this.resourcesDownloader = resourcesDownloader;
-	}
 
 	private GatewayDiscordClient getGateway() {
 		var tokens = configurationRepository.findAllByConfigName("discordToken");
