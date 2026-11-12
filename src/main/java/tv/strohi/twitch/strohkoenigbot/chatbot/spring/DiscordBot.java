@@ -449,11 +449,10 @@ public class DiscordBot {
 			try {
 				var os = new ByteArrayOutputStream();
 				ImageIO.write(image, "png", os);
-				var is = new ByteArrayInputStream(os.toByteArray());
 
 				tuples.add(Attachment.builder()
 					.name(String.format("%d.png", i))
-					.stream(is)
+					.content(os.toByteArray())
 					.build());
 			} catch (IOException ex) {
 				log.error(ex);
@@ -506,7 +505,7 @@ public class DiscordBot {
 
 				createMono = createMono.withFiles(
 					streams.stream()
-						.map(s -> MessageCreateFields.File.of(s.getName(), s.getStream()))
+						.map(s -> MessageCreateFields.File.of(s.getName(), new ByteArrayInputStream(s.getContent())))
 						.collect(Collectors.toList())
 				);
 			}
@@ -521,8 +520,6 @@ public class DiscordBot {
 						.ifPresent(account -> sendPrivateMessage(account.getDiscordId(), String.format("# Error when sending a discord message\n```\n%s\n```", e.getMessage())));
 				})
 				.block();
-
-			attachments.forEach(Attachment::close);
 
 			log.info("sent message to channel with id '{}': messageBlock: '{}'", channel.getId().asLong(), messageBlock);
 			success &= msg != null;
