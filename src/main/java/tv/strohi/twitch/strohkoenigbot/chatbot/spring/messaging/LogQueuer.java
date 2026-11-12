@@ -53,7 +53,7 @@ public class LogQueuer {
 				List.of(Target.channel("debug-logs-errors")),
 				List.of(Attachment.withDefaultName(message)),
 				"## Error\n%s\n### Exception",
-				"Exception during log queuing");
+				"Exception while adding a message to the queued messages repository");
 		}
 	}
 
