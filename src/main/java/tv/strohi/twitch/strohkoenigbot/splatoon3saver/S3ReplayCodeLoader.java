@@ -188,7 +188,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 					.append("- inner mmr: `").append(innerMmr).append("`\n");
 
 				for (var channelName : ALL_TWITCH_CHANNEL_NAMES) {
-					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: alive time = %02d:%02d, dead time = %02d:%02d, super jumps: %d, safe super jumps: %d, inksight: https://inksight.live/?match=%s",
+					twitchMessageSender.send(channelName, String.format("Found new stats for player %s#%s: alive time = %02d:%02d, dead time = %02d:%02d, super jumps: %d, safe super jumps: %d%s, inksight: https://inksight.live/?match=%s",
 						myself.getName(),
 						myself.getDiscriminator(),
 						ownAliveDuration.toMinutesPart(),
@@ -197,6 +197,7 @@ public class S3ReplayCodeLoader implements ScheduledService {
 						ownDeadDuration.toSecondsPart(),
 						myself.getStats().getSuperJumpsAttempted(),
 						myself.getStats().getSuperJumpsSuccessful(),
+						getEstimatedPowerString(myself, ", %s"),
 						inksightData.getMatchToken()));
 				}
 
@@ -301,7 +302,8 @@ public class S3ReplayCodeLoader implements ScheduledService {
 							.append("- Player Level: `").append(String.format("%d", playerPlayerLevel)).append("`\n")
 							.append("- Alive Percentage: `").append(String.format("%.1f", playerAlivePct)).append("`\n")
 							.append("- = Alive time: `").append(aliveDuration.toMinutesPart()).append(":").append(aliveDuration.toSecondsPart()).append("`\n")
-							.append("- = Dead time: `").append(deadDuration.toMinutesPart()).append(":").append(deadDuration.toSecondsPart()).append("`\n");
+							.append("- = Dead time: `").append(deadDuration.toMinutesPart()).append(":").append(deadDuration.toSecondsPart()).append("`\n")
+							.append(getEstimatedPowerString(player, "- %s\n"));
 					}
 				}
 
@@ -321,6 +323,20 @@ public class S3ReplayCodeLoader implements ScheduledService {
 		}
 
 		return false;
+	}
+
+	private String getEstimatedPowerString(InksightReplay.PlayerData myself, String template) {
+		var result = "";
+
+		if (myself.getStats().getEstPwr() != null) {
+			result += String.format(template, String.format("est. Power: %02f", myself.getStats().getEstPwr()));
+		}
+
+		if (myself.getStats().getEstXp() != null) {
+			result += String.format(template, String.format("est. XP: %02f", myself.getStats().getEstXp()));
+		}
+
+		return result;
 	}
 
 	@Override

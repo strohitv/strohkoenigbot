@@ -162,6 +162,8 @@ public class InksightReplay {
 		private Integer superJumpsSuccessful;
 		private Integer udemae;
 		private Integer challengeVictoryStreak;
+		private Double estPwr;
+		private Double estXp;
 
 		@NonNull
 		public Optional<Double> getXPower() {
