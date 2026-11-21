@@ -233,6 +233,7 @@ public class InksightReplay {
 		private Boolean disconnected;
 		private Long usableCycles;
 		private Boolean lagDowngraded;
+		private String legacyPadding;
 	}
 
 
